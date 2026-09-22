@@ -121,6 +121,10 @@
           <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Last Odometer</div>
           <div id="lastOdometer" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
+        <div style="background: rgba(234, 88, 12, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(234, 88, 12, 0.2);">
+          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Condition</div>
+          <div id="busCondition" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">Good</div>
+        </div>
       </div>
     </div>
 
@@ -167,7 +171,7 @@
       return response.json();
     }
 
-    function updateSummary(data, view) {
+    async function updateSummary(data, view) {
       if (!Array.isArray(data) || data.length === 0) return;
       if (view === "macro") {
         const latest = data[data.length - 1];
@@ -179,6 +183,22 @@
         document.getElementById("lastOdometer").textContent = `${Number(odometer).toFixed(1)} km`;
       }
       document.getElementById("busIdLabel").textContent = busId;
+
+      try {
+        const stateRes = await fetch("/api/bus-state");
+        const statePayload = await stateRes.json();
+        const state = statePayload?.state?.[busId];
+        if (state) {
+          if (Number.isFinite(Number(state.soc))) {
+            document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
+          }
+          if (state.condition) {
+            const condEl = document.getElementById("busCondition");
+            condEl.textContent = state.condition === "Good" ? "Good (Clean)" : "Maintenance Req.";
+            condEl.style.color = state.condition === "Good" ? "#16a34a" : "#dc2626";
+          }
+        }
+      } catch {}
     }
 
     function createMacroChart(data) {

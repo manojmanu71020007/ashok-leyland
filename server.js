@@ -220,7 +220,12 @@ function calculateRouteDistance(busNumber) {
 }
 
 function sendJson(res, payload, statusCode = 200) {
-    res.writeHead(statusCode, { "Content-Type": "application/json" });
+    res.writeHead(statusCode, {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-AIO-Key"
+    });
     res.end(JSON.stringify(payload));
 }
 
@@ -281,14 +286,23 @@ function normalizeTimingValue(value, fallback) {
     return typeof value === "string" && /^\d{2}:\d{2}$/.test(value) ? value : fallback;
 }
 
-function normalizeBusStateEntry(entry) {
-    const status = normalizeBusStatus(entry?.status);
+function normalizeBusStateEntry(entry, existing = {}) {
+    const rawStatus = entry?.status ? String(entry.status) : (existing?.status || "On Time");
+    const status = normalizeBusStatus(rawStatus);
+    const soc = Number.isFinite(Number(entry?.soc))
+        ? Math.max(0, Math.min(100, Number(entry.soc)))
+        : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : 100);
+    const condition = entry?.condition ? String(entry.condition) : (existing?.condition || "Good");
     const timings = entry?.statusTimings && typeof entry.statusTimings === "object"
         ? entry.statusTimings
-        : {};
+        : (existing?.statusTimings || {});
 
     return {
         status,
+        rawStatus,
+        soc,
+        condition: condition === "Not Good" ? "Not Good" : "Good",
+        updatedAt: new Date().toISOString(),
         statusTimings: {
             Delayed: {
                 arrival: normalizeTimingValue(timings.Delayed?.arrival, DEFAULT_BUS_TIMINGS.Delayed.arrival),
@@ -497,6 +511,16 @@ function sendStaticFile(res, relativePath) {
 }
 
 const server = http.createServer(async (req, res) => {
+    if (req.method === "OPTIONS") {
+        res.writeHead(204, {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, X-AIO-Key"
+        });
+        res.end();
+        return;
+    }
+
     const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
     const pathname = requestUrl.pathname;
 
@@ -577,7 +601,7 @@ const server = http.createServer(async (req, res) => {
                 req.on("end", () => {
                     try {
                         const payload = body ? JSON.parse(body) : {};
-                        const routeId = String(payload.routeId || "").trim();
+                        const routeId = String(payload.routeId || payload.bus_id || "").trim();
 
                         if (!routeId) {
                             sendJson(res, { ok: false, error: "routeId is required" }, 400);
@@ -585,7 +609,8 @@ const server = http.createServer(async (req, res) => {
                         }
 
                         const currentState = loadBusState();
-                        currentState[routeId] = normalizeBusStateEntry(payload);
+                        const existing = currentState[routeId] || {};
+                        currentState[routeId] = normalizeBusStateEntry(payload, existing);
                         saveBusState(currentState);
 
                         sendJson(res, { ok: true, routeId, state: currentState[routeId] });
@@ -600,6 +625,114 @@ const server = http.createServer(async (req, res) => {
         }
 
         sendJson(res, { ok: false, error: "Method not allowed" }, 405);
+        return;
+    }
+
+    if (pathname === "/api/telemetry" || pathname === "/telemetry" || (pathname === "/" && req.method === "POST")) {
+        if (req.method !== "POST") {
+            sendJson(res, { ok: false, error: "Method not allowed" }, 405);
+            return;
+        }
+
+        try {
+            let body = "";
+            req.on("data", (chunk) => {
+                body += chunk;
+            });
+
+            req.on("end", () => {
+                try {
+                    let payload = {};
+                    if (body) {
+                        try {
+                            payload = JSON.parse(body);
+                        } catch {
+                            const params = new URLSearchParams(body);
+                            for (const [k, v] of params.entries()) {
+                                payload[k] = v;
+                            }
+                        }
+                    }
+
+                    const busId = String(payload.bus_id || payload.bus || payload.routeId || "").trim();
+                    if (!busId) {
+                        sendJson(res, { ok: false, error: "bus_id is required" }, 400);
+                        return;
+                    }
+
+                    const currentState = loadBusState();
+                    const existing = currentState[busId] || {};
+                    const updatedEntry = normalizeBusStateEntry(payload, existing);
+                    currentState[busId] = updatedEntry;
+
+                    const allRoutes = loadRoutes();
+                    const matchingRoute = allRoutes.find(
+                        (r) => String(r.routeId) === busId || String(r.busNumber) === busId
+                    );
+                    if (matchingRoute) {
+                        currentState[matchingRoute.routeId] = updatedEntry;
+                        if (matchingRoute.busNumber && matchingRoute.busNumber !== "N/A") {
+                            currentState[matchingRoute.busNumber] = updatedEntry;
+                        }
+                    }
+
+                    saveBusState(currentState);
+
+                    try {
+                        fetch(`${PYTHON_API_BASE}/telemetry`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                bus_id: busId,
+                                soc: updatedEntry.soc,
+                                condition: updatedEntry.condition,
+                                status: updatedEntry.status
+                            })
+                        }).catch(() => {});
+                    } catch {}
+
+                    console.log(`[Telemetry] Bus ${busId} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, Status=${updatedEntry.status}`);
+                    sendJson(res, {
+                        ok: true,
+                        message: "Telemetry updated successfully",
+                        bus_id: busId,
+                        state: updatedEntry
+                    });
+                } catch (error) {
+                    sendJson(res, { ok: false, error: "Failed to process telemetry", details: error.message }, 400);
+                }
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to process telemetry", details: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/fleet") {
+        try {
+            const allRoutes = loadRoutes();
+            const busState = loadBusState();
+            const fleet = allRoutes.map((r) => {
+                const state = busState[r.routeId] || busState[r.busNumber] || {};
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+                const status = state.status || (soc > 30 ? "Active" : soc > 15 ? "Warning" : "Blocked");
+                return {
+                    bus_id: r.routeId,
+                    bus_number: r.busNumber,
+                    route: r.busNumber,
+                    route_name: r.routeName,
+                    origin: r.origin,
+                    destination: r.destination,
+                    soc,
+                    condition,
+                    status
+                };
+            });
+            sendJson(res, { ok: true, count: fleet.length, fleet });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load fleet", details: error.message }, 500);
+        }
         return;
     }
 

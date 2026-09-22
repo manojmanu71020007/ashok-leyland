@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -484,13 +484,13 @@
             document.getElementById("driver-total").textContent = String(assignedDrivers);
         }
 
+        let busStates = {};
+
         async function recommend() {
             const distance = Number(document.getElementById("distance").value) || 0;
             const departure = document.getElementById("departure").value;
             const complexity = document.getElementById("complexity").value;
             const driverReady = document.getElementById("driver").value === "ready";
-            const clean = document.getElementById("interior").checked && document.getElementById("exterior").checked;
-            const maintenanceClear = document.getElementById("maintenance").checked;
             const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
             const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
 
@@ -499,24 +499,47 @@
             }
 
             const routeDistance = selectedRouteDistance ?? distance;
-            const recommendedBus = selectedRoute.busNumber || "401-A";
-            const rangeCovered = routeDistance <= 142;
-            const ready = driverReady && clean && maintenanceClear && complexity !== "complex";
-            const socValue = ready ? 98 : 94;
-            const rangeValue = Math.min(142, Math.max(80, routeDistance + 30));
-            document.getElementById("soc-result").textContent = `${socValue}%`;
-            document.getElementById("range-result").textContent = `${rangeValue.toFixed(0)} km`;
-            document.getElementById("range-rule").textContent = rangeCovered ? "Range covers distance" : "Range insufficient";
+            const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.busNumber] || {};
+            const liveSoc = Number.isFinite(Number(busState.soc)) ? Number(busState.soc) : 98;
+            const condition = busState.condition || "Good";
+
+            if (condition === "Not Good") {
+                document.getElementById("maintenance").checked = false;
+                document.getElementById("interior").checked = false;
+            }
+
+            const clean = document.getElementById("interior").checked && document.getElementById("exterior").checked && condition === "Good";
+            const maintenanceClear = document.getElementById("maintenance").checked && condition === "Good";
+
+            const usableSoc = Math.max(0, liveSoc - 10);
+            const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
+            const rangeCovered = liveSoc > 25 && rangeValue >= routeDistance;
+            const ready = driverReady && clean && maintenanceClear && rangeCovered && complexity !== "complex";
+
+            document.getElementById("soc-result").textContent = `${liveSoc}%`;
+            document.getElementById("range-result").textContent = `${rangeValue} km`;
+            document.getElementById("range-rule").textContent = rangeCovered ? "Range covers distance" : (liveSoc <= 25 ? "Critically low battery" : "Range insufficient");
             document.getElementById("time-rule").textContent = departMinutes > 18 * 60 ? "Extreme peak" : "Standard peak";
-            document.getElementById("fleet-rule").textContent = ready ? "Ready for dispatch" : "Needs review";
+            document.getElementById("fleet-rule").textContent = ready
+                ? "Ready for dispatch"
+                : (condition === "Not Good" ? "Maintenance Required" : (liveSoc <= 25 ? "Depot Charge Required" : "Needs review"));
         }
 
         async function loadData() {
             try {
-                const routesResponse = await fetch("/api/routes");
-                const gtfsResponse = await fetch("/api/gtfs");
+                const [routesResponse, gtfsResponse, busStateResponse] = await Promise.all([
+                    fetch("/api/routes"),
+                    fetch("/api/gtfs"),
+                    fetch("/api/bus-state").catch(() => null)
+                ]);
+
                 const routesPayload = await routesResponse.json();
                 const gtfsPayload = await gtfsResponse.json();
+                if (busStateResponse && busStateResponse.ok) {
+                    const busStatePayload = await busStateResponse.json();
+                    busStates = busStatePayload?.state || {};
+                }
+
                 routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
                 gtfsBundle = {
                     trips: Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []),
@@ -537,6 +560,18 @@
                 document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
                 await updateSelectedRouteDistance();
                 await recommend();
+
+                // Live polling every 3 seconds to reflect ESP32 updates
+                setInterval(async () => {
+                    try {
+                        const res = await fetch("/api/bus-state");
+                        const payload = await res.json();
+                        if (payload && payload.ok && payload.state) {
+                            busStates = payload.state;
+                            recommend();
+                        }
+                    } catch {}
+                }, 3000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
                 document.getElementById("route-distance-rule").textContent = "N/A";

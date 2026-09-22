@@ -209,10 +209,32 @@ def get_bus_micro(bus_id: str) -> list[dict[str, Any]]:
 
 
 @app.post("/telemetry")
+@app.post("/api/telemetry")
 def post_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
-    """Accept a telemetry payload and return a confirmation object."""
+    """Accept a telemetry payload and store live telemetry point."""
     if not payload:
         return {"ok": False, "error": "Empty payload."}
+
+    bus_id = str(payload.get("bus_id", payload.get("routeId", ""))).strip()
+    soc = float(payload.get("soc", 100.0))
+    if bus_id:
+        connection = get_db_connection()
+        try:
+            ensure_depot_tables(connection)
+            now_str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
+            connection.execute(
+                """
+                INSERT INTO telemetry_points (bus_id, timestamp, soc, odometer_km)
+                VALUES (?, ?, ?, ?)
+                """,
+                (bus_id, now_str, soc, 1000.0),
+            )
+            connection.commit()
+        except Exception as exc:
+            print(f"Failed to record telemetry point: {exc}")
+        finally:
+            connection.close()
+
     return {"ok": True, "received": payload}
 
 

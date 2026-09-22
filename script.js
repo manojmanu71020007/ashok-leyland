@@ -160,6 +160,11 @@ function renderBusList(list) {
     busListEl.innerHTML = summaryHtml + listToRender
         .map((bus) => {
             const isActive = selectedBus && selectedBus.routeId === bus.routeId ? "active" : "";
+            const socVal = Number.isFinite(Number(bus.soc)) ? Number(bus.soc) : 100;
+            const socBadgeClass = socVal > 30 ? "badge-soc-good" : (socVal > 15 ? "badge-soc-warn" : "badge-soc-alert");
+            const conditionVal = bus.condition || "Good";
+            const condBadgeClass = conditionVal === "Good" ? "badge-cond-good" : "badge-cond-alert";
+            const condText = conditionVal === "Good" ? "✓ Clean" : "⚠ Maintenance";
 
             return `
                 <article class="bus-card ${isActive}" data-route-id="${bus.routeId}">
@@ -169,6 +174,11 @@ function renderBusList(list) {
                         </a>
                         - ${bus.routeName}
                     </h4>
+                    <div class="telemetry-badges">
+                        <span class="telemetry-badge ${socBadgeClass}">⚡ ${socVal}% SoC</span>
+                        <span class="telemetry-badge ${condBadgeClass}">${condText}</span>
+                        <span class="telemetry-badge badge-status">${bus.status || "Active"}</span>
+                    </div>
                     <p class="meta"><strong>From:</strong> ${bus.origin}</p>
                     <p class="meta"><strong>To:</strong> ${bus.destination}</p>
                     <p class="meta"><strong>ETA:</strong> ${bus.etaMinutes} min</p>
@@ -282,10 +292,19 @@ function renderBusDetails(bus) {
     const totalDistanceKm = calculateRouteDistanceKm(bus.routeId);
     const totalDistanceText = totalDistanceKm === null ? "Unavailable" : `${totalDistanceKm.toFixed(2)} km`;
 
+    const socVal = Number.isFinite(Number(bus.soc)) ? Number(bus.soc) : 100;
+    const socBadgeClass = socVal > 30 ? "badge-soc-good" : (socVal > 15 ? "badge-soc-warn" : "badge-soc-alert");
+    const conditionVal = bus.condition || "Good";
+    const condBadgeClass = conditionVal === "Good" ? "badge-cond-good" : "badge-cond-alert";
+    const condText = conditionVal === "Good" ? "✓ Good & Clean" : "⚠ Maintenance Required";
+
     selectedBusInfoEl.innerHTML = `
         <p><strong>Bus Number:</strong> ${bus.busNumber}</p>
         <p><strong>Route ID:</strong> ${bus.routeId}</p>
         <p><strong>Route:</strong> ${displayRoute}</p>
+        <p><strong>Battery SoC:</strong> <span class="telemetry-badge ${socBadgeClass}">⚡ ${socVal}%</span></p>
+        <p><strong>Condition:</strong> <span class="telemetry-badge ${condBadgeClass}">${condText}</span></p>
+        <p><strong>Fleet Status:</strong> <span class="telemetry-badge badge-status">${bus.status || "Active"}</span></p>
         <p><strong>Origin:</strong> ${displayOrigin}</p>
         <p><strong>Destination:</strong> ${displayDestination}</p>
         ${timingSectionHtml}
@@ -965,15 +984,17 @@ function toBusModel(route, index, sharedState = {}) {
             "On Time": { arrival: "15:00", departure: "15:05" },
             Ahead: { arrival: "14:50", departure: "14:55" }
         },
+        soc: 100,
+        condition: "Good",
         location: getPseudoLocation(routeId),
         tripId: primaryTrip ? primaryTrip.tripId : "",
         shapeId: primaryTrip ? primaryTrip.shapeId : "",
         stops: routeStops.length ? routeStops : [origin, "Midway Stop", destination]
     };
 
-    const saved = sharedState[routeId];
+    const saved = sharedState[routeId] || sharedState[busNumber];
     if (saved) {
-        if (saved.status === "Delayed" || saved.status === "On Time" || saved.status === "Ahead") {
+        if (saved.status) {
             model.status = saved.status;
         }
 
@@ -982,6 +1003,14 @@ function toBusModel(route, index, sharedState = {}) {
                 ...model.statusTimings,
                 ...saved.statusTimings
             };
+        }
+
+        if (Number.isFinite(Number(saved.soc))) {
+            model.soc = Number(saved.soc);
+        }
+
+        if (saved.condition) {
+            model.condition = saved.condition;
         }
     }
 
@@ -1015,13 +1044,9 @@ async function loadBusesFromBackend() {
 }
 
 async function refreshSharedBusState() {
-    if (canEditTimings) {
-        return;
-    }
-
     const sharedState = await fetchSharedBusState();
     buses = buses.map((bus) => {
-        const saved = sharedState[bus.routeId];
+        const saved = sharedState[bus.routeId] || sharedState[bus.busNumber];
 
         if (!saved) {
             return bus;
@@ -1029,9 +1054,9 @@ async function refreshSharedBusState() {
 
         const updatedBus = {
             ...bus,
-            status: saved.status === "Delayed" || saved.status === "On Time" || saved.status === "Ahead"
-                ? saved.status
-                : bus.status,
+            status: saved.status || bus.status,
+            soc: Number.isFinite(Number(saved.soc)) ? Number(saved.soc) : (bus.soc ?? 100),
+            condition: saved.condition || bus.condition || "Good",
             statusTimings: {
                 ...bus.statusTimings,
                 ...saved.statusTimings

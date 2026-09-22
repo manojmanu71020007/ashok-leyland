@@ -300,3 +300,56 @@ h3 {
         height: 280px;
     }
 }
+
+.telemetry-badges {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 6px 0 8px;
+}
+
+.telemetry-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
+
+.badge-soc-good {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
+}
+
+.badge-soc-warn {
+    background: #fef9c3;
+    color: #a16207;
+    border: 1px solid #fde047;
+}
+
+.badge-soc-alert {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.badge-cond-good {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+}
+
+.badge-cond-alert {
+    background: #ffe4e6;
+    color: #be123c;
+    border: 1px solid #fda4af;
+}
+
+.badge-status {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
