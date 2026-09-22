@@ -118,7 +118,7 @@
           <div id="currentSoc" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
         <div style="background: rgba(168, 85, 247, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.2);">
-          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Last Odometer</div>
+          <div id="odoLabel" style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Last Odometer</div>
           <div id="lastOdometer" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
         <div style="background: rgba(234, 88, 12, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(234, 88, 12, 0.2);">
@@ -176,6 +176,9 @@
       if (view === "macro") {
         const latest = data[data.length - 1];
         document.getElementById("currentSoc").textContent = `${Number(latest.soc_end).toFixed(1)}%`;
+        document.getElementById("lastOdometer").textContent = "N/A";
+        const odoLabel = document.getElementById("odoLabel");
+        if (odoLabel) odoLabel.textContent = "Route Distance";
       } else {
         const latest = data[data.length - 1];
         document.getElementById("currentSoc").textContent = `${Number(latest.soc).toFixed(1)}%`;
@@ -187,15 +190,20 @@
       try {
         const stateRes = await fetch("/api/bus-state");
         const statePayload = await stateRes.json();
-        const state = statePayload?.state?.[busId];
+        // try exact busId first, then numeric-only version (routeId), then any key containing busId
+        const allState = statePayload?.state || {};
+        const state = allState[busId]
+          || allState[busId.replace(/\D/g, "")]
+          || Object.values(allState).find((_, k) => Object.keys(allState)[k] === busId);
         if (state) {
           if (Number.isFinite(Number(state.soc))) {
             document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
           }
           if (state.condition) {
             const condEl = document.getElementById("busCondition");
-            condEl.textContent = state.condition === "Good" ? "Good (Clean)" : "Maintenance Req.";
-            condEl.style.color = state.condition === "Good" ? "#16a34a" : "#dc2626";
+            const isGood = state.condition === "Good";
+            condEl.textContent = isGood ? "Good" : "Maintenance Req.";
+            condEl.style.color = isGood ? "#16a34a" : "#dc2626";
           }
         }
       } catch {}

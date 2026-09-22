@@ -678,18 +678,26 @@ const server = http.createServer(async (req, res) => {
 
                     saveBusState(currentState);
 
-                    try {
+                    // Forward to Python for EVERY alias so micro chart gets real data
+                    const pythonIds = new Set([busId]);
+                    if (matchingRoute) {
+                        if (matchingRoute.routeId) pythonIds.add(String(matchingRoute.routeId));
+                        if (matchingRoute.busNumber && matchingRoute.busNumber !== "N/A") {
+                            pythonIds.add(matchingRoute.busNumber);
+                        }
+                    }
+                    for (const pyId of pythonIds) {
                         fetch(`${PYTHON_API_BASE}/telemetry`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                                bus_id: busId,
+                                bus_id: pyId,
                                 soc: updatedEntry.soc,
                                 condition: updatedEntry.condition,
                                 status: updatedEntry.status
                             })
                         }).catch(() => {});
-                    } catch {}
+                    }
 
                     console.log(`[Telemetry] Bus ${busId} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, Status=${updatedEntry.status}`);
                     sendJson(res, {
