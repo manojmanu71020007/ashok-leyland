@@ -497,10 +497,19 @@
 
             const totalBuses = routes.length;
 
+            // Preserve whatever the user currently has selected so the 3-second
+            // polling loop never silently resets their chosen route.
+            const previouslySelected = routeSelect.value;
+
             // Route <select> shows ALL buses from GTFS (filtered only by search text)
             routeSelect.innerHTML = filteredRoutes.length
                 ? filteredRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
                 : '<option value="">No routes found</option>';
+
+            // Restore the previous selection if it still exists in the rebuilt list
+            if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
+                routeSelect.value = previouslySelected;
+            }
 
             // Allocated Buses list — show live SoC badge on each row
             routeSummary.innerHTML = allocatedRoutes.length
