@@ -1,0 +1,549 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Bus Scheduling</title>
+    <style>
+        :root {
+            --ink: #15324b;
+            --muted: #5f7386;
+            --line: #d7e3ea;
+            --panel: #ffffff;
+            --blue: #087ea4;
+            --blue-dark: #056781;
+            --teal: #11a889;
+            --teal-soft: #dff9f3;
+            --bg-1: #edf7fb;
+            --bg-2: #f3fbfb;
+            --bg-3: #f8fdfd;
+            --warning-bg: #fff3e9;
+            --warning-text: #a94b15;
+            --shadow: 0 12px 30px rgba(25, 63, 79, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", sans-serif;
+            background: linear-gradient(180deg, var(--bg-1), var(--bg-2) 25%, var(--bg-3));
+            color: var(--ink);
+        }
+        .shell {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 30px 20px 40px;
+        }
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 18px;
+        }
+        .eyebrow {
+            font-size: .72rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+        h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            line-height: 1.12;
+            letter-spacing: -0.04em;
+        }
+        .subtitle {
+            margin-top: 10px;
+            max-width: 760px;
+            color: var(--muted);
+            font-size: 1.05rem;
+            line-height: 1.55;
+        }
+        .live-chip {
+            border: 1px solid #bfe5db;
+            background: #e3f8f1;
+            color: #08755f;
+            border-radius: 999px;
+            padding: 9px 13px;
+            font-size: .82rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            align-items: start;
+        }
+        .panel {
+            background: rgba(255,255,255,.92);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+        .panel h2 {
+            margin: 0 0 5px;
+            font-size: 1.18rem;
+        }
+        .panel-note {
+            color: var(--muted);
+            font-size: .88rem;
+            margin-bottom: 18px;
+        }
+        .fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        label {
+            display: grid;
+            gap: 7px;
+            color: #3e5b6d;
+            font-size: .84rem;
+            font-weight: 800;
+        }
+        input, select {
+            width: 100%;
+            border: 1px solid #c8d8df;
+            border-radius: 9px;
+            padding: 11px 12px;
+            background: #fbfdfd;
+            color: var(--ink);
+            font: inherit;
+        }
+        input:focus, select:focus {
+            outline: 3px solid rgba(17,168,137,.16);
+            border-color: var(--teal);
+        }
+        .route-search { margin-bottom: 10px; }
+        .wide { grid-column: 1 / -1; }
+        .checks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+            margin-top: 16px;
+        }
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 10px;
+            color: var(--muted);
+            font-size: .8rem;
+            font-weight: 600;
+        }
+        .check input {
+            width: auto;
+            accent-color: var(--teal);
+        }
+        button {
+            border: 0;
+            border-radius: 9px;
+            padding: 12px 16px;
+            color: white;
+            background: var(--blue);
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 16px;
+        }
+        button:hover { background: var(--blue-dark); }
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 16px 0;
+        }
+        .kpi {
+            border-left: 4px solid var(--teal);
+            background: #f2faf8;
+            border-radius: 9px;
+            padding: 12px;
+        }
+        .kpi strong {
+            display: block;
+            font-size: 1.45rem;
+        }
+        .kpi span {
+            color: var(--muted);
+            font-size: .76rem;
+        }
+        .rules {
+            display: grid;
+            gap: 10px;
+        }
+        .rule {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid #edf2f4;
+            padding-bottom: 9px;
+            font-size: .87rem;
+        }
+        .rule span { color: var(--muted); }
+        .recommendation {
+            margin-top: 18px;
+            border: 1px solid #bfe5db;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #effbf7, #f8fffd);
+            padding: 16px;
+        }
+        .recommendation h3 {
+            margin: 0 0 8px;
+            color: #08755f;
+        }
+        .recommendation p {
+            margin: 0 0 7px;
+            line-height: 1.45;
+        }
+        .recommendation strong { color: var(--ink); }
+        .alert {
+            color: var(--warning-text);
+            background: var(--warning-bg);
+            border-color: #f4c7a4;
+        }
+        .route-list {
+            margin-top: 18px;
+            max-height: 260px;
+            overflow: auto;
+            display: grid;
+            gap: 8px;
+        }
+        .route-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: .8rem;
+            background: #fbfdfd;
+        }
+        .route-row strong {
+            display: block;
+            font-size: .92rem;
+        }
+        .route-row span { color: var(--muted); }
+        .route-meta {
+            display: grid;
+            gap: 3px;
+            min-width: 0;
+        }
+        .route-arrow {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 999px;
+            background: var(--blue);
+            color: #fff;
+            font-size: 1.3rem;
+            font-weight: 800;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 8px 16px rgba(8, 126, 164, 0.22);
+            flex-shrink: 0;
+        }
+        .route-arrow:hover { background: var(--blue-dark); }
+        @media (max-width: 850px) {
+            .grid { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; }
+        }
+        @media (max-width: 560px) {
+            .fields, .checks { grid-template-columns: 1fr; }
+            .wide { grid-column: auto; }
+        }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">Problem 01 / Depot Operations</div>
+                <h1>Smart Bus Scheduling</h1>
+                <p class="subtitle">Allocate the right available bus to the right schedule using battery state, expected range, route distance, cleaning, charging, maintenance, and driver readiness.</p>
+            </div>
+            <div class="live-chip">AI recommendation workspace</div>
+        </header>
+
+        <div class="grid">
+            <section class="panel">
+                <h2>Schedule requirement</h2>
+                <p class="panel-note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
+                <div class="fields">
+                    <label class="wide">
+                        Route search
+                        <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number or route name" />
+                    </label>
+                    <label class="wide">Route
+                        <select id="route-select"><option>Loading Peenya routes...</option></select>
+                    </label>
+                    <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7"></label>
+                    <label>Departure time<input id="departure" type="time" value="07:30"></label>
+                    <label>Route category<select id="complexity"><option value="simple">Simple</option><option value="moderate" selected>Moderate</option><option value="complex">Complex</option></select></label>
+                    <label>Driver availability<select id="driver"><option value="ready" selected>Driver assigned</option><option value="unavailable">No driver assigned</option></select></label>
+                </div>
+                <div class="checks">
+                    <label class="check"><input id="interior" type="checkbox" checked> Interior clean</label>
+                    <label class="check"><input id="exterior" type="checkbox" checked> Exterior clean</label>
+                    <label class="check"><input id="maintenance" type="checkbox" checked> Maintenance clear</label>
+                </div>
+                <button id="recommend">Recommend bus</button>
+            </section>
+
+            <aside class="panel">
+                <h2>Allocation result</h2>
+                <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
+                <div class="kpis">
+                    <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
+                    <div class="kpi"><strong id="bus-departure">0</strong><span>Buses available for departure</span></div>
+                    <div class="kpi"><strong id="driver-total">0</strong><span>Assigned drivers</span></div>
+                    <div class="kpi"><strong id="soc-result">98%</strong><span>Selected bus SOC</span></div>
+                    <div class="kpi"><strong id="range-result">142 km</strong><span>Expected range</span></div>
+                </div>
+                <div class="rules">
+                    <div class="rule"><span>Minimum SOC</span><strong>98-100%</strong></div>
+                    <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
+                    <div class="rule"><span>Range rule</span><strong id="range-rule">Range covers distance</strong></div>
+                    <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
+                    <div class="rule"><span>Fleet status</span><strong id="fleet-rule">Ready for dispatch</strong></div>
+                </div>
+            </aside>
+        </div>
+
+        <section class="panel route-list" aria-label="Allocated buses">
+            <h2>Allocated Buses</h2>
+            <div id="route-summary">
+                <div class="route-row"><strong>Available for departure</strong><span>Loading GTFS data...</span></div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const routeSelect = document.getElementById("route-select");
+        const routeSearch = document.getElementById("route-search");
+        const routeSummary = document.getElementById("route-summary");
+        let routes = [];
+        let gtfsBundle = null;
+        let selectedRouteDistance = null;
+
+        function haversineKm(lat1, lon1, lat2, lon2) {
+            const earthRadiusKm = 6371;
+            const toRadians = (degrees) => (degrees * Math.PI) / 180;
+            const phi1 = toRadians(lat1);
+            const phi2 = toRadians(lat2);
+            const deltaPhi = toRadians(lat2 - lat1);
+            const deltaLambda = toRadians(lon2 - lon1);
+
+            const a = (
+                Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2)
+                + Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2)
+            );
+
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return earthRadiusKm * c;
+        }
+
+        function calculateRouteDistanceKm(routeId) {
+            if (!gtfsBundle || !routeId) return null;
+            const routeTrips = gtfsBundle.trips.filter((trip) => String(trip.routeId) === String(routeId));
+            if (!routeTrips.length) return null;
+            const preferredTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
+            const shapeId = preferredTrip && preferredTrip.shapeId;
+            if (!shapeId) return null;
+            const shapePoints = gtfsBundle.shapes
+                .filter((point) => String(point.shapeId) === String(shapeId))
+                .slice()
+                .sort((left, right) => Number(left.shapePtSequence) - Number(right.shapePtSequence));
+            if (shapePoints.length < 2) return null;
+
+            let totalDistanceKm = 0;
+            for (let index = 1; index < shapePoints.length; index += 1) {
+                const previous = shapePoints[index - 1];
+                const current = shapePoints[index];
+                const lat1 = Number(previous.shapePtLat);
+                const lon1 = Number(previous.shapePtLon);
+                const lat2 = Number(current.shapePtLat);
+                const lon2 = Number(current.shapePtLon);
+                if (!Number.isFinite(lat1) || !Number.isFinite(lon1) || !Number.isFinite(lat2) || !Number.isFinite(lon2)) continue;
+                totalDistanceKm += haversineKm(lat1, lon1, lat2, lon2);
+            }
+            return Number(totalDistanceKm.toFixed(2));
+        }
+
+        async function updateSelectedRouteDistance() {
+            const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
+            const distanceInput = document.getElementById("distance");
+            const totalDistanceEl = document.getElementById("route-distance-rule");
+            selectedRouteDistance = null;
+            if (!selectedRoute) {
+                totalDistanceEl.textContent = "Select a bus";
+                return;
+            }
+
+            totalDistanceEl.textContent = "Calculating...";
+            try {
+                const response = await fetch(`/api/route-distance?bus=${encodeURIComponent(selectedRoute.busNumber)}`);
+                const payload = await response.json();
+                if (!response.ok || !payload.ok || !Number.isFinite(payload.distanceKm)) {
+                    throw new Error(payload.error || "Distance unavailable");
+                }
+                selectedRouteDistance = payload.distanceKm;
+                distanceInput.value = payload.distanceKm;
+                totalDistanceEl.textContent = `${payload.distanceKm.toFixed(2)} km`;
+            } catch (error) {
+                totalDistanceEl.textContent = "Unavailable";
+            }
+        }
+
+        function fiveMinutesLater(value) {
+            const [hours, minutes] = String(value || "07:30").split(":").map(Number);
+            const totalMinutes = (hours * 60 + minutes + 5) % 1440;
+            return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
+        }
+
+        async function syncScheduleTiming() {
+            const routeId = routeSelect.value;
+            const departure = document.getElementById("departure").value;
+            if (!routeId || !departure) return;
+            const arrival = fiveMinutesLater(departure);
+            const statusTimings = {
+                Delayed: { arrival, departure },
+                "On Time": { arrival, departure },
+                Ahead: { arrival, departure }
+            };
+            await fetch("/api/bus-state", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ routeId, status: "On Time", statusTimings })
+            });
+        }
+
+        function renderRoutes() {
+            const query = (routeSearch.value || "").trim().toLowerCase();
+            const filteredRoutes = query
+                ? routes.filter((route) => {
+                    const text = `${route.busNumber || ""} ${route.origin || ""} ${route.destination || ""} ${route.routeName || ""}`.toLowerCase();
+                    return text.includes(query);
+                })
+                : routes;
+
+            const totalBuses = filteredRoutes.length || routes.length;
+            const busesForDeparture = Math.max(0, totalBuses - Math.floor(totalBuses * 0.3));
+            const scheduledRoutes = filteredRoutes.slice(0, Math.max(0, busesForDeparture));
+
+            routeSelect.innerHTML = scheduledRoutes.length
+                ? scheduledRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
+                : '<option value="">No departure-ready buses</option>';
+
+            routeSummary.innerHTML = scheduledRoutes.length
+                ? scheduledRoutes.map((route) => `
+                    <div class="route-row" data-route-id="${route.routeId}">
+                        <div class="route-meta">
+                            <strong>${route.busNumber}</strong>
+                            <span>${route.origin} to ${route.destination}</span>
+                        </div>
+                        <button class="route-arrow" type="button" aria-label="Select ${route.busNumber}">›</button>
+                    </div>
+                `).join("")
+                : '<div class="route-row"><div class="route-meta"><strong>No scheduled buses</strong><span>No departure-ready buses match this search</span></div></div>';
+
+            routeSummary.querySelectorAll(".route-arrow").forEach((arrow) => {
+                arrow.addEventListener("click", () => {
+                    const row = arrow.closest(".route-row");
+                    if (!row) return;
+                    const routeId = row.dataset.routeId;
+                    if (!routeId) return;
+                    const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
+                    if (!selectedRoute) return;
+                    const busId = selectedRoute.busNumber || selectedRoute.routeId || "BUS_001";
+                    window.open(`/bus-details.html?bus_id=${encodeURIComponent(busId)}`, "_blank");
+                    routeSelect.value = routeId;
+                    updateSelectedRouteDistance();
+                    syncScheduleTiming();
+                    recommend();
+                });
+            });
+
+            updateSelectedRouteDistance();
+            document.getElementById("bus-total").textContent = String(totalBuses);
+            document.getElementById("bus-departure").textContent = String(busesForDeparture);
+            updateAssignedDriverCount();
+        }
+
+        function updateAssignedDriverCount() {
+            const assignedDrivers = document.getElementById("driver").value === "ready" ? routes.length : 0;
+            document.getElementById("driver-total").textContent = String(assignedDrivers);
+        }
+
+        async function recommend() {
+            const distance = Number(document.getElementById("distance").value) || 0;
+            const departure = document.getElementById("departure").value;
+            const complexity = document.getElementById("complexity").value;
+            const driverReady = document.getElementById("driver").value === "ready";
+            const clean = document.getElementById("interior").checked && document.getElementById("exterior").checked;
+            const maintenanceClear = document.getElementById("maintenance").checked;
+            const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
+            const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
+
+            if (!selectedRoute) {
+                return;
+            }
+
+            const routeDistance = selectedRouteDistance ?? distance;
+            const recommendedBus = selectedRoute.busNumber || "401-A";
+            const rangeCovered = routeDistance <= 142;
+            const ready = driverReady && clean && maintenanceClear && complexity !== "complex";
+            const socValue = ready ? 98 : 94;
+            const rangeValue = Math.min(142, Math.max(80, routeDistance + 30));
+            document.getElementById("soc-result").textContent = `${socValue}%`;
+            document.getElementById("range-result").textContent = `${rangeValue.toFixed(0)} km`;
+            document.getElementById("range-rule").textContent = rangeCovered ? "Range covers distance" : "Range insufficient";
+            document.getElementById("time-rule").textContent = departMinutes > 18 * 60 ? "Extreme peak" : "Standard peak";
+            document.getElementById("fleet-rule").textContent = ready ? "Ready for dispatch" : "Needs review";
+        }
+
+        async function loadData() {
+            try {
+                const routesResponse = await fetch("/api/routes");
+                const gtfsResponse = await fetch("/api/gtfs");
+                const routesPayload = await routesResponse.json();
+                const gtfsPayload = await gtfsResponse.json();
+                routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
+                gtfsBundle = {
+                    trips: Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []),
+                    shapes: Array.isArray(gtfsPayload.shapes) ? gtfsPayload.shapes : (Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [])
+                };
+                renderRoutes();
+                routeSelect.addEventListener("change", async () => {
+                    await updateSelectedRouteDistance();
+                    await syncScheduleTiming();
+                    await recommend();
+                });
+                routeSearch.addEventListener("input", renderRoutes);
+                document.getElementById("recommend").addEventListener("click", async () => {
+                    await updateSelectedRouteDistance();
+                    await syncScheduleTiming();
+                    await recommend();
+                });
+                document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
+                await updateSelectedRouteDistance();
+                await recommend();
+            } catch (error) {
+                routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
+                document.getElementById("route-distance-rule").textContent = "N/A";
+            }
+        }
+
+        loadData();
+    </script>
+</body>
+</html>

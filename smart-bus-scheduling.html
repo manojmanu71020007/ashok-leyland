@@ -1,0 +1,210 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scheduling Problem</title>
+  <style>
+    :root {
+      --bg: #f2fbf5;
+      --panel: #ffffff;
+      --panel-2: #e8f7ed;
+      --card: #ffffff;
+      --text: #18352a;
+      --muted: #587265;
+      --accent: #248653;
+      --accent-2: #72bd88;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --danger: #dc2626;
+      --border: #cfe8d7;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #f7fdf8, #e8f7ed 55%, #ffffff);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(36, 134, 83, 0.1);
+    }
+    h1 { margin-top: 0; font-size: 2.2rem; color: #155c38; }
+    .subtitle { color: var(--muted); margin-bottom: 28px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin-bottom: 22px;
+    }
+    .card {
+      background: rgba(255,255,255,0.96);
+      color: var(--text);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 12px 30px rgba(36, 134, 83, 0.08);
+    }
+    .card h2 { margin: 0 0 12px; font-size: 1.15rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 22px; }
+    .kpi { background: #f8fdf9; border: 1px solid var(--border); border-left: 5px solid var(--accent); border-radius: 12px; padding: 16px; }
+    .kpi-label { display: block; color: var(--muted); font-size: .82rem; font-weight: 700; }
+    .kpi-value { display: block; margin-top: 8px; color: #155c38; font-size: 1.65rem; }
+    .meta {
+      display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .badge {
+      display: inline-block; padding: 6px 10px; font-size: 0.8rem; border-radius: 999px; font-weight: 700;
+      background: #e4f5e9; color: #196b40; margin-top: 10px;
+    }
+    .actions { margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn {
+      border: none; border-radius: 12px; padding: 12px 16px; font-weight: 700; cursor: pointer;
+    }
+    .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: white; }
+    .btn.secondary { background: #e2e8f0; color: var(--text); }
+    .summary {
+      background: #f8fdf9; border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-top: 12px;
+    }
+    .summary strong { color: #155c38; }
+    .summary li { color: var(--muted); margin: 8px 0; }
+    .route-selector { background: #f8fdf9; border: 1px solid var(--border); border-radius: 14px; padding: 18px; margin-bottom: 22px; }
+    .route-selector label { display: block; color: #155c38; font-weight: 700; margin-bottom: 8px; }
+    .route-selector select { width: 100%; max-width: 520px; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; color: var(--text); background: #ffffff; font: inherit; }
+    @media (max-width: 760px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Smart Scheduling Dashboard</h1>
+    <div class="subtitle">Peenya 2nd Stage bus optimization and route monitoring</div>
+
+    <div class="kpi-grid" aria-label="Fleet allocation summary">
+      <div class="kpi"><span class="kpi-label">Total buses</span><strong class="kpi-value" id="total-buses">Loading...</strong></div>
+      <div class="kpi"><span class="kpi-label">Allocated bus</span><strong class="kpi-value" id="allocated-bus">Not allocated</strong></div>
+      <div class="kpi"><span class="kpi-label">Drivers allocated</span><strong class="kpi-value" id="drivers-allocated">0</strong></div>
+      <div class="kpi"><span class="kpi-label">Bus state of charge</span><strong class="kpi-value" id="bus-soc">Awaiting allocation</strong></div>
+    </div>
+
+    <div class="route-selector">
+      <label for="selected-bus">Selected bus route</label>
+      <select id="selected-bus"><option>Loading GTFS routes...</option></select>
+      <div class="meta"><span>Total distance</span><strong id="selected-bus-distance">Calculating...</strong></div>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Allowed Bus Set</h2>
+        <div class="meta"><span>401-A</span><span>Enabled</span></div>
+        <div class="meta"><span>252-F</span><span>Enabled</span></div>
+        <div class="meta"><span>252-A</span><span>Enabled</span></div>
+        <div class="meta"><span>507</span><span>Enabled</span></div>
+        <div class="badge">Max trips per bus: 10</div>
+      </div>
+
+      <div class="card">
+        <h2>Peenya Depot Focus</h2>
+        <div class="meta"><span>Origin</span><span>Peenya 2nd Stage</span></div>
+        <div class="meta"><span>Priority</span><span>High</span></div>
+        <div class="meta"><span>GTFS Route Lock</span><span>Active</span></div>
+        <div class="meta"><span>Default Filter</span><span>Only selected buses</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Route Health</h2>
+        <div class="meta"><span>Trips Loaded</span><span>40</span></div>
+        <div class="meta"><span>Stops Linked</span><span>24</span></div>
+        <div class="meta"><span>Shape Coverage</span><span>Complete</span></div>
+        <div class="meta"><span>Schedule Status</span><span>Stable</span></div>
+      </div>
+    </div>
+
+    <div class="summary">
+      <strong>Decision Summary</strong>
+      <ul>
+        <li>Only buses 401-A, 252-F, 252-A, and 507 are accepted into the GTFS-backed route data.</li>
+        <li>The system enforces a maximum of 10 trips for each selected bus.</li>
+        <li>All route, stop, time, and shape data is filtered to Peenya 2nd Stage originating or terminal services.</li>
+        <li>Login access routes to the dashboard and non-login access remains on the live tracking system.</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <button class="btn primary" onclick="window.location.href='/index.html'">Open Bus Tracking System</button>
+      <button class="btn secondary" onclick="window.location.href='/login.html'">Back to Login</button>
+    </div>
+  </div>
+  <script>
+    const selectedBusEl = document.getElementById("selected-bus");
+    const selectedDistanceEl = document.getElementById("selected-bus-distance");
+    let gtfs = { routes: [], trips: [], shapes: [] };
+
+    function haversineKm(lat1, lon1, lat2, lon2) {
+      const earthRadiusKm = 6371;
+      const toRadians = (value) => value * Math.PI / 180;
+      const deltaLat = toRadians(lat2 - lat1);
+      const deltaLon = toRadians(lon2 - lon1);
+      const lat1Radians = toRadians(lat1);
+      const lat2Radians = toRadians(lat2);
+      const value = Math.sin(deltaLat / 2) ** 2
+        + Math.cos(lat1Radians) * Math.cos(lat2Radians) * Math.sin(deltaLon / 2) ** 2;
+      return earthRadiusKm * 2 * Math.asin(Math.sqrt(value));
+    }
+
+    function routeDistanceKm(routeId) {
+      const trips = gtfs.trips.filter((trip) => String(trip.routeId) === String(routeId));
+      if (!trips.length) return null;
+      const directionZero = trips.find((trip) => Number(trip.directionId) === 0);
+      const shapeId = (directionZero || trips[0]).shapeId;
+      const points = gtfs.shapes
+        .filter((point) => String(point.shapeId) === String(shapeId))
+        .sort((left, right) => Number(left.shapePtSequence) - Number(right.shapePtSequence));
+      if (points.length < 2) return null;
+
+      let total = 0;
+      for (let index = 1; index < points.length; index += 1) {
+        const previous = points[index - 1];
+        const current = points[index];
+        const coordinates = [previous, current].map((point) => [Number(point.shapePtLat), Number(point.shapePtLon)]);
+        if (coordinates.some((coordinate) => coordinate.some((value) => !Number.isFinite(value)))) continue;
+        total += haversineKm(...coordinates[0], ...coordinates[1]);
+      }
+      return Number(total.toFixed(2));
+    }
+
+    function updateSelectedBusDistance() {
+      const distance = routeDistanceKm(selectedBusEl.value);
+      selectedDistanceEl.textContent = distance === null ? "Unavailable" : `${distance.toFixed(2)} km`;
+      document.getElementById("allocated-bus").textContent = selectedBusEl.value || "Not allocated";
+    }
+
+    Promise.all([fetch("/api/routes").then((response) => response.json()), fetch("/api/gtfs").then((response) => response.json())])
+      .then(([routePayload, gtfsPayload]) => {
+        gtfs.routes = Array.isArray(routePayload.routes) ? routePayload.routes : [];
+        gtfs.trips = Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : [];
+        gtfs.shapes = Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [];
+        document.getElementById("total-buses").textContent = String(gtfs.routes.length);
+        document.getElementById("drivers-allocated").textContent = "0 / " + String(gtfs.routes.length);
+        selectedBusEl.innerHTML = gtfs.routes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("");
+        updateSelectedBusDistance();
+      })
+      .catch(() => {
+        document.getElementById("total-buses").textContent = "Unavailable";
+        selectedBusEl.innerHTML = "<option>GTFS data unavailable</option>";
+        selectedDistanceEl.textContent = "Unavailable";
+      });
+
+    selectedBusEl.addEventListener("change", updateSelectedBusDistance);
+  </script>
+</body>
+</html>
