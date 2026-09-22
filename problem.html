@@ -256,11 +256,46 @@
         @media (max-width: 850px) {
             .grid { grid-template-columns: 1fr; }
             .topbar { flex-direction: column; }
+            .allocation-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 560px) {
             .fields, .checks { grid-template-columns: 1fr; }
             .wide { grid-column: auto; }
         }
+        .allocation-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+        .route-row-rejected {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border: 1px solid #f4c7a4;
+            border-radius: 9px;
+            padding: 10px 12px;
+            font-size: .8rem;
+            background: #fff8f4;
+        }
+        .route-row-rejected strong {
+            display: block;
+            font-size: .92rem;
+            color: #7a2a00;
+        }
+        .route-row-rejected span { color: #a94b15; }
+        .reject-tag {
+            font-size: .7rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .reject-tag.low-soc { background:#fde8d8; color:#a94b15; }
+        .reject-tag.maintenance { background:#fce4e4; color:#b91c1c; }
     </style>
 </head>
 <body>
@@ -319,18 +354,30 @@
             </aside>
         </div>
 
-        <section class="panel route-list" aria-label="Allocated buses">
-            <h2>Allocated Buses</h2>
-            <div id="route-summary">
-                <div class="route-row"><strong>Available for departure</strong><span>Loading GTFS data...</span></div>
-            </div>
-        </section>
+        <div class="allocation-grid">
+            <section class="panel route-list" aria-label="Allocated buses">
+                <h2 style="color:#08755f;">✅ Allocated Buses</h2>
+                <p class="panel-note">Ready for departure — SoC ≥ 98% &amp; condition Good.</p>
+                <div id="route-summary">
+                    <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
+                </div>
+            </section>
+
+            <section class="panel route-list" aria-label="Not allocated buses">
+                <h2 style="color:#a94b15;">⛔ Not Allocated Buses</h2>
+                <p class="panel-note">Ineligible — low SoC or maintenance required.</p>
+                <div id="not-allocated-summary">
+                    <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
+                </div>
+            </section>
+        </div>
     </main>
 
     <script>
         const routeSelect = document.getElementById("route-select");
         const routeSearch = document.getElementById("route-search");
         const routeSummary = document.getElementById("route-summary");
+        const notAllocatedSummary = document.getElementById("not-allocated-summary");
         let routes = [];
         let gtfsBundle = null;
         let selectedRouteDistance = null;
@@ -485,6 +532,38 @@
                     window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
+
+            // ── Not Allocated Buses ──────────────────────────────────────────────
+            // Buses that have telemetry data AND failed the allocation gate.
+            const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
+            const notAllocatedRoutes = filteredRoutes.filter((r) => {
+                const state = busStates[r.routeId] || busStates[r.busNumber] || {};
+                // Only show in "not allocated" if we actually have telemetry that disqualifies it
+                if (!state || Object.keys(state).length === 0) return false;
+                return !allocatedIds.has(String(r.routeId));
+            });
+
+            notAllocatedSummary.innerHTML = notAllocatedRoutes.length
+                ? notAllocatedRoutes.map((route) => {
+                    const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                    const condition = state.condition || "Good";
+                    const lowSoc = soc < 98;
+                    const badCondition = condition === "Not Good";
+                    const tags = [
+                        lowSoc ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC</span>` : "",
+                        badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : ""
+                    ].filter(Boolean).join(" ");
+                    return `
+                        <div class="route-row-rejected">
+                            <div class="route-meta">
+                                <strong>${route.busNumber}</strong>
+                                <span>${route.origin} to ${route.destination}</span>
+                            </div>
+                            <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">${tags}</div>
+                        </div>`;
+                }).join("")
+                : '<div class="route-row" style="background:#f2faf8;border-color:#bfe5db;"><div class="route-meta"><strong style="color:#08755f;">All tracked buses are ready ✓</strong><span>No buses are currently disqualified from allocation.</span></div></div>';
 
             updateSelectedRouteDistance();
             // KPIs: total fleet vs buses that actually passed the allocation gate
