@@ -555,15 +555,35 @@
                         badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : ""
                     ].filter(Boolean).join(" ");
                     return `
-                        <div class="route-row-rejected">
+                        <div class="route-row-rejected" data-route-id="${route.routeId}">
                             <div class="route-meta">
                                 <strong>${route.busNumber}</strong>
                                 <span>${route.origin} to ${route.destination}</span>
                             </div>
-                            <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">${tags}</div>
+                            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+                                ${tags}
+                                <button class="route-arrow not-alloc-arrow" type="button"
+                                    style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
+                                    aria-label="View ${route.busNumber} details">›</button>
+                            </div>
                         </div>`;
                 }).join("")
                 : '<div class="route-row" style="background:#f2faf8;border-color:#bfe5db;"><div class="route-meta"><strong style="color:#08755f;">All tracked buses are ready ✓</strong><span>No buses are currently disqualified from allocation.</span></div></div>';
+
+            // Arrow on not-allocated rows → same-tab navigation to Bus Details
+            notAllocatedSummary.querySelectorAll(".not-alloc-arrow").forEach((arrow) => {
+                arrow.addEventListener("click", () => {
+                    const row = arrow.closest(".route-row-rejected");
+                    if (!row) return;
+                    const routeId = row.dataset.routeId;
+                    if (!routeId) return;
+                    const selectedRoute = routes.find((r) => String(r.routeId) === String(routeId));
+                    if (!selectedRoute) return;
+                    const busId = selectedRoute.busNumber || selectedRoute.routeId || "BUS_001";
+                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
+                });
+            });
+
 
             updateSelectedRouteDistance();
             // KPIs: total fleet vs buses that actually passed the allocation gate
