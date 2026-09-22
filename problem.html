@@ -436,26 +436,43 @@
                 })
                 : routes;
 
-            const totalBuses = filteredRoutes.length || routes.length;
-            const busesForDeparture = Math.max(0, totalBuses - Math.floor(totalBuses * 0.3));
-            const scheduledRoutes = filteredRoutes.slice(0, Math.max(0, busesForDeparture));
+            // ── Allocation gate ──────────────────────────────────────────────────
+            // A bus may only appear in "Allocated Buses" when it has SoC >= 98 %
+            // AND its condition is "Good" (as reported by the ESP32 telemetry).
+            // Buses with no telemetry data yet are assumed ready (factory-fresh 100%).
+            const allocatedRoutes = filteredRoutes.filter((route) => {
+                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                if (!state || Object.keys(state).length === 0) return true; // no data → assume ready
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+                return soc >= 98 && condition !== "Not Good";
+            });
 
-            routeSelect.innerHTML = scheduledRoutes.length
-                ? scheduledRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
+            const totalBuses = routes.length;
+
+            // Route <select> only contains eligible buses
+            routeSelect.innerHTML = allocatedRoutes.length
+                ? allocatedRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
                 : '<option value="">No departure-ready buses</option>';
 
-            routeSummary.innerHTML = scheduledRoutes.length
-                ? scheduledRoutes.map((route) => `
-                    <div class="route-row" data-route-id="${route.routeId}">
-                        <div class="route-meta">
-                            <strong>${route.busNumber}</strong>
-                            <span>${route.origin} to ${route.destination}</span>
-                        </div>
-                        <button class="route-arrow" type="button" aria-label="Select ${route.busNumber}">›</button>
-                    </div>
-                `).join("")
-                : '<div class="route-row"><div class="route-meta"><strong>No scheduled buses</strong><span>No departure-ready buses match this search</span></div></div>';
+            // Allocated Buses list — show live SoC badge on each row
+            routeSummary.innerHTML = allocatedRoutes.length
+                ? allocatedRoutes.map((route) => {
+                    const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                    return `
+                        <div class="route-row" data-route-id="${route.routeId}">
+                            <div class="route-meta">
+                                <strong>${route.busNumber}</strong>
+                                <span>${route.origin} to ${route.destination}</span>
+                                <span style="color:#11a889;font-size:.75rem;font-weight:700;">⚡ ${soc}% SoC · ✓ Ready</span>
+                            </div>
+                            <button class="route-arrow" type="button" aria-label="View ${route.busNumber} details">›</button>
+                        </div>`;
+                }).join("")
+                : '<div class="route-row"><div class="route-meta"><strong>No eligible buses</strong><span>All buses have low SoC or require maintenance — cannot be allocated.</span></div></div>';
 
+            // Arrow → open Bus Details in the SAME TAB (not a new tab)
             routeSummary.querySelectorAll(".route-arrow").forEach((arrow) => {
                 arrow.addEventListener("click", () => {
                     const row = arrow.closest(".route-row");
@@ -465,17 +482,14 @@
                     const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
                     if (!selectedRoute) return;
                     const busId = selectedRoute.busNumber || selectedRoute.routeId || "BUS_001";
-                    window.open(`/bus-details.html?bus_id=${encodeURIComponent(busId)}`, "_blank");
-                    routeSelect.value = routeId;
-                    updateSelectedRouteDistance();
-                    syncScheduleTiming();
-                    recommend();
+                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
 
             updateSelectedRouteDistance();
+            // KPIs: total fleet vs buses that actually passed the allocation gate
             document.getElementById("bus-total").textContent = String(totalBuses);
-            document.getElementById("bus-departure").textContent = String(busesForDeparture);
+            document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
             updateAssignedDriverCount();
         }
 
@@ -568,6 +582,7 @@
                         const payload = await res.json();
                         if (payload && payload.ok && payload.state) {
                             busStates = payload.state;
+                            renderRoutes(); // re-apply allocation gate with fresh telemetry
                             recommend();
                         }
                     } catch {}
