@@ -335,19 +335,19 @@
             </section>
 
             <aside class="panel">
-                <h2>Allocation result</h2>
+                <h2 id="allocation-title">Allocation result</h2>
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
                     <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
                     <div class="kpi"><strong id="bus-departure">0</strong><span>Buses available for departure</span></div>
                     <div class="kpi"><strong id="driver-total">0</strong><span>Assigned drivers</span></div>
-                    <div class="kpi"><strong id="soc-result">98%</strong><span>Selected bus SOC</span></div>
-                    <div class="kpi"><strong id="range-result">142 km</strong><span>Expected range</span></div>
+                    <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
+                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Expected range</span></div>
                 </div>
                 <div class="rules">
-                    <div class="rule"><span>Minimum SOC</span><strong>98-100%</strong></div>
+                    <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
-                    <div class="rule"><span>Range rule</span><strong id="range-rule">Range covers distance</strong></div>
+                    <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
                     <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
                     <div class="rule"><span>Fleet status</span><strong id="fleet-rule">Ready for dispatch</strong></div>
                 </div>
@@ -487,7 +487,17 @@
             // A bus may only appear in "Allocated Buses" when it has SoC >= 98 %
             // AND its condition is "Good" (as reported by the ESP32 telemetry).
             // Buses with no telemetry data yet are assumed ready (factory-fresh 100%).
+            //
+            // Manual override: if Interior clean is unchecked and the operator has
+            // manually selected a bus, that bus is forced into the allocated list.
+            const interiorChecked = document.getElementById("interior").checked;
+            const manuallySelectedId = routeSelect.value || null;
+            const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
+
             const allocatedRoutes = filteredRoutes.filter((route) => {
+                // Manual override forces this specific bus into allocated
+                if (isManualOverride && String(route.routeId) === String(manuallySelectedId)) return true;
+
                 const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                 if (!state || Object.keys(state).length === 0) return true; // no data → assume ready
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
@@ -502,26 +512,49 @@
             const previouslySelected = routeSelect.value;
 
             // Route <select> shows ALL buses from GTFS (filtered only by search text)
-            routeSelect.innerHTML = filteredRoutes.length
+            routeSelect.innerHTML = '<option value="">— Select a bus —</option>' + (filteredRoutes.length
                 ? filteredRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
-                : '<option value="">No routes found</option>';
+                : '');
 
             // Restore the previous selection if it still exists in the rebuilt list
             if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
                 routeSelect.value = previouslySelected;
             }
 
-            // Allocated Buses list — show live SoC badge on each row
+            // Update allocation title and SOC/Range KPIs based on selection
+            updateAllocationPanel();
+
+            // Allocated Buses list — show live SoC badge and Fleet status on each row
             routeSummary.innerHTML = allocatedRoutes.length
                 ? allocatedRoutes.map((route) => {
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                     const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                    const condition = state.condition || "Good";
+                    const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
+
+                    // Determine fleet status for this bus
+                    let fleetStatus, fleetColor;
+                    if (isOverridden) {
+                        fleetStatus = "⚙ Manual override";
+                        fleetColor = "#b45309";
+                    } else if (condition === "Not Good") {
+                        fleetStatus = "🔧 Maintenance Required";
+                        fleetColor = "#a94b15";
+                    } else if (soc <= 25) {
+                        fleetStatus = "⚡ Depot Charge Required";
+                        fleetColor = "#a94b15";
+                    } else {
+                        fleetStatus = "✓ Ready for dispatch";
+                        fleetColor = "#08755f";
+                    }
+
                     return `
                         <div class="route-row" data-route-id="${route.routeId}">
                             <div class="route-meta">
                                 <strong>${route.busNumber}</strong>
                                 <span>${route.origin} to ${route.destination}</span>
-                                <span style="color:#11a889;font-size:.75rem;font-weight:700;">⚡ ${soc}% SoC · ✓ Ready</span>
+                                <span style="color:#11a889;font-size:.75rem;font-weight:700;">⚡ ${soc}% SoC</span>
+                                <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
                             </div>
                             <button class="route-arrow" type="button" aria-label="View ${route.busNumber} details">›</button>
                         </div>`;
@@ -544,6 +577,7 @@
 
             // ── Not Allocated Buses ──────────────────────────────────────────────
             // Buses that have telemetry data AND failed the allocation gate.
+            // Manually overridden buses are excluded (they appear in Allocated).
             const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
             const notAllocatedRoutes = filteredRoutes.filter((r) => {
                 const state = busStates[r.routeId] || busStates[r.busNumber] || {};
@@ -607,6 +641,38 @@
         }
 
         let busStates = {};
+        let recommendClicked = false;
+
+        function updateAllocationPanel() {
+            const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
+            const titleEl = document.getElementById("allocation-title");
+            const socKpi = document.getElementById("kpi-soc");
+            const rangeKpi = document.getElementById("kpi-range");
+            const socResult = document.getElementById("soc-result");
+            const rangeResult = document.getElementById("range-result");
+            const currentSocRule = document.getElementById("current-soc-rule");
+            const rangeRule = document.getElementById("range-rule");
+            const timeRule = document.getElementById("time-rule");
+            const fleetRule = document.getElementById("fleet-rule");
+
+            if (!selectedRoute || !routeSelect.value) {
+                // No bus selected
+                titleEl.textContent = "Allocation result";
+                socResult.textContent = "—";
+                rangeResult.textContent = "—";
+                socKpi.style.opacity = "0.4";
+                rangeKpi.style.opacity = "0.4";
+                currentSocRule.textContent = "—";
+                rangeRule.textContent = "—";
+                timeRule.textContent = "—";
+                fleetRule.textContent = "—";
+            } else {
+                // Bus selected — show its name in the title
+                titleEl.textContent = `Allocation result of ${selectedRoute.busNumber}`;
+                socKpi.style.opacity = "1";
+                rangeKpi.style.opacity = "1";
+            }
+        }
 
         async function recommend() {
             const distance = Number(document.getElementById("distance").value) || 0;
@@ -617,6 +683,7 @@
             const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
 
             if (!selectedRoute) {
+                updateAllocationPanel();
                 return;
             }
 
@@ -630,20 +697,32 @@
                 document.getElementById("interior").checked = false;
             }
 
-            const clean = document.getElementById("interior").checked && document.getElementById("exterior").checked && condition === "Good";
+            const interiorChecked = document.getElementById("interior").checked;
+            const exteriorChecked = document.getElementById("exterior").checked;
+            const clean = interiorChecked && exteriorChecked && condition === "Good";
             const maintenanceClear = document.getElementById("maintenance").checked && condition === "Good";
+
+            // Manual override: when a bus is manually selected and Interior clean
+            // is unchecked, the operator is consciously overriding the cleanliness
+            // gate — bypass the clean requirement so the bus can still be allocated.
+            const manualCleanOverride = !interiorChecked && selectedRoute;
+            const effectiveClean = manualCleanOverride || clean;
 
             const usableSoc = Math.max(0, liveSoc - 10);
             const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
             const rangeCovered = liveSoc > 25 && rangeValue >= routeDistance;
-            const ready = driverReady && clean && maintenanceClear && rangeCovered && complexity !== "complex";
+            const ready = driverReady && effectiveClean && maintenanceClear && rangeCovered && complexity !== "complex";
+
+            // Update allocation panel title and KPI visibility
+            updateAllocationPanel();
 
             document.getElementById("soc-result").textContent = `${liveSoc}%`;
             document.getElementById("range-result").textContent = `${rangeValue} km`;
-            document.getElementById("range-rule").textContent = rangeCovered ? "Range covers distance" : (liveSoc <= 25 ? "Critically low battery" : "Range insufficient");
+            document.getElementById("current-soc-rule").textContent = `${liveSoc}%`;
+            document.getElementById("range-rule").textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
             document.getElementById("time-rule").textContent = departMinutes > 18 * 60 ? "Extreme peak" : "Standard peak";
             document.getElementById("fleet-rule").textContent = ready
-                ? "Ready for dispatch"
+                ? (manualCleanOverride ? "Ready for dispatch (manual override)" : "Ready for dispatch")
                 : (condition === "Not Good" ? "Maintenance Required" : (liveSoc <= 25 ? "Depot Charge Required" : "Needs review"));
         }
 
@@ -669,14 +748,18 @@
                 };
                 renderRoutes();
                 routeSelect.addEventListener("change", async () => {
+                    recommendClicked = false; // reset override when bus selection changes
                     await updateSelectedRouteDistance();
                     await syncScheduleTiming();
+                    renderRoutes(); // re-render lists without override
                     await recommend();
                 });
                 routeSearch.addEventListener("input", renderRoutes);
                 document.getElementById("recommend").addEventListener("click", async () => {
+                    recommendClicked = true; // activate manual override
                     await updateSelectedRouteDistance();
                     await syncScheduleTiming();
+                    renderRoutes(); // re-render lists with override applied
                     await recommend();
                 });
                 document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
