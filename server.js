@@ -1,4 +1,5 @@
 const http = require("http");
+const https = require("https");
 const fs = require("fs");
 const path = require("path");
 
@@ -15,6 +16,10 @@ const ADAFRUIT_USERNAME = process.env.ADAFRUIT_USERNAME || "Manu123456789";
 const ADAFRUIT_FEED_NAME = process.env.ADAFRUIT_FEED_NAME || "gpslocation";
 const ADAFRUIT_AIO_KEY = process.env.ADAFRUIT_AIO_KEY || "";
 const ADAFRUIT_LAST_VALUE_URL = `https://io.adafruit.com/api/v2/${ADAFRUIT_USERNAME}/feeds/${ADAFRUIT_FEED_NAME}/data/last`;
+
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
+const GITHUB_REPO = "manojmanu71020007/ashok-leyland";
+const GITHUB_FILE_PATH = "bus_state.json";
 
 const DEFAULT_BUS_TIMINGS = {
     Delayed: { arrival: "15:10", departure: "15:15" },
@@ -267,13 +272,88 @@ function writeJsonFile(filePath, value) {
     fs.writeFileSync(filePath, JSON.stringify(value, null, 2), "utf8");
 }
 
+// ── GitHub Persistence ─────────────────────────────────────────────────────
+// Keeps bus_state.json in sync with the GitHub repo so SoC values survive
+// Render server restarts / redeploys (Render free tier has ephemeral storage).
+// Requires GITHUB_TOKEN env var (Personal Access Token with repo scope).
+
+function githubRequest(method, apiPath, body) {
+    return new Promise((resolve, reject) => {
+        const payload = body ? JSON.stringify(body) : null;
+        const req = https.request(
+            {
+                hostname: "api.github.com",
+                path: apiPath,
+                method,
+                headers: Object.assign(
+                    {
+                        "User-Agent": "ashok-leyland-server",
+                        Accept: "application/vnd.github.v3+json"
+                    },
+                    GITHUB_TOKEN ? { Authorization: `token ${GITHUB_TOKEN}` } : {},
+                    payload ? { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(payload) } : {}
+                )
+            },
+            (res) => {
+                let data = "";
+                res.on("data", (c) => { data += c; });
+                res.on("end", () => {
+                    try { resolve(JSON.parse(data)); } catch { resolve({}); }
+                });
+            }
+        );
+        req.on("error", reject);
+        if (payload) req.write(payload);
+        req.end();
+    });
+}
+
+// Push bus_state.json to GitHub (fire-and-forget, called after every local save)
+function syncBusStateToGitHub(state) {
+    if (!GITHUB_TOKEN) return;
+    const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+    githubRequest("GET", apiPath)
+        .then((current) => {
+            const content = Buffer.from(JSON.stringify(state, null, 2)).toString("base64");
+            return githubRequest("PUT", apiPath, {
+                message: "auto: sync bus_state from server",
+                content,
+                sha: current.sha
+            });
+        })
+        .then(() => { console.log("[GitHub] bus_state.json synced ✓"); })
+        .catch((e) => { console.warn("[GitHub sync failed]", e.message); });
+}
+
+// Pull bus_state.json from GitHub and overwrite local copy (called once at startup)
+async function restoreBusStateFromGitHub() {
+    if (!GITHUB_TOKEN) {
+        console.log("[GitHub] No GITHUB_TOKEN set — skipping restore. Add it in Render env vars to enable persistence.");
+        return;
+    }
+    try {
+        const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+        const result = await githubRequest("GET", apiPath);
+        if (result && result.content) {
+            const decoded = Buffer.from(result.content, "base64").toString("utf8");
+            fs.writeFileSync(BUS_STATE_FILE, decoded, "utf8");
+            console.log("[GitHub] bus_state.json restored from GitHub ✓");
+        }
+    } catch (e) {
+        console.warn("[GitHub restore failed]", e.message);
+    }
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 function loadBusState() {
     const state = readJsonFile(BUS_STATE_FILE, {});
     return state && typeof state === "object" ? state : {};
 }
 
 function saveBusState(state) {
-    writeJsonFile(BUS_STATE_FILE, state && typeof state === "object" ? state : {});
+    const clean = state && typeof state === "object" ? state : {};
+    writeJsonFile(BUS_STATE_FILE, clean);
+    syncBusStateToGitHub(clean); // persist to GitHub in background
 }
 
 function normalizeBusStatus(status) {
@@ -917,6 +997,8 @@ const server = http.createServer(async (req, res) => {
     sendJson(res, { error: "Not found" }, 404);
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+restoreBusStateFromGitHub().then(() => {
+    server.listen(PORT, () => {
+        console.log(`Server running on http://localhost:${PORT}`);
+    });
 });
