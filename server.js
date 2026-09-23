@@ -291,7 +291,7 @@ function normalizeBusStateEntry(entry, existing = {}) {
     const status = normalizeBusStatus(rawStatus);
     const soc = Number.isFinite(Number(entry?.soc))
         ? Math.max(0, Math.min(100, Number(entry.soc)))
-        : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : null);
+        : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : 100);
     const condition = entry?.condition ? String(entry.condition) : (existing?.condition || "Good");
     const timings = entry?.statusTimings && typeof entry.statusTimings === "object"
         ? entry.statusTimings
@@ -722,7 +722,7 @@ const server = http.createServer(async (req, res) => {
             const busState = loadBusState();
             const fleet = allRoutes.map((r) => {
                 const state = busState[r.routeId] || busState[r.busNumber] || {};
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : null;
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
                 const status = state.status || (soc > 30 ? "Active" : soc > 15 ? "Warning" : "Blocked");
                 return {

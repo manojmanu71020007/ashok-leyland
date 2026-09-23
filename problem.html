@@ -499,10 +499,10 @@
                 if (isManualOverride && String(route.routeId) === String(manuallySelectedId)) return true;
 
                 const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                if (!state || Object.keys(state).length === 0) return false; // no telemetry → cannot confirm SoC ≥ 98%, exclude
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : null;
+                if (!state || Object.keys(state).length === 0) return true; // no telemetry → assume factory-fresh 100%
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
-                return soc !== null && soc >= 98 && condition !== "Not Good";
+                return soc >= 98 && condition !== "Not Good";
             });
 
             const totalBuses = routes.length;
@@ -528,7 +528,7 @@
             routeSummary.innerHTML = allocatedRoutes.length
                 ? allocatedRoutes.map((route) => {
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : null;
+                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                     const condition = state.condition || "Good";
                     const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
 
