@@ -208,6 +208,22 @@ def get_bus_micro(bus_id: str) -> list[dict[str, Any]]:
     ]
 
 
+@app.get("/api/bus/{bus_id}/last-soc")
+def get_last_soc(bus_id: str) -> dict:
+    """Return the most recent telemetry SoC for a bus, or null if none exists."""
+    connection = get_db_connection()
+    try:
+        row = connection.execute(
+            "SELECT soc FROM telemetry_points WHERE bus_id = ? ORDER BY timestamp DESC LIMIT 1",
+            (bus_id,),
+        ).fetchone()
+    finally:
+        connection.close()
+    if row:
+        return {"ok": True, "soc": dict(row)["soc"]}
+    return {"ok": False, "soc": None}
+
+
 @app.post("/telemetry")
 @app.post("/api/telemetry")
 def post_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
