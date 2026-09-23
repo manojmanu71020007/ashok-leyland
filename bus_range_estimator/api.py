@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
+import os
 import sqlite3
 from datetime import datetime, timedelta
 from typing import Any
@@ -89,31 +91,25 @@ def _fallback_micro_rows(bus_id: str) -> list[dict[str, Any]]:
     return rows
 
 
-def store_fallback_rows(connection: sqlite3.Connection, bus_id: str) -> None:
-    """Persist deterministic fallback data for a selected bus so graphing works even when no depot row exists."""
-    ensure_depot_tables(connection)
-
-    macro_rows = _fallback_macro_rows(bus_id)
-    for row in macro_rows:
-        connection.execute(
-            """
-            INSERT INTO trip_logs (bus_id, route_code, slot, soc_start, soc_end, km, duration_hours, timestamp)
-            VALUES (?, '600F', ?, ?, ?, ?, ?, ?)
-            """,
-            (bus_id, row["slot"], row["soc_start"], row["soc_end"], row["km"], row["duration_hours"], row["timestamp"]),
-        )
-
-    micro_rows = _fallback_micro_rows(bus_id)
-    for row in micro_rows:
-        connection.execute(
-            """
-            INSERT INTO telemetry_points (bus_id, timestamp, soc, odometer_km)
-            VALUES (?, ?, ?, ?)
-            """,
-            (bus_id, row["timestamp"], row["soc"], row["odometer_km"]),
-        )
-
-    connection.commit()
+def get_bus_aliases(bus_id: str) -> list[str]:
+    """Find all aliases (bus_id, route_id, route_short_name) for a given bus."""
+    clean_id = str(bus_id).strip()
+    aliases = {clean_id}
+    routes_file = os.path.join(os.getcwd(), "routes", "routes.txt")
+    if os.path.exists(routes_file):
+        try:
+            with open(routes_file, "r", encoding="utf-8") as f:
+                reader = csv.reader(f)
+                next(reader, None)
+                for row in reader:
+                    if len(row) >= 5:
+                        r_short, r_id = row[1].strip(), row[4].strip()
+                        if clean_id in (r_short, r_id):
+                            aliases.add(r_short)
+                            aliases.add(r_id)
+        except Exception:
+            pass
+    return list(aliases)
 
 
 def get_db_connection() -> sqlite3.Connection:
@@ -129,113 +125,122 @@ def get_bus_macro(bus_id: str) -> list[dict[str, Any]]:
     """Return the last 30 days of trip history for a bus in chronological order."""
     connection = get_db_connection()
     try:
+        aliases = get_bus_aliases(bus_id)
+        placeholders = ",".join("?" for _ in aliases)
         rows = connection.execute(
-            """
+            f"""
             SELECT timestamp, slot, soc_start, soc_end, km, duration_hours
             FROM trip_logs
-            WHERE bus_id = ? AND timestamp >= datetime('now', '-30 days')
+            WHERE bus_id IN ({placeholders}) AND timestamp >= datetime('now', '-30 days')
             ORDER BY timestamp ASC
             """,
-            (bus_id,),
+            aliases,
         ).fetchall()
 
-        if not rows:
-            store_fallback_rows(connection, bus_id)
-            rows = connection.execute(
-                """
-                SELECT timestamp, slot, soc_start, soc_end, km, duration_hours
-                FROM trip_logs
-                WHERE bus_id = ? AND timestamp >= datetime('now', '-30 days')
-                ORDER BY timestamp ASC
-                """,
-                (bus_id,),
-            ).fetchall()
+        if rows:
+            seen_times = set()
+            unique_rows = []
+            for row in rows:
+                t = dict(row)["timestamp"]
+                if t not in seen_times:
+                    seen_times.add(t)
+                    unique_rows.append(
+                        {
+                            "timestamp": t,
+                            "slot": dict(row)["slot"],
+                            "soc_start": dict(row)["soc_start"],
+                            "soc_end": dict(row)["soc_end"],
+                            "km": dict(row)["km"],
+                            "duration_hours": dict(row)["duration_hours"],
+                        }
+                    )
+            return unique_rows
+
+        return _fallback_macro_rows(bus_id)
     finally:
         connection.close()
-
-    return [
-        {
-            "timestamp": dict(row)["timestamp"],
-            "slot": dict(row)["slot"],
-            "soc_start": dict(row)["soc_start"],
-            "soc_end": dict(row)["soc_end"],
-            "km": dict(row)["km"],
-            "duration_hours": dict(row)["duration_hours"],
-        }
-        for row in rows
-    ]
 
 
 @app.get("/api/bus/{bus_id}/micro")
 def get_bus_micro(bus_id: str) -> list[dict[str, Any]]:
-    """Return the last 50 live telemetry points for a bus in chronological order."""
+    """Return live real-time telemetry points for a bus in chronological order."""
     connection = get_db_connection()
     try:
+        aliases = get_bus_aliases(bus_id)
+        placeholders = ",".join("?" for _ in aliases)
         rows = connection.execute(
-            """
+            f"""
             SELECT timestamp, soc, odometer_km
             FROM telemetry_points
-            WHERE bus_id = ?
-            ORDER BY timestamp DESC
-            LIMIT 50
+            WHERE bus_id IN ({placeholders})
+            ORDER BY timestamp ASC
+            LIMIT 100
             """,
-            (bus_id,),
+            aliases,
         ).fetchall()
 
-        if not rows:
-            store_fallback_rows(connection, bus_id)
-            rows = connection.execute(
-                """
-                SELECT timestamp, soc, odometer_km
-                FROM telemetry_points
-                WHERE bus_id = ?
-                ORDER BY timestamp DESC
-                LIMIT 50
-                """,
-                (bus_id,),
-            ).fetchall()
+        if rows:
+            seen_times = set()
+            unique_rows = []
+            for row in rows:
+                t = dict(row)["timestamp"]
+                if t not in seen_times:
+                    seen_times.add(t)
+                    unique_rows.append(
+                        {
+                            "timestamp": t,
+                            "soc": dict(row)["soc"],
+                            "odometer_km": dict(row)["odometer_km"],
+                        }
+                    )
+            return unique_rows
+
+        # No live telemetry points yet -> return in-memory simulated curve without DB pollution
+        return _fallback_micro_rows(bus_id)
     finally:
         connection.close()
-
-    ordered_rows = list(reversed(rows))
-    return [
-        {
-            "timestamp": dict(row)["timestamp"],
-            "soc": dict(row)["soc"],
-            "odometer_km": dict(row)["odometer_km"],
-        }
-        for row in ordered_rows
-    ]
 
 
 @app.post("/telemetry")
 @app.post("/api/telemetry")
 def post_telemetry(payload: dict[str, Any]) -> dict[str, Any]:
-    """Accept a telemetry payload and store live telemetry point."""
+    """Accept a telemetry payload and store live telemetry point in real time."""
     if not payload:
         return {"ok": False, "error": "Empty payload."}
 
-    bus_id = str(payload.get("bus_id", payload.get("routeId", ""))).strip()
+    raw_bus_id = str(payload.get("bus_id", payload.get("routeId", ""))).strip()
     soc = float(payload.get("soc", 100.0))
-    if bus_id:
+    ts = payload.get("timestamp") or payload.get("updatedAt")
+    if not ts:
+        ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+
+    if raw_bus_id:
+        aliases = get_bus_aliases(raw_bus_id)
         connection = get_db_connection()
         try:
             ensure_depot_tables(connection)
-            now_str = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S")
-            connection.execute(
-                """
-                INSERT INTO telemetry_points (bus_id, timestamp, soc, odometer_km)
-                VALUES (?, ?, ?, ?)
-                """,
-                (bus_id, now_str, soc, 1000.0),
-            )
+            for b_id in aliases:
+                connection.execute(
+                    """
+                    INSERT INTO telemetry_points (bus_id, timestamp, soc, odometer_km)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (b_id, ts, soc, 1000.0),
+                )
+                connection.execute(
+                    """
+                    INSERT INTO trip_logs (bus_id, route_code, slot, soc_start, soc_end, km, duration_hours, timestamp)
+                    VALUES (?, 'LIVE', 'LIVE', ?, ?, 0.0, 0.0, ?)
+                    """,
+                    (b_id, soc, soc, ts),
+                )
             connection.commit()
         except Exception as exc:
             print(f"Failed to record telemetry point: {exc}")
         finally:
             connection.close()
 
-    return {"ok": True, "received": payload}
+    return {"ok": True, "received": payload, "timestamp": ts}
 
 
 @app.post("/allocate")

@@ -610,8 +610,22 @@ const server = http.createServer(async (req, res) => {
 
                         const currentState = loadBusState();
                         const existing = currentState[routeId] || {};
-                        currentState[routeId] = normalizeBusStateEntry(payload, existing);
+                        const updated = normalizeBusStateEntry(payload, existing);
+                        currentState[routeId] = updated;
                         saveBusState(currentState);
+
+                        // Forward to Python for real-time charting
+                        fetch(`${PYTHON_API_BASE}/telemetry`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                                bus_id: routeId,
+                                soc: updated.soc,
+                                condition: updated.condition,
+                                status: updated.status,
+                                timestamp: updated.updatedAt
+                            })
+                        }).catch(() => {});
 
                         sendJson(res, { ok: true, routeId, state: currentState[routeId] });
                     } catch (error) {
@@ -694,7 +708,8 @@ const server = http.createServer(async (req, res) => {
                                 bus_id: pyId,
                                 soc: updatedEntry.soc,
                                 condition: updatedEntry.condition,
-                                status: updatedEntry.status
+                                status: updatedEntry.status,
+                                timestamp: updatedEntry.updatedAt
                             })
                         }).catch(() => {});
                     }

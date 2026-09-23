@@ -95,27 +95,61 @@
       color: var(--muted);
       min-height: 24px;
     }
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
   </style>
 </head>
 <body>
   <div class="container">
+    <div style="margin-bottom: 12px;">
+      <a href="/smart-bus-scheduling.html" style="color: var(--muted); text-decoration: none; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 6px;">← Back to Scheduling Portal</a>
+    </div>
     <div class="header">
-      <h1>Bus Details & Analytics</h1>
+      <div>
+        <h1>Bus Details & Telemetry</h1>
+        <div style="margin-top: 6px;">
+          <span class="live-badge"><span class="live-dot"></span> LIVE REAL-TIME FEED</span>
+        </div>
+      </div>
       <div class="view-switcher" aria-label="Chart view switcher">
-        <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
-        <button class="view-btn" data-view="micro">Micro View (Live)</button>
+        <button class="view-btn active" data-view="micro">⚡ Live Telemetry (Real-Time)</button>
+        <button class="view-btn" data-view="macro">📅 30-Day History</button>
       </div>
     </div>
 
     <div class="card" style="margin-bottom: 18px;">
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 8px;">
         <div style="background: rgba(59, 130, 246, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Bus ID</div>
+          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Bus ID / Route</div>
           <div id="busIdLabel" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
         <div style="background: rgba(34, 197, 94, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
           <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Current SOC</div>
-          <div id="currentSoc" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
+          <div id="currentSoc" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px; color: #22c55e;">-</div>
         </div>
         <div style="background: rgba(168, 85, 247, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.2);">
           <div id="odoLabel" style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Last Odometer</div>
@@ -132,24 +166,28 @@
       <div class="chart-wrap">
         <canvas id="analyticsChart"></canvas>
       </div>
-      <p id="status" class="status">Loading analytics…</p>
+      <p id="status" class="status">Connecting to live telemetry…</p>
     </div>
   </div>
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const busId = urlParams.get("bus_id") || "BUS_001";
+    let currentView = urlParams.get("view") || "micro";
     let chart = null;
+    let lastDataHash = "";
+    let isFetching = false;
 
     function formatTimestamp(value) {
       if (!value) return "";
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return value;
-      return date.toLocaleString();
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     }
 
     function setStatus(message) {
-      document.getElementById("status").textContent = message;
+      const el = document.getElementById("status");
+      if (el) el.textContent = message;
     }
 
     function destroyChart() {
@@ -164,7 +202,7 @@
         ? `/api/bus/${encodeURIComponent(busId)}/macro`
         : `/api/bus/${encodeURIComponent(busId)}/micro`;
 
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, { cache: "no-store" });
       if (!response.ok) {
         throw new Error(`Request failed: ${response.status}`);
       }
@@ -172,25 +210,27 @@
     }
 
     async function updateSummary(data, view) {
-      if (!Array.isArray(data) || data.length === 0) return;
-      if (view === "macro") {
-        const latest = data[data.length - 1];
-        document.getElementById("currentSoc").textContent = `${Number(latest.soc_end).toFixed(1)}%`;
-        document.getElementById("lastOdometer").textContent = "N/A";
-        const odoLabel = document.getElementById("odoLabel");
-        if (odoLabel) odoLabel.textContent = "Route Distance";
-      } else {
-        const latest = data[data.length - 1];
-        document.getElementById("currentSoc").textContent = `${Number(latest.soc).toFixed(1)}%`;
-        const odometer = data[data.length - 1].odometer_km;
-        document.getElementById("lastOdometer").textContent = `${Number(odometer).toFixed(1)} km`;
-      }
       document.getElementById("busIdLabel").textContent = busId;
 
+      if (Array.isArray(data) && data.length > 0) {
+        if (view === "macro") {
+          const latest = data[data.length - 1];
+          document.getElementById("currentSoc").textContent = `${Number(latest.soc_end).toFixed(1)}%`;
+          document.getElementById("lastOdometer").textContent = "N/A";
+          const odoLabel = document.getElementById("odoLabel");
+          if (odoLabel) odoLabel.textContent = "Route Distance";
+        } else {
+          const latest = data[data.length - 1];
+          document.getElementById("currentSoc").textContent = `${Number(latest.soc).toFixed(0)}%`;
+          const odometer = latest.odometer_km;
+          document.getElementById("lastOdometer").textContent = `${Number(odometer).toFixed(1)} km`;
+        }
+      }
+
+      // Also cross-reference /api/bus-state for instant real-time telemetry updates
       try {
-        const stateRes = await fetch("/api/bus-state");
+        const stateRes = await fetch("/api/bus-state", { cache: "no-store" });
         const statePayload = await stateRes.json();
-        // try exact busId first, then numeric-only version (routeId), then any key containing busId
         const allState = statePayload?.state || {};
         const state = allState[busId]
           || allState[busId.replace(/\D/g, "")]
@@ -210,7 +250,10 @@
     }
 
     function createMacroChart(data) {
-      const labels = data.map((point) => formatTimestamp(point.timestamp));
+      const labels = data.map((point) => {
+        const date = new Date(point.timestamp);
+        return Number.isNaN(date.getTime()) ? point.timestamp : date.toLocaleDateString([], { month: "short", day: "numeric" });
+      });
       const values = data.map((point) => Number(point.soc_end));
 
       return new Chart(document.getElementById("analyticsChart"), {
@@ -221,26 +264,40 @@
             label: `SOC End (${busId})`,
             data: values,
             borderColor: "#3b82f6",
-            backgroundColor: "rgba(59, 130, 246, 0.2)",
-            borderWidth: 2,
-            fill: false,
+            backgroundColor: "rgba(59, 130, 246, 0.15)",
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            fill: true,
             tension: 0.25
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: { duration: 300 },
           interaction: { mode: "index", intersect: false },
-          plugins: { legend: { display: true } },
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const pt = data[items[0].dataIndex];
+                  return pt ? new Date(pt.timestamp).toLocaleString() : "";
+                },
+                label: (item) => ` SOC: ${item.parsed.y}%`
+              }
+            }
+          },
           scales: {
             x: {
-              ticks: { autoSkip: true, maxRotation: 45, minRotation: 45 },
-              title: { display: true, text: "Timestamp" }
+              ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 },
+              title: { display: true, text: "Date" }
             },
             y: {
               title: { display: true, text: "SOC End (%)" },
-              suggestedMin: 0,
-              suggestedMax: 100
+              min: 0,
+              max: 100
             }
           }
         }
@@ -248,10 +305,7 @@
     }
 
     function createMicroChart(data) {
-      const labels = data.map((point) => {
-        const date = new Date(point.timestamp);
-        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      });
+      const labels = data.map((point) => formatTimestamp(point.timestamp));
       const values = data.map((point) => Number(point.soc));
 
       return new Chart(document.getElementById("analyticsChart"), {
@@ -259,63 +313,119 @@
         data: {
           labels,
           datasets: [{
-            label: `Live SOC (${busId})`,
+            label: `Live Telemetry SOC (${busId})`,
             data: values,
             borderColor: "#22c55e",
-            backgroundColor: "rgba(34, 197, 94, 0.2)",
-            borderWidth: 2,
-            fill: false,
-            tension: 0.25
+            backgroundColor: "rgba(34, 197, 94, 0.15)",
+            borderWidth: 2.5,
+            pointRadius: 5,
+            pointHoverRadius: 8,
+            pointBackgroundColor: "#22c55e",
+            fill: true,
+            tension: 0.2
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          animation: { duration: 300 },
           interaction: { mode: "index", intersect: false },
-          plugins: { legend: { display: true } },
+          plugins: {
+            legend: { display: true },
+            tooltip: {
+              callbacks: {
+                title: (items) => {
+                  const pt = data[items[0].dataIndex];
+                  return pt ? new Date(pt.timestamp).toLocaleString() : "";
+                },
+                label: (item) => ` State of Charge: ${item.parsed.y}%`
+              }
+            }
+          },
           scales: {
             x: {
-              ticks: { autoSkip: true, maxRotation: 45, minRotation: 45 },
-              title: { display: true, text: "Time" }
+              ticks: { autoSkip: true, maxRotation: 45, minRotation: 0 },
+              title: { display: true, text: "Real-Time Timestamp" }
             },
             y: {
               title: { display: true, text: "SOC (%)" },
-              suggestedMin: 0,
-              suggestedMax: 100
+              min: 0,
+              max: 100
             }
           }
         }
       });
     }
 
-    async function renderView(view) {
-      destroyChart();
-      setStatus(`Loading ${view === "macro" ? "30-day history" : "live telemetry"}...`);
+    async function renderView(view, isAutoPoll = false) {
+      if (isFetching) return;
+      isFetching = true;
 
       try {
         const data = await fetchBusData(view);
         if (!Array.isArray(data) || data.length === 0) {
-          setStatus(`No ${view === "macro" ? "historical" : "live"} records found for ${busId}.`);
+          if (!isAutoPoll) setStatus(`No ${view === "macro" ? "historical" : "live"} records found for ${busId}.`);
           return;
         }
 
+        const dataHash = JSON.stringify(data);
+        const dataChanged = dataHash !== lastDataHash;
+        lastDataHash = dataHash;
+
         updateSummary(data, view);
-        chart = view === "macro" ? createMacroChart(data) : createMicroChart(data);
-        setStatus(`${view === "macro" ? "Macro view" : "Micro view"} loaded for ${busId}.`);
+
+        const labels = view === "macro"
+          ? data.map((point) => {
+              const d = new Date(point.timestamp);
+              return Number.isNaN(d.getTime()) ? point.timestamp : d.toLocaleDateString([], { month: "short", day: "numeric" });
+            })
+          : data.map((point) => formatTimestamp(point.timestamp));
+        const values = view === "macro"
+          ? data.map((point) => Number(point.soc_end))
+          : data.map((point) => Number(point.soc));
+
+        if (chart && chart.config.options._view === view) {
+          // In-place smooth update without canvas recreation!
+          if (dataChanged) {
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = values;
+            chart.update("none");
+          }
+        } else {
+          destroyChart();
+          chart = view === "macro" ? createMacroChart(data) : createMicroChart(data);
+          chart.config.options._view = view;
+        }
+
+        const latestTime = data[data.length - 1] ? formatTimestamp(data[data.length - 1].timestamp) : new Date().toLocaleTimeString();
+        setStatus(`Live telemetry active • Last reading: ${latestTime} (${data.length} real-time points)`);
       } catch (error) {
-        console.error(error);
-        setStatus(`Could not load ${view} data for ${busId}.`);
+        if (!isAutoPoll) {
+          console.error(error);
+          setStatus(`Could not load ${view} data for ${busId}.`);
+        }
+      } finally {
+        isFetching = false;
       }
     }
 
+    // View switcher buttons
     document.querySelectorAll(".view-btn").forEach((button) => {
       button.addEventListener("click", () => {
+        currentView = button.dataset.view;
         document.querySelectorAll(".view-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
-        renderView(button.dataset.view);
+        lastDataHash = "";
+        renderView(currentView, false);
       });
     });
 
-    renderView("macro");
+    // Initial render
+    renderView(currentView, false);
+
+    // Auto-polling every 2.5 seconds for real-time live graph updates
+    setInterval(() => {
+      renderView(currentView, true);
+    }, 2500);
   </script>
 </body>
 </html>
