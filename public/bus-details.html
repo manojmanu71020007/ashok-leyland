@@ -190,21 +190,30 @@
       try {
         const stateRes = await fetch("/api/bus-state");
         const statePayload = await stateRes.json();
-        // try exact busId first, then numeric-only version (routeId), then any key containing busId
         const allState = statePayload?.state || {};
+
+        // Try multiple key formats: exact busId, numeric-only, any key that matches
+        const numericId = busId.replace(/\D/g, "");
         const state = allState[busId]
-          || allState[busId.replace(/\D/g, "")]
-          || Object.values(allState).find((_, k) => Object.keys(allState)[k] === busId);
-        if (state) {
-          if (Number.isFinite(Number(state.soc))) {
-            document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
-          }
-          if (state.condition) {
-            const condEl = document.getElementById("busCondition");
-            const isGood = state.condition === "Good";
-            condEl.textContent = isGood ? "Good" : "Maintenance Req.";
-            condEl.style.color = isGood ? "#16a34a" : "#dc2626";
-          }
+          || allState[numericId]
+          || Object.entries(allState).find(([k]) =>
+              k === busId || k === numericId ||
+              k.replace(/\D/g, "") === numericId
+            )?.[1];
+
+        if (state && Number.isFinite(Number(state.soc))) {
+          // Real telemetry from ESP — show exact value
+          document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
+        } else {
+          // No telemetry yet — show 100% to match the allocation panel assumption
+          document.getElementById("currentSoc").textContent = "100%";
+        }
+
+        if (state && state.condition) {
+          const condEl = document.getElementById("busCondition");
+          const isGood = state.condition === "Good";
+          condEl.textContent = isGood ? "Good" : "Maintenance Req.";
+          condEl.style.color = isGood ? "#16a34a" : "#dc2626";
         }
       } catch {}
     }
