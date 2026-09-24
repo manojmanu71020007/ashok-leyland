@@ -302,17 +302,29 @@ function swapBusAssignments(state) {
     while (changed && guard-- > 0) {
         changed = false;
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
-            const rA = sortedRoutes[i];     // longer route (should have higher SoC)
+            const rA = sortedRoutes[i];     // longer route (target: should have higher SoC & range)
             const rB = sortedRoutes[i + 1]; // shorter route
             const socA = workingSoc[rA.routeId];
             const socB = workingSoc[rB.routeId];
-            // Swap only when the shorter-route bus has significantly more SoC
+            // Swap only when the shorter-route bus has significantly more SoC (> threshold)
             if (socB - socA > SWAP_THRESHOLD_PCT) {
                 workingSoc[rA.routeId] = socB;
                 workingSoc[rB.routeId] = socA;
-                const tmp = assignments[rA.routeId];
+
+                // 1. Swap assigned bus short names
+                const tmpName = assignments[rA.routeId];
                 assignments[rA.routeId] = assignments[rB.routeId];
-                assignments[rB.routeId] = tmp;
+                assignments[rB.routeId] = tmpName;
+
+                // 2. Swap the bus telemetry state so the longer route now holds the higher SoC bus
+                if (!state[rA.routeId]) state[rA.routeId] = { status: "On Time", condition: "Good" };
+                if (!state[rB.routeId]) state[rB.routeId] = { status: "On Time", condition: "Good" };
+                state[rA.routeId].soc = socB;
+                state[rB.routeId].soc = socA;
+                const condA = state[rA.routeId].condition || "Good";
+                state[rA.routeId].condition = state[rB.routeId].condition || "Good";
+                state[rB.routeId].condition = condA;
+
                 changed = true;
             }
         }
