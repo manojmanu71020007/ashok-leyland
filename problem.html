@@ -382,6 +382,13 @@
         let gtfsBundle = null;
         let selectedRouteDistance = null;
 
+        // Swap-engine results (fetched from /api/bus-assignments)
+        // assignments: { routeId → assignedBusShortName }
+        // blockedRouteIds: [routeId, ...]
+        let busAssignments = {};
+        let blockedRouteIds = new Set();
+        let assignmentRanges = {}; // routeId → { soc, estimatedRangeKm, gtfsDistanceKm, blocked }
+
         function haversineKm(lat1, lon1, lat2, lon2) {
             const earthRadiusKm = 6371;
             const toRadians = (degrees) => (degrees * Math.PI) / 180;
@@ -474,22 +481,42 @@
             });
         }
 
+        // ── Logic 1 + 2 result: fetch assignments from swap engine ────────────
+        async function fetchBusAssignments() {
+            try {
+                const res = await fetch("/api/bus-assignments");
+                const payload = await res.json();
+                if (payload && payload.ok) {
+                    busAssignments = payload.assignments || {};
+                    blockedRouteIds = new Set(payload.blockedRouteIds || []);
+                    assignmentRanges = payload.ranges || {};
+                }
+            } catch (e) {
+                console.warn("Could not fetch bus assignments", e);
+            }
+        }
+
+        function getAssignedBusName(route) {
+            // Return whatever the swap engine has assigned for this routeId,
+            // falling back to the GTFS short name if no assignment exists yet.
+            return busAssignments[String(route.routeId)] || route.busNumber || route.routeId;
+        }
+
         function renderRoutes() {
             const query = (routeSearch.value || "").trim().toLowerCase();
             const filteredRoutes = query
                 ? routes.filter((route) => {
-                    const text = `${route.busNumber || ""} ${route.origin || ""} ${route.destination || ""} ${route.routeName || ""}`.toLowerCase();
+                    // Search by GTFS name OR by swap-assigned name
+                    const assignedName = getAssignedBusName(route);
+                    const text = `${assignedName} ${route.busNumber || ""} ${route.origin || ""} ${route.destination || ""} ${route.routeName || ""}`.toLowerCase();
                     return text.includes(query);
                 })
                 : routes;
 
             // ── Allocation gate ──────────────────────────────────────────────────
-            // A bus may only appear in "Allocated Buses" when it has SoC >= 98 %
-            // AND its condition is "Good" (as reported by the ESP32 telemetry).
-            // Buses with no telemetry data yet are assumed ready (factory-fresh 100%).
-            //
-            // Manual override: if Interior clean is unchecked and the operator has
-            // manually selected a bus, that bus is forced into the allocated list.
+            // A bus may only appear in "Allocated Buses" when it has SoC >= 98%
+            // AND condition is "Good" AND estimated range >= GTFS distance.
+            // Buses blocked by the swap engine are forced into "Not Allocated".
             const interiorChecked = document.getElementById("interior").checked;
             const manuallySelectedId = routeSelect.value || null;
             const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
@@ -497,6 +524,9 @@
             const allocatedRoutes = filteredRoutes.filter((route) => {
                 // Manual override forces this specific bus into allocated
                 if (isManualOverride && String(route.routeId) === String(manuallySelectedId)) return true;
+
+                // If swap engine says blocked → not allocated
+                if (blockedRouteIds.has(String(route.routeId))) return false;
 
                 const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                 if (!state || Object.keys(state).length === 0) return true; // no telemetry → assume factory-fresh 100%
@@ -507,16 +537,21 @@
 
             const totalBuses = routes.length;
 
-            // Preserve whatever the user currently has selected so the 3-second
-            // polling loop never silently resets their chosen route.
+            // Preserve whatever the user currently has selected
             const previouslySelected = routeSelect.value;
 
-            // Route <select> shows ALL buses from GTFS (filtered only by search text)
+            // ── Route <select>: show assigned bus short name (from swap engine) ──
+            // Format: "AssignedBusName - Origin to Destination [⛔ Blocked]"
             routeSelect.innerHTML = '<option value="">— Select a bus —</option>' + (filteredRoutes.length
-                ? filteredRoutes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("")
+                ? filteredRoutes.map((route) => {
+                    const assignedName = getAssignedBusName(route);
+                    const isBlocked = blockedRouteIds.has(String(route.routeId));
+                    const label = `${assignedName} - ${route.origin} to ${route.destination}${isBlocked ? " ⛔" : ""}`;
+                    return `<option value="${route.routeId}">${label}</option>`;
+                }).join("")
                 : '');
 
-            // Restore the previous selection if it still exists in the rebuilt list
+            // Restore the previous selection if it still exists
             if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
                 routeSelect.value = previouslySelected;
             }
@@ -524,15 +559,16 @@
             // Update allocation title and SOC/Range KPIs based on selection
             updateAllocationPanel();
 
-            // Allocated Buses list — show live SoC badge and Fleet status on each row
+            // Allocated Buses list — show assigned bus name, live SoC, fleet status
             routeSummary.innerHTML = allocatedRoutes.length
                 ? allocatedRoutes.map((route) => {
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                     const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                     const condition = state.condition || "Good";
                     const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
+                    const assignedName = getAssignedBusName(route);
+                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
 
-                    // Determine fleet status for this bus
                     let fleetStatus, fleetColor;
                     if (isOverridden) {
                         fleetStatus = "⚙ Manual override";
@@ -549,21 +585,24 @@
                     }
 
                     const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
+                    const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
 
                     return `
                         <div class="route-row" data-route-id="${route.routeId}">
                             <div class="route-meta">
-                                <strong>${route.busNumber}</strong>
+                                <strong>${assignedName}</strong>
+                                <span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>
                                 <span>${route.origin} to ${route.destination}</span>
                                 <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
+                                ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
                                 <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
                             </div>
-                            <button class="route-arrow" type="button" aria-label="View ${route.busNumber} details">›</button>
+                            <button class="route-arrow" type="button" aria-label="View ${assignedName} details">›</button>
                         </div>`;
                 }).join("")
                 : '<div class="route-row"><div class="route-meta"><strong>No eligible buses</strong><span>All buses have low SoC or require maintenance — cannot be allocated.</span></div></div>';
 
-            // Arrow → open Bus Details in the SAME TAB (not a new tab)
+            // Arrow → open Bus Details
             routeSummary.querySelectorAll(".route-arrow").forEach((arrow) => {
                 arrow.addEventListener("click", () => {
                     const row = arrow.closest(".route-row");
@@ -572,18 +611,18 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busId = selectedRoute.busNumber || selectedRoute.routeId || "BUS_001";
+                    const busId = getAssignedBusName(selectedRoute) || selectedRoute.routeId || "BUS_001";
                     window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
 
             // ── Not Allocated Buses ──────────────────────────────────────────────
-            // Buses that have telemetry data AND failed the allocation gate.
-            // Manually overridden buses are excluded (they appear in Allocated).
             const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
             const notAllocatedRoutes = filteredRoutes.filter((r) => {
+                if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
+                // Include routes blocked by swap engine even without telemetry
+                if (blockedRouteIds.has(String(r.routeId))) return true;
                 const state = busStates[r.routeId] || busStates[r.busNumber] || {};
-                // Only show in "not allocated" if we actually have telemetry that disqualifies it
                 if (!state || Object.keys(state).length === 0) return false;
                 return !allocatedIds.has(String(r.routeId));
             });
@@ -593,23 +632,28 @@
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                     const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                     const condition = state.condition || "Good";
+                    const isBlockedByRange = blockedRouteIds.has(String(route.routeId));
+                    const assignedName = getAssignedBusName(route);
+                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
                     const lowSoc = soc < 98;
                     const badCondition = condition === "Not Good";
                     const tags = [
                         lowSoc ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC</span>` : "",
-                        badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : ""
+                        badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
+                        isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${rangeInfo.estimatedRangeKm ?? "?"}km < ${rangeInfo.gtfsDistanceKm ?? "?"}km</span>` : ""
                     ].filter(Boolean).join(" ");
                     return `
                         <div class="route-row-rejected" data-route-id="${route.routeId}">
                             <div class="route-meta">
-                                <strong>${route.busNumber}</strong>
+                                <strong>${assignedName}</strong>
+                                <span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>
                                 <span>${route.origin} to ${route.destination}</span>
                             </div>
                             <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
                                 ${tags}
                                 <button class="route-arrow not-alloc-arrow" type="button"
                                     style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
-                                    aria-label="View ${route.busNumber} details">›</button>
+                                    aria-label="View ${assignedName} details">›</button>
                             </div>
                         </div>`;
                 }).join("")
@@ -624,14 +668,12 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busId = selectedRoute.busNumber || selectedRoute.routeId || "BUS_001";
+                    const busId = getAssignedBusName(selectedRoute) || selectedRoute.routeId || "BUS_001";
                     window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
 
-
             updateSelectedRouteDistance();
-            // KPIs: total fleet vs buses that actually passed the allocation gate
             document.getElementById("bus-total").textContent = String(totalBuses);
             document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
             updateAssignedDriverCount();
@@ -658,7 +700,6 @@
             const fleetRule = document.getElementById("fleet-rule");
 
             if (!selectedRoute || !routeSelect.value) {
-                // No bus selected
                 titleEl.textContent = "Allocation result";
                 socResult.textContent = "—";
                 rangeResult.textContent = "—";
@@ -669,8 +710,8 @@
                 timeRule.textContent = "—";
                 fleetRule.textContent = "—";
             } else {
-                // Bus selected — show its name in the title
-                titleEl.textContent = `Allocation result of ${selectedRoute.busNumber}`;
+                const assignedName = getAssignedBusName(selectedRoute);
+                titleEl.textContent = `Allocation result of ${assignedName}`;
                 socKpi.style.opacity = "1";
                 rangeKpi.style.opacity = "1";
             }
@@ -704,18 +745,17 @@
             const clean = interiorChecked && exteriorChecked && condition === "Good";
             const maintenanceClear = document.getElementById("maintenance").checked && condition === "Good";
 
-            // Manual override: when a bus is manually selected and Interior clean
-            // is unchecked, the operator is consciously overriding the cleanliness
-            // gate — bypass the clean requirement so the bus can still be allocated.
             const manualCleanOverride = !interiorChecked && selectedRoute;
             const effectiveClean = manualCleanOverride || clean;
 
             const usableSoc = Math.max(0, liveSoc - 10);
             const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
-            const rangeCovered = liveSoc > 25 && rangeValue >= routeDistance;
+
+            // Block departure if estimated range < route distance (Logic 2)
+            const isBlockedByRange = blockedRouteIds.has(String(selectedRoute.routeId));
+            const rangeCovered = !isBlockedByRange && liveSoc > 25 && rangeValue >= routeDistance;
             const ready = driverReady && effectiveClean && maintenanceClear && rangeCovered && complexity !== "complex";
 
-            // Update allocation panel title and KPI visibility
             updateAllocationPanel();
 
             document.getElementById("soc-result").textContent = `${liveSoc}%`;
@@ -725,7 +765,7 @@
             document.getElementById("time-rule").textContent = departMinutes > 18 * 60 ? "Extreme peak" : "Standard peak";
             document.getElementById("fleet-rule").textContent = ready
                 ? (manualCleanOverride ? "Ready for dispatch (manual override)" : "Ready for dispatch")
-                : (condition === "Not Good" ? "Maintenance Required" : (liveSoc <= 25 ? "Depot Charge Required" : "Needs review"));
+                : (isBlockedByRange ? `Range insufficient (${rangeValue}km < ${routeDistance}km)` : (condition === "Not Good" ? "Maintenance Required" : (liveSoc <= 25 ? "Depot Charge Required" : "Needs review")));
         }
 
         async function loadData() {
@@ -748,36 +788,49 @@
                     trips: Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []),
                     shapes: Array.isArray(gtfsPayload.shapes) ? gtfsPayload.shapes : (Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [])
                 };
+
+                // Fetch initial swap-engine assignments
+                await fetchBusAssignments();
                 renderRoutes();
+
                 routeSelect.addEventListener("change", async () => {
-                    recommendClicked = false; // reset override when bus selection changes
+                    recommendClicked = false;
                     await updateSelectedRouteDistance();
                     await syncScheduleTiming();
-                    renderRoutes(); // re-render lists without override
+                    renderRoutes();
                     await recommend();
                 });
                 routeSearch.addEventListener("input", renderRoutes);
                 document.getElementById("recommend").addEventListener("click", async () => {
-                    recommendClicked = true; // activate manual override
+                    recommendClicked = true;
                     await updateSelectedRouteDistance();
                     await syncScheduleTiming();
-                    renderRoutes(); // re-render lists with override applied
+                    renderRoutes();
                     await recommend();
                 });
                 document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
                 await updateSelectedRouteDistance();
                 await recommend();
 
-                // Live polling every 3 seconds to reflect ESP32 updates
+                // Live polling every 3 seconds — refresh telemetry AND swap assignments
                 setInterval(async () => {
                     try {
-                        const res = await fetch("/api/bus-state");
-                        const payload = await res.json();
-                        if (payload && payload.ok && payload.state) {
-                            busStates = payload.state;
-                            renderRoutes(); // re-apply allocation gate with fresh telemetry
-                            recommend();
+                        const [stateRes, assignRes] = await Promise.all([
+                            fetch("/api/bus-state"),
+                            fetch("/api/bus-assignments")
+                        ]);
+                        const statePayload = await stateRes.json();
+                        const assignPayload = await assignRes.json();
+                        if (statePayload && statePayload.ok && statePayload.state) {
+                            busStates = statePayload.state;
                         }
+                        if (assignPayload && assignPayload.ok) {
+                            busAssignments = assignPayload.assignments || {};
+                            blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
+                            assignmentRanges = assignPayload.ranges || {};
+                        }
+                        renderRoutes();
+                        recommend();
                     } catch {}
                 }, 3000);
             } catch (error) {

@@ -224,6 +224,115 @@ function calculateRouteDistance(busNumber) {
     };
 }
 
+// ── Bus Swap Engine ───────────────────────────────────────────────────────────
+// Logic 2: after every telemetry update, rank buses by SoC and assign the
+// highest-SoC bus to the longest GTFS-distance route.  A swap only fires when
+// the SoC difference between two adjacent candidates exceeds SWAP_THRESHOLD_PCT.
+// Buses whose estimated range < route distance are blocked from departure.
+// Route IDs never change; only the bus short-name assigned to each route moves.
+// The mapping is persisted in bus_state.json under "_assignments".
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SWAP_THRESHOLD_PCT = 5;       // minimum SoC gap (%) needed to trigger a swap
+const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC (matches problem.html formula)
+const SOC_BUFFER_PCT = 10;          // reserve: usable SoC = soc - buffer
+
+function calculateRouteDistanceByRouteId(routeId) {
+    const trips = loadTrips().filter((t) => String(t.routeId) === String(routeId));
+    const trip = trips.find((t) => Number(t.directionId) === 0) || trips[0];
+    if (!trip) return null;
+    const shapePoints = loadShapes()
+        .filter((p) => String(p.shapeId) === String(trip.shapeId))
+        .sort((a, b) => Number(a.shapePtSequence) - Number(b.shapePtSequence));
+    if (shapePoints.length < 2) return null;
+    let total = 0;
+    for (let i = 1; i < shapePoints.length; i++) {
+        const prev = shapePoints[i - 1];
+        const cur = shapePoints[i];
+        if (![prev.shapePtLat, prev.shapePtLon, cur.shapePtLat, cur.shapePtLon].every(Number.isFinite)) continue;
+        total += haversineKm(prev.shapePtLat, prev.shapePtLon, cur.shapePtLat, cur.shapePtLon);
+    }
+    return Number(total.toFixed(2));
+}
+
+function estimatedRangeKm(soc) {
+    const usable = Math.max(0, soc - SOC_BUFFER_PCT);
+    return Math.round(usable * RANGE_KM_PER_SOC_PCT);
+}
+
+/**
+ * Runs the bus-swap algorithm and updates state._assignments in-place.
+ * 1. Build route list with GTFS distances; skip routes without shape data.
+ * 2. Sort routes descending by distance.
+ * 3. Greedily swap adjacent assignments when socDiff > SWAP_THRESHOLD_PCT.
+ * 4. Mark routes blocked when estimated range < GTFS distance.
+ * 5. Persist mapping in state._assignments and state._blockedRouteIds.
+ */
+function swapBusAssignments(state) {
+    const allRoutes = loadRoutes();
+
+    const routeInfos = allRoutes.map((r) => ({
+        routeId: String(r.routeId),
+        busShortName: (r.busNumber || "N/A").trim(),
+        gtfsDistanceKm: calculateRouteDistanceByRouteId(r.routeId)
+    })).filter((r) => r.gtfsDistanceKm !== null && r.gtfsDistanceKm > 0);
+
+    if (!routeInfos.length) return state;
+
+    // Seed assignments: last-persisted mapping OR GTFS short name as default
+    const assignments = Object.assign(
+        {},
+        Object.fromEntries(routeInfos.map((r) => [r.routeId, r.busShortName])),
+        state._assignments || {}
+    );
+
+    // Current SoC per route (telemetry keyed by routeId)
+    const workingSoc = {};
+    for (const r of routeInfos) {
+        const s = state[r.routeId] || {};
+        workingSoc[r.routeId] = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100;
+    }
+
+    // Sort routes longest-first (goal: highest SoC bus → longest route)
+    const sortedRoutes = [...routeInfos].sort((a, b) => b.gtfsDistanceKm - a.gtfsDistanceKm);
+
+    // Bubble-sort passes until stable or guard exhausted
+    let changed = true;
+    let guard = 20;
+    while (changed && guard-- > 0) {
+        changed = false;
+        for (let i = 0; i < sortedRoutes.length - 1; i++) {
+            const rA = sortedRoutes[i];     // longer route (should have higher SoC)
+            const rB = sortedRoutes[i + 1]; // shorter route
+            const socA = workingSoc[rA.routeId];
+            const socB = workingSoc[rB.routeId];
+            // Swap only when the shorter-route bus has significantly more SoC
+            if (socB - socA > SWAP_THRESHOLD_PCT) {
+                workingSoc[rA.routeId] = socB;
+                workingSoc[rB.routeId] = socA;
+                const tmp = assignments[rA.routeId];
+                assignments[rA.routeId] = assignments[rB.routeId];
+                assignments[rB.routeId] = tmp;
+                changed = true;
+            }
+        }
+    }
+
+    // Block routes where estimated range < GTFS distance
+    const blockedRouteIds = [];
+    for (const r of routeInfos) {
+        if (estimatedRangeKm(workingSoc[r.routeId]) < r.gtfsDistanceKm) {
+            blockedRouteIds.push(r.routeId);
+        }
+    }
+
+    state._assignments = assignments;
+    state._blockedRouteIds = blockedRouteIds;
+    console.log(`[SwapEngine] Assignments updated. Blocked: ${blockedRouteIds.join(", ") || "none"}`);
+    return state;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function sendJson(res, payload, statusCode = 200) {
     res.writeHead(statusCode, {
         "Content-Type": "application/json",
@@ -734,37 +843,37 @@ const server = http.createServer(async (req, res) => {
                         }
                     }
 
-                    const busId = String(payload.bus_id || payload.bus || payload.routeId || "").trim();
-                    if (!busId) {
-                        sendJson(res, { ok: false, error: "bus_id is required" }, 400);
+                    // ── Logic 1: always resolve to routeId, never key by short name ──
+                    const rawId = String(payload.bus_id || payload.bus || payload.routeId || "").trim();
+                    if (!rawId) {
+                        sendJson(res, { ok: false, error: "bus_id (or routeId) is required" }, 400);
                         return;
                     }
 
-                    const currentState = loadBusState();
-                    const existing = currentState[busId] || {};
-                    const updatedEntry = normalizeBusStateEntry(payload, existing);
-                    currentState[busId] = updatedEntry;
-
                     const allRoutes = loadRoutes();
+                    // Find matching route whether the ESP sent a routeId or a short name
                     const matchingRoute = allRoutes.find(
-                        (r) => String(r.routeId) === busId || String(r.busNumber) === busId
+                        (r) => String(r.routeId) === rawId || String(r.busNumber) === rawId
                     );
-                    if (matchingRoute) {
-                        currentState[matchingRoute.routeId] = updatedEntry;
-                        if (matchingRoute.busNumber && matchingRoute.busNumber !== "N/A") {
-                            currentState[matchingRoute.busNumber] = updatedEntry;
-                        }
-                    }
+                    // Canonical key is always the numeric routeId
+                    const canonicalRouteId = matchingRoute ? String(matchingRoute.routeId) : rawId;
+
+                    const currentState = loadBusState();
+                    const existing = currentState[canonicalRouteId] || {};
+                    const updatedEntry = normalizeBusStateEntry(payload, existing);
+
+                    // Store ONLY under the canonical routeId — no short-name alias
+                    currentState[canonicalRouteId] = updatedEntry;
+
+                    // ── Logic 2: run swap engine so assignments stay optimal ──
+                    swapBusAssignments(currentState);
 
                     saveBusState(currentState);
 
-                    // Forward to Python for EVERY alias so micro chart gets real data
-                    const pythonIds = new Set([busId]);
-                    if (matchingRoute) {
-                        if (matchingRoute.routeId) pythonIds.add(String(matchingRoute.routeId));
-                        if (matchingRoute.busNumber && matchingRoute.busNumber !== "N/A") {
-                            pythonIds.add(matchingRoute.busNumber);
-                        }
+                    // Forward to Python backend (for micro/macro charts)
+                    const pythonIds = new Set([canonicalRouteId]);
+                    if (matchingRoute && matchingRoute.busNumber && matchingRoute.busNumber !== "N/A") {
+                        pythonIds.add(matchingRoute.busNumber);
                     }
                     for (const pyId of pythonIds) {
                         fetch(`${PYTHON_API_BASE}/telemetry`, {
@@ -779,11 +888,19 @@ const server = http.createServer(async (req, res) => {
                         }).catch(() => {});
                     }
 
-                    console.log(`[Telemetry] Bus ${busId} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, Status=${updatedEntry.status}`);
+                    // Return the assigned bus short name for this routeId so the ESP
+                    // can display it on its own webpage selection box
+                    const assignedBusName = (currentState._assignments || {})[canonicalRouteId]
+                        || (matchingRoute ? matchingRoute.busNumber : canonicalRouteId);
+                    const isBlocked = (currentState._blockedRouteIds || []).includes(canonicalRouteId);
+
+                    console.log(`[Telemetry] RouteId=${canonicalRouteId} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, AssignedBus=${assignedBusName}, Blocked=${isBlocked}`);
                     sendJson(res, {
                         ok: true,
                         message: "Telemetry updated successfully",
-                        bus_id: busId,
+                        routeId: canonicalRouteId,
+                        assignedBusShortName: assignedBusName,
+                        blocked: isBlocked,
                         state: updatedEntry
                     });
                 } catch (error) {
@@ -792,6 +909,47 @@ const server = http.createServer(async (req, res) => {
             });
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to process telemetry", details: error.message }, 500);
+        }
+        return;
+    }
+
+    // ── GET /api/bus-assignments ──────────────────────────────────────────────
+    // Returns the current swap-engine result so the ESP's webpage selection box
+    // can display the finally-assigned bus short name for each route ID.
+    // Response shape:
+    //   { ok: true, assignments: { "<routeId>": "<busShortName>", ... },
+    //     blockedRouteIds: [...], ranges: { "<routeId>": { soc, estimatedRangeKm, gtfsDistanceKm, blocked } } }
+    if (pathname === "/api/bus-assignments") {
+        try {
+            const currentState = loadBusState();
+            // Run swap engine lazily on read if not yet computed
+            if (!currentState._assignments) {
+                swapBusAssignments(currentState);
+                saveBusState(currentState);
+            }
+            const allRoutes = loadRoutes();
+            const ranges = {};
+            for (const r of allRoutes) {
+                const routeId = String(r.routeId);
+                const s = currentState[routeId] || {};
+                const soc = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100;
+                const dist = calculateRouteDistanceByRouteId(routeId);
+                const range = estimatedRangeKm(soc);
+                ranges[routeId] = {
+                    soc,
+                    estimatedRangeKm: range,
+                    gtfsDistanceKm: dist,
+                    blocked: dist !== null && range < dist
+                };
+            }
+            sendJson(res, {
+                ok: true,
+                assignments: currentState._assignments || {},
+                blockedRouteIds: currentState._blockedRouteIds || [],
+                ranges
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load bus assignments", details: error.message }, 500);
         }
         return;
     }
