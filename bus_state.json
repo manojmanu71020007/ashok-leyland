@@ -18,6 +18,27 @@
     "soc": 100,
     "condition": "Good"
   },
+  "1427": {
+    "status": "On Time",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "updatedAt": "2026-09-25T17:11:12.300Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    }
+  },
   "1428": {
     "status": "On Time",
     "condition": "Good",
@@ -26,12 +47,12 @@
   "1548": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 78
+    "soc": 33
   },
   "1549": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 84,
+    "soc": 78,
     "condition": "Good",
     "updatedAt": "2026-09-25T16:36:51.012Z",
     "statusTimings": {
@@ -165,7 +186,17 @@
       }
     }
   },
+  "2861": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
   "3158": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "3430": {
     "status": "On Time",
     "condition": "Good",
     "soc": 100
@@ -173,7 +204,7 @@
   "3629": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 82
+    "soc": 84
   },
   "3831": {
     "status": "On Time",
@@ -222,7 +253,7 @@
   "3935": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 83,
+    "soc": 85,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:07:53.373Z",
     "statusTimings": {
@@ -243,7 +274,7 @@
   "3951": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 85
+    "soc": 82
   },
   "4759": {
     "status": "On Time",
@@ -304,6 +335,11 @@
       }
     }
   },
+  "6551": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
   "6979": {
     "status": "On Time",
     "condition": "Good",
@@ -334,9 +370,14 @@
   "7296": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 80
+    "soc": 83
   },
   "7403": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "7632": {
     "status": "On Time",
     "condition": "Good",
     "soc": 100
@@ -375,6 +416,11 @@
   "8276": {
     "status": "On Time",
     "condition": "Good",
+    "soc": 80
+  },
+  "8543": {
+    "status": "On Time",
+    "condition": "Good",
     "soc": 100
   },
   "8592": {
@@ -382,7 +428,22 @@
     "condition": "Good",
     "soc": 100
   },
+  "8781": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "8842": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
   "9108": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "9132": {
     "status": "On Time",
     "condition": "Good",
     "soc": 100
@@ -409,6 +470,16 @@
     }
   },
   "9535": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "9581": {
+    "status": "On Time",
+    "condition": "Good",
+    "soc": 100
+  },
+  "9636": {
     "status": "On Time",
     "condition": "Good",
     "soc": 100
@@ -456,60 +527,60 @@
     }
   },
   "_assignments": {
-    "1367": "253-J PSS-HGV",
-    "1427": "401-AM",
-    "1428": "401-A",
-    "1548": "BC-7B PSS-NLGH-8thM",
-    "1549": "CHAKRA-7",
-    "1553": "250-SB PSS-SVG",
-    "1610": "D9-PSS",
-    "1612": "251E PSS-KMT",
-    "1621": "254-E PSS-KMP",
-    "1626": "PSS-NTTF-LGRNBS",
-    "2559": "401-AM PTH-PSS",
-    "2644": "273",
-    "2764": "252-A",
-    "2767": "PSS-NLGDH-8THM",
-    "2770": "MF-32 PSS-CKB",
-    "2780": "251-C PSS-RPS-LGR",
-    "2786": "252-F",
-    "2787": "265-A PSS-TEPL",
-    "2826": "252",
-    "2861": "253-D PSS-TRN",
-    "3158": "250-F PSS-SSHL",
-    "3430": "507-B",
-    "3629": "401-AK PSS-ABG",
-    "3831": "JHMS-PSS",
-    "3864": "401-AK ABG-PSS",
-    "3878": "250-S PSS-GLB",
-    "3907": "273 SDN-PSS",
-    "3916": "265-D PSS-VGN",
-    "3920": "252 PSS-KMT",
-    "3935": "CHAKRA-7A",
-    "3951": "270-D PSS-ABG",
-    "4759": "401-M PSS-KTS-D31G",
-    "4798": "248-AB",
-    "6080": "PSS-RGPS-SMH",
-    "6551": "252-A PSS-ISROM",
-    "6979": "G-252 KBS D9 D22-PSS",
-    "7143": "250-E PSS-TMH",
-    "7296": "256-F",
-    "7403": "MF-26 PSS-JHMS",
-    "7632": "500-D MRHB-HBL-PSS",
-    "7834": "273-B PSS-ABG",
-    "7888": "252 LGR-PSS",
-    "8178": "252-L",
-    "8276": "D22-PSS",
-    "8543": "507",
-    "8592": "MBS-12 PSS-ANP",
-    "8781": "401-A PSS-SGP-YHK",
-    "8842": "MBS-17 MHB-HBL-JHV-PSS",
-    "9108": "PSS-TGPL-GGH",
-    "9132": "273 VSD-RJB-PSS",
-    "9534": "BC-7B BDYH-PSS",
-    "9535": "BC-7B PSS-ANDRH-HRHC",
-    "9581": "252-F PSS-HAL ARDC",
-    "9636": "252-A PSS-HAL ARDC"
+    "1367": "252 PSS-KMT",
+    "1427": "507-B",
+    "1428": "253-J PSS-HGV",
+    "1548": "401-AM",
+    "1549": "BC-7B PSS-NLGH-8thM",
+    "1553": "252-F",
+    "1610": "D22-PSS",
+    "1612": "G-252 KBS D9 D22-PSS",
+    "1621": "250-F PSS-SSHL",
+    "1626": "252 LGR-PSS",
+    "2559": "401-A",
+    "2644": "401-AM PTH-PSS",
+    "2764": "251E PSS-KMT",
+    "2767": "273-B PSS-ABG",
+    "2770": "250-E PSS-TMH",
+    "2780": "PSS-NTTF-LGRNBS",
+    "2786": "254-E PSS-KMP",
+    "2787": "265-D PSS-VGN",
+    "2826": "250-SB PSS-SVG",
+    "2861": "273 VSD-RJB-PSS",
+    "3158": "MF-32 PSS-CKB",
+    "3430": "MBS-17 MHB-HBL-JHV-PSS",
+    "3629": "CHAKRA-7",
+    "3831": "MF-26 PSS-JHMS",
+    "3864": "273 SDN-PSS",
+    "3878": "401-M PSS-KTS-D31G",
+    "3907": "PSS-RGPS-SMH",
+    "3916": "D9-PSS",
+    "3920": "252-A",
+    "3935": "270-D PSS-ABG",
+    "3951": "401-AK PSS-ABG",
+    "4759": "BC-7B PSS-ANDRH-HRHC",
+    "4798": "401-AK ABG-PSS",
+    "6080": "250-S PSS-GLB",
+    "6551": "253-D PSS-TRN",
+    "6979": "252-L",
+    "7143": "PSS-NLGDH-8THM",
+    "7296": "CHAKRA-7A",
+    "7403": "265-A PSS-TEPL",
+    "7632": "252-A PSS-HAL ARDC",
+    "7834": "248-AB",
+    "7888": "BC-7B BDYH-PSS",
+    "8178": "252",
+    "8276": "256-F",
+    "8543": "252-A PSS-ISROM",
+    "8592": "PSS-TGPL-GGH",
+    "8781": "273",
+    "8842": "500-D MRHB-HBL-PSS",
+    "9108": "251-C PSS-RPS-LGR",
+    "9132": "401-A PSS-SGP-YHK",
+    "9534": "JHMS-PSS",
+    "9535": "MBS-12 PSS-ANP",
+    "9581": "507",
+    "9636": "252-F PSS-HAL ARDC"
   },
   "_blockedRouteIds": []
 }
