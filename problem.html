@@ -448,8 +448,8 @@
                         Route search
                         <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number or route name" />
                     </label>
-                    <label class="wide">Route
-                        <select id="route-select"><option>Loading Peenya routes...</option></select>
+                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— All <span id="route-count-badge">54</span> buses available</span>
+                        <select id="route-select"><option value="">Loading all buses...</option></select>
                     </label>
                     <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7"></label>
                     <label>Departure time<input id="departure" type="time" value="07:30"></label>
@@ -711,21 +711,34 @@
             // Preserve whatever the user currently has selected
             const previouslySelected = routeSelect.value;
 
-            // ── Route <select>: show assigned bus short name (from swap engine) ──
-            // Format: "AssignedBusName - Origin to Destination [⛔ Blocked]"
-            routeSelect.innerHTML = '<option value="">— Select a bus —</option>' + (filteredRoutes.length
-                ? filteredRoutes.map((route) => {
-                    const assignedName = getAssignedBusName(route);
-                    const isBlocked = blockedRouteIds.has(String(route.routeId));
-                    const label = `${assignedName} - ${route.origin} to ${route.destination}${isBlocked ? " ⛔" : ""}`;
-                    return `<option value="${route.routeId}">${label}</option>`;
-                }).join("")
-                : '');
+            // ── Route <select>: always show ALL buses in the fleet, sorted alphabetically ──
+            const sortedAllRoutes = routes.slice().sort((a, b) => {
+                const nameA = String(getAssignedBusName(a) || a.busNumber || a.routeId);
+                const nameB = String(getAssignedBusName(b) || b.busNumber || b.routeId);
+                return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
+            });
+
+            routeSelect.innerHTML = `<option value="">— Select a bus (${sortedAllRoutes.length} buses available) —</option>` + sortedAllRoutes.map((route) => {
+                const assignedName = getAssignedBusName(route);
+                const isBlocked = blockedRouteIds.has(String(route.routeId));
+                const routePart = route.busNumber && route.busNumber !== assignedName
+                    ? ` [Route: ${route.busNumber}]`
+                    : "";
+                const blockedPart = isBlocked ? " ⛔ Blocked" : "";
+                const label = `${assignedName}${routePart} — ${route.origin} to ${route.destination}${blockedPart}`;
+                return `<option value="${route.routeId}">${label}</option>`;
+            }).join("");
 
             // Restore the previous selection if it still exists
             if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
                 routeSelect.value = previouslySelected;
+            } else if (query && filteredRoutes.length === 1 && !previouslySelected) {
+                // If user searched for a bus number and exactly 1 matches, auto-select it
+                routeSelect.value = String(filteredRoutes[0].routeId);
             }
+
+            const countBadge = document.getElementById("route-count-badge");
+            if (countBadge) countBadge.textContent = String(routes.length);
 
             // Update allocation title and SOC/Range KPIs based on selection
             updateAllocationPanel();
