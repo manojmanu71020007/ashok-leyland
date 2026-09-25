@@ -296,6 +296,136 @@
         }
         .reject-tag.low-soc { background:#fde8d8; color:#a94b15; }
         .reject-tag.maintenance { background:#fce4e4; color:#b91c1c; }
+        .scheduled-time-panel {
+            margin-top: 18px;
+        }
+        .scheduled-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .filter-tabs {
+            display: inline-flex;
+            background: #f0f7f9;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            padding: 4px;
+            gap: 4px;
+        }
+        .tab-btn {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: .8rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0;
+            transition: all 0.15s ease;
+        }
+        .tab-btn:hover {
+            color: var(--ink);
+            background: rgba(255,255,255,0.7);
+        }
+        .tab-btn.active {
+            background: #ffffff;
+            color: var(--blue-dark);
+            box-shadow: 0 2px 6px rgba(8,126,164,0.15);
+        }
+        .scheduled-table-wrap {
+            max-height: 380px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: #ffffff;
+        }
+        .scheduled-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: .83rem;
+            min-width: 680px;
+        }
+        .scheduled-table th {
+            position: sticky;
+            top: 0;
+            background: #f4f9fb;
+            color: #4b6371;
+            font-size: .74rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            padding: 12px 16px;
+            border-bottom: 2px solid var(--line);
+            white-space: nowrap;
+            z-index: 2;
+        }
+        .scheduled-table td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #edf2f5;
+            vertical-align: middle;
+        }
+        .scheduled-table tbody tr:hover {
+            background: #f9fcfd;
+        }
+        .scheduled-table tbody tr.selected-row {
+            background: #f0faf8;
+            outline: 1px solid var(--teal);
+        }
+        .time-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: .78rem;
+            white-space: nowrap;
+        }
+        .time-badge.departure {
+            background: #e3f8f1;
+            color: #08755f;
+            border: 1px solid #bfe5db;
+        }
+        .time-badge.arrival {
+            background: #e6f4fa;
+            color: #087ea4;
+            border: 1px solid #c0e3f0;
+        }
+        .alloc-pill {
+            display: inline-block;
+            font-size: .72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .alloc-pill.allocated {
+            background: #e3f8f1;
+            color: #08755f;
+            border: 1px solid #bfe5db;
+        }
+        .alloc-pill.not-allocated {
+            background: #fff8f4;
+            color: #a94b15;
+            border: 1px solid #f4c7a4;
+        }
+        .status-pill {
+            display: inline-block;
+            font-size: .72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+        .status-pill.on-time { background: #e8f7ed; color: #16a34a; }
+        .status-pill.delayed { background: #fef3c7; color: #b45309; }
+        .status-pill.ahead { background: #e0f2fe; color: #0284c7; }
+        .status-pill.standby { background: #f1f5f9; color: #64748b; }
     </style>
 </head>
 <body>
@@ -371,6 +501,41 @@
                 </div>
             </section>
         </div>
+
+        <section class="panel scheduled-time-panel" aria-label="Scheduled time">
+            <div class="scheduled-header">
+                <div>
+                    <h2 style="color:#087ea4;">🕒 Scheduled Time</h2>
+                    <p class="panel-note" style="margin-bottom:0;">Live departure timings, assigned buses, and service schedule.</p>
+                </div>
+                <div class="filter-tabs" id="scheduled-filter-tabs">
+                    <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
+                    <button type="button" class="tab-btn" data-filter="allocated">Allocated (<span id="scheduled-count-alloc">0</span>)</button>
+                    <button type="button" class="tab-btn" data-filter="not-allocated">Not Allocated (<span id="scheduled-count-not-alloc">0</span>)</button>
+                </div>
+            </div>
+
+            <div class="scheduled-table-wrap">
+                <table class="scheduled-table">
+                    <thead>
+                        <tr>
+                            <th>Bus / Route</th>
+                            <th>Origin ➔ Destination</th>
+                            <th>Departure Time</th>
+                            <th>Arrival Time</th>
+                            <th>Status</th>
+                            <th>Allocation</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scheduled-time-tbody">
+                        <tr>
+                            <td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </main>
 
     <script>
@@ -378,9 +543,15 @@
         const routeSearch = document.getElementById("route-search");
         const routeSummary = document.getElementById("route-summary");
         const notAllocatedSummary = document.getElementById("not-allocated-summary");
+        const scheduledTimeTbody = document.getElementById("scheduled-time-tbody");
         let routes = [];
         let gtfsBundle = null;
         let selectedRouteDistance = null;
+        let scheduledFilter = "all";
+        let gtfsScheduleMap = new Map();
+        let lastAllocatedRoutes = [];
+        let lastNotAllocatedRoutes = [];
+        let lastFilteredRoutes = [];
 
         // Swap-engine results (fetched from /api/bus-assignments)
         // assignments: { routeId → assignedBusShortName }
@@ -677,6 +848,139 @@
             document.getElementById("bus-total").textContent = String(totalBuses);
             document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
             updateAssignedDriverCount();
+
+            lastFilteredRoutes = filteredRoutes;
+            lastAllocatedRoutes = allocatedRoutes;
+            lastNotAllocatedRoutes = notAllocatedRoutes;
+            renderScheduledTime();
+        }
+
+        function formatTimeForDisplay(time24) {
+            if (!time24) return "—";
+            const parts = String(time24).trim().split(":");
+            if (parts.length < 2) return time24;
+            const hours = parseInt(parts[0], 10);
+            const minutes = parseInt(parts[1], 10);
+            if (isNaN(hours) || isNaN(minutes)) return time24;
+            const suffix = hours >= 12 ? "PM" : "AM";
+            const hour12 = ((hours + 11) % 12) + 1;
+            return `${hour12}:${String(minutes).padStart(2, "0")} ${suffix}`;
+        }
+
+        function getRouteScheduleTimings(route, isSelected) {
+            const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+            const status = state.status || "On Time";
+            const timings = state.statusTimings?.[status] || state.statusTimings?.["On Time"];
+            const inputDeparture = document.getElementById("departure")?.value || "07:30";
+
+            let departure = isSelected ? inputDeparture : (timings?.departure || null);
+            let arrival = isSelected ? fiveMinutesLater(inputDeparture) : (timings?.arrival || null);
+
+            if (!departure && gtfsScheduleMap.has(String(route.routeId))) {
+                const gtfsInfo = gtfsScheduleMap.get(String(route.routeId));
+                if (gtfsInfo && gtfsInfo.firstDep) {
+                    departure = gtfsInfo.firstDep.slice(0, 5);
+                    arrival = gtfsInfo.lastArr ? gtfsInfo.lastArr.slice(0, 5) : fiveMinutesLater(departure);
+                }
+            }
+
+            if (!departure) {
+                departure = inputDeparture;
+                arrival = fiveMinutesLater(departure);
+            }
+
+            return { departure, arrival, status };
+        }
+
+        function renderScheduledTime() {
+            if (!scheduledTimeTbody) return;
+
+            const countAll = document.getElementById("scheduled-count-all");
+            const countAlloc = document.getElementById("scheduled-count-alloc");
+            const countNotAlloc = document.getElementById("scheduled-count-not-alloc");
+            if (countAll) countAll.textContent = String(lastFilteredRoutes.length);
+            if (countAlloc) countAlloc.textContent = String(lastAllocatedRoutes.length);
+            if (countNotAlloc) countNotAlloc.textContent = String(lastNotAllocatedRoutes.length);
+
+            let routesToDisplay = lastFilteredRoutes;
+            if (scheduledFilter === "allocated") {
+                routesToDisplay = lastAllocatedRoutes;
+            } else if (scheduledFilter === "not-allocated") {
+                routesToDisplay = lastNotAllocatedRoutes;
+            }
+
+            if (!routesToDisplay.length) {
+                scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching the filter or search criteria.</td></tr>';
+                return;
+            }
+
+            const allocatedSet = new Set(lastAllocatedRoutes.map((r) => String(r.routeId)));
+            const currentlySelectedId = String(routeSelect.value || "");
+
+            scheduledTimeTbody.innerHTML = routesToDisplay.map((route) => {
+                const assignedName = getAssignedBusName(route);
+                const isAllocated = allocatedSet.has(String(route.routeId));
+                const isSelected = String(route.routeId) === currentlySelectedId;
+                const timings = getRouteScheduleTimings(route, isSelected);
+                const depFormatted = formatTimeForDisplay(timings.departure);
+                const arrFormatted = formatTimeForDisplay(timings.arrival);
+                const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
+
+                return `
+                    <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${route.routeId}" style="cursor:pointer;">
+                        <td>
+                            <strong>${assignedName}</strong>
+                            <div style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">${route.origin} ➔ ${route.destination}</div>
+                            <div style="color:var(--muted);font-size:.72rem;">${route.routeName}</div>
+                        </td>
+                        <td>
+                            <span class="time-badge departure">🕒 ${depFormatted}</span>
+                        </td>
+                        <td>
+                            <span class="time-badge arrival">🏁 ${arrFormatted}</span>
+                        </td>
+                        <td>
+                            <span class="status-pill ${statusClass}">● ${timings.status}</span>
+                        </td>
+                        <td>
+                            ${isAllocated
+                                ? '<span class="alloc-pill allocated">✅ Allocated</span>'
+                                : '<span class="alloc-pill not-allocated">⛔ Not Allocated</span>'
+                            }
+                        </td>
+                        <td>
+                            <button class="route-arrow scheduled-arrow" type="button" data-route-id="${route.routeId}" aria-label="View ${assignedName} details">›</button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            scheduledTimeTbody.querySelectorAll(".scheduled-arrow").forEach((btn) => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const routeId = btn.dataset.routeId;
+                    const route = routes.find((r) => String(r.routeId) === String(routeId));
+                    if (!route) return;
+                    const busId = getAssignedBusName(route) || route.routeId || "BUS_001";
+                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
+                });
+            });
+
+            scheduledTimeTbody.querySelectorAll(".scheduled-row").forEach((row) => {
+                row.addEventListener("click", async () => {
+                    const routeId = row.dataset.routeId;
+                    if (!routeId || routeSelect.value === routeId) return;
+                    routeSelect.value = routeId;
+                    recommendClicked = false;
+                    await updateSelectedRouteDistance();
+                    await syncScheduleTiming();
+                    renderRoutes();
+                    await recommend();
+                });
+            });
         }
 
         function updateAssignedDriverCount() {
@@ -789,6 +1093,28 @@
                     shapes: Array.isArray(gtfsPayload.shapes) ? gtfsPayload.shapes : (Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [])
                 };
 
+                // Build GTFS route schedule timetable map
+                gtfsScheduleMap.clear();
+                if (gtfsPayload) {
+                    const rawTrips = Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []);
+                    const rawStopTimes = Array.isArray(gtfsPayload.stopTimes) ? gtfsPayload.stopTimes : (Array.isArray(gtfsPayload.stopTimes?.stopTimes) ? gtfsPayload.stopTimes.stopTimes : []);
+                    const tripToRoute = new Map();
+                    rawTrips.forEach((t) => tripToRoute.set(String(t.tripId), String(t.routeId)));
+                    rawStopTimes.forEach((st) => {
+                        const rId = tripToRoute.get(String(st.tripId));
+                        if (!rId) return;
+                        const dep = st.departureTime || st.arrivalTime;
+                        const arr = st.arrivalTime || st.departureTime;
+                        if (!gtfsScheduleMap.has(rId)) {
+                            gtfsScheduleMap.set(rId, { firstDep: dep, lastArr: arr, count: 0 });
+                        }
+                        const item = gtfsScheduleMap.get(rId);
+                        item.count += 1;
+                        if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
+                        if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
+                    });
+                }
+
                 // Fetch initial swap-engine assignments
                 await fetchBusAssignments();
                 renderRoutes();
@@ -809,6 +1135,24 @@
                     await recommend();
                 });
                 document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
+
+                document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((btn) => {
+                    btn.addEventListener("click", () => {
+                        document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((b) => b.classList.remove("active"));
+                        btn.classList.add("active");
+                        scheduledFilter = btn.dataset.filter || "all";
+                        renderScheduledTime();
+                    });
+                });
+
+                const departureEl = document.getElementById("departure");
+                if (departureEl) {
+                    departureEl.addEventListener("input", async () => {
+                        await syncScheduleTiming();
+                        renderRoutes();
+                    });
+                }
+
                 await updateSelectedRouteDistance();
                 await recommend();
 
@@ -835,6 +1179,9 @@
                 }, 3000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
+                if (scheduledTimeTbody) {
+                    scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">GTFS schedule data unavailable</td></tr>';
+                }
                 document.getElementById("route-distance-rule").textContent = "N/A";
             }
         }
