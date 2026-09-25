@@ -406,7 +406,14 @@ void handleUpdate() {
   String condKey = "c_" + String(fleet[busIndex].routeId);
   prefs.putUChar(socKey.c_str(), static_cast<uint8_t>(soc));
   prefs.putString(condKey.c_str(), condition);
-  Serial.printf("[NVS Saved] Route %s -> SoC: %d%%, Condition: %s\n", fleet[busIndex].routeId, soc, condition.c_str());
+
+  // Safe printing — avoids printf buffer overflow and corrupted characters
+  Serial.print("[NVS Saved] Route ");
+  Serial.print(fleet[busIndex].routeId);
+  Serial.print(" -> SoC: ");
+  Serial.print(soc);
+  Serial.print("%, Condition: ");
+  Serial.println(condition);
 
   String assignedBus = fleet[busIndex].assignedBus;
   bool blocked = false;
@@ -415,10 +422,12 @@ void handleUpdate() {
   if (WiFi.status() == WL_CONNECTED) {
     WiFiClientSecure secureClient;
     secureClient.setInsecure(); // Required for Render HTTPS certificates
+    secureClient.setTimeout(15);
 
     HTTPClient http;
     http.begin(secureClient, RENDER_URL);
     http.addHeader("Content-Type", "application/json");
+    http.setTimeout(15000); // 15-second timeout to handle Render cold-starts safely
 
     String jsonPayload = "{\"routeId\":\"" + String(fleet[busIndex].routeId) + 
                          "\",\"soc\":" + String(soc) + 
@@ -426,9 +435,10 @@ void handleUpdate() {
     
     int httpResponseCode = http.POST(jsonPayload);
     
-    if (httpResponseCode > 0) {
+    if (httpResponseCode == 200) {
       String responseBody = http.getString();
-      Serial.printf("[Render] Route %s -> HTTP %d: %s\n", fleet[busIndex].routeId, httpResponseCode, responseBody.c_str());
+      Serial.print("[Render Success] HTTP 200 for Route ");
+      Serial.println(fleet[busIndex].routeId);
 
       // Parse assignedBusShortName from swap engine response
       int keyIdx = responseBody.indexOf("\"assignedBusShortName\":\"");
@@ -439,14 +449,21 @@ void handleUpdate() {
           assignedBus = responseBody.substring(startVal, endVal);
           fleet[busIndex].assignedBus = assignedBus;
           prefs.putString(("b_" + String(fleet[busIndex].routeId)).c_str(), assignedBus);
+          Serial.print("[Swapped Bus Assigned] -> ");
+          Serial.println(assignedBus);
         }
       }
 
       if (responseBody.indexOf("\"blocked\":true") != -1) {
         blocked = true;
+        Serial.println("[Status] Blocked for departure: Range < Route Distance");
       }
+    } else if (httpResponseCode > 0) {
+      Serial.print("[Render Response] HTTP Status: ");
+      Serial.println(httpResponseCode);
     } else {
-      Serial.printf("Error pushing to Render: %s\n", http.errorToString(httpResponseCode).c_str());
+      Serial.print("Error pushing to Render: ");
+      Serial.println(http.errorToString(httpResponseCode).c_str());
     }
     http.end();
   } else {

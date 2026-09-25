@@ -58,7 +58,16 @@ function parseCsvLine(line) {
     return fields;
 }
 
+let cachedRoutes = null;
+let cachedStops = null;
+let cachedTrips = null;
+let cachedStopTimes = null;
+let cachedShapes = null;
+let cachedShapesByShapeId = null;
+const cachedRouteDistances = new Map();
+
 function loadRoutes() {
+    if (cachedRoutes) return cachedRoutes;
     const raw = fs.readFileSync(ROUTES_FILE, "utf8");
     const lines = raw.split(/\r?\n/).filter(Boolean);
 
@@ -66,7 +75,7 @@ function loadRoutes() {
         return [];
     }
 
-    return lines.slice(1).map((line) => {
+    cachedRoutes = lines.slice(1).map((line) => {
         const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
         const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
 
@@ -80,9 +89,11 @@ function loadRoutes() {
             routeId
         };
     });
+    return cachedRoutes;
 }
 
 function loadStops() {
+    if (cachedStops) return cachedStops;
     const raw = fs.readFileSync(STOPS_FILE, "utf8");
     const lines = raw.split(/\r?\n/).filter(Boolean);
 
@@ -90,7 +101,7 @@ function loadStops() {
         return [];
     }
 
-    return lines.slice(1).map((line) => {
+    cachedStops = lines.slice(1).map((line) => {
         const [stopName, parentStation, zoneId, stopId, stopDesc, stopLat, stopLon, locationType, platformCode] = parseCsvLine(line);
 
         return {
@@ -105,9 +116,11 @@ function loadStops() {
             platformCode: (platformCode || "").trim()
         };
     });
+    return cachedStops;
 }
 
 function loadTrips() {
+    if (cachedTrips) return cachedTrips;
     const raw = fs.readFileSync(TRIPS_FILE, "utf8");
     const lines = raw.split(/\r?\n/).filter(Boolean);
 
@@ -115,7 +128,7 @@ function loadTrips() {
         return [];
     }
 
-    return lines.slice(1).map((line) => {
+    cachedTrips = lines.slice(1).map((line) => {
         const [routeId, serviceId, tripHeadsign, directionId, shapeId, tripId] = parseCsvLine(line);
 
         return {
@@ -127,9 +140,11 @@ function loadTrips() {
             tripId: (tripId || "").trim()
         };
     });
+    return cachedTrips;
 }
 
 function loadStopTimes() {
+    if (cachedStopTimes) return cachedStopTimes;
     const raw = fs.readFileSync(STOP_TIMES_FILE, "utf8");
     const lines = raw.split(/\r?\n/).filter(Boolean);
 
@@ -137,7 +152,7 @@ function loadStopTimes() {
         return [];
     }
 
-    return lines.slice(1).map((line) => {
+    cachedStopTimes = lines.slice(1).map((line) => {
         const [tripId, arrivalTime, departureTime, stopId, stopSequence, stopHeadsign, pickupType, dropOffType, shapeDistTraveled, timepoint] = parseCsvLine(line);
 
         return {
@@ -153,9 +168,11 @@ function loadStopTimes() {
             timepoint: (timepoint || "").trim()
         };
     });
+    return cachedStopTimes;
 }
 
 function loadShapes() {
+    if (cachedShapes) return cachedShapes;
     const raw = fs.readFileSync(SHAPES_FILE, "utf8");
     const lines = raw.split(/\r?\n/).filter(Boolean);
 
@@ -163,7 +180,7 @@ function loadShapes() {
         return [];
     }
 
-    return lines.slice(1).map((line) => {
+    cachedShapes = lines.slice(1).map((line) => {
         const [shapeId, shapePtLat, shapePtLon, shapePtSequence] = parseCsvLine(line);
 
         return {
@@ -173,6 +190,7 @@ function loadShapes() {
             shapePtSequence: Number.parseInt(shapePtSequence, 10)
         };
     });
+    return cachedShapes;
 }
 
 function haversineKm(latitudeOne, longitudeOne, latitudeTwo, longitudeTwo) {
@@ -187,64 +205,33 @@ function haversineKm(latitudeOne, longitudeOne, latitudeTwo, longitudeTwo) {
     return earthRadiusKm * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
-function calculateRouteDistance(busNumber) {
-    const route = loadRoutes().find((candidate) => candidate.busNumber === busNumber);
-    if (!route) {
-        return { ok: false, statusCode: 404, error: `Bus ${busNumber} was not found in routes.txt.` };
+function ensureShapesIndexed() {
+    if (cachedShapesByShapeId) return cachedShapesByShapeId;
+    cachedShapesByShapeId = new Map();
+    for (const p of loadShapes()) {
+        if (!cachedShapesByShapeId.has(p.shapeId)) cachedShapesByShapeId.set(p.shapeId, []);
+        cachedShapesByShapeId.get(p.shapeId).push(p);
     }
-
-    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.routeId));
-    const selectedTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
-    if (!selectedTrip) {
-        return { ok: false, statusCode: 404, error: `No trip was found for bus ${busNumber}.` };
+    for (const pts of cachedShapesByShapeId.values()) {
+        pts.sort((a, b) => a.shapePtSequence - b.shapePtSequence);
     }
-
-    const shapePoints = loadShapes()
-        .filter((point) => String(point.shapeId) === String(selectedTrip.shapeId))
-        .sort((left, right) => Number(left.shapePtSequence) - Number(right.shapePtSequence));
-    if (shapePoints.length < 2) {
-        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busNumber}.` };
-    }
-
-    let totalDistanceKm = 0;
-    for (let index = 1; index < shapePoints.length; index += 1) {
-        const previous = shapePoints[index - 1];
-        const current = shapePoints[index];
-        if (![previous.shapePtLat, previous.shapePtLon, current.shapePtLat, current.shapePtLon].every(Number.isFinite)) continue;
-        totalDistanceKm += haversineKm(previous.shapePtLat, previous.shapePtLon, current.shapePtLat, current.shapePtLon);
-    }
-
-    return {
-        ok: true,
-        busNumber,
-        routeId: route.routeId,
-        tripId: selectedTrip.tripId,
-        shapeId: selectedTrip.shapeId,
-        distanceKm: Number(totalDistanceKm.toFixed(2))
-    };
+    return cachedShapesByShapeId;
 }
 
-// ── Bus Swap Engine ───────────────────────────────────────────────────────────
-// Logic 2: after every telemetry update, rank buses by SoC and assign the
-// highest-SoC bus to the longest GTFS-distance route.  A swap only fires when
-// the SoC difference between two adjacent candidates exceeds SWAP_THRESHOLD_PCT.
-// Buses whose estimated range < route distance are blocked from departure.
-// Route IDs never change; only the bus short-name assigned to each route moves.
-// The mapping is persisted in bus_state.json under "_assignments".
-// ─────────────────────────────────────────────────────────────────────────────
-
-const SWAP_THRESHOLD_PCT = 5;       // minimum SoC gap (%) needed to trigger a swap
-const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC (matches problem.html formula)
-const SOC_BUFFER_PCT = 10;          // reserve: usable SoC = soc - buffer
-
 function calculateRouteDistanceByRouteId(routeId) {
-    const trips = loadTrips().filter((t) => String(t.routeId) === String(routeId));
+    const key = String(routeId);
+    if (cachedRouteDistances.has(key)) {
+        return cachedRouteDistances.get(key);
+    }
+
+    const trips = loadTrips().filter((t) => String(t.routeId) === key);
     const trip = trips.find((t) => Number(t.directionId) === 0) || trips[0];
     if (!trip) return null;
-    const shapePoints = loadShapes()
-        .filter((p) => String(p.shapeId) === String(trip.shapeId))
-        .sort((a, b) => Number(a.shapePtSequence) - Number(b.shapePtSequence));
-    if (shapePoints.length < 2) return null;
+
+    const shapesIndex = ensureShapesIndexed();
+    const shapePoints = shapesIndex.get(trip.shapeId);
+    if (!shapePoints || shapePoints.length < 2) return null;
+
     let total = 0;
     for (let i = 1; i < shapePoints.length; i++) {
         const prev = shapePoints[i - 1];
@@ -252,7 +239,34 @@ function calculateRouteDistanceByRouteId(routeId) {
         if (![prev.shapePtLat, prev.shapePtLon, cur.shapePtLat, cur.shapePtLon].every(Number.isFinite)) continue;
         total += haversineKm(prev.shapePtLat, prev.shapePtLon, cur.shapePtLat, cur.shapePtLon);
     }
-    return Number(total.toFixed(2));
+
+    const dist = Number(total.toFixed(2));
+    cachedRouteDistances.set(key, dist);
+    return dist;
+}
+
+function calculateRouteDistance(busNumber) {
+    const route = loadRoutes().find((candidate) => candidate.busNumber === busNumber);
+    if (!route) {
+        return { ok: false, statusCode: 404, error: `Bus ${busNumber} was not found in routes.txt.` };
+    }
+
+    const distanceKm = calculateRouteDistanceByRouteId(route.routeId);
+    if (distanceKm === null) {
+        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busNumber}.` };
+    }
+
+    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.routeId));
+    const selectedTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
+
+    return {
+        ok: true,
+        busNumber,
+        routeId: route.routeId,
+        tripId: selectedTrip ? selectedTrip.tripId : "",
+        shapeId: selectedTrip ? selectedTrip.shapeId : "",
+        distanceKm
+    };
 }
 
 function estimatedRangeKm(soc) {
@@ -1168,7 +1182,19 @@ const server = http.createServer(async (req, res) => {
 });
 
 restoreBusStateFromGitHub().then(() => {
+    // Pre-warm GTFS shapes index and distance cache so requests respond in < 1ms
+    try {
+        const routes = loadRoutes();
+        for (const r of routes) {
+            calculateRouteDistanceByRouteId(r.routeId);
+        }
+        console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes.`);
+    } catch (e) {
+        console.warn("[Cache] Pre-warm failed:", e.message);
+    }
+
     server.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
 });
+
