@@ -269,6 +269,19 @@ function calculateRouteDistance(busNumber) {
     };
 }
 
+// ── Bus Swap Engine ───────────────────────────────────────────────────────────
+// Logic 2: after every telemetry update, rank buses by SoC and assign the
+// highest-SoC bus to the longest GTFS-distance route. A swap only fires when
+// the SoC difference between two adjacent candidates exceeds SWAP_THRESHOLD_PCT.
+// Buses whose estimated range < route distance are blocked from departure.
+// Route IDs never change; only the bus short-name assigned to each route moves.
+// The mapping is persisted in bus_state.json under "_assignments".
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SWAP_THRESHOLD_PCT = 5;       // minimum SoC gap (%) needed to trigger a swap
+const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC (matches problem.html formula)
+const SOC_BUFFER_PCT = 10;          // reserve: usable SoC = soc - buffer
+
 function estimatedRangeKm(soc) {
     const usable = Math.max(0, soc - SOC_BUFFER_PCT);
     return Math.round(usable * RANGE_KM_PER_SOC_PCT);
