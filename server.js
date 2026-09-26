@@ -331,10 +331,15 @@ function swapBusAssignments(state) {
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
             const rA = sortedRoutes[i];     // longer route (target: should have higher SoC & range)
             const rB = sortedRoutes[i + 1]; // shorter route
-            const socA = workingSoc[rA.routeId];
-            const socB = workingSoc[rB.routeId];
-            // Swap only when the shorter-route bus has significantly more SoC (> threshold)
-            if (socB - socA > SWAP_THRESHOLD_PCT) {
+            const condA = (state[rA.routeId] && state[rA.routeId].condition) || "Good";
+            const condB = (state[rB.routeId] && state[rB.routeId].condition) || "Good";
+
+            // If longer route (rA) has broken bus and shorter (rB) has Good bus -> swap!
+            // If both Good, swap only when shorter route bus has > threshold SoC advantage (5% hysteresis)
+            const shouldSwap = (condB === "Good" && condA === "Not Good") ||
+                               (condB === "Good" && condA === "Good" && (socB - socA > SWAP_THRESHOLD_PCT));
+
+            if (shouldSwap) {
                 workingSoc[rA.routeId] = socB;
                 workingSoc[rB.routeId] = socA;
 
@@ -348,8 +353,7 @@ function swapBusAssignments(state) {
                 if (!state[rB.routeId]) state[rB.routeId] = { status: "On Time", condition: "Good" };
                 state[rA.routeId].soc = socB;
                 state[rB.routeId].soc = socA;
-                const condA = state[rA.routeId].condition || "Good";
-                state[rA.routeId].condition = state[rB.routeId].condition || "Good";
+                state[rA.routeId].condition = condB;
                 state[rB.routeId].condition = condA;
 
                 changed = true;
@@ -357,10 +361,13 @@ function swapBusAssignments(state) {
         }
     }
 
-    // Block routes where estimated range < GTFS distance
+    // Block routes where estimated range < GTFS distance OR condition is Not Good OR SoC < 25%
     const blockedRouteIds = [];
     for (const r of routeInfos) {
-        if (estimatedRangeKm(workingSoc[r.routeId]) < r.gtfsDistanceKm) {
+        const soc = workingSoc[r.routeId];
+        const range = estimatedRangeKm(soc);
+        const cond = (state[r.routeId] && state[r.routeId].condition) || "Good";
+        if (range < r.gtfsDistanceKm || cond === "Not Good" || soc < 25) {
             blockedRouteIds.push(r.routeId);
         }
     }
@@ -1010,6 +1017,7 @@ const server = http.createServer(async (req, res) => {
                         const currentState = loadBusState();
                         const existing = currentState[routeId] || {};
                         currentState[routeId] = normalizeBusStateEntry(payload, existing);
+                        swapBusAssignments(currentState);
                         saveBusState(currentState);
 
                         // Forward to Python backend for micro/macro tracking
@@ -1157,11 +1165,14 @@ const server = http.createServer(async (req, res) => {
                 const soc = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100;
                 const dist = calculateRouteDistanceByRouteId(routeId);
                 const range = estimatedRangeKm(soc);
+                const cond = s.condition || "Good";
+                const isBlocked = (dist !== null && range < dist) || cond === "Not Good" || soc < 25;
                 ranges[routeId] = {
                     soc,
+                    condition: cond,
                     estimatedRangeKm: range,
                     gtfsDistanceKm: dist,
-                    blocked: dist !== null && range < dist
+                    blocked: isBlocked
                 };
             }
             sendJson(res, {

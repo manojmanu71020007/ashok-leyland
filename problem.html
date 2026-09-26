@@ -608,7 +608,7 @@
                 <div class="panel-heading-row">
                     <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
                 </div>
-                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — SoC ≥ 98% &amp; condition Good.</p>
+                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance) &amp; condition Good.</p>
                 <div class="region-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
                     <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
@@ -848,9 +848,9 @@
                 : routes;
 
             // ── Allocation gate ──────────────────────────────────────────────────
-            // A bus may only appear in "Allocated Buses" when it has SoC >= 98%
-            // AND condition is "Good" AND estimated range >= GTFS distance.
-            // Buses blocked by the swap engine are forced into "Not Allocated".
+            // A bus may only appear in "Allocated Buses" when condition is "Good",
+            // it is not blocked by range (< GTFS distance) or low battery (< 25%),
+            // and estimated range >= GTFS distance.
             const interiorChecked = document.getElementById("interior").checked;
             const manuallySelectedId = routeSelect.value || null;
             const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
@@ -866,7 +866,17 @@
                 if (!state || Object.keys(state).length === 0) return true; // no telemetry → assume factory-fresh 100%
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
-                return soc >= 98 && condition !== "Not Good";
+
+                if (condition === "Not Good") return false;
+                if (soc < 25) return false;
+
+                const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
+                const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm)) ? Number(rangeInfo.estimatedRangeKm) : Math.round(Math.max(0, soc - 10) * 1.42);
+
+                if (dist > 0 && estRange < dist) return false;
+
+                return true;
             });
 
             const totalBuses = routes.length;
@@ -1080,12 +1090,15 @@
                 const isBlockedByRange = blockedRouteIds.has(String(route.routeId));
                 const assignedName = getAssignedBusName(route);
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                const lowSoc = soc < 98;
+                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
+                const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm)) ? Number(rangeInfo.estimatedRangeKm) : Math.round(Math.max(0, soc - 10) * 1.42);
+                const isBlockedByRange = blockedRouteIds.has(String(route.routeId)) || (dist > 0 && estRange < dist);
                 const badCondition = condition === "Not Good";
+                const lowSocFloor = soc < 25;
                 const tags = [
-                    lowSoc ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC</span>` : "",
                     badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
-                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${rangeInfo.estimatedRangeKm ?? "?"}km < ${rangeInfo.gtfsDistanceKm ?? "?"}km</span>` : ""
+                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${estRange}km < ${dist}km</span>` : "",
+                    (!badCondition && !isBlockedByRange && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
                 return `
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
