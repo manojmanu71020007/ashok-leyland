@@ -7,7 +7,6 @@ from bus_range_estimator import (
     can_swap_buses,
     categorize,
     is_feasible,
-    is_schedule_locked_in,
     swap_assignments,
 )
 
@@ -68,7 +67,7 @@ def test_soc_hysteresis_prevents_small_gap_swaps():
         start_time="06:00",
         scheduled_hours=3.0,
     )
-    now = datetime(2026, 9, 25, 4, 0)  # 2 hours before departure -> not locked in
+    now = datetime(2026, 9, 25, 4, 0)
 
     # 1. Bus B (99%) vs Bus A (98%): 1% diff <= 5% -> Bus A retains #1 rank
     ranking_small_gap = allocate(
@@ -115,57 +114,6 @@ def test_soc_hysteresis_allows_swap_if_assigned_bus_becomes_ineligible():
     assert ranking[0]["eligible"] is True
 
 
-
-def test_is_schedule_locked_in_edge_cases():
-    ref = datetime(2026, 9, 25, 10, 0)
-    # 15 minutes away -> locked in
-    assert is_schedule_locked_in("10:15", reference_time=ref, window_minutes=30.0) is True
-    # Exactly 30 minutes away -> locked in
-    assert is_schedule_locked_in("10:30", reference_time=ref, window_minutes=30.0) is True
-    # 31 minutes away -> not locked in
-    assert is_schedule_locked_in("10:31", reference_time=ref, window_minutes=30.0) is False
-    # ISO string
-    assert is_schedule_locked_in("2026-09-25T10:20:00", reference_time=ref, window_minutes=30.0) is True
-
-
-def test_swap_assignments_fleet_coordination():
-    bus_a = Bus(bus_id="B_A", soc=98.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
-    bus_b = Bus(bus_id="B_B", soc=99.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
-    bus_c = Bus(bus_id="B_C", soc=105.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
-
-    sched_locked = Schedule(
-        route_code="R_LOCKED",
-        route_category="SIMPLE",
-        route_km=28.7,
-        trips=2,
-        start_time="06:15",
-        scheduled_hours=2.0,
-    )
-    sched_open = Schedule(
-        route_code="R_OPEN",
-        route_category="SIMPLE",
-        route_km=28.7,
-        trips=2,
-        start_time="06:50",
-        scheduled_hours=2.0,
-    )
-
-    current = {"R_LOCKED": "B_A", "R_OPEN": "B_B"}
-    now = datetime(2026, 9, 25, 6, 0)
-
-    updated = swap_assignments(
-        [bus_a, bus_b, bus_c],
-        [sched_locked, sched_open],
-        current_assignments=current,
-        now=now,
-    )
-
-    # R_LOCKED should remain B_A (frozen due to 30m lock-in, since departure is 15 min away)
-    assert updated["R_LOCKED"] == "B_A"
-    # R_OPEN had B_B (99%). B_C (105%) has > 5% higher SoC (diff = 6%), and departure is 50 min away (not locked) -> R_OPEN swaps to B_C
-    assert updated["R_OPEN"] == "B_C"
-
-
 def test_can_swap_buses_helper():
     bus_curr = Bus(bus_id="B1", soc=98.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
     bus_small_gap = Bus(bus_id="B2", soc=99.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
@@ -173,3 +121,27 @@ def test_can_swap_buses_helper():
 
     assert can_swap_buses(bus_curr, bus_small_gap, hysteresis=5.0) is False
     assert can_swap_buses(bus_curr, bus_large_gap, hysteresis=5.0) is True
+
+
+def test_swap_assignments_hysteresis():
+    bus_a = Bus(bus_id="B_A", soc=98.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
+    bus_b = Bus(bus_id="B_B", soc=99.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
+    bus_c = Bus(bus_id="B_C", soc=105.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
+
+    sched = Schedule(
+        route_code="R1",
+        route_category="SIMPLE",
+        route_km=28.7,
+        trips=2,
+        start_time="06:15",
+        scheduled_hours=2.0,
+    )
+
+    # 1. Bus B (99%) vs Bus A (98%): 1% diff <= 5% hysteresis -> stays Bus A
+    current = {"R1": "B_A"}
+    res1 = swap_assignments([bus_a, bus_b], [sched], current_assignments=current)
+    assert res1["R1"] == "B_A"
+
+    # 2. Bus C (105%) vs Bus A (98%): 7% diff > 5% hysteresis -> swaps to Bus C
+    res2 = swap_assignments([bus_a, bus_c], [sched], current_assignments=current)
+    assert res2["R1"] == "B_C"

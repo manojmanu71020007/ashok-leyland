@@ -351,7 +351,7 @@ def post_allocate(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.post("/swap")
 def post_swap(payload: dict[str, Any]) -> dict[str, Any]:
-    """Calculate updated assignments with 5% SoC hysteresis and 30-minute lock-in guardrails."""
+    """Calculate updated assignments with 5% SoC hysteresis guardrail."""
     buses = payload.get("buses", [])
     schedules = payload.get("schedules", [])
     current_assignments = payload.get("current_assignments", {})

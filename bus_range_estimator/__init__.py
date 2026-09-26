@@ -1,13 +1,11 @@
 """Electric bus depot scheduling range estimator package."""
 
 from .allocator import (
-    LOCK_IN_WINDOW_MINUTES,
     SOC_HYSTERESIS_PERCENT,
     allocate,
     can_swap_buses,
     categorize,
     is_feasible,
-    is_schedule_locked_in,
     swap_assignments,
 )
 from .config import DEFAULTS
@@ -28,9 +26,7 @@ __all__ = [
     "allocate",
     "swap_assignments",
     "can_swap_buses",
-    "is_schedule_locked_in",
     "SOC_HYSTERESIS_PERCENT",
-    "LOCK_IN_WINDOW_MINUTES",
     "DEFAULTS",
 ]
 
