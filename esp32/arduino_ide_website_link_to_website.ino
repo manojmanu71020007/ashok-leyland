@@ -114,7 +114,10 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
     <h1>Driver Terminal</h1>
     <p>Select your route ID and update telemetry. The assigned bus name is dynamically fetched from the cloud swap engine.</p>
     <form id="telemetry-form">
-      <label for="bus-select">Select Route / Assigned Bus</label>
+      <label for="bus-search">Search Route / Bus</label>
+      <input type="text" id="bus-search" placeholder="Type route or bus name (e.g. 401, 252, 1367)..." autocomplete="off" style="padding: 11px; border: 1px solid #b9c8d6; border-radius: 8px; margin-bottom: 6px;">
+
+      <label for="bus-select">Select Route / Assigned Bus (<span id="bus-count">54</span> buses available)</label>
       <select id="bus-select" name="bus" required>
         <option value="">Loading Fleet Data...</option>
       </select>
@@ -139,6 +142,8 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
     const slider = document.getElementById('soc');
     const output = document.getElementById('soc-value');
     const message = document.getElementById('message');
+    const busSearch = document.getElementById('bus-search');
+    const busCount = document.getElementById('bus-count');
     const busSelect = document.getElementById('bus-select');
     const conditionSelect = document.getElementById('condition');
     const submit = document.getElementById('submit');
@@ -155,11 +160,44 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       }
     }
 
+    function renderDropdown(filterText = '') {
+      const q = filterText.trim().toLowerCase();
+      const prevVal = busSelect.value;
+
+      const filtered = q
+        ? fleetData.filter(bus => 
+            bus.bus_id.toLowerCase().includes(q) || 
+            (bus.route && bus.route.toLowerCase().includes(q))
+          )
+        : fleetData;
+
+      if (busCount) {
+        busCount.textContent = filtered.length;
+      }
+
+      if (filtered.length === 0) {
+        busSelect.innerHTML = '<option value="">No matching buses found</option>';
+        return;
+      }
+
+      busSelect.innerHTML = filtered.map(bus => 
+        `<option value="${bus.origIndex}">Route ${bus.bus_id}: ${bus.route} (${bus.soc}%)</option>`
+      ).join('');
+
+      if (prevVal !== "" && busSelect.querySelector(`option[value="${prevVal}"]`)) {
+        busSelect.value = prevVal;
+      } else if (filtered.length === 1) {
+        busSelect.value = String(filtered[0].origIndex);
+      }
+      updateFormForSelectedBus();
+    }
+
     // Logic 1: display the selection box such that it gets the finally swapped short name for each route ID
     async function loadFleetDropdown() {
       try {
         const response = await fetch('/api/fleet');
         fleetData = await response.json();
+        fleetData.forEach((bus, i) => { bus.origIndex = i; });
 
         // Query the live website for the swap-engine assigned bus names for each routeId
         try {
@@ -176,19 +214,16 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
           console.log('Using local assignments');
         }
 
-        const prevVal = busSelect.value;
-        busSelect.innerHTML = fleetData.map((bus, index) => 
-          `<option value="${index}">Route ${bus.bus_id}: ${bus.route} (${bus.soc}%)</option>`
-        ).join('');
-        if (prevVal !== "" && busSelect.options[prevVal]) {
-          busSelect.value = prevVal;
-        }
-        updateFormForSelectedBus();
+        renderDropdown(busSearch.value);
       } catch (err) {
         busSelect.innerHTML = `<option value="">Error loading buses</option>`;
       }
     }
     loadFleetDropdown();
+
+    busSearch.addEventListener('input', () => {
+      renderDropdown(busSearch.value);
+    });
 
     busSelect.addEventListener('change', updateFormForSelectedBus);
     slider.addEventListener('input', () => output.textContent = slider.value + '%');
