@@ -169,7 +169,7 @@ function renderBusList(list) {
             return `
                 <article class="bus-card ${isActive}" data-route-id="${bus.routeId}">
                     <h4>
-                        <a href="bus-details.html?bus_id=${encodeURIComponent(bus.busNumber || bus.routeId || "BUS_001")}" style="color: inherit; text-decoration: none;">
+                        <a href="bus-details.html?route_id=${encodeURIComponent(bus.routeId || "")}&bus_id=${encodeURIComponent(bus.busNumber || bus.routeId || "BUS_001")}" style="color: inherit; text-decoration: none;">
                             ${bus.busNumber}
                         </a>
                         - ${bus.routeName}

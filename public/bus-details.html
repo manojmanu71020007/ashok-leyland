@@ -118,7 +118,7 @@
     <a href="/problem.html" class="back-link">&#8592; Back to Scheduling Dashboard</a>
 
     <div class="header">
-      <h1>Bus Details &amp; Analytics</h1>
+      <h1 id="pageHeading">Route Telemetry &amp; Analytics</h1>
       <div class="view-switcher" aria-label="Chart view switcher">
         <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
         <button class="view-btn" data-view="micro">Micro View (Live)</button>
@@ -128,9 +128,9 @@
     <div class="card" style="margin-bottom: 18px;">
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 8px;">
         <div style="background: rgba(59, 130, 246, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Bus / Route</div>
-          <div id="busIdLabel" style="font-size: 1.2rem; font-weight: 700; margin-top: 8px; word-break: break-all;">-</div>
-          <div id="routeIdSub" style="font-size: .75rem; color:#94a3b8; margin-top: 4px;"></div>
+          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Route Identifier</div>
+          <div id="busIdLabel" style="font-size: 1.25rem; font-weight: 800; margin-top: 8px; word-break: break-all;">-</div>
+          <div id="routeIdSub" style="font-size: .8rem; color:#94a3b8; margin-top: 4px;"></div>
         </div>
         <div style="background: rgba(34, 197, 94, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
           <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Current SOC</div>
@@ -158,18 +158,20 @@
   <script>
     // -----------------------------------------------------------------------
     // Read URL params
-    //   route_id  = canonical numeric GTFS routeId  (preferred for API calls)
-    //   bus_id    = human-readable short name (display label)
-    // Both params are now set by problem.html when navigating here.
+    //   route_id  = canonical numeric GTFS routeId  (primary key for graph & telemetry)
+    //   bus_id    = human-readable short name (assigned bus display label)
     // -----------------------------------------------------------------------
     const urlParams    = new URLSearchParams(window.location.search);
     const routeIdParam = (urlParams.get("route_id") || "").trim();
     const busIdParam   = (urlParams.get("bus_id")   || "").trim();
 
-    // Use routeId for API calls when available (server resolves both anyway)
-    const apiId        = routeIdParam || busIdParam || "1367";
-    // Human-readable label shown in KPI card and chart legend
-    const displayLabel = busIdParam   || routeIdParam || apiId;
+    // Primary key for the graph and API calls is always route_id!
+    const canonicalRouteId = routeIdParam || (busIdParam && /^\d+$/.test(busIdParam) ? busIdParam : "") || "1367";
+    const apiId = canonicalRouteId;
+    
+    // Display labels:
+    const routeTitle = `Route ${canonicalRouteId}`;
+    const assignedBusName = busIdParam && busIdParam !== canonicalRouteId ? busIdParam : "";
 
     let chart       = null;
     let currentView = "macro";
@@ -210,13 +212,17 @@
     async function updateSummary(data, view) {
       if (!Array.isArray(data) || data.length === 0) return;
 
-      // Primary label: short name; secondary: routeId if different
-      document.getElementById("busIdLabel").textContent = displayLabel;
+      // Primary label: Route ID; secondary: Assigned bus short name
+      document.getElementById("busIdLabel").textContent = routeTitle;
+      const headingEl = document.getElementById("pageHeading");
+      if (headingEl) {
+        headingEl.textContent = `Route ${canonicalRouteId} SoC Analytics`;
+      }
       const subEl = document.getElementById("routeIdSub");
-      if (routeIdParam && routeIdParam !== displayLabel) {
-        subEl.textContent = `Route ID: ${routeIdParam}`;
-      } else if (routeIdParam) {
-        subEl.textContent = `Route ID: ${routeIdParam}`;
+      if (assignedBusName) {
+        subEl.textContent = `Assigned Bus: ${assignedBusName}`;
+      } else {
+        subEl.textContent = `Route ID: ${canonicalRouteId}`;
       }
 
       const latest = data[data.length - 1];
@@ -279,7 +285,7 @@
         data: {
           labels,
           datasets: [{
-            label: `SOC End \u2014 ${displayLabel}`,
+            label: `Route ${canonicalRouteId} 30-Day SOC (%)`,
             data: values,
             borderColor: "#3b82f6",
             backgroundColor: "rgba(59, 130, 246, 0.2)",
@@ -318,7 +324,7 @@
         data: {
           labels,
           datasets: [{
-            label: `Live SOC \u2014 ${displayLabel}`,
+            label: `Route ${canonicalRouteId} Live Telemetry SOC (%)`,
             data: values,
             borderColor: "#22c55e",
             backgroundColor: "rgba(34, 197, 94, 0.2)",
@@ -352,7 +358,7 @@
     async function renderView(view) {
       currentView = view;
       destroyChart();
-      setStatus(`Loading ${view === "macro" ? "30-day history" : "live telemetry"} for ${displayLabel}\u2026`);
+      setStatus(`Loading ${view === "macro" ? "30-day history" : "live telemetry"} for Route ${canonicalRouteId}\u2026`);
 
       // Sync button active states
       document.querySelectorAll(".view-btn").forEach((btn) => {
@@ -362,12 +368,12 @@
       try {
         const data = await fetchBusData(view);
         if (!Array.isArray(data) || data.length === 0) {
-          setStatus(`No ${view === "macro" ? "historical" : "live"} records found for ${displayLabel}.`);
+          setStatus(`No ${view === "macro" ? "historical" : "live"} records found for Route ${canonicalRouteId}.`);
           return;
         }
         updateSummary(data, view);
         chart = view === "macro" ? createMacroChart(data) : createMicroChart(data);
-        setStatus(`${view === "macro" ? "Macro view (30-day)" : "Micro view (live)"} loaded for ${displayLabel}.`);
+        setStatus(`${view === "macro" ? "Macro view (30-day)" : "Micro view (live)"} loaded for Route ${canonicalRouteId}.`);
       } catch (error) {
         console.error(error);
         setStatus(`Could not load ${view} data for ${displayLabel}: ${error.message}`);
@@ -409,6 +415,9 @@
                 : data.map((p) => Number(p.soc));
               chart.data.labels = labels;
               chart.data.datasets[0].data = values;
+              chart.data.datasets[0].label = currentView === "macro"
+                ? `Route ${canonicalRouteId} 30-Day SOC (%)`
+                : `Route ${canonicalRouteId} Live Telemetry SOC (%)`;
               chart.update("none");
             }
           }
