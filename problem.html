@@ -545,6 +545,205 @@
         .status-pill.delayed { background: #fef3c7; color: #b45309; }
         .status-pill.ahead { background: #e0f2fe; color: #0284c7; }
         .status-pill.standby { background: #f1f5f9; color: #64748b; }
+
+        /* Topbar actions & Swapped Buses button */
+        .topbar-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+        }
+        .swapped-buses-top-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            border: 1px solid #0284c7;
+            border-radius: 999px;
+            padding: 8px 16px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(3, 105, 161, 0.25);
+            transition: all 0.2s ease;
+        }
+        .swapped-buses-top-btn:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(3, 105, 161, 0.35);
+        }
+        .swapped-buses-top-btn:active {
+            transform: translateY(0);
+        }
+        .swapped-badge-count {
+            background: #ffffff;
+            color: #0369a1;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            line-height: 1;
+            transition: all 0.2s ease;
+        }
+        .swapped-badge-count.has-swaps {
+            background: #f59e0b;
+            color: #ffffff;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
+        }
+        .swapped-buses-top-btn .chevron {
+            font-size: 1.15rem;
+            line-height: 1;
+            margin-left: 2px;
+            transition: transform 0.2s ease;
+        }
+        .swapped-buses-top-btn:hover .chevron {
+            transform: translateX(2px);
+        }
+
+        /* Swapped Buses Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-dialog {
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.35);
+            width: 100%;
+            max-width: 820px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px) scale(0.98); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background: #f8fafc;
+        }
+        .modal-close-btn {
+            background: none;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.15s ease;
+        }
+        .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: var(--ink);
+        }
+        .modal-search-wrap {
+            padding: 12px 24px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--line);
+        }
+        .modal-body {
+            padding: 18px 24px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .swap-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-left: 5px solid #0284c7;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .swap-card:hover {
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.12);
+        }
+        .swap-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .swap-route-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 800;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+        }
+        .swap-exchange-flow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0;
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 10px 14px;
+            flex-wrap: wrap;
+        }
+        .bus-pill-default {
+            background: #f1f5f9;
+            color: #475569;
+            font-weight: 700;
+            font-size: 0.82rem;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+        }
+        .bus-pill-swapped {
+            background: #dbeafe;
+            color: #1e40af;
+            font-weight: 800;
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #93c5fd;
+        }
+        .swap-arrow {
+            font-size: 1.1rem;
+            color: #0284c7;
+            font-weight: 900;
+        }
+        .swap-reason-box {
+            background: #fefce8;
+            border: 1px solid #fef08a;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-top: 10px;
+            font-size: 0.84rem;
+            line-height: 1.45;
+            color: #854d0e;
+        }
     </style>
 </head>
 <body>
@@ -555,7 +754,14 @@
                 <h1>Smart Bus Scheduling</h1>
                 <p class="subtitle">Allocate the right available bus to the right schedule using battery state, expected range, route distance, cleaning, charging, maintenance, and driver readiness.</p>
             </div>
-            <div class="live-chip">AI recommendation workspace</div>
+            <div class="topbar-actions">
+                <div class="live-chip">AI recommendation workspace</div>
+                <button id="open-swapped-btn" class="swapped-buses-top-btn" type="button" title="View swapped buses, assignments and reasons">
+                    <span>Swapped Buses</span>
+                    <span id="swapped-badge-count" class="swapped-badge-count">0</span>
+                    <span class="chevron">›</span>
+                </button>
+            </div>
         </header>
 
         <div class="grid">
@@ -678,6 +884,31 @@
                 </table>
             </div>
         </section>
+
+        <!-- Swapped Buses Modal Dialog -->
+        <div id="swapped-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
+            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="swapped-modal-title">
+                <div class="modal-header">
+                    <div>
+                        <div class="eyebrow" style="margin-bottom:4px; color:#0369a1;">Depot Allocation System</div>
+                        <h2 id="swapped-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+                            <span>🔄 Swapped Buses Overview</span>
+                            <span id="modal-swapped-count" class="swapped-badge-count" style="background:#0284c7; color:#fff; font-size:.8rem; padding:3px 9px;">0</span>
+                        </h2>
+                        <p style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">Track which buses exchanged routes, the finally assigned vehicle, and the operational dispatch reason.</p>
+                    </div>
+                    <button type="button" id="close-swapped-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+                </div>
+
+                <div class="modal-search-wrap">
+                    <input type="text" id="swapped-modal-search" class="region-search-input" placeholder="🔍 Filter swapped routes by route ID, bus name, stop..." autocomplete="off">
+                </div>
+
+                <div id="swapped-cards-container" class="modal-body">
+                    <!-- Cards populated by JavaScript -->
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -722,6 +953,7 @@
         let busAssignments = {};
         let blockedRouteIds = new Set();
         let assignmentRanges = {}; // routeId → { soc, estimatedRangeKm, gtfsDistanceKm, blocked }
+        let serverSwapLog = [];
 
         function haversineKm(lat1, lon1, lat2, lon2) {
             const earthRadiusKm = 6371;
@@ -824,6 +1056,8 @@
                     busAssignments = payload.assignments || {};
                     blockedRouteIds = new Set(payload.blockedRouteIds || []);
                     assignmentRanges = payload.ranges || {};
+                    serverSwapLog = Array.isArray(payload.swapLog) ? payload.swapLog : [];
+                    updateSwappedBusesButtonAndModal();
                 }
             } catch (e) {
                 console.warn("Could not fetch bus assignments", e);
@@ -834,6 +1068,231 @@
             // Return whatever the swap engine has assigned for this routeId,
             // falling back to the GTFS short name if no assignment exists yet.
             return busAssignments[String(route.routeId)] || route.busNumber || route.routeId;
+        }
+
+        // ── Swapped Buses Modal & Logic ──────────────────────────────────────
+        const openSwappedBtn = document.getElementById("open-swapped-btn");
+        const swappedBadgeCount = document.getElementById("swapped-badge-count");
+        const swappedModalBackdrop = document.getElementById("swapped-modal-backdrop");
+        const closeSwappedModalBtn = document.getElementById("close-swapped-modal-btn");
+        const swappedModalSearch = document.getElementById("swapped-modal-search");
+        const swappedCardsContainer = document.getElementById("swapped-cards-container");
+        const modalSwappedCount = document.getElementById("modal-swapped-count");
+
+        function computeSwappedBusesList() {
+            if (!routes || !routes.length) return [];
+            const list = [];
+            routes.forEach((route) => {
+                const assignedName = busAssignments[String(route.routeId)];
+                const defaultName = route.busNumber;
+                if (assignedName && assignedName !== defaultName) {
+                    const donorRoute = routes.find((r) => String(r.busNumber).trim() === String(assignedName).trim());
+                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+                    const liveState = busStates[String(route.routeId)] || {};
+
+                    let reason = "";
+                    if (Array.isArray(serverSwapLog)) {
+                        const logMatch = serverSwapLog.find((log) =>
+                            String(log.routeA) === String(route.routeId) ||
+                            String(log.routeB) === String(route.routeId) ||
+                            String(log.busA) === String(assignedName) ||
+                            String(log.busB) === String(assignedName)
+                        );
+                        if (logMatch && logMatch.reason) {
+                            reason = logMatch.reason;
+                        }
+                    }
+
+                    if (!reason) {
+                        const distA = rangeInfo.gtfsDistanceKm || (donorRoute ? calculateRouteDistanceKm(route.routeId) : null) || 0;
+                        const distB = donorRoute ? (assignmentRanges[String(donorRoute.routeId)]?.gtfsDistanceKm || calculateRouteDistanceKm(donorRoute.routeId) || 0) : 0;
+                        const soc = rangeInfo.soc !== undefined ? rangeInfo.soc : (liveState.soc !== undefined ? liveState.soc : 100);
+                        const cond = rangeInfo.condition || liveState.condition || "Good";
+
+                        if (cond === "Not Good") {
+                            reason = `Safety & Maintenance Alert: Original vehicle required depot inspection/maintenance. Swapped vehicle '${assignedName}' assigned to ensure safe and continuous passenger service.`;
+                        } else if (distA > distB && distB > 0) {
+                            reason = `Range & Battery Optimization: Longer Route ${route.routeId} (${distA.toFixed(1)} km) prioritized with vehicle '${assignedName}' (SoC: ${soc}%) over shorter Route ${donorRoute?.routeId || "N/A"} (${distB.toFixed(1)} km) to prevent in-service battery depletion.`;
+                        } else {
+                            reason = `Fleet Energy Balancing: Vehicle '${assignedName}' (SoC: ${soc}%) assigned to Route ${route.routeId} for optimal depot turnaround and schedule reliability.`;
+                        }
+                    }
+
+                    list.push({
+                        routeId: route.routeId,
+                        defaultBus: defaultName,
+                        assignedBus: assignedName,
+                        origin: route.origin || "Origin",
+                        destination: route.destination || "Destination",
+                        donorRouteId: donorRoute ? donorRoute.routeId : null,
+                        rangeInfo,
+                        liveState,
+                        reason
+                    });
+                }
+            });
+            return list;
+        }
+
+        function renderSwappedModalCards(filterQuery = "") {
+            if (!swappedCardsContainer) return;
+            const swappedList = computeSwappedBusesList();
+            const query = String(filterQuery || "").trim().toLowerCase();
+
+            const filtered = swappedList.filter((item) => {
+                if (!query) return true;
+                const text = `${item.routeId} ${item.defaultBus} ${item.assignedBus} ${item.origin} ${item.destination} ${item.donorRouteId || ""} ${item.reason}`.toLowerCase();
+                return text.includes(query);
+            });
+
+            if (swappedBadgeCount) {
+                swappedBadgeCount.textContent = swappedList.length;
+                if (swappedList.length > 0) {
+                    swappedBadgeCount.classList.add("has-swaps");
+                } else {
+                    swappedBadgeCount.classList.remove("has-swaps");
+                }
+            }
+            if (modalSwappedCount) {
+                modalSwappedCount.textContent = `${filtered.length} of ${swappedList.length}`;
+            }
+
+            if (swappedList.length === 0) {
+                swappedCardsContainer.innerHTML = `
+                    <div style="text-align:center; padding: 44px 20px; color: var(--muted);">
+                        <div style="font-size: 2.6rem; margin-bottom: 12px;">🚍✨</div>
+                        <h3 style="margin: 0 0 8px; color: var(--ink); font-size: 1.15rem;">All Buses Operating on Default Schedules</h3>
+                        <p style="max-width: 480px; margin: 0 auto; font-size: 0.88rem; line-height: 1.5;">
+                            No route swaps are currently in effect. Every route is running with its original default vehicle.
+                            When battery levels, route distance, or maintenance status require preemption, the Swap Engine will reassign buses automatically.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            if (filtered.length === 0) {
+                swappedCardsContainer.innerHTML = `
+                    <div style="text-align:center; padding: 36px 20px; color: var(--muted);">
+                        <p style="font-size: 0.95rem;">No swapped routes match "<strong>${escapeHtml(query)}</strong>".</p>
+                    </div>
+                `;
+                return;
+            }
+
+            swappedCardsContainer.innerHTML = filtered.map((item) => {
+                const soc = item.rangeInfo.soc !== undefined ? item.rangeInfo.soc : (item.liveState.soc !== undefined ? item.liveState.soc : "--");
+                const estRange = item.rangeInfo.estimatedRangeKm !== undefined ? `${item.rangeInfo.estimatedRangeKm} km` : "--";
+                const dist = item.rangeInfo.gtfsDistanceKm ? `${item.rangeInfo.gtfsDistanceKm.toFixed(1)} km` : "--";
+                const condition = item.rangeInfo.condition || item.liveState.condition || "Good";
+                const isBlocked = blockedRouteIds.has(String(item.routeId));
+
+                const donorInfo = item.donorRouteId 
+                    ? `<span style="font-size:0.78rem; color:var(--muted); margin-left:6px;">(Exchanged from Route ${escapeHtml(item.donorRouteId)})</span>` 
+                    : "";
+
+                return `
+                    <div class="swap-card">
+                        <div class="swap-card-header">
+                            <div>
+                                <span class="swap-route-badge">Route ${escapeHtml(item.routeId)}</span>
+                                <strong style="margin-left: 8px; font-size: 0.95rem; color: var(--ink);">
+                                    ${escapeHtml(item.origin)} ➔ ${escapeHtml(item.destination)}
+                                </strong>
+                            </div>
+                            <div>
+                                ${isBlocked ? '<span class="status-pill status-delayed" style="background:#fee2e2; color:#b91c1c;">BLOCKED BY SWAP ENGINE</span>' : '<span class="status-pill status-ahead" style="background:#dcfce7; color:#15803d;">ACTIVE ALLOCATION</span>'}
+                            </div>
+                        </div>
+
+                        <div class="swap-exchange-flow">
+                            <div>
+                                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); display: block; font-weight: 700; margin-bottom: 2px;">Original Scheduled Bus</span>
+                                <span class="bus-pill-default">${escapeHtml(item.defaultBus)}</span>
+                            </div>
+
+                            <div class="swap-arrow">⇄</div>
+
+                            <div>
+                                <span style="font-size: 0.72rem; text-transform: uppercase; color: #0284c7; display: block; font-weight: 700; margin-bottom: 2px;">Finally Swapped Assigned Bus</span>
+                                <span class="bus-pill-swapped">✅ ${escapeHtml(item.assignedBus)}</span>
+                                ${donorInfo}
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0; font-size: 0.82rem; color: var(--muted); background: #fdfdfd; padding: 6px 10px; border-radius: 6px; border: 1px solid #f1f5f9;">
+                            <div>⚡ <strong>Battery SoC:</strong> <span style="color:var(--ink);">${soc}%</span></div>
+                            <div>📏 <strong>Route Distance:</strong> <span style="color:var(--ink);">${dist}</span></div>
+                            <div>🔋 <strong>Est. Range:</strong> <span style="color:var(--ink);">${estRange}</span></div>
+                            <div>🔧 <strong>Condition:</strong> <span style="color:${condition === 'Good' ? '#16a34a' : '#dc2626'}; font-weight:700;">${escapeHtml(condition)}</span></div>
+                        </div>
+
+                        <div class="swap-reason-box">
+                            <strong>💡 Operational Reason for Swap:</strong><br>
+                            ${escapeHtml(item.reason)}
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function openSwappedModal() {
+            if (!swappedModalBackdrop) return;
+            swappedModalBackdrop.style.display = "flex";
+            swappedModalBackdrop.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+            if (swappedModalSearch) {
+                swappedModalSearch.value = "";
+                swappedModalSearch.focus();
+            }
+            renderSwappedModalCards("");
+        }
+
+        function closeSwappedModal() {
+            if (!swappedModalBackdrop) return;
+            swappedModalBackdrop.style.display = "none";
+            swappedModalBackdrop.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        function updateSwappedBusesButtonAndModal() {
+            const list = computeSwappedBusesList();
+            if (swappedBadgeCount) {
+                swappedBadgeCount.textContent = list.length;
+                if (list.length > 0) {
+                    swappedBadgeCount.classList.add("has-swaps");
+                } else {
+                    swappedBadgeCount.classList.remove("has-swaps");
+                }
+            }
+            if (swappedModalBackdrop && swappedModalBackdrop.style.display === "flex") {
+                const query = swappedModalSearch ? swappedModalSearch.value : "";
+                renderSwappedModalCards(query);
+            }
+        }
+
+        if (openSwappedBtn) {
+            openSwappedBtn.addEventListener("click", openSwappedModal);
+        }
+        if (closeSwappedModalBtn) {
+            closeSwappedModalBtn.addEventListener("click", closeSwappedModal);
+        }
+        if (swappedModalBackdrop) {
+            swappedModalBackdrop.addEventListener("click", (e) => {
+                if (e.target === swappedModalBackdrop) {
+                    closeSwappedModal();
+                }
+            });
+        }
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && swappedModalBackdrop && swappedModalBackdrop.style.display === "flex") {
+                closeSwappedModal();
+            }
+        });
+        if (swappedModalSearch) {
+            swappedModalSearch.addEventListener("input", (e) => {
+                renderSwappedModalCards(e.target.value);
+            });
         }
 
         function renderRoutes() {
@@ -940,6 +1399,7 @@
             updateAssignedDriverCount();
 
             renderScheduledTime();
+            updateSwappedBusesButtonAndModal();
         }
 
         function renderAllocatedList(allocatedList) {
@@ -1428,6 +1888,7 @@
                     busAssignments = assignPayload.assignments || {};
                     blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
                     assignmentRanges = assignPayload.ranges || {};
+                    serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
                 }
 
                 // Build GTFS route schedule timetable map
@@ -1589,9 +2050,11 @@
                             busAssignments = assignPayload.assignments || {};
                             blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
                             assignmentRanges = assignPayload.ranges || {};
+                            serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
                         }
                         renderRoutes();
                         recommend();
+                        updateSwappedBusesButtonAndModal();
                     } catch {}
                 }, 10000);
             } catch (error) {

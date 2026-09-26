@@ -359,6 +359,7 @@ function swapBusAssignments(state) {
     // Bubble-sort passes until stable or guard exhausted
     let changed = true;
     let guard = 20;
+    const currentSwapLog = [];
     while (changed && guard-- > 0) {
         changed = false;
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
@@ -377,6 +378,29 @@ function swapBusAssignments(state) {
             if (shouldSwap) {
                 workingSoc[rA.routeId] = socB;
                 workingSoc[rB.routeId] = socA;
+
+                const nameA = assignments[rA.routeId];
+                const nameB = assignments[rB.routeId];
+
+                let reason = "";
+                if (condA === "Not Good" && condB === "Good") {
+                    reason = `Safety & Maintenance Alert: Longer Route ${rA.routeId} (${rA.gtfsDistanceKm.toFixed(1)} km) had vehicle '${nameA}' in 'Not Good' condition. Swapped with operational vehicle '${nameB}' from Route ${rB.routeId} (${rB.gtfsDistanceKm.toFixed(1)} km) to prevent in-service breakdown.`;
+                } else if (socB - socA > SWAP_THRESHOLD_PCT) {
+                    reason = `Range Optimization: Longer Route ${rA.routeId} (${rA.gtfsDistanceKm.toFixed(1)} km) vehicle had lower battery (${socA}%) than shorter Route ${rB.routeId} (${rB.gtfsDistanceKm.toFixed(1)} km, ${socB}%). Swapped vehicle '${nameB}' (${socB}% SoC) to longer route to prevent mid-route battery depletion.`;
+                } else {
+                    reason = `Fleet battery balancing: Swapped vehicle '${nameB}' onto Route ${rA.routeId}.`;
+                }
+
+                currentSwapLog.push({
+                    timestamp: new Date().toISOString(),
+                    routeA: rA.routeId,
+                    busA: nameA,
+                    distA: rA.gtfsDistanceKm,
+                    routeB: rB.routeId,
+                    busB: nameB,
+                    distB: rB.gtfsDistanceKm,
+                    reason
+                });
 
                 // 1. Swap assigned bus short names
                 const tmpName = assignments[rA.routeId];
@@ -409,6 +433,9 @@ function swapBusAssignments(state) {
 
     state._assignments = assignments;
     state._blockedRouteIds = blockedRouteIds;
+    if (currentSwapLog.length > 0) {
+        state._swapLog = currentSwapLog.concat(state._swapLog || []).slice(0, 50);
+    }
     console.log(`[SwapEngine] Assignments updated. Blocked: ${blockedRouteIds.join(", ") || "none"}`);
     return state;
 }
@@ -1263,7 +1290,8 @@ const server = http.createServer(async (req, res) => {
                 ok: true,
                 assignments: currentState._assignments || {},
                 blockedRouteIds: currentState._blockedRouteIds || [],
-                ranges
+                ranges,
+                swapLog: currentState._swapLog || []
             });
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to load bus assignments", details: error.message }, 500);
