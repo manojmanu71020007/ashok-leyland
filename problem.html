@@ -1011,11 +1011,19 @@
                 const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
                 const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
 
+                const isSwapped = Boolean(assignedName && route.busNumber && assignedName !== route.busNumber);
+                const titleHtml = isSwapped
+                    ? `<strong>${assignedName} <span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Bus</span></strong>`
+                    : `<strong>${assignedName}</strong>`;
+                const subtitleHtml = isSwapped
+                    ? `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId} • Default Bus: ${route.busNumber}</span>`
+                    : `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>`;
+
                 return `
                     <div class="route-row" data-route-id="${route.routeId}">
                         <div class="route-meta">
-                            <strong>${assignedName}</strong>
-                            <span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>
+                            ${titleHtml}
+                            ${subtitleHtml}
                             <span>${route.origin} to ${route.destination}</span>
                             <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
                             ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
@@ -1099,11 +1107,19 @@
                     isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${estRange}km < ${dist}km</span>` : "",
                     (!badCondition && !isBlockedByRange && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
+                const isSwapped = Boolean(assignedName && route.busNumber && assignedName !== route.busNumber);
+                const titleHtml = isSwapped
+                    ? `<strong>${assignedName} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Bus</span></strong>`
+                    : `<strong>${assignedName}</strong>`;
+                const subtitleHtml = isSwapped
+                    ? `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId} • Default Bus: ${route.busNumber}</span>`
+                    : `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
+
                 return `
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
                         <div class="route-meta">
-                            <strong>${assignedName}</strong>
-                            <span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>
+                            ${titleHtml}
+                            ${subtitleHtml}
                             <span>${route.origin} to ${route.destination}</span>
                         </div>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">

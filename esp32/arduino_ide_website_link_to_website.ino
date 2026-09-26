@@ -348,9 +348,14 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
            action = '<strong>URGENT: Route to Maintenance Depot</strong>';
         }
 
+        const isSwapped = Boolean(bus.defaultBus && bus.route && bus.defaultBus !== bus.route);
+        const busDisplay = isSwapped
+          ? `<strong>${bus.route}</strong> <span class="badge" style="background:#e0f2fe;color:#0369a1;font-size:.7rem;padding:2px 6px;">🔄 Swapped</span><br><small style="color:var(--muted);font-size:.75rem;">Default: ${bus.defaultBus}</small>`
+          : `<strong>${bus.route}</strong>`;
+
         return `<tr>
           <td><strong>${bus.bus_id}</strong></td>
-          <td>${bus.route}</td>
+          <td>${busDisplay}</td>
           <td class="soc">${bus.soc}%</td>
           <td><span class="badge ${state.className}">${state.status}</span></td>
           <td><span class="badge ${condBadge}">${bus.condition}</span></td>
@@ -364,8 +369,36 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
         const response = await fetch('/api/fleet', { cache: 'no-store' });
         if (!response.ok) throw new Error('HTTP ' + response.status);
         latestData = await response.json();
+
+        // Sync with Render Cloud assignments and live state so ESP and Website are 100% identical
+        try {
+          const [assignRes, stateRes] = await Promise.all([
+            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-assignments'),
+            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-state')
+          ]);
+          if (assignRes.ok && stateRes.ok) {
+            const assignData = await assignRes.json();
+            const stateData = await stateRes.json();
+            if (assignData && assignData.assignments) {
+              latestData.forEach(bus => {
+                bus.defaultBus = bus.route;
+                if (assignData.assignments[bus.bus_id]) {
+                  bus.route = assignData.assignments[bus.bus_id];
+                }
+                if (stateData && stateData[bus.bus_id]) {
+                  const s = stateData[bus.bus_id];
+                  if (s.soc !== undefined) bus.soc = s.soc;
+                  if (s.condition !== undefined) bus.condition = s.condition;
+                }
+              });
+            }
+          }
+        } catch (cloudErr) {
+          console.log('Using local fleet data fallback');
+        }
+
         renderTable();
-        updated.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        updated.textContent = 'Synced with Cloud ' + new Date().toLocaleTimeString();
       } catch (error) {
         updated.textContent = 'Unable to reach gateway';
       }
@@ -373,7 +406,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     
     searchInput.addEventListener('input', renderTable);
     refreshFleet();
-    setInterval(refreshFleet, 2000);
+    setInterval(refreshFleet, 5000);
   </script>
 </body>
 </html>
