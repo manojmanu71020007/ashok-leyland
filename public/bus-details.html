@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bus Details & Analytics</title>
+  <title>Bus Details &amp; Analytics</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -31,6 +31,19 @@
       margin: 40px auto;
       padding: 0 20px;
     }
+
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: .85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--text); }
 
     .header {
       display: flex;
@@ -63,7 +76,10 @@
       border-radius: 10px;
       cursor: pointer;
       font-weight: 700;
+      transition: background 0.15s, color 0.15s;
     }
+
+    .view-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
 
     .view-btn.active {
       background: var(--primary);
@@ -99,8 +115,10 @@
 </head>
 <body>
   <div class="container">
+    <a href="/problem.html" class="back-link">&#8592; Back to Scheduling Dashboard</a>
+
     <div class="header">
-      <h1>Bus Details & Analytics</h1>
+      <h1>Bus Details &amp; Analytics</h1>
       <div class="view-switcher" aria-label="Chart view switcher">
         <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
         <button class="view-btn" data-view="micro">Micro View (Live)</button>
@@ -110,8 +128,9 @@
     <div class="card" style="margin-bottom: 18px;">
       <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 8px;">
         <div style="background: rgba(59, 130, 246, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
-          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Bus ID</div>
-          <div id="busIdLabel" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
+          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Bus / Route</div>
+          <div id="busIdLabel" style="font-size: 1.2rem; font-weight: 700; margin-top: 8px; word-break: break-all;">-</div>
+          <div id="routeIdSub" style="font-size: .75rem; color:#94a3b8; margin-top: 4px;"></div>
         </div>
         <div style="background: rgba(34, 197, 94, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.2);">
           <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Current SOC</div>
@@ -132,15 +151,32 @@
       <div class="chart-wrap">
         <canvas id="analyticsChart"></canvas>
       </div>
-      <p id="status" class="status">Loading analytics…</p>
+      <p id="status" class="status">Loading analytics&#8230;</p>
     </div>
   </div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const busId = urlParams.get("bus_id") || "BUS_001";
-    let chart = null;
+    // -----------------------------------------------------------------------
+    // Read URL params
+    //   route_id  = canonical numeric GTFS routeId  (preferred for API calls)
+    //   bus_id    = human-readable short name (display label)
+    // Both params are now set by problem.html when navigating here.
+    // -----------------------------------------------------------------------
+    const urlParams    = new URLSearchParams(window.location.search);
+    const routeIdParam = (urlParams.get("route_id") || "").trim();
+    const busIdParam   = (urlParams.get("bus_id")   || "").trim();
 
+    // Use routeId for API calls when available (server resolves both anyway)
+    const apiId        = routeIdParam || busIdParam || "1367";
+    // Human-readable label shown in KPI card and chart legend
+    const displayLabel = busIdParam   || routeIdParam || apiId;
+
+    let chart       = null;
+    let currentView = "macro";
+
+    // -----------------------------------------------------------------------
+    // Helpers
+    // -----------------------------------------------------------------------
     function formatTimestamp(value) {
       if (!value) return "";
       const date = new Date(value);
@@ -153,27 +189,35 @@
     }
 
     function destroyChart() {
-      if (chart) {
-        chart.destroy();
-        chart = null;
-      }
+      if (chart) { chart.destroy(); chart = null; }
     }
 
+    // -----------------------------------------------------------------------
+    // API fetch
+    // -----------------------------------------------------------------------
     async function fetchBusData(view) {
       const endpoint = view === "macro"
-        ? `/api/bus/${encodeURIComponent(busId)}/macro`
-        : `/api/bus/${encodeURIComponent(busId)}/micro`;
-
+        ? `/api/bus/${encodeURIComponent(apiId)}/macro`
+        : `/api/bus/${encodeURIComponent(apiId)}/micro`;
       const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`Request failed: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Request failed: ${response.status}`);
       return response.json();
     }
 
+    // -----------------------------------------------------------------------
+    // KPI summary card
+    // -----------------------------------------------------------------------
     async function updateSummary(data, view) {
       if (!Array.isArray(data) || data.length === 0) return;
-      document.getElementById("busIdLabel").textContent = busId;
+
+      // Primary label: short name; secondary: routeId if different
+      document.getElementById("busIdLabel").textContent = displayLabel;
+      const subEl = document.getElementById("routeIdSub");
+      if (routeIdParam && routeIdParam !== displayLabel) {
+        subEl.textContent = `Route ID: ${routeIdParam}`;
+      } else if (routeIdParam) {
+        subEl.textContent = `Route ID: ${routeIdParam}`;
+      }
 
       const latest = data[data.length - 1];
       const liveSocVal = view === "macro" ? Number(latest.soc_end) : Number(latest.soc);
@@ -184,9 +228,8 @@
       const odoLabel = document.getElementById("odoLabel");
       if (odoLabel) odoLabel.textContent = "Route Distance";
 
-      // Fetch real route distance for this bus
       try {
-        const distRes = await fetch(`/api/route-distance?bus=${encodeURIComponent(busId)}`);
+        const distRes     = await fetch(`/api/route-distance?bus=${encodeURIComponent(apiId)}`);
         const distPayload = await distRes.json();
         if (distPayload && distPayload.ok && Number.isFinite(distPayload.distanceKm)) {
           document.getElementById("lastOdometer").textContent = `${distPayload.distanceKm.toFixed(1)} km`;
@@ -201,43 +244,42 @@
         }
       }
 
-      // Check bus state for condition and confirm live SoC
       try {
-        const stateRes = await fetch("/api/bus-state");
+        const stateRes     = await fetch("/api/bus-state");
         const statePayload = await stateRes.json();
-        const allState = statePayload?.state || {};
-
-        const numericId = busId.replace(/\D/g, "");
-        const state = allState[busId]
+        const allState     = statePayload?.state || {};
+        const numericId    = apiId.replace(/\D/g, "");
+        const state = allState[apiId]
           || allState[numericId]
           || Object.entries(allState).find(([k]) =>
-              k === busId || k === numericId ||
+              k === apiId || k === numericId ||
               k.replace(/\D/g, "") === numericId
             )?.[1];
 
         if (state && Number.isFinite(Number(state.soc))) {
           document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
         }
-
         if (state && state.condition) {
           const condEl = document.getElementById("busCondition");
           const isGood = state.condition === "Good";
-          condEl.textContent = isGood ? "Good" : "Maintenance Req.";
-          condEl.style.color = isGood ? "#16a34a" : "#dc2626";
+          condEl.textContent  = isGood ? "Good" : "Maintenance Req.";
+          condEl.style.color  = isGood ? "#16a34a" : "#dc2626";
         }
       } catch {}
     }
 
+    // -----------------------------------------------------------------------
+    // Charts
+    // -----------------------------------------------------------------------
     function createMacroChart(data) {
-      const labels = data.map((point) => formatTimestamp(point.timestamp));
-      const values = data.map((point) => Number(point.soc_end));
-
+      const labels = data.map((p) => formatTimestamp(p.timestamp));
+      const values = data.map((p) => Number(p.soc_end));
       return new Chart(document.getElementById("analyticsChart"), {
         type: "line",
         data: {
           labels,
           datasets: [{
-            label: `SOC End (${busId})`,
+            label: `SOC End \u2014 ${displayLabel}`,
             data: values,
             borderColor: "#3b82f6",
             backgroundColor: "rgba(59, 130, 246, 0.2)",
@@ -254,12 +296,11 @@
           scales: {
             x: {
               ticks: { autoSkip: true, maxRotation: 45, minRotation: 45 },
-              title: { display: true, text: "Timestamp" }
+              title: { display: true, text: "Date" }
             },
             y: {
               title: { display: true, text: "SOC End (%)" },
-              suggestedMin: 0,
-              suggestedMax: 100
+              suggestedMin: 0, suggestedMax: 100
             }
           }
         }
@@ -267,18 +308,17 @@
     }
 
     function createMicroChart(data) {
-      const labels = data.map((point) => {
-        const date = new Date(point.timestamp);
-        return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      const labels = data.map((p) => {
+        const d = new Date(p.timestamp);
+        return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       });
-      const values = data.map((point) => Number(point.soc));
-
+      const values = data.map((p) => Number(p.soc));
       return new Chart(document.getElementById("analyticsChart"), {
         type: "line",
         data: {
           labels,
           datasets: [{
-            label: `Live SOC (${busId})`,
+            label: `Live SOC \u2014 ${displayLabel}`,
             data: values,
             borderColor: "#22c55e",
             backgroundColor: "rgba(34, 197, 94, 0.2)",
@@ -299,55 +339,74 @@
             },
             y: {
               title: { display: true, text: "SOC (%)" },
-              suggestedMin: 0,
-              suggestedMax: 100
+              suggestedMin: 0, suggestedMax: 100
             }
           }
         }
       });
     }
 
+    // -----------------------------------------------------------------------
+    // Render view (macro | micro)
+    // -----------------------------------------------------------------------
     async function renderView(view) {
+      currentView = view;
       destroyChart();
-      setStatus(`Loading ${view === "macro" ? "30-day history" : "live telemetry"}...`);
+      setStatus(`Loading ${view === "macro" ? "30-day history" : "live telemetry"} for ${displayLabel}\u2026`);
+
+      // Sync button active states
+      document.querySelectorAll(".view-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.view === view);
+      });
 
       try {
         const data = await fetchBusData(view);
         if (!Array.isArray(data) || data.length === 0) {
-          setStatus(`No ${view === "macro" ? "historical" : "live"} records found for ${busId}.`);
+          setStatus(`No ${view === "macro" ? "historical" : "live"} records found for ${displayLabel}.`);
           return;
         }
-
         updateSummary(data, view);
         chart = view === "macro" ? createMacroChart(data) : createMicroChart(data);
-        setStatus(`${view === "macro" ? "Macro view" : "Micro view"} loaded for ${busId}.`);
+        setStatus(`${view === "macro" ? "Macro view (30-day)" : "Micro view (live)"} loaded for ${displayLabel}.`);
       } catch (error) {
         console.error(error);
-        setStatus(`Could not load ${view} data for ${busId}.`);
+        setStatus(`Could not load ${view} data for ${displayLabel}: ${error.message}`);
       }
     }
 
+    // -----------------------------------------------------------------------
+    // View-switcher click handlers  (this was MISSING in the original file)
+    // -----------------------------------------------------------------------
+    document.querySelectorAll(".view-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.dataset.view;
+        if (view && view !== currentView) {
+          renderView(view);
+        }
+      });
+    });
+
+    // -----------------------------------------------------------------------
+    // Live polling — refreshes the active view's chart every 3 s
+    // -----------------------------------------------------------------------
     let pollIntervalId = null;
     function startLivePolling() {
       if (pollIntervalId) clearInterval(pollIntervalId);
       pollIntervalId = setInterval(async () => {
-        const activeBtn = document.querySelector(".view-btn.active");
-        const currentView = activeBtn ? activeBtn.dataset.view : "macro";
         try {
           const data = await fetchBusData(currentView);
           if (Array.isArray(data) && data.length > 0) {
             await updateSummary(data, currentView);
             if (chart) {
               const labels = currentView === "macro"
-                ? data.map((point) => formatTimestamp(point.timestamp))
-                : data.map((point) => {
-                    const date = new Date(point.timestamp);
-                    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                ? data.map((p) => formatTimestamp(p.timestamp))
+                : data.map((p) => {
+                    const d = new Date(p.timestamp);
+                    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
                   });
               const values = currentView === "macro"
-                ? data.map((point) => Number(point.soc_end))
-                : data.map((point) => Number(point.soc));
-
+                ? data.map((p) => Number(p.soc_end))
+                : data.map((p) => Number(p.soc));
               chart.data.labels = labels;
               chart.data.datasets[0].data = values;
               chart.update("none");
@@ -357,6 +416,9 @@
       }, 3000);
     }
 
+    // -----------------------------------------------------------------------
+    // Boot
+    // -----------------------------------------------------------------------
     renderView("macro");
     startLivePolling();
   </script>

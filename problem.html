@@ -1024,8 +1024,10 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busId = getAssignedBusName(selectedRoute) || selectedRoute.routeId || "BUS_001";
-                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
+                    const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
+                    const params = new URLSearchParams({ route_id: routeId });
+                    if (busShortName) params.set("bus_id", busShortName);
+                    window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
         }
@@ -1110,8 +1112,10 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busId = getAssignedBusName(selectedRoute) || selectedRoute.routeId || "BUS_001";
-                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
+                    const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
+                    const params = new URLSearchParams({ route_id: routeId });
+                    if (busShortName) params.set("bus_id", busShortName);
+                    window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
         }
@@ -1264,8 +1268,10 @@
                     const routeId = btn.dataset.routeId;
                     const route = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!route) return;
-                    const busId = getAssignedBusName(route) || route.routeId || "BUS_001";
-                    window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
+                    const busShortName = getAssignedBusName(route) || route.busNumber || "";
+                    const params = new URLSearchParams({ route_id: routeId });
+                    if (busShortName) params.set("bus_id", busShortName);
+                    window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
 
