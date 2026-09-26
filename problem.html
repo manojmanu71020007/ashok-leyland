@@ -1393,49 +1393,68 @@
 
         async function loadData() {
             try {
-                const [routesResponse, gtfsResponse, busStateResponse] = await Promise.all([
+                const [routesResponse, schedulesResponse, busStateResponse, assignResponse] = await Promise.all([
                     fetch("/api/routes"),
-                    fetch("/api/gtfs"),
-                    fetch("/api/bus-state").catch(() => null)
+                    fetch("/api/gtfs-schedules").catch(() => null),
+                    fetch("/api/bus-state").catch(() => null),
+                    fetch("/api/bus-assignments").catch(() => null)
                 ]);
 
-                const routesPayload = await routesResponse.json();
-                const gtfsPayload = await gtfsResponse.json();
+                const routesPayload = routesResponse && routesResponse.ok ? await routesResponse.json() : {};
+                routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
+
                 if (busStateResponse && busStateResponse.ok) {
                     const busStatePayload = await busStateResponse.json();
                     busStates = busStatePayload?.state || {};
                 }
 
-                routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
-                gtfsBundle = {
-                    trips: Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []),
-                    shapes: Array.isArray(gtfsPayload.shapes) ? gtfsPayload.shapes : (Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [])
-                };
+                if (assignResponse && assignResponse.ok) {
+                    const assignPayload = await assignResponse.json();
+                    busAssignments = assignPayload.assignments || {};
+                    blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
+                    assignmentRanges = assignPayload.ranges || {};
+                }
 
                 // Build GTFS route schedule timetable map
                 gtfsScheduleMap.clear();
-                if (gtfsPayload) {
-                    const rawTrips = Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []);
-                    const rawStopTimes = Array.isArray(gtfsPayload.stopTimes) ? gtfsPayload.stopTimes : (Array.isArray(gtfsPayload.stopTimes?.stopTimes) ? gtfsPayload.stopTimes.stopTimes : []);
-                    const tripToRoute = new Map();
-                    rawTrips.forEach((t) => tripToRoute.set(String(t.tripId), String(t.routeId)));
-                    rawStopTimes.forEach((st) => {
-                        const rId = tripToRoute.get(String(st.tripId));
-                        if (!rId) return;
-                        const dep = st.departureTime || st.arrivalTime;
-                        const arr = st.arrivalTime || st.departureTime;
-                        if (!gtfsScheduleMap.has(rId)) {
-                            gtfsScheduleMap.set(rId, { firstDep: dep, lastArr: arr, count: 0 });
+                let schedulesLoaded = false;
+                if (schedulesResponse && schedulesResponse.ok) {
+                    const schedulesPayload = await schedulesResponse.json();
+                    if (schedulesPayload && schedulesPayload.schedules) {
+                        for (const [rId, info] of Object.entries(schedulesPayload.schedules)) {
+                            gtfsScheduleMap.set(String(rId), info);
                         }
-                        const item = gtfsScheduleMap.get(rId);
-                        item.count += 1;
-                        if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
-                        if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
-                    });
+                        schedulesLoaded = true;
+                    }
                 }
 
-                // Fetch initial swap-engine assignments
-                await fetchBusAssignments();
+                // Fallback to /api/gtfs only if lightweight schedules endpoint was unavailable
+                if (!schedulesLoaded) {
+                    try {
+                        const gtfsRes = await fetch("/api/gtfs");
+                        if (gtfsRes.ok) {
+                            const gtfsPayload = await gtfsRes.json();
+                            const rawTrips = Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []);
+                            const rawStopTimes = Array.isArray(gtfsPayload.stopTimes) ? gtfsPayload.stopTimes : (Array.isArray(gtfsPayload.stopTimes?.stopTimes) ? gtfsPayload.stopTimes.stopTimes : []);
+                            const tripToRoute = new Map();
+                            rawTrips.forEach((t) => tripToRoute.set(String(t.tripId), String(t.routeId)));
+                            rawStopTimes.forEach((st) => {
+                                const rId = tripToRoute.get(String(st.tripId));
+                                if (!rId) return;
+                                const dep = st.departureTime || st.arrivalTime;
+                                const arr = st.arrivalTime || st.departureTime;
+                                if (!gtfsScheduleMap.has(rId)) {
+                                    gtfsScheduleMap.set(rId, { firstDep: dep, lastArr: arr, count: 0 });
+                                }
+                                const item = gtfsScheduleMap.get(rId);
+                                item.count += 1;
+                                if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
+                                if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
+                            });
+                        }
+                    } catch {}
+                }
+
                 renderRoutes();
 
                 routeSelect.addEventListener("change", async () => {

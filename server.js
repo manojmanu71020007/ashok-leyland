@@ -2,6 +2,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const path = require("path");
+const zlib = require("zlib");
 
 const PORT = process.env.PORT || 3000;
 const PYTHON_API_BASE = "http://localhost:8000";
@@ -64,6 +65,8 @@ let cachedTrips = null;
 let cachedStopTimes = null;
 let cachedShapes = null;
 let cachedShapesByShapeId = null;
+let cachedGtfsScheduleSummary = null;
+let cachedGtfsBundleJson = null;
 const cachedRouteDistances = new Map();
 
 function loadRoutes() {
@@ -191,6 +194,36 @@ function loadShapes() {
         };
     });
     return cachedShapes;
+}
+
+function loadGtfsScheduleSummary() {
+    if (cachedGtfsScheduleSummary) return cachedGtfsScheduleSummary;
+
+    const trips = loadTrips();
+    const stopTimes = loadStopTimes();
+
+    const tripToRoute = new Map();
+    for (const t of trips) {
+        tripToRoute.set(String(t.tripId), String(t.routeId));
+    }
+
+    const scheduleMap = {};
+    for (const st of stopTimes) {
+        const rId = tripToRoute.get(String(st.tripId));
+        if (!rId) continue;
+        const dep = st.departureTime || st.arrivalTime;
+        const arr = st.arrivalTime || st.departureTime;
+        if (!scheduleMap[rId]) {
+            scheduleMap[rId] = { firstDep: dep, lastArr: arr, count: 0 };
+        }
+        const item = scheduleMap[rId];
+        item.count += 1;
+        if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
+        if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
+    }
+
+    cachedGtfsScheduleSummary = scheduleMap;
+    return cachedGtfsScheduleSummary;
 }
 
 function haversineKm(latitudeOne, longitudeOne, latitudeTwo, longitudeTwo) {
@@ -382,13 +415,30 @@ function swapBusAssignments(state) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function sendJson(res, payload, statusCode = 200) {
-    res.writeHead(statusCode, {
+    const jsonStr = typeof payload === "string" ? payload : JSON.stringify(payload);
+    const acceptEncoding = (res.req && res.req.headers["accept-encoding"]) || "";
+    const headers = {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
         "Access-Control-Allow-Headers": "Content-Type, Authorization, X-AIO-Key"
-    });
-    res.end(JSON.stringify(payload));
+    };
+
+    if (acceptEncoding.includes("gzip") && jsonStr.length > 512) {
+        zlib.gzip(Buffer.from(jsonStr, "utf8"), (err, compressed) => {
+            if (!err) {
+                headers["Content-Encoding"] = "gzip";
+                res.writeHead(statusCode, headers);
+                res.end(compressed);
+            } else {
+                res.writeHead(statusCode, headers);
+                res.end(jsonStr);
+            }
+        });
+    } else {
+        res.writeHead(statusCode, headers);
+        res.end(jsonStr);
+    }
 }
 
 function sendFile(res, filePath, contentType) {
@@ -398,8 +448,27 @@ function sendFile(res, filePath, contentType) {
             return;
         }
 
-        res.writeHead(200, { "Content-Type": contentType });
-        res.end(data);
+        const acceptEncoding = (res.req && res.req.headers["accept-encoding"]) || "";
+        const headers = {
+            "Content-Type": contentType,
+            "Access-Control-Allow-Origin": "*"
+        };
+
+        if (acceptEncoding.includes("gzip") && data.length > 512) {
+            zlib.gzip(data, (err, compressed) => {
+                if (!err) {
+                    headers["Content-Encoding"] = "gzip";
+                    res.writeHead(200, headers);
+                    res.end(compressed);
+                } else {
+                    res.writeHead(200, headers);
+                    res.end(data);
+                }
+            });
+        } else {
+            res.writeHead(200, headers);
+            res.end(data);
+        }
     });
 }
 
@@ -968,21 +1037,34 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname === "/api/gtfs-schedules" || pathname === "/api/gtfs-schedule-summary") {
+        try {
+            const schedules = loadGtfsScheduleSummary();
+            sendJson(res, { ok: true, schedules });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load GTFS schedules", details: error.message }, 500);
+        }
+        return;
+    }
+
     if (pathname === "/api/gtfs") {
         try {
-            const routes = loadRoutes();
-            const stops = loadStops();
-            const trips = loadTrips();
-            const stopTimes = loadStopTimes();
-            const shapes = loadShapes();
+            if (!cachedGtfsBundleJson) {
+                const routes = loadRoutes();
+                const stops = loadStops();
+                const trips = loadTrips();
+                const stopTimes = loadStopTimes();
+                const shapes = loadShapes();
 
-            sendJson(res, {
-                routes: { count: routes.length, routes },
-                stops: { count: stops.length, stops },
-                trips: { count: trips.length, trips },
-                stopTimes: { count: stopTimes.length, stopTimes },
-                shapes: { count: shapes.length, shapes }
-            });
+                cachedGtfsBundleJson = JSON.stringify({
+                    routes: { count: routes.length, routes },
+                    stops: { count: stops.length, stops },
+                    trips: { count: trips.length, trips },
+                    stopTimes: { count: stopTimes.length, stopTimes },
+                    shapes: { count: shapes.length, shapes }
+                });
+            }
+            sendJson(res, cachedGtfsBundleJson);
         } catch (error) {
             sendJson(res, { error: "Failed to load GTFS bundle", details: error.message }, 500);
         }
@@ -1397,7 +1479,8 @@ restoreBusStateFromGitHub().then(() => {
         for (const r of routes) {
             calculateRouteDistanceByRouteId(r.routeId);
         }
-        console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes.`);
+        loadGtfsScheduleSummary();
+        console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes and schedule timetable.`);
     } catch (e) {
         console.warn("[Cache] Pre-warm failed:", e.message);
     }
