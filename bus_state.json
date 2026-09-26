@@ -62,7 +62,7 @@
   "1549": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 33,
+    "soc": 6,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:21:31.258Z",
     "statusTimings": {
@@ -117,7 +117,7 @@
   "1626": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 100
+    "soc": 80
   },
   "2559": {
     "status": "On Time",
@@ -197,7 +197,7 @@
   "2787": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 84
+    "soc": 78
   },
   "2826": {
     "status": "On Time",
@@ -238,12 +238,12 @@
   "3629": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 39
+    "soc": 33
   },
   "3831": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 85
+    "soc": 82
   },
   "3864": {
     "status": "On Time",
@@ -277,7 +277,7 @@
   "3916": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 78
+    "soc": 70
   },
   "3920": {
     "status": "On Time",
@@ -287,7 +287,7 @@
   "3935": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 65,
+    "soc": 39,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:07:53.373Z",
     "statusTimings": {
@@ -428,7 +428,7 @@
   "7296": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 70,
+    "soc": 65,
     "condition": "Good",
     "updatedAt": "2026-09-26T06:35:59.443Z",
     "statusTimings": {
@@ -449,7 +449,7 @@
   "7403": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 82
+    "soc": 84
   },
   "7632": {
     "status": "On Time",
@@ -464,7 +464,7 @@
   "7888": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 80,
+    "soc": 83,
     "condition": "Good",
     "updatedAt": "2026-09-23T14:25:09.078Z",
     "statusTimings": {
@@ -523,8 +523,32 @@
   },
   "8592": {
     "status": "On Time",
+    "rawStatus": "On Time",
+    "soc": 100,
     "condition": "Good",
-    "soc": 100
+    "updatedAt": "2026-09-26T16:38:00.944Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-26T16:38:00.944Z",
+        "soc": 6,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ]
   },
   "8781": {
     "status": "On Time",
@@ -565,7 +589,7 @@
   "9534": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 83,
+    "soc": 85,
     "condition": "Good",
     "updatedAt": "2026-09-26T16:35:54.975Z",
     "statusTimings": {
@@ -671,58 +695,59 @@
     "1427": "507-B",
     "1428": "252 PSS-KMT",
     "1548": "MF-32 PSS-CKB",
-    "1549": "401-AM",
+    "1549": "252 LGR-PSS",
     "1553": "250-F PSS-SSHL",
-    "1610": "265-D PSS-VGN",
+    "1610": "265-A PSS-TEPL",
     "1612": "252",
     "1621": "PSS-NLGDH-8THM",
-    "1626": "D22-PSS",
+    "1626": "256-F",
     "2559": "253-J PSS-HGV",
     "2644": "401-A",
     "2764": "252-L",
     "2767": "273 SDN-PSS",
     "2770": "248-AB",
-    "2780": "JHMS-PSS",
+    "2780": "D22-PSS",
     "2786": "250-E PSS-TMH",
-    "2787": "CHAKRA-7",
+    "2787": "BC-7B PSS-NLGH-8thM",
     "2826": "254-E PSS-KMP",
     "2861": "401-A PSS-SGP-YHK",
     "3158": "273-B PSS-ABG",
     "3430": "MBS-17 MHB-HBL-JHV-PSS",
-    "3629": "D9-PSS",
-    "3831": "270-D PSS-ABG",
+    "3629": "401-AM",
+    "3831": "401-AK PSS-ABG",
     "3864": "401-M PSS-KTS-D31G",
     "3878": "PSS-TGPL-GGH",
     "3907": "BC-7B PSS-ANDRH-HRHC",
-    "3916": "BC-7B PSS-NLGH-8thM",
+    "3916": "265-D PSS-VGN",
     "3920": "G-252 KBS D9 D22-PSS",
-    "3935": "500-D MRHB-HBL-PSS",
-    "3951": "252-A",
+    "3935": "252-A",
+    "3951": "D9-PSS",
     "4759": "251-C PSS-RPS-LGR",
     "4798": "250-S PSS-GLB",
     "6080": "MBS-12 PSS-ANP",
     "6551": "273 VSD-RJB-PSS",
     "6979": "250-SB PSS-SVG",
     "7143": "401-AK ABG-PSS",
-    "7296": "MF-26 PSS-JHMS",
-    "7403": "401-AK PSS-ABG",
+    "7296": "500-D MRHB-HBL-PSS",
+    "7403": "CHAKRA-7",
     "7632": "252-F PSS-HAL ARDC",
     "7834": "PSS-RGPS-SMH",
-    "7888": "256-F",
+    "7888": "CHAKRA-7A",
     "8178": "252-F",
-    "8276": "265-A PSS-TEPL",
+    "8276": "MF-26 PSS-JHMS",
     "8543": "253-D PSS-TRN",
-    "8592": "252 LGR-PSS",
+    "8592": "BC-7B BDYH-PSS",
     "8781": "401-AM PTH-PSS",
     "8842": "252-A PSS-HAL ARDC",
-    "9108": "BC-7B BDYH-PSS",
+    "9108": "JHMS-PSS",
     "9132": "273",
-    "9534": "CHAKRA-7A",
+    "9534": "270-D PSS-ABG",
     "9535": "PSS-NTTF-LGRNBS",
     "9581": "252-A PSS-ISROM",
     "9636": "507"
   },
   "_blockedRouteIds": [
-    "1548"
+    "1548",
+    "1549"
   ]
 }
