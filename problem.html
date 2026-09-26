@@ -207,12 +207,131 @@
             background: var(--warning-bg);
             border-color: #f4c7a4;
         }
+        .panel-heading-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .region-search-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .region-search-wrap .search-icon {
+            position: absolute;
+            left: 11px;
+            font-size: .82rem;
+            color: var(--muted);
+            pointer-events: none;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .region-search-input {
+            width: 100%;
+            padding: 9px 34px 9px 34px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: #fbfdfd;
+            color: var(--ink);
+            font-size: .83rem;
+            font-family: inherit;
+            line-height: 1.4;
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+        .region-search-input::placeholder {
+            color: #8da2b0;
+            font-size: .8rem;
+        }
+        .region-search-input:focus {
+            outline: none;
+            border-color: var(--teal);
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(17, 168, 137, 0.16);
+        }
+        .not-allocated-search-input:focus {
+            border-color: #a94b15;
+            box-shadow: 0 0 0 3px rgba(169, 75, 21, 0.16);
+        }
+        .scheduled-search-input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(8, 126, 164, 0.16);
+        }
+        .clear-search-btn {
+            position: absolute;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            margin: 0;
+            background: rgba(95, 115, 134, 0.18);
+            border: none;
+            border-radius: 50%;
+            color: var(--ink);
+            font-size: .72rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            transition: background .15s ease, transform .1s ease;
+        }
+        .clear-search-btn:hover {
+            background: rgba(95, 115, 134, 0.35);
+            transform: scale(1.08);
+        }
         .route-list {
-            margin-top: 18px;
+            margin-top: 0;
             max-height: 260px;
-            overflow: auto;
+            overflow-y: auto;
             display: grid;
             gap: 8px;
+            padding-right: 4px;
+        }
+        .route-list::-webkit-scrollbar,
+        .scheduled-table-wrap::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .route-list::-webkit-scrollbar-thumb,
+        .scheduled-table-wrap::-webkit-scrollbar-thumb {
+            background: #c8d8df;
+            border-radius: 3px;
+        }
+        .route-list::-webkit-scrollbar-thumb:hover,
+        .scheduled-table-wrap::-webkit-scrollbar-thumb:hover {
+            background: #9ab3bf;
+        }
+        .route-list::-webkit-scrollbar-track,
+        .scheduled-table-wrap::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scheduled-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .scheduled-toolbar .scheduled-search-wrap {
+            flex: 1;
+            min-width: 260px;
+            margin-bottom: 0;
+        }
+        .scheduled-matching-badge {
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--blue-dark);
+            background: #e6f4fa;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid #c0e3f0;
+            white-space: nowrap;
         }
         .route-row {
             display: flex;
@@ -485,18 +604,32 @@
         </div>
 
         <div class="allocation-grid">
-            <section class="panel route-list" aria-label="Allocated buses">
-                <h2 style="color:#08755f;">✅ Allocated Buses</h2>
-                <p class="panel-note">Ready for departure — SoC ≥ 98% &amp; condition Good.</p>
-                <div id="route-summary">
+            <section class="panel" aria-label="Allocated buses">
+                <div class="panel-heading-row">
+                    <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
+                </div>
+                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — SoC ≥ 98% &amp; condition Good.</p>
+                <div class="region-search-wrap">
+                    <span class="search-icon" aria-hidden="true">🔍</span>
+                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
+                    <button type="button" id="clear-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear allocated search" style="display:none;">✕</button>
+                </div>
+                <div id="route-summary" class="route-list">
                     <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
                 </div>
             </section>
 
-            <section class="panel route-list" aria-label="Not allocated buses">
-                <h2 style="color:#a94b15;">⛔ Not Allocated Buses</h2>
-                <p class="panel-note">Ineligible — low SoC or maintenance required.</p>
-                <div id="not-allocated-summary">
+            <section class="panel" aria-label="Not allocated buses">
+                <div class="panel-heading-row">
+                    <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
+                </div>
+                <p class="panel-note" style="margin-bottom:12px;">Ineligible — low SoC or maintenance required.</p>
+                <div class="region-search-wrap not-allocated-search-wrap">
+                    <span class="search-icon" aria-hidden="true">🔍</span>
+                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses (bus, route, reason...)" autocomplete="off" spellcheck="false" />
+                    <button type="button" id="clear-not-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear not allocated search" style="display:none;">✕</button>
+                </div>
+                <div id="not-allocated-summary" class="route-list">
                     <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
                 </div>
             </section>
@@ -505,14 +638,23 @@
         <section class="panel scheduled-time-panel" aria-label="Scheduled time">
             <div class="scheduled-header">
                 <div>
-                    <h2 style="color:#087ea4;">🕒 Scheduled Time</h2>
-                    <p class="panel-note" style="margin-bottom:0;">Live departure timings, assigned buses, and service schedule.</p>
+                    <h2 style="color:#087ea4; margin:0;">🕒 Scheduled Time</h2>
+                    <p class="panel-note" style="margin-bottom:0; margin-top:4px;">Live departure timings, assigned buses, and service schedule.</p>
                 </div>
                 <div class="filter-tabs" id="scheduled-filter-tabs">
                     <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
                     <button type="button" class="tab-btn" data-filter="allocated">Allocated (<span id="scheduled-count-alloc">0</span>)</button>
                     <button type="button" class="tab-btn" data-filter="not-allocated">Not Allocated (<span id="scheduled-count-not-alloc">0</span>)</button>
                 </div>
+            </div>
+
+            <div class="scheduled-toolbar">
+                <div class="region-search-wrap scheduled-search-wrap">
+                    <span class="search-icon" aria-hidden="true">🔍</span>
+                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number, route, origin, destination, time, status..." autocomplete="off" spellcheck="false" />
+                    <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
+                </div>
+                <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
             </div>
 
             <div class="scheduled-table-wrap">
@@ -544,6 +686,27 @@
         const routeSummary = document.getElementById("route-summary");
         const notAllocatedSummary = document.getElementById("not-allocated-summary");
         const scheduledTimeTbody = document.getElementById("scheduled-time-tbody");
+
+        const allocatedSearchInput = document.getElementById("allocated-search");
+        const clearAllocatedBtn = document.getElementById("clear-allocated-search");
+        const allocatedCountEl = document.getElementById("allocated-count");
+
+        const notAllocatedSearchInput = document.getElementById("not-allocated-search");
+        const clearNotAllocatedBtn = document.getElementById("clear-not-allocated-search");
+        const notAllocatedCountEl = document.getElementById("not-allocated-count");
+
+        const scheduledSearchInput = document.getElementById("scheduled-search");
+        const clearScheduledBtn = document.getElementById("clear-scheduled-search");
+        const scheduledMatchingBadge = document.getElementById("scheduled-matching-badge");
+
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
         let routes = [];
         let gtfsBundle = null;
         let selectedRouteDistance = null;
@@ -743,48 +906,114 @@
             // Update allocation title and SOC/Range KPIs based on selection
             updateAllocationPanel();
 
-            // Allocated Buses list — show assigned bus name, live SoC, fleet status
-            routeSummary.innerHTML = allocatedRoutes.length
-                ? allocatedRoutes.map((route) => {
+            // ── Not Allocated Buses computation ──────────────────────────────────
+            const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
+            const notAllocatedRoutes = filteredRoutes.filter((r) => {
+                if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
+                // Include routes blocked by swap engine even without telemetry
+                if (blockedRouteIds.has(String(r.routeId))) return true;
+                const state = busStates[r.routeId] || busStates[r.busNumber] || {};
+                if (!state || Object.keys(state).length === 0) return false;
+                return !allocatedIds.has(String(r.routeId));
+            });
+
+            lastFilteredRoutes = filteredRoutes;
+            lastAllocatedRoutes = allocatedRoutes;
+            lastNotAllocatedRoutes = notAllocatedRoutes;
+
+            renderAllocatedList(allocatedRoutes);
+            renderNotAllocatedList(notAllocatedRoutes);
+
+            updateSelectedRouteDistance();
+            document.getElementById("bus-total").textContent = String(totalBuses);
+            document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
+            updateAssignedDriverCount();
+
+            renderScheduledTime();
+        }
+
+        function renderAllocatedList(allocatedList) {
+            if (!routeSummary) return;
+            const sourceList = Array.isArray(allocatedList) ? allocatedList : (lastAllocatedRoutes || []);
+            const query = (allocatedSearchInput ? allocatedSearchInput.value : "").trim().toLowerCase();
+            if (clearAllocatedBtn) {
+                clearAllocatedBtn.style.display = query ? "inline-flex" : "none";
+            }
+
+            const interiorChecked = document.getElementById("interior") ? document.getElementById("interior").checked : true;
+            const manuallySelectedId = routeSelect ? routeSelect.value : null;
+            const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
+
+            const filtered = query
+                ? sourceList.filter((route) => {
+                    const assignedName = String(getAssignedBusName(route) || "");
+                    const busNum = String(route.busNumber || "");
+                    const routeId = String(route.routeId || "");
+                    const routeName = String(route.routeName || "");
+                    const origin = String(route.origin || "");
+                    const dest = String(route.destination || "");
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
-                    const condition = state.condition || "Good";
-                    const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
-                    const assignedName = getAssignedBusName(route);
-                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+                    const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc}`.toLowerCase();
+                    return text.includes(query);
+                })
+                : sourceList;
 
-                    let fleetStatus, fleetColor;
-                    if (isOverridden) {
-                        fleetStatus = "⚙ Manual override";
-                        fleetColor = "#b45309";
-                    } else if (condition === "Not Good") {
-                        fleetStatus = "🔧 Maintenance Required";
-                        fleetColor = "#a94b15";
-                    } else if (soc !== null && soc <= 25) {
-                        fleetStatus = "⚡ Depot Charge Required";
-                        fleetColor = "#a94b15";
-                    } else {
-                        fleetStatus = "✓ Ready for dispatch";
-                        fleetColor = "#08755f";
-                    }
+            if (allocatedCountEl) {
+                allocatedCountEl.textContent = query
+                    ? `${filtered.length} of ${sourceList.length}`
+                    : String(sourceList.length);
+            }
 
-                    const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
-                    const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
+            if (!sourceList.length) {
+                routeSummary.innerHTML = '<div class="route-row"><div class="route-meta"><strong>No eligible buses</strong><span>All buses have low SoC or require maintenance — cannot be allocated.</span></div></div>';
+                return;
+            }
 
-                    return `
-                        <div class="route-row" data-route-id="${route.routeId}">
-                            <div class="route-meta">
-                                <strong>${assignedName}</strong>
-                                <span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>
-                                <span>${route.origin} to ${route.destination}</span>
-                                <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
-                                ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
-                                <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
-                            </div>
-                            <button class="route-arrow" type="button" aria-label="View ${assignedName} details">›</button>
-                        </div>`;
-                }).join("")
-                : '<div class="route-row"><div class="route-meta"><strong>No eligible buses</strong><span>All buses have low SoC or require maintenance — cannot be allocated.</span></div></div>';
+            if (!filtered.length) {
+                routeSummary.innerHTML = `<div class="route-row"><div class="route-meta"><strong>No matching allocated buses</strong><span>No allocated buses match "${escapeHtml(query)}".</span></div></div>`;
+                return;
+            }
+
+            routeSummary.innerHTML = filtered.map((route) => {
+                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+                const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
+                const assignedName = getAssignedBusName(route);
+                const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+
+                let fleetStatus, fleetColor;
+                if (isOverridden) {
+                    fleetStatus = "⚙ Manual override";
+                    fleetColor = "#b45309";
+                } else if (condition === "Not Good") {
+                    fleetStatus = "🔧 Maintenance Required";
+                    fleetColor = "#a94b15";
+                } else if (soc !== null && soc <= 25) {
+                    fleetStatus = "⚡ Depot Charge Required";
+                    fleetColor = "#a94b15";
+                } else {
+                    fleetStatus = "✓ Ready for dispatch";
+                    fleetColor = "#08755f";
+                }
+
+                const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
+                const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
+
+                return `
+                    <div class="route-row" data-route-id="${route.routeId}">
+                        <div class="route-meta">
+                            <strong>${assignedName}</strong>
+                            <span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>
+                            <span>${route.origin} to ${route.destination}</span>
+                            <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
+                            ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
+                            <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
+                        </div>
+                        <button class="route-arrow" type="button" aria-label="View ${assignedName} details">›</button>
+                    </div>`;
+            }).join("");
 
             // Arrow → open Bus Details
             routeSummary.querySelectorAll(".route-arrow").forEach((arrow) => {
@@ -799,49 +1028,78 @@
                     window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
+        }
 
-            // ── Not Allocated Buses ──────────────────────────────────────────────
-            const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
-            const notAllocatedRoutes = filteredRoutes.filter((r) => {
-                if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
-                // Include routes blocked by swap engine even without telemetry
-                if (blockedRouteIds.has(String(r.routeId))) return true;
-                const state = busStates[r.routeId] || busStates[r.busNumber] || {};
-                if (!state || Object.keys(state).length === 0) return false;
-                return !allocatedIds.has(String(r.routeId));
-            });
+        function renderNotAllocatedList(notAllocatedList) {
+            if (!notAllocatedSummary) return;
+            const sourceList = Array.isArray(notAllocatedList) ? notAllocatedList : (lastNotAllocatedRoutes || []);
+            const query = (notAllocatedSearchInput ? notAllocatedSearchInput.value : "").trim().toLowerCase();
+            if (clearNotAllocatedBtn) {
+                clearNotAllocatedBtn.style.display = query ? "inline-flex" : "none";
+            }
 
-            notAllocatedSummary.innerHTML = notAllocatedRoutes.length
-                ? notAllocatedRoutes.map((route) => {
+            const filtered = query
+                ? sourceList.filter((route) => {
+                    const assignedName = String(getAssignedBusName(route) || "");
+                    const busNum = String(route.busNumber || "");
+                    const routeId = String(route.routeId || "");
+                    const routeName = String(route.routeName || "");
+                    const origin = String(route.origin || "");
+                    const dest = String(route.destination || "");
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
-                    const condition = state.condition || "Good";
-                    const isBlockedByRange = blockedRouteIds.has(String(route.routeId));
-                    const assignedName = getAssignedBusName(route);
-                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                    const lowSoc = soc < 98;
-                    const badCondition = condition === "Not Good";
-                    const tags = [
-                        lowSoc ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC</span>` : "",
-                        badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
-                        isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${rangeInfo.estimatedRangeKm ?? "?"}km < ${rangeInfo.gtfsDistanceKm ?? "?"}km</span>` : ""
-                    ].filter(Boolean).join(" ");
-                    return `
-                        <div class="route-row-rejected" data-route-id="${route.routeId}">
-                            <div class="route-meta">
-                                <strong>${assignedName}</strong>
-                                <span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>
-                                <span>${route.origin} to ${route.destination}</span>
-                            </div>
-                            <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
-                                ${tags}
-                                <button class="route-arrow not-alloc-arrow" type="button"
-                                    style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
-                                    aria-label="View ${assignedName} details">›</button>
-                            </div>
-                        </div>`;
-                }).join("")
-                : '<div class="route-row" style="background:#f2faf8;border-color:#bfe5db;"><div class="route-meta"><strong style="color:#08755f;">All tracked buses are ready ✓</strong><span>No buses are currently disqualified from allocation.</span></div></div>';
+                    const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
+                    const condition = String(state.condition || "");
+                    const isBlocked = blockedRouteIds.has(String(route.routeId)) ? "blocked range" : "";
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
+                    return text.includes(query);
+                })
+                : sourceList;
+
+            if (notAllocatedCountEl) {
+                notAllocatedCountEl.textContent = query
+                    ? `${filtered.length} of ${sourceList.length}`
+                    : String(sourceList.length);
+            }
+
+            if (!sourceList.length) {
+                notAllocatedSummary.innerHTML = '<div class="route-row" style="background:#f2faf8;border-color:#bfe5db;"><div class="route-meta"><strong style="color:#08755f;">All tracked buses are ready ✓</strong><span>No buses are currently disqualified from allocation.</span></div></div>';
+                return;
+            }
+
+            if (!filtered.length) {
+                notAllocatedSummary.innerHTML = `<div class="route-row-rejected"><div class="route-meta"><strong style="color:#a94b15;">No matching not-allocated buses</strong><span>No not-allocated buses match "${escapeHtml(query)}".</span></div></div>`;
+                return;
+            }
+
+            notAllocatedSummary.innerHTML = filtered.map((route) => {
+                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+                const isBlockedByRange = blockedRouteIds.has(String(route.routeId));
+                const assignedName = getAssignedBusName(route);
+                const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+                const lowSoc = soc < 98;
+                const badCondition = condition === "Not Good";
+                const tags = [
+                    lowSoc ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC</span>` : "",
+                    badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
+                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${rangeInfo.estimatedRangeKm ?? "?"}km < ${rangeInfo.gtfsDistanceKm ?? "?"}km</span>` : ""
+                ].filter(Boolean).join(" ");
+                return `
+                    <div class="route-row-rejected" data-route-id="${route.routeId}">
+                        <div class="route-meta">
+                            <strong>${assignedName}</strong>
+                            <span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>
+                            <span>${route.origin} to ${route.destination}</span>
+                        </div>
+                        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+                            ${tags}
+                            <button class="route-arrow not-alloc-arrow" type="button"
+                                style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
+                                aria-label="View ${assignedName} details">›</button>
+                        </div>
+                    </div>`;
+            }).join("");
 
             // Arrow on not-allocated rows → same-tab navigation to Bus Details
             notAllocatedSummary.querySelectorAll(".not-alloc-arrow").forEach((arrow) => {
@@ -856,16 +1114,6 @@
                     window.location.href = `/bus-details.html?bus_id=${encodeURIComponent(busId)}`;
                 });
             });
-
-            updateSelectedRouteDistance();
-            document.getElementById("bus-total").textContent = String(totalBuses);
-            document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
-            updateAssignedDriverCount();
-
-            lastFilteredRoutes = filteredRoutes;
-            lastAllocatedRoutes = allocatedRoutes;
-            lastNotAllocatedRoutes = notAllocatedRoutes;
-            renderScheduledTime();
         }
 
         function formatTimeForDisplay(time24) {
@@ -922,15 +1170,54 @@
                 routesToDisplay = lastNotAllocatedRoutes;
             }
 
-            if (!routesToDisplay.length) {
-                scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching the filter or search criteria.</td></tr>';
-                return;
+            const schedQuery = (scheduledSearchInput ? scheduledSearchInput.value : "").trim().toLowerCase();
+            if (clearScheduledBtn) {
+                clearScheduledBtn.style.display = schedQuery ? "inline-flex" : "none";
             }
 
             const allocatedSet = new Set(lastAllocatedRoutes.map((r) => String(r.routeId)));
-            const currentlySelectedId = String(routeSelect.value || "");
+            const currentlySelectedId = String(routeSelect ? routeSelect.value : "");
 
-            scheduledTimeTbody.innerHTML = routesToDisplay.map((route) => {
+            const filteredScheduledRoutes = schedQuery
+                ? routesToDisplay.filter((route) => {
+                    const assignedName = String(getAssignedBusName(route) || "");
+                    const busNum = String(route.busNumber || "");
+                    const routeId = String(route.routeId || "");
+                    const routeName = String(route.routeName || "");
+                    const origin = String(route.origin || "");
+                    const dest = String(route.destination || "");
+                    const isAllocated = allocatedSet.has(String(route.routeId));
+                    const allocLabel = isAllocated ? "allocated" : "not allocated";
+                    const isSelected = String(route.routeId) === currentlySelectedId;
+                    const timings = getRouteScheduleTimings(route, isSelected);
+                    const depFormatted = formatTimeForDisplay(timings.departure);
+                    const arrFormatted = formatTimeForDisplay(timings.arrival);
+                    const status = timings.status || "";
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${allocLabel} ${status} ${timings.departure} ${timings.arrival} ${depFormatted} ${arrFormatted}`.toLowerCase();
+                    return text.includes(schedQuery);
+                })
+                : routesToDisplay;
+
+            if (scheduledMatchingBadge) {
+                if (schedQuery) {
+                    scheduledMatchingBadge.textContent = `Showing ${filteredScheduledRoutes.length} of ${routesToDisplay.length}`;
+                    scheduledMatchingBadge.style.display = "inline-block";
+                } else {
+                    scheduledMatchingBadge.style.display = "none";
+                }
+            }
+
+            if (!routesToDisplay.length) {
+                scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching the filter criteria.</td></tr>';
+                return;
+            }
+
+            if (!filteredScheduledRoutes.length) {
+                scheduledTimeTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching "${escapeHtml(schedQuery)}".</td></tr>`;
+                return;
+            }
+
+            scheduledTimeTbody.innerHTML = filteredScheduledRoutes.map((route) => {
                 const assignedName = getAssignedBusName(route);
                 const isAllocated = allocatedSet.has(String(route.routeId));
                 const isSelected = String(route.routeId) === currentlySelectedId;
@@ -1166,6 +1453,70 @@
                     });
                 }
 
+                // Region-specific search listeners
+                if (allocatedSearchInput) {
+                    allocatedSearchInput.addEventListener("input", () => {
+                        renderAllocatedList(lastAllocatedRoutes);
+                    });
+                    allocatedSearchInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            allocatedSearchInput.value = "";
+                            renderAllocatedList(lastAllocatedRoutes);
+                        }
+                    });
+                }
+                if (clearAllocatedBtn) {
+                    clearAllocatedBtn.addEventListener("click", () => {
+                        if (allocatedSearchInput) {
+                            allocatedSearchInput.value = "";
+                            allocatedSearchInput.focus();
+                        }
+                        renderAllocatedList(lastAllocatedRoutes);
+                    });
+                }
+
+                if (notAllocatedSearchInput) {
+                    notAllocatedSearchInput.addEventListener("input", () => {
+                        renderNotAllocatedList(lastNotAllocatedRoutes);
+                    });
+                    notAllocatedSearchInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            notAllocatedSearchInput.value = "";
+                            renderNotAllocatedList(lastNotAllocatedRoutes);
+                        }
+                    });
+                }
+                if (clearNotAllocatedBtn) {
+                    clearNotAllocatedBtn.addEventListener("click", () => {
+                        if (notAllocatedSearchInput) {
+                            notAllocatedSearchInput.value = "";
+                            notAllocatedSearchInput.focus();
+                        }
+                        renderNotAllocatedList(lastNotAllocatedRoutes);
+                    });
+                }
+
+                if (scheduledSearchInput) {
+                    scheduledSearchInput.addEventListener("input", () => {
+                        renderScheduledTime();
+                    });
+                    scheduledSearchInput.addEventListener("keydown", (e) => {
+                        if (e.key === "Escape") {
+                            scheduledSearchInput.value = "";
+                            renderScheduledTime();
+                        }
+                    });
+                }
+                if (clearScheduledBtn) {
+                    clearScheduledBtn.addEventListener("click", () => {
+                        if (scheduledSearchInput) {
+                            scheduledSearchInput.value = "";
+                            scheduledSearchInput.focus();
+                        }
+                        renderScheduledTime();
+                    });
+                }
+
                 await updateSelectedRouteDistance();
                 await recommend();
 
@@ -1192,6 +1543,9 @@
                 }, 3000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
+                if (notAllocatedSummary) {
+                    notAllocatedSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
+                }
                 if (scheduledTimeTbody) {
                     scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">GTFS schedule data unavailable</td></tr>';
                 }
