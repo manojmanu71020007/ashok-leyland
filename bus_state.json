@@ -62,7 +62,7 @@
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "updatedAt": "2026-09-26T18:11:05.154Z",
+    "updatedAt": "2026-09-26T18:21:04.117Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -83,13 +83,19 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-26T18:21:04.117Z",
+        "soc": 10,
+        "condition": "Good",
+        "status": "On Time"
       }
     ]
   },
   "1548": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 33,
+    "soc": 10,
     "condition": "Good",
     "updatedAt": "2026-09-26T17:39:34.264Z",
     "statusTimings": {
@@ -130,7 +136,7 @@
   "1549": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 39,
+    "soc": 33,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:21:31.258Z",
     "statusTimings": {
@@ -156,7 +162,7 @@
   "1610": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 81
+    "soc": 70
   },
   "1612": {
     "status": "On Time",
@@ -185,7 +191,7 @@
   "1626": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 80
+    "soc": 83
   },
   "2559": {
     "status": "On Time",
@@ -231,7 +237,7 @@
   "2780": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 90
+    "soc": 80
   },
   "2786": {
     "status": "On Time",
@@ -265,7 +271,7 @@
   "2787": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 78
+    "soc": 81
   },
   "2826": {
     "status": "On Time",
@@ -311,7 +317,7 @@
   "3831": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 82
+    "soc": 84
   },
   "3864": {
     "status": "On Time",
@@ -355,7 +361,7 @@
   "3935": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 70,
+    "soc": 65,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:07:53.373Z",
     "statusTimings": {
@@ -376,7 +382,7 @@
   "3951": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 65,
+    "soc": 39,
     "condition": "Good",
     "updatedAt": "2026-09-26T07:17:24.126Z",
     "statusTimings": {
@@ -525,7 +531,7 @@
   "7403": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 84
+    "soc": 78
   },
   "7632": {
     "status": "On Time",
@@ -540,7 +546,7 @@
   "7888": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 83,
+    "soc": 85,
     "condition": "Good",
     "updatedAt": "2026-09-23T14:25:09.078Z",
     "statusTimings": {
@@ -679,7 +685,7 @@
   "9108": {
     "status": "On Time",
     "condition": "Good",
-    "soc": 100
+    "soc": 90
   },
   "9132": {
     "status": "On Time",
@@ -689,7 +695,7 @@
   "9534": {
     "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 85,
+    "soc": 82,
     "condition": "Good",
     "updatedAt": "2026-09-26T16:35:54.975Z",
     "statusTimings": {
@@ -791,60 +797,464 @@
     }
   },
   "_assignments": {
-    "1367": "G-252 KBS D9 D22-PSS",
+    "1367": "252-L",
     "1427": "MBS-17 MHB-HBL-JHV-PSS",
-    "1428": "251E PSS-KMT",
-    "1548": "401-AM",
-    "1549": "D9-PSS",
-    "1553": "250-E PSS-TMH",
-    "1610": "252 LGR-PSS",
-    "1612": "250-SB PSS-SVG",
-    "1621": "273-B PSS-ABG",
-    "1626": "256-F",
+    "1428": "G-252 KBS D9 D22-PSS",
+    "1548": "251E PSS-KMT",
+    "1549": "401-AM",
+    "1553": "PSS-NLGDH-8THM",
+    "1610": "265-D PSS-VGN",
+    "1612": "252-F",
+    "1621": "248-AB",
+    "1626": "CHAKRA-7A",
     "2559": "252 PSS-KMT",
     "2644": "253-J PSS-HGV",
-    "2764": "252",
-    "2767": "PSS-RGPS-SMH",
-    "2770": "401-AK ABG-PSS",
-    "2780": "507-B",
-    "2786": "PSS-NLGDH-8THM",
-    "2787": "BC-7B PSS-NLGH-8thM",
-    "2826": "250-F PSS-SSHL",
+    "2764": "250-SB PSS-SVG",
+    "2767": "250-S PSS-GLB",
+    "2770": "273 SDN-PSS",
+    "2780": "256-F",
+    "2786": "273-B PSS-ABG",
+    "2787": "MF-32 PSS-CKB",
+    "2826": "250-E PSS-TMH",
     "2861": "273",
-    "3158": "248-AB",
+    "3158": "401-AK ABG-PSS",
     "3430": "252-A PSS-HAL ARDC",
-    "3629": "252-A",
-    "3831": "401-AK PSS-ABG",
-    "3864": "BC-7B PSS-ANDRH-HRHC",
-    "3878": "251-C PSS-RPS-LGR",
-    "3907": "MBS-12 PSS-ANP",
-    "3916": "MF-32 PSS-CKB",
-    "3920": "252-L",
-    "3935": "MF-26 PSS-JHMS",
-    "3951": "500-D MRHB-HBL-PSS",
-    "4759": "PSS-NTTF-LGRNBS",
-    "4798": "401-M PSS-KTS-D31G",
-    "6080": "PSS-TGPL-GGH",
+    "3629": "D9-PSS",
+    "3831": "CHAKRA-7",
+    "3864": "MBS-12 PSS-ANP",
+    "3878": "PSS-NTTF-LGRNBS",
+    "3907": "PSS-TGPL-GGH",
+    "3916": "252 LGR-PSS",
+    "3920": "252",
+    "3935": "500-D MRHB-HBL-PSS",
+    "3951": "252-A",
+    "4759": "BC-7B BDYH-PSS",
+    "4798": "BC-7B PSS-ANDRH-HRHC",
+    "6080": "251-C PSS-RPS-LGR",
     "6551": "401-A PSS-SGP-YHK",
-    "6979": "252-F",
-    "7143": "273 SDN-PSS",
-    "7296": "265-A PSS-TEPL",
-    "7403": "CHAKRA-7",
+    "6979": "254-E PSS-KMP",
+    "7143": "PSS-RGPS-SMH",
+    "7296": "MF-26 PSS-JHMS",
+    "7403": "BC-7B PSS-NLGH-8thM",
     "7632": "507",
-    "7834": "250-S PSS-GLB",
-    "7888": "CHAKRA-7A",
-    "8178": "254-E PSS-KMP",
-    "8276": "265-D PSS-VGN",
+    "7834": "401-M PSS-KTS-D31G",
+    "7888": "270-D PSS-ABG",
+    "8178": "250-F PSS-SSHL",
+    "8276": "265-A PSS-TEPL",
     "8543": "273 VSD-RJB-PSS",
-    "8592": "JHMS-PSS",
+    "8592": "D22-PSS",
     "8781": "401-A",
     "8842": "252-F PSS-HAL ARDC",
-    "9108": "D22-PSS",
+    "9108": "507-B",
     "9132": "401-AM PTH-PSS",
-    "9534": "270-D PSS-ABG",
-    "9535": "BC-7B BDYH-PSS",
+    "9534": "401-AK PSS-ABG",
+    "9535": "JHMS-PSS",
     "9581": "253-D PSS-TRN",
     "9636": "252-A PSS-ISROM"
   },
-  "_blockedRouteIds": []
+  "_blockedRouteIds": [
+    "1548"
+  ],
+  "_swapLog": [
+    {
+      "timestamp": "2026-09-26T18:21:04.124Z",
+      "routeA": "1428",
+      "busA": "251E PSS-KMT",
+      "distA": 19.84,
+      "routeB": "1367",
+      "busB": "G-252 KBS D9 D22-PSS",
+      "distB": 19.13,
+      "reason": "Range Optimization: Longer Route 1428 (19.8 km) vehicle had lower battery (10%) than shorter Route 1367 (19.1 km, 100%). Swapped vehicle 'G-252 KBS D9 D22-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1367",
+      "busA": "251E PSS-KMT",
+      "distA": 19.13,
+      "routeB": "3920",
+      "busB": "252-L",
+      "distB": 18.64,
+      "reason": "Range Optimization: Longer Route 1367 (19.1 km) vehicle had lower battery (10%) than shorter Route 3920 (18.6 km, 100%). Swapped vehicle '252-L' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3920",
+      "busA": "251E PSS-KMT",
+      "distA": 18.64,
+      "routeB": "2764",
+      "busB": "252",
+      "distB": 18.56,
+      "reason": "Range Optimization: Longer Route 3920 (18.6 km) vehicle had lower battery (10%) than shorter Route 2764 (18.6 km, 100%). Swapped vehicle '252' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2764",
+      "busA": "251E PSS-KMT",
+      "distA": 18.56,
+      "routeB": "1612",
+      "busB": "250-SB PSS-SVG",
+      "distB": 17.82,
+      "reason": "Range Optimization: Longer Route 2764 (18.6 km) vehicle had lower battery (10%) than shorter Route 1612 (17.8 km, 100%). Swapped vehicle '250-SB PSS-SVG' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1612",
+      "busA": "251E PSS-KMT",
+      "distA": 17.82,
+      "routeB": "6979",
+      "busB": "252-F",
+      "distB": 17.54,
+      "reason": "Range Optimization: Longer Route 1612 (17.8 km) vehicle had lower battery (10%) than shorter Route 6979 (17.5 km, 100%). Swapped vehicle '252-F' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "6979",
+      "busA": "251E PSS-KMT",
+      "distA": 17.54,
+      "routeB": "8178",
+      "busB": "254-E PSS-KMP",
+      "distB": 17.4,
+      "reason": "Range Optimization: Longer Route 6979 (17.5 km) vehicle had lower battery (10%) than shorter Route 8178 (17.4 km, 100%). Swapped vehicle '254-E PSS-KMP' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "8178",
+      "busA": "251E PSS-KMT",
+      "distA": 17.4,
+      "routeB": "2826",
+      "busB": "250-F PSS-SSHL",
+      "distB": 16.15,
+      "reason": "Range Optimization: Longer Route 8178 (17.4 km) vehicle had lower battery (10%) than shorter Route 2826 (16.1 km, 100%). Swapped vehicle '250-F PSS-SSHL' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2826",
+      "busA": "251E PSS-KMT",
+      "distA": 16.15,
+      "routeB": "1553",
+      "busB": "250-E PSS-TMH",
+      "distB": 15.72,
+      "reason": "Range Optimization: Longer Route 2826 (16.1 km) vehicle had lower battery (10%) than shorter Route 1553 (15.7 km, 100%). Swapped vehicle '250-E PSS-TMH' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1553",
+      "busA": "251E PSS-KMT",
+      "distA": 15.72,
+      "routeB": "2786",
+      "busB": "PSS-NLGDH-8THM",
+      "distB": 13.66,
+      "reason": "Range Optimization: Longer Route 1553 (15.7 km) vehicle had lower battery (10%) than shorter Route 2786 (13.7 km, 100%). Swapped vehicle 'PSS-NLGDH-8THM' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2786",
+      "busA": "251E PSS-KMT",
+      "distA": 13.66,
+      "routeB": "1621",
+      "busB": "273-B PSS-ABG",
+      "distB": 13.62,
+      "reason": "Range Optimization: Longer Route 2786 (13.7 km) vehicle had lower battery (10%) than shorter Route 1621 (13.6 km, 100%). Swapped vehicle '273-B PSS-ABG' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1621",
+      "busA": "251E PSS-KMT",
+      "distA": 13.62,
+      "routeB": "3158",
+      "busB": "248-AB",
+      "distB": 13.34,
+      "reason": "Range Optimization: Longer Route 1621 (13.6 km) vehicle had lower battery (10%) than shorter Route 3158 (13.3 km, 100%). Swapped vehicle '248-AB' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3158",
+      "busA": "251E PSS-KMT",
+      "distA": 13.34,
+      "routeB": "2770",
+      "busB": "401-AK ABG-PSS",
+      "distB": 12.71,
+      "reason": "Range Optimization: Longer Route 3158 (13.3 km) vehicle had lower battery (10%) than shorter Route 2770 (12.7 km, 100%). Swapped vehicle '401-AK ABG-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2770",
+      "busA": "251E PSS-KMT",
+      "distA": 12.71,
+      "routeB": "7143",
+      "busB": "273 SDN-PSS",
+      "distB": 12.25,
+      "reason": "Range Optimization: Longer Route 2770 (12.7 km) vehicle had lower battery (10%) than shorter Route 7143 (12.3 km, 100%). Swapped vehicle '273 SDN-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "7143",
+      "busA": "251E PSS-KMT",
+      "distA": 12.25,
+      "routeB": "2767",
+      "busB": "PSS-RGPS-SMH",
+      "distB": 11.66,
+      "reason": "Range Optimization: Longer Route 7143 (12.3 km) vehicle had lower battery (10%) than shorter Route 2767 (11.7 km, 100%). Swapped vehicle 'PSS-RGPS-SMH' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2767",
+      "busA": "251E PSS-KMT",
+      "distA": 11.66,
+      "routeB": "7834",
+      "busB": "250-S PSS-GLB",
+      "distB": 11.31,
+      "reason": "Range Optimization: Longer Route 2767 (11.7 km) vehicle had lower battery (10%) than shorter Route 7834 (11.3 km, 100%). Swapped vehicle '250-S PSS-GLB' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "7834",
+      "busA": "251E PSS-KMT",
+      "distA": 11.31,
+      "routeB": "4798",
+      "busB": "401-M PSS-KTS-D31G",
+      "distB": 10.21,
+      "reason": "Range Optimization: Longer Route 7834 (11.3 km) vehicle had lower battery (10%) than shorter Route 4798 (10.2 km, 100%). Swapped vehicle '401-M PSS-KTS-D31G' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "4798",
+      "busA": "251E PSS-KMT",
+      "distA": 10.21,
+      "routeB": "3864",
+      "busB": "BC-7B PSS-ANDRH-HRHC",
+      "distB": 10.05,
+      "reason": "Range Optimization: Longer Route 4798 (10.2 km) vehicle had lower battery (10%) than shorter Route 3864 (10.1 km, 100%). Swapped vehicle 'BC-7B PSS-ANDRH-HRHC' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3864",
+      "busA": "251E PSS-KMT",
+      "distA": 10.05,
+      "routeB": "3907",
+      "busB": "MBS-12 PSS-ANP",
+      "distB": 9.94,
+      "reason": "Range Optimization: Longer Route 3864 (10.1 km) vehicle had lower battery (10%) than shorter Route 3907 (9.9 km, 100%). Swapped vehicle 'MBS-12 PSS-ANP' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3907",
+      "busA": "251E PSS-KMT",
+      "distA": 9.94,
+      "routeB": "6080",
+      "busB": "PSS-TGPL-GGH",
+      "distB": 9.93,
+      "reason": "Range Optimization: Longer Route 3907 (9.9 km) vehicle had lower battery (10%) than shorter Route 6080 (9.9 km, 100%). Swapped vehicle 'PSS-TGPL-GGH' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "6080",
+      "busA": "251E PSS-KMT",
+      "distA": 9.93,
+      "routeB": "3878",
+      "busB": "251-C PSS-RPS-LGR",
+      "distB": 9.92,
+      "reason": "Range Optimization: Longer Route 6080 (9.9 km) vehicle had lower battery (10%) than shorter Route 3878 (9.9 km, 100%). Swapped vehicle '251-C PSS-RPS-LGR' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3878",
+      "busA": "251E PSS-KMT",
+      "distA": 9.92,
+      "routeB": "4759",
+      "busB": "PSS-NTTF-LGRNBS",
+      "distB": 9.91,
+      "reason": "Range Optimization: Longer Route 3878 (9.9 km) vehicle had lower battery (10%) than shorter Route 4759 (9.9 km, 100%). Swapped vehicle 'PSS-NTTF-LGRNBS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "4759",
+      "busA": "251E PSS-KMT",
+      "distA": 9.91,
+      "routeB": "9535",
+      "busB": "BC-7B BDYH-PSS",
+      "distB": 9.47,
+      "reason": "Range Optimization: Longer Route 4759 (9.9 km) vehicle had lower battery (10%) than shorter Route 9535 (9.5 km, 100%). Swapped vehicle 'BC-7B BDYH-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "9535",
+      "busA": "251E PSS-KMT",
+      "distA": 9.47,
+      "routeB": "8592",
+      "busB": "JHMS-PSS",
+      "distB": 9.36,
+      "reason": "Range Optimization: Longer Route 9535 (9.5 km) vehicle had lower battery (10%) than shorter Route 8592 (9.4 km, 100%). Swapped vehicle 'JHMS-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "8592",
+      "busA": "251E PSS-KMT",
+      "distA": 9.36,
+      "routeB": "9108",
+      "busB": "D22-PSS",
+      "distB": 9.17,
+      "reason": "Range Optimization: Longer Route 8592 (9.4 km) vehicle had lower battery (10%) than shorter Route 9108 (9.2 km, 100%). Swapped vehicle 'D22-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "9108",
+      "busA": "251E PSS-KMT",
+      "distA": 9.17,
+      "routeB": "2780",
+      "busB": "507-B",
+      "distB": 8.94,
+      "reason": "Range Optimization: Longer Route 9108 (9.2 km) vehicle had lower battery (10%) than shorter Route 2780 (8.9 km, 90%). Swapped vehicle '507-B' (90% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2780",
+      "busA": "251E PSS-KMT",
+      "distA": 8.94,
+      "routeB": "1626",
+      "busB": "256-F",
+      "distB": 8.38,
+      "reason": "Range Optimization: Longer Route 2780 (8.9 km) vehicle had lower battery (10%) than shorter Route 1626 (8.4 km, 80%). Swapped vehicle '256-F' (80% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1626",
+      "busA": "251E PSS-KMT",
+      "distA": 8.38,
+      "routeB": "7888",
+      "busB": "CHAKRA-7A",
+      "distB": 7.64,
+      "reason": "Range Optimization: Longer Route 1626 (8.4 km) vehicle had lower battery (10%) than shorter Route 7888 (7.6 km, 83%). Swapped vehicle 'CHAKRA-7A' (83% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "7888",
+      "busA": "251E PSS-KMT",
+      "distA": 7.64,
+      "routeB": "9534",
+      "busB": "270-D PSS-ABG",
+      "distB": 7.38,
+      "reason": "Range Optimization: Longer Route 7888 (7.6 km) vehicle had lower battery (10%) than shorter Route 9534 (7.4 km, 85%). Swapped vehicle '270-D PSS-ABG' (85% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "9534",
+      "busA": "251E PSS-KMT",
+      "distA": 7.38,
+      "routeB": "3831",
+      "busB": "401-AK PSS-ABG",
+      "distB": 7.07,
+      "reason": "Range Optimization: Longer Route 9534 (7.4 km) vehicle had lower battery (10%) than shorter Route 3831 (7.1 km, 82%). Swapped vehicle '401-AK PSS-ABG' (82% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3831",
+      "busA": "251E PSS-KMT",
+      "distA": 7.07,
+      "routeB": "7403",
+      "busB": "CHAKRA-7",
+      "distB": 6.94,
+      "reason": "Range Optimization: Longer Route 3831 (7.1 km) vehicle had lower battery (10%) than shorter Route 7403 (6.9 km, 84%). Swapped vehicle 'CHAKRA-7' (84% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "7403",
+      "busA": "251E PSS-KMT",
+      "distA": 6.94,
+      "routeB": "2787",
+      "busB": "BC-7B PSS-NLGH-8thM",
+      "distB": 5.72,
+      "reason": "Range Optimization: Longer Route 7403 (6.9 km) vehicle had lower battery (10%) than shorter Route 2787 (5.7 km, 78%). Swapped vehicle 'BC-7B PSS-NLGH-8thM' (78% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "2787",
+      "busA": "251E PSS-KMT",
+      "distA": 5.72,
+      "routeB": "3916",
+      "busB": "MF-32 PSS-CKB",
+      "distB": 5.69,
+      "reason": "Range Optimization: Longer Route 2787 (5.7 km) vehicle had lower battery (10%) than shorter Route 3916 (5.7 km, 81%). Swapped vehicle 'MF-32 PSS-CKB' (81% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3916",
+      "busA": "251E PSS-KMT",
+      "distA": 5.69,
+      "routeB": "1610",
+      "busB": "252 LGR-PSS",
+      "distB": 5.69,
+      "reason": "Range Optimization: Longer Route 3916 (5.7 km) vehicle had lower battery (10%) than shorter Route 1610 (5.7 km, 81%). Swapped vehicle '252 LGR-PSS' (81% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1610",
+      "busA": "251E PSS-KMT",
+      "distA": 5.69,
+      "routeB": "8276",
+      "busB": "265-D PSS-VGN",
+      "distB": 5.29,
+      "reason": "Range Optimization: Longer Route 1610 (5.7 km) vehicle had lower battery (10%) than shorter Route 8276 (5.3 km, 70%). Swapped vehicle '265-D PSS-VGN' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "8276",
+      "busA": "251E PSS-KMT",
+      "distA": 5.29,
+      "routeB": "7296",
+      "busB": "265-A PSS-TEPL",
+      "distB": 5.19,
+      "reason": "Range Optimization: Longer Route 8276 (5.3 km) vehicle had lower battery (10%) than shorter Route 7296 (5.2 km, 70%). Swapped vehicle '265-A PSS-TEPL' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "7296",
+      "busA": "251E PSS-KMT",
+      "distA": 5.19,
+      "routeB": "3935",
+      "busB": "MF-26 PSS-JHMS",
+      "distB": 4.57,
+      "reason": "Range Optimization: Longer Route 7296 (5.2 km) vehicle had lower battery (10%) than shorter Route 3935 (4.6 km, 70%). Swapped vehicle 'MF-26 PSS-JHMS' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3935",
+      "busA": "251E PSS-KMT",
+      "distA": 4.57,
+      "routeB": "3951",
+      "busB": "500-D MRHB-HBL-PSS",
+      "distB": 3.17,
+      "reason": "Range Optimization: Longer Route 3935 (4.6 km) vehicle had lower battery (10%) than shorter Route 3951 (3.2 km, 65%). Swapped vehicle '500-D MRHB-HBL-PSS' (65% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3951",
+      "busA": "251E PSS-KMT",
+      "distA": 3.17,
+      "routeB": "3629",
+      "busB": "252-A",
+      "distB": 2.48,
+      "reason": "Range Optimization: Longer Route 3951 (3.2 km) vehicle had lower battery (10%) than shorter Route 3629 (2.5 km, 39%). Swapped vehicle '252-A' (39% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "3629",
+      "busA": "251E PSS-KMT",
+      "distA": 2.48,
+      "routeB": "1549",
+      "busB": "D9-PSS",
+      "distB": 1.63,
+      "reason": "Range Optimization: Longer Route 3629 (2.5 km) vehicle had lower battery (10%) than shorter Route 1549 (1.6 km, 39%). Swapped vehicle 'D9-PSS' (39% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-26T18:21:04.125Z",
+      "routeA": "1549",
+      "busA": "251E PSS-KMT",
+      "distA": 1.63,
+      "routeB": "1548",
+      "busB": "401-AM",
+      "distB": 1.52,
+      "reason": "Range Optimization: Longer Route 1549 (1.6 km) vehicle had lower battery (10%) than shorter Route 1548 (1.5 km, 33%). Swapped vehicle '401-AM' (33% SoC) to longer route to prevent mid-route battery depletion."
+    }
+  ]
 }
