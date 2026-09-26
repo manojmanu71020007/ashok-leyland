@@ -45,7 +45,7 @@ const ADAFRUIT_USERNAME = "Manu123456789";
 const ADAFRUIT_FEED_NAME = "gpslocation";
 const ADAFRUIT_LAST_VALUE_URL = `https://io.adafruit.com/api/v2/${ADAFRUIT_USERNAME}/feeds/${ADAFRUIT_FEED_NAME}/data/last`;
 const LIVE_TRACKING_INTERVAL_MS = 5000;
-const SHARED_STATE_REFRESH_INTERVAL_MS = 3000;
+const SHARED_STATE_REFRESH_INTERVAL_MS = 10000;
 
 let sharedStateRefreshIntervalId = null;
 

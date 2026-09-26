@@ -331,6 +331,8 @@ function swapBusAssignments(state) {
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
             const rA = sortedRoutes[i];     // longer route (target: should have higher SoC & range)
             const rB = sortedRoutes[i + 1]; // shorter route
+            const socA = workingSoc[rA.routeId];
+            const socB = workingSoc[rB.routeId];
             const condA = (state[rA.routeId] && state[rA.routeId].condition) || "Good";
             const condB = (state[rB.routeId] && state[rB.routeId].condition) || "Good";
 

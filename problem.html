@@ -1539,7 +1539,7 @@
                 await updateSelectedRouteDistance();
                 await recommend();
 
-                // Live polling every 3 seconds — refresh telemetry AND swap assignments
+                // Live polling every 10 seconds — refresh telemetry AND swap assignments
                 setInterval(async () => {
                     try {
                         const [stateRes, assignRes] = await Promise.all([
@@ -1559,7 +1559,7 @@
                         renderRoutes();
                         recommend();
                     } catch {}
-                }, 3000);
+                }, 10000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
                 if (notAllocatedSummary) {

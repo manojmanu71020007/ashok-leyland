@@ -387,7 +387,7 @@
     });
 
     // -----------------------------------------------------------------------
-    // Live polling — refreshes the active view's chart every 3 s
+    // Live polling — refreshes the active view's chart every 10 s
     // -----------------------------------------------------------------------
     let pollIntervalId = null;
     function startLivePolling() {
@@ -413,7 +413,7 @@
             }
           }
         } catch {}
-      }, 3000);
+      }, 10000);
     }
 
     // -----------------------------------------------------------------------
