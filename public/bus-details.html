@@ -118,7 +118,7 @@
           <div id="currentSoc" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
         <div style="background: rgba(168, 85, 247, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.2);">
-          <div id="odoLabel" style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Last Odometer</div>
+          <div id="odoLabel" style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Route Distance</div>
           <div id="lastOdometer" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">-</div>
         </div>
         <div style="background: rgba(234, 88, 12, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(234, 88, 12, 0.2);">
@@ -173,26 +173,40 @@
 
     async function updateSummary(data, view) {
       if (!Array.isArray(data) || data.length === 0) return;
-      if (view === "macro") {
-        const latest = data[data.length - 1];
-        document.getElementById("currentSoc").textContent = `${Number(latest.soc_end).toFixed(1)}%`;
-        document.getElementById("lastOdometer").textContent = "N/A";
-        const odoLabel = document.getElementById("odoLabel");
-        if (odoLabel) odoLabel.textContent = "Route Distance";
-      } else {
-        const latest = data[data.length - 1];
-        document.getElementById("currentSoc").textContent = `${Number(latest.soc).toFixed(1)}%`;
-        const odometer = data[data.length - 1].odometer_km;
-        document.getElementById("lastOdometer").textContent = `${Number(odometer).toFixed(1)} km`;
-      }
       document.getElementById("busIdLabel").textContent = busId;
 
+      const latest = data[data.length - 1];
+      const liveSocVal = view === "macro" ? Number(latest.soc_end) : Number(latest.soc);
+      if (Number.isFinite(liveSocVal)) {
+        document.getElementById("currentSoc").textContent = `${Math.round(liveSocVal)}%`;
+      }
+
+      const odoLabel = document.getElementById("odoLabel");
+      if (odoLabel) odoLabel.textContent = "Route Distance";
+
+      // Fetch real route distance for this bus
+      try {
+        const distRes = await fetch(`/api/route-distance?bus=${encodeURIComponent(busId)}`);
+        const distPayload = await distRes.json();
+        if (distPayload && distPayload.ok && Number.isFinite(distPayload.distanceKm)) {
+          document.getElementById("lastOdometer").textContent = `${distPayload.distanceKm.toFixed(1)} km`;
+        } else if (latest.km) {
+          document.getElementById("lastOdometer").textContent = `${Number(latest.km).toFixed(1)} km`;
+        } else if (latest.odometer_km) {
+          document.getElementById("lastOdometer").textContent = `${Number(latest.odometer_km).toFixed(1)} km`;
+        }
+      } catch {
+        if (latest.km) {
+          document.getElementById("lastOdometer").textContent = `${Number(latest.km).toFixed(1)} km`;
+        }
+      }
+
+      // Check bus state for condition and confirm live SoC
       try {
         const stateRes = await fetch("/api/bus-state");
         const statePayload = await stateRes.json();
         const allState = statePayload?.state || {};
 
-        // Try multiple key formats: exact busId, numeric-only, any key that matches
         const numericId = busId.replace(/\D/g, "");
         const state = allState[busId]
           || allState[numericId]
@@ -202,11 +216,7 @@
             )?.[1];
 
         if (state && Number.isFinite(Number(state.soc))) {
-          // Real telemetry from ESP — show exact value
           document.getElementById("currentSoc").textContent = `${Number(state.soc).toFixed(0)}%`;
-        } else {
-          // No telemetry yet — show 100% to match the allocation panel assumption
-          document.getElementById("currentSoc").textContent = "100%";
         }
 
         if (state && state.condition) {
@@ -317,14 +327,38 @@
       }
     }
 
-    document.querySelectorAll(".view-btn").forEach((button) => {
-      button.addEventListener("click", () => {
-        document.querySelectorAll(".view-btn").forEach((btn) => btn.classList.toggle("active", btn === button));
-        renderView(button.dataset.view);
-      });
-    });
+    let pollIntervalId = null;
+    function startLivePolling() {
+      if (pollIntervalId) clearInterval(pollIntervalId);
+      pollIntervalId = setInterval(async () => {
+        const activeBtn = document.querySelector(".view-btn.active");
+        const currentView = activeBtn ? activeBtn.dataset.view : "macro";
+        try {
+          const data = await fetchBusData(currentView);
+          if (Array.isArray(data) && data.length > 0) {
+            await updateSummary(data, currentView);
+            if (chart) {
+              const labels = currentView === "macro"
+                ? data.map((point) => formatTimestamp(point.timestamp))
+                : data.map((point) => {
+                    const date = new Date(point.timestamp);
+                    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                  });
+              const values = currentView === "macro"
+                ? data.map((point) => Number(point.soc_end))
+                : data.map((point) => Number(point.soc));
+
+              chart.data.labels = labels;
+              chart.data.datasets[0].data = values;
+              chart.update("none");
+            }
+          }
+        } catch {}
+      }, 3000);
+    }
 
     renderView("macro");
+    startLivePolling();
   </script>
 </body>
 </html>

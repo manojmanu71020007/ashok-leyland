@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from pathlib import Path
 import sqlite3
 from datetime import datetime, timedelta
 from typing import Any
 
 from fastapi import FastAPI
 
-from .allocator import allocate
+from .allocator import allocate, swap_assignments
 from .models import Bus, Schedule
 
 app = FastAPI(title="Bus Range Estimator API")
@@ -49,23 +51,55 @@ def _hash_seed(value: str) -> int:
     return int(digest[:8], 16)
 
 
+def _get_current_bus_soc(bus_id: str) -> float:
+    state_file = Path(__file__).resolve().parent.parent / "bus_state.json"
+    if state_file.exists():
+        try:
+            with open(state_file, "r", encoding="utf-8") as f:
+                state = json.load(f)
+            clean_id = str(bus_id).strip()
+            if clean_id in state and isinstance(state[clean_id], dict) and "soc" in state[clean_id]:
+                return float(state[clean_id]["soc"])
+            for k, v in state.items():
+                if isinstance(v, dict):
+                    if (
+                        str(v.get("busNumber", "")).strip().lower() == clean_id.lower()
+                        or state.get("_assignments", {}).get(k, "").strip().lower() == clean_id.lower()
+                    ):
+                        if "soc" in v:
+                            return float(v["soc"])
+            digits = "".join(filter(str.isdigit, clean_id))
+            if digits and digits in state and isinstance(state[digits], dict) and "soc" in state[digits]:
+                return float(state[digits]["soc"])
+        except Exception:
+            pass
+    return 100.0
+
+
 def _fallback_macro_rows(bus_id: str) -> list[dict[str, Any]]:
     seed = _hash_seed(bus_id)
     base = datetime.utcnow().replace(microsecond=0)
+    current_soc = _get_current_bus_soc(bus_id)
     rows: list[dict[str, Any]] = []
     for offset in range(30):
         stamp = (base - timedelta(days=29 - offset)).strftime("%Y-%m-%dT%H:%M:%S")
-        start_soc = 98.0 - ((seed + offset) % 6) * 1.2
-        end_soc = start_soc - (8.5 + ((seed + offset) % 4) * 2.0)
         slot = "PEAK" if offset % 3 == 0 else "NORMAL"
+        km = 28.7
+        duration = round(1.4 + ((seed + offset) % 3) * 0.2, 2)
+        if offset == 29:
+            end_soc = current_soc
+            start_soc = min(100.0, current_soc + 15.0)
+        else:
+            start_soc = min(100.0, 98.0 - ((seed + offset) % 4) * 1.5)
+            end_soc = max(15.0, start_soc - (12.0 + ((seed + offset) % 3) * 2.0))
         rows.append(
             {
                 "timestamp": stamp,
                 "slot": slot,
                 "soc_start": round(start_soc, 2),
                 "soc_end": round(end_soc, 2),
-                "km": 28.7,
-                "duration_hours": round(1.4 + ((seed + offset) % 3) * 0.2, 2),
+                "km": km,
+                "duration_hours": duration,
             }
         )
     return rows
@@ -74,16 +108,21 @@ def _fallback_macro_rows(bus_id: str) -> list[dict[str, Any]]:
 def _fallback_micro_rows(bus_id: str) -> list[dict[str, Any]]:
     seed = _hash_seed(bus_id)
     base = datetime.utcnow().replace(microsecond=0)
+    current_soc = _get_current_bus_soc(bus_id)
     rows: list[dict[str, Any]] = []
     for offset in range(50):
         stamp = (base - timedelta(minutes=49 - offset)).strftime("%Y-%m-%dT%H:%M:%S")
-        soc = 96.0 - ((seed + offset) % 12) * 0.3 - offset * 0.08
-        odometer = 12000 + offset * 0.9 + (seed % 9) * 0.2
+        if offset == 49:
+            soc = current_soc
+        else:
+            drift = (49 - offset) * 0.08 + ((seed + offset) % 3) * 0.1
+            soc = min(100.0, max(0.0, current_soc + drift))
+        odometer = round(28.7 * max(0.1, (offset + 1) / 50.0), 1)
         rows.append(
             {
                 "timestamp": stamp,
                 "soc": round(soc, 2),
-                "odometer_km": round(odometer, 2),
+                "odometer_km": odometer,
             }
         )
     return rows
@@ -287,7 +326,77 @@ def post_allocate(payload: dict[str, Any]) -> dict[str, Any]:
             )
         )
 
-    return {"ok": True, "allocations": allocate(parsed_buses, parsed_schedules, slot=slot)}
+    current_assignments = payload.get("current_assignments")
+    now_str = payload.get("now")
+    now_dt = None
+    if now_str:
+        for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%H:%M"):
+            try:
+                now_dt = datetime.strptime(str(now_str).strip(), fmt)
+                break
+            except ValueError:
+                pass
+
+    return {
+        "ok": True,
+        "allocations": allocate(
+            parsed_buses,
+            parsed_schedules,
+            slot=slot,
+            current_assignments=current_assignments,
+            now=now_dt,
+        ),
+    }
+
+
+@app.post("/swap")
+def post_swap(payload: dict[str, Any]) -> dict[str, Any]:
+    """Calculate updated assignments with 5% SoC hysteresis and 30-minute lock-in guardrails."""
+    buses = payload.get("buses", [])
+    schedules = payload.get("schedules", [])
+    current_assignments = payload.get("current_assignments", {})
+    now_str = payload.get("now")
+    now_dt = None
+    if now_str:
+        for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%H:%M"):
+            try:
+                now_dt = datetime.strptime(str(now_str).strip(), fmt)
+                break
+            except ValueError:
+                pass
+
+    parsed_buses = [
+        Bus(
+            bus_id=str(item["bus_id"]),
+            soc=float(item.get("soc", 0.0)),
+            soh=float(item.get("soh", 0.0)),
+            interior_clean=bool(item.get("interior_clean", False)),
+            exterior_clean=bool(item.get("exterior_clean", False)),
+            available=bool(item.get("available", False)),
+        )
+        for item in buses
+    ]
+
+    parsed_schedules = [
+        Schedule(
+            route_code=str(item["route_code"]),
+            route_category=str(item.get("route_category", "SIMPLE")).upper(),
+            route_km=float(item.get("route_km", 0.0)),
+            trips=int(item.get("trips", 0)),
+            start_time=str(item.get("start_time", "05:00")),
+            scheduled_hours=float(item.get("scheduled_hours", 0.0)),
+        )
+        for item in schedules
+    ]
+
+    updated = swap_assignments(
+        parsed_buses,
+        parsed_schedules,
+        current_assignments=current_assignments,
+        now=now_dt,
+    )
+    return {"ok": True, "assignments": updated}
+
 
 
 @app.get("/range/{bus_id}")
