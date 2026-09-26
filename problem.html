@@ -1087,7 +1087,6 @@
                 const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
-                const isBlockedByRange = blockedRouteIds.has(String(route.routeId));
                 const assignedName = getAssignedBusName(route);
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
                 const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
