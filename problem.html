@@ -1942,6 +1942,17 @@
                 clearScheduledBtn.style.display = schedQuery ? "inline-flex" : "none";
             }
 
+            // Sort: driver-assigned buses first, then no-driver buses
+            routesToDisplay = [...routesToDisplay].sort((a, b) => {
+                const stateA = busStates[getAssignedBusName(a)] || busStates[a.routeId] || busStates[a.busNumber] || {};
+                const stateB = busStates[getAssignedBusName(b)] || busStates[b.routeId] || busStates[b.busNumber] || {};
+                const driverA = (stateA.driver || "Driver Assigned").toLowerCase();
+                const driverB = (stateB.driver || "Driver Assigned").toLowerCase();
+                const noDriverA = driverA.includes("no") ? 1 : 0;
+                const noDriverB = driverB.includes("no") ? 1 : 0;
+                return noDriverA - noDriverB;
+            });
+
             const allocatedSet = new Set(lastAllocatedRoutes.map((r) => String(r.routeId)));
             const currentlySelectedId = String(routeSelect ? routeSelect.value : "");
 
@@ -2410,10 +2421,14 @@
                 document.getElementById("maintenance").checked = false;
                 document.getElementById("interior").checked = false;
             }
+            // Sync driver select from cloud state and re-read the gate flag
+            const driverSelectEl = document.getElementById("driver");
             if (driverStatus.toLowerCase().includes("no")) {
-                const driverSelectEl = document.getElementById("driver");
                 if (driverSelectEl) driverSelectEl.value = "unavailable";
+            } else {
+                if (driverSelectEl && driverSelectEl.value !== "unavailable") driverSelectEl.value = "ready";
             }
+            const driverReadyFinal = (driverSelectEl ? driverSelectEl.value : "ready") === "ready";
 
             const interiorChecked = document.getElementById("interior").checked;
             const exteriorChecked = document.getElementById("exterior").checked;
@@ -2456,7 +2471,7 @@
             // Block departure if estimated range < route distance (Logic 2)
             const isBlockedByRange = blockedRouteIds.has(String(selectedRoute.routeId));
             const rangeCovered = !isBlockedByRange && liveSoc > 25 && rangeValue >= routeDistance;
-            const ready = driverReady && effectiveClean && maintenanceClear && rangeCovered && isMatrixCompliant;
+            const ready = driverReadyFinal && effectiveClean && maintenanceClear && rangeCovered && isMatrixCompliant;
 
             updateAllocationPanel();
 
@@ -2489,11 +2504,11 @@
             if (manualCleanOverride) {
                 fleetReason = "Ready for dispatch (manual override)";
             } else if (!ready) {
-                if (condition === "Not Good") fleetReason = "Maintenance Required";
+                if (!driverReadyFinal) fleetReason = "No Driver Assigned — Bus Not Allocated";
+                else if (condition === "Not Good") fleetReason = "Maintenance Required";
                 else if (liveSoc <= 25) fleetReason = "Depot Charge Required (SoC <= 25%)";
                 else if (isBlockedByRange || rangeValue < routeDistance) fleetReason = `Range insufficient (${rangeValue}km < ${routeDistance}km)`;
                 else if (!isMatrixCompliant) fleetReason = `Page 4 Rule: ${complexity.toUpperCase()} route in ${timeCategoryKey} requires Category ${allowedCategories.join('/')} bus (bus is Cat ${busCategory})`;
-                else if (!driverReady) fleetReason = "Driver Not Assigned";
                 else fleetReason = "Needs review";
             }
             document.getElementById("fleet-rule").textContent = fleetReason;

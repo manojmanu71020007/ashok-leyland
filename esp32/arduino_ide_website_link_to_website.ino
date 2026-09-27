@@ -136,11 +136,6 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       <label for="driver">Driver Allocation</label>
       <select id="driver" name="driver">
         <option value="Driver Assigned">Driver Assigned (Ready for Duty)</option>
-        <option value="Driver 1 (Ramesh - Shift A)">Driver 1 (Ramesh - Shift A)</option>
-        <option value="Driver 2 (Suresh - Shift B)">Driver 2 (Suresh - Shift B)</option>
-        <option value="Driver 3 (Manjunath - Shift C)">Driver 3 (Manjunath - Shift C)</option>
-        <option value="Driver 4 (Anand - Shift A)">Driver 4 (Anand - Shift A)</option>
-        <option value="Driver 5 (Kiran - Shift B)">Driver 5 (Kiran - Shift B)</option>
         <option value="No Driver">No Driver (Unavailable / Off Duty)</option>
       </select>
 
