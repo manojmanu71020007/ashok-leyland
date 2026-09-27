@@ -78,12 +78,17 @@ function loadRoutes() {
         return [];
     }
 
-    cachedRoutes = lines.slice(1).map((line) => {
+    cachedRoutes = lines.slice(1).map((line, idx) => {
         const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
         const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
+        const padIndex = String(idx + 1).padStart(2, "0");
+        const uniqueId = `EV-${padIndex}`;
 
         return {
+            uniqueId,
+            vehicleId: uniqueId,
             busNumber: (routeShortName || "").trim() || "N/A",
+            routeShortName: (routeShortName || "").trim() || "N/A",
             routeName: (routeLongName || "").trim() || "Unknown Route",
             origin,
             destination,
@@ -284,7 +289,10 @@ function calculateRouteDistance(busIdentifier) {
     const busState = loadBusState();
     const assignments = busState._assignments || {};
 
-    let route = allRoutes.find((candidate) => candidate.busNumber === raw);
+    let route = allRoutes.find((candidate) => candidate.uniqueId && candidate.uniqueId.toLowerCase() === raw.toLowerCase());
+    if (!route) {
+        route = allRoutes.find((candidate) => candidate.busNumber === raw);
+    }
     if (!route) {
         route = allRoutes.find((candidate) => String(candidate.routeId) === raw);
     }
@@ -302,7 +310,8 @@ function calculateRouteDistance(busIdentifier) {
     }
 
     const busName = route.busNumber;
-    const assignedRouteId = (assignments && (assignments[busName] || assignments[String(route.routeId)])) || route.routeId;
+    const uniqueId = route.uniqueId;
+    const assignedRouteId = (assignments && (assignments[uniqueId] || assignments[busName] || assignments[String(route.routeId)])) || route.routeId;
     const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || route;
 
     const distanceKm = calculateRouteDistanceByRouteId(assignedRouteObj.routeId) ?? calculateRouteDistanceByRouteId(route.routeId);
@@ -315,6 +324,8 @@ function calculateRouteDistance(busIdentifier) {
 
     return {
         ok: true,
+        uniqueId,
+        unique_id: uniqueId,
         busNumber: busName,
         routeId: assignedRouteObj.routeId,
         assignedRouteId: assignedRouteObj.routeId,
@@ -325,15 +336,12 @@ function calculateRouteDistance(busIdentifier) {
     };
 }
 
-// ── Bus Swap Engine (Vehicle-Centric Model) ──────────────────────────────────
-// Bus Short Name is the fixed physical vehicle entity.
-// Route ID is the swappable GTFS schedule entity.
-// After every telemetry update, physical buses are ranked by SoC, and the
-// highest-SoC bus is assigned to the longest GTFS-distance route.
-// A swap only fires when the SoC difference between two candidate buses
-// exceeds SWAP_THRESHOLD_PCT (5% hysteresis) or due to a maintenance condition.
-// Buses whose estimated range < assigned route distance are blocked from departure.
-// The bidirectional mapping is persisted in bus_state.json under "_assignments".
+// ── Bus Swap Engine (Unique ID Physical Vehicle Model) ───────────────────────
+// uniqueId (EV-01..EV-54) is the physical bus asset holding battery SoC, condition, and telemetry.
+// GTFS Route (route_id + bus_short_name + Origin ➔ Destination + distance) is the FIXED public line.
+// Greedily swaps physical vehicle assignments so higher-SoC operational vehicles are assigned
+// to longer routes, honoring 5% SoC hysteresis and maintenance safety rules.
+// Persists mapping in bus_state.json under "_assignments" and "_vehicleAssignments".
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SWAP_THRESHOLD_PCT = 5;       // minimum SoC gap (%) needed to trigger a swap
@@ -346,64 +354,62 @@ function estimatedRangeKm(soc) {
 }
 
 /**
- * Runs the vehicle-centric bus-swap algorithm and updates state._assignments in-place.
- * 1. Build list of all physical buses and GTFS routes with distances.
- * 2. Read telemetry (SoC and condition) for each physical vehicle.
- * 3. Sort GTFS routes descending by distance (longest first).
- * 4. Greedily swap route assignments when a bus on a shorter route has > 5% SoC advantage.
- * 5. Mark vehicles and routes blocked when estimated range < GTFS route distance.
- * 6. Persist bidirectional mapping: _assignments[busName] = routeId AND _assignments[routeId] = busName.
+ * Runs the physical vehicle (unique_id: EV-01..EV-54) bus-swap algorithm and updates state._assignments in-place.
  */
 function swapBusAssignments(state) {
     const allRoutes = loadRoutes();
 
     const routeInfos = allRoutes.map((r) => ({
+        uniqueId: r.uniqueId,
         routeId: String(r.routeId),
         busShortName: (r.busNumber || "N/A").trim(),
+        routeName: (r.routeName || "").trim(),
+        origin: r.origin || "",
+        destination: r.destination || "",
         gtfsDistanceKm: calculateRouteDistanceByRouteId(r.routeId)
     })).filter((r) => r.gtfsDistanceKm !== null && r.gtfsDistanceKm > 0);
 
     if (!routeInfos.length) return state;
 
-    // Read telemetry for each physical vehicle (keyed by busShortName, fallback routeId)
-    const busTelemetry = {};
+    // Read telemetry for each physical vehicle (uniqueId: EV-01..EV-54)
+    const vehicleTelemetry = {};
     for (const r of routeInfos) {
-        const busName = r.busShortName;
-        const s = state[busName] || state[r.routeId] || {};
-        busTelemetry[busName] = {
+        const uId = r.uniqueId;
+        const s = state[uId] || state[r.busShortName] || state[r.routeId] || {};
+        vehicleTelemetry[uId] = {
+            uniqueId: uId,
+            defaultRouteId: r.routeId,
+            defaultBusShortName: r.busShortName,
             soc: Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100,
-            condition: s.condition || "Good",
-            defaultRouteId: r.routeId
+            condition: s.condition || "Good"
         };
     }
 
-    // Initialize route assignments: routeId -> busShortName
-    const routeToBus = {};
-    const busToRoute = {};
+    // Initialize route assignments: routeId -> uniqueId (physical vehicle)
+    const routeToVehicle = {};
+    const vehicleToRoute = {};
     const existingAssignments = state._assignments || {};
 
     for (const r of routeInfos) {
-        const busName = r.busShortName;
-        // Check if routeId was previously assigned a valid bus
-        const prevBus = existingAssignments[r.routeId];
-        if (prevBus && routeInfos.some((x) => x.busShortName === prevBus)) {
-            routeToBus[r.routeId] = prevBus;
+        const uId = r.uniqueId;
+        const prevVehicle = existingAssignments[r.routeId];
+        if (prevVehicle && routeInfos.some((x) => x.uniqueId === prevVehicle)) {
+            routeToVehicle[r.routeId] = prevVehicle;
         } else {
-            routeToBus[r.routeId] = busName;
+            routeToVehicle[r.routeId] = uId;
         }
     }
 
     // Ensure 1-to-1 bijection
-    const usedBuses = new Set();
+    const usedVehicles = new Set();
     for (const r of routeInfos) {
-        let b = routeToBus[r.routeId];
-        if (!b || usedBuses.has(b)) {
-            // Find an unused bus
-            b = routeInfos.map((x) => x.busShortName).find((name) => !usedBuses.has(name)) || r.busShortName;
-            routeToBus[r.routeId] = b;
+        let v = routeToVehicle[r.routeId];
+        if (!v || usedVehicles.has(v)) {
+            v = routeInfos.map((x) => x.uniqueId).find((id) => !usedVehicles.has(id)) || r.uniqueId;
+            routeToVehicle[r.routeId] = v;
         }
-        usedBuses.add(b);
-        busToRoute[b] = r.routeId;
+        usedVehicles.add(v);
+        vehicleToRoute[v] = r.routeId;
     }
 
     // Sort routes descending by GTFS distance (longest route first)
@@ -417,47 +423,54 @@ function swapBusAssignments(state) {
     while (changed && guard-- > 0) {
         changed = false;
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
-            const rLong = sortedRoutes[i];      // Longer route (e.g. 40.5 km)
-            const rShort = sortedRoutes[i + 1];  // Shorter route (e.g. 15.0 km)
+            const rLong = sortedRoutes[i];      // Longer route (e.g. 41.0 km)
+            const rShort = sortedRoutes[i + 1];  // Shorter route (e.g. 1.5 km)
 
-            const busOnLong = routeToBus[rLong.routeId];
-            const busOnShort = routeToBus[rShort.routeId];
+            const vLong = routeToVehicle[rLong.routeId];
+            const vShort = routeToVehicle[rShort.routeId];
 
-            const tLong = busTelemetry[busOnLong] || { soc: 100, condition: "Good" };
-            const tShort = busTelemetry[busOnShort] || { soc: 100, condition: "Good" };
+            const tLong = vehicleTelemetry[vLong] || { soc: 100, condition: "Good" };
+            const tShort = vehicleTelemetry[vShort] || { soc: 100, condition: "Good" };
 
             // The longer route needs the higher SoC / operational vehicle!
-            // Swap if bus on long route is broken (Not Good) while bus on short route is Good,
-            // OR if both are Good and bus on short route has > 5% SoC advantage over bus on long route.
+            // Swap if vehicle on long route is broken (Not Good) while vehicle on short route is Good,
+            // OR if both are Good and vehicle on short route has > 5% SoC advantage over vehicle on long route.
             const shouldSwap = (tShort.condition === "Good" && tLong.condition === "Not Good") ||
                                (tShort.condition === "Good" && tLong.condition === "Good" && (tShort.soc - tLong.soc > SWAP_THRESHOLD_PCT));
 
             if (shouldSwap) {
                 let reason = "";
                 if (tLong.condition === "Not Good" && tShort.condition === "Good") {
-                    reason = `Safety & Maintenance Alert: Longer Route ${rLong.routeId} (${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${busOnLong}' in 'Not Good' condition. Reassigned operational vehicle '${busOnShort}' to Route ${rLong.routeId} to prevent in-service breakdown.`;
+                    reason = `Safety & Maintenance Alert: Longer Route ${rLong.routeId} (${rLong.busShortName}, ${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vLong}' in 'Not Good' condition. Reassigned operational vehicle '${vShort}' to Route ${rLong.routeId} to prevent in-service breakdown.`;
                 } else if (tShort.soc - tLong.soc > SWAP_THRESHOLD_PCT) {
-                    reason = `Range Optimization: Longer Route ${rLong.routeId} (${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${busOnLong}' with lower battery (${tLong.soc}%). Reassigned vehicle '${busOnShort}' (${tShort.soc}% SoC) to longer route to prevent mid-route battery depletion.`;
+                    reason = `Range Optimization: Longer Route ${rLong.routeId} (${rLong.busShortName}, ${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vLong}' with lower battery (${tLong.soc}%). Reassigned vehicle '${vShort}' (${tShort.soc}% SoC) to longer route to prevent mid-route battery depletion.`;
                 } else {
-                    reason = `Fleet battery balancing: Reassigned vehicle '${busOnShort}' onto Route ${rLong.routeId}.`;
+                    reason = `Fleet battery balancing: Reassigned vehicle '${vShort}' onto Route ${rLong.routeId} (${rLong.busShortName}).`;
                 }
 
                 currentSwapLog.push({
                     timestamp: new Date().toISOString(),
                     routeA: rLong.routeId,
-                    busA: busOnLong,
+                    routeShortNameA: rLong.busShortName,
+                    routeLineA: `${rLong.busShortName} (${rLong.origin} ➔ ${rLong.destination})`,
                     distA: rLong.gtfsDistanceKm,
+                    vehicleA: vLong,
+                    socA: tLong.soc,
                     routeB: rShort.routeId,
-                    busB: busOnShort,
+                    routeShortNameB: rShort.busShortName,
+                    routeLineB: `${rShort.busShortName} (${rShort.origin} ➔ ${rShort.destination})`,
                     distB: rShort.gtfsDistanceKm,
+                    vehicleB: vShort,
+                    socB: tShort.soc,
+                    swappedVehicle: vShort,
                     reason
                 });
 
                 // Swap route assignments between these two physical vehicles
-                routeToBus[rLong.routeId] = busOnShort;
-                routeToBus[rShort.routeId] = busOnLong;
-                busToRoute[busOnShort] = rLong.routeId;
-                busToRoute[busOnLong] = rShort.routeId;
+                routeToVehicle[rLong.routeId] = vShort;
+                routeToVehicle[rShort.routeId] = vLong;
+                vehicleToRoute[vShort] = rLong.routeId;
+                vehicleToRoute[vLong] = rShort.routeId;
 
                 changed = true;
             }
@@ -465,30 +478,38 @@ function swapBusAssignments(state) {
     }
 
     // Evaluate departure blockage and format details
-    const blockedBuses = [];
+    const blockedVehicles = [];
     const blockedRouteIds = [];
+    const vehicleAssignmentsDetails = {};
     const busAssignmentsDetails = {};
     const ranges = {};
 
     for (const r of routeInfos) {
-        const busName = r.busShortName;
-        const assignedRouteId = busToRoute[busName] || r.routeId;
+        const uId = r.uniqueId;
+        const assignedRouteId = vehicleToRoute[uId] || r.routeId;
         const assignedRouteObj = routeInfos.find((x) => x.routeId === assignedRouteId) || r;
-        const t = busTelemetry[busName] || { soc: 100, condition: "Good" };
+        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good" };
         const range = estimatedRangeKm(t.soc);
         const dist = assignedRouteObj.gtfsDistanceKm;
         const isBlocked = (dist > 0 && range < dist) || (t.condition === "Not Good") || (t.soc < 25);
 
         if (isBlocked) {
-            blockedBuses.push(busName);
+            blockedVehicles.push(uId);
             blockedRouteIds.push(assignedRouteId);
         }
 
-        const routeDisplay = `Route ${assignedRouteId} (${dist.toFixed(1)} km)`;
+        const routeDisplay = `Route ${assignedRouteId} - ${assignedRouteObj.busShortName} (${dist.toFixed(1)} km)`;
 
-        busAssignmentsDetails[busName] = {
-            busName,
+        const record = {
+            uniqueId: uId,
+            unique_id: uId,
+            vehicleId: uId,
+            busName: uId,
+            defaultBusShortName: r.busShortName,
             assignedRouteId,
+            assignedRouteShortName: assignedRouteObj.busShortName,
+            origin: assignedRouteObj.origin,
+            destination: assignedRouteObj.destination,
             assignedRouteDistanceKm: dist,
             assignedRouteDisplay: routeDisplay,
             soc: t.soc,
@@ -497,7 +518,12 @@ function swapBusAssignments(state) {
             blocked: isBlocked
         };
 
+        vehicleAssignmentsDetails[uId] = record;
+        busAssignmentsDetails[uId] = record;
+        busAssignmentsDetails[r.busShortName] = record;
+
         ranges[assignedRouteId] = {
+            assignedVehicle: uId,
             soc: t.soc,
             condition: t.condition,
             estimatedRangeKm: range,
@@ -507,40 +533,61 @@ function swapBusAssignments(state) {
     }
 
     // Bidirectional assignments:
-    // assignments[busName] = routeId  (vehicle-centric)
-    // assignments[routeId] = busName  (route-centric backwards compatibility)
+    // assignments[uniqueId] = routeId
+    // assignments[routeId] = uniqueId
+    // Also include busShortName keys for legacy backward compatibility
     const mergedAssignments = {};
-    for (const [rId, bName] of Object.entries(routeToBus)) {
-        mergedAssignments[rId] = bName;
-        mergedAssignments[bName] = rId;
+    for (const [rId, vId] of Object.entries(routeToVehicle)) {
+        mergedAssignments[rId] = vId;
+        mergedAssignments[vId] = rId;
+        const routeObj = routeInfos.find((x) => x.routeId === rId);
+        if (routeObj) {
+            mergedAssignments[routeObj.busShortName] = vId;
+        }
     }
 
-    // Synchronize state entries so both busName and routeId hold identical telemetry
-    for (const [bName, details] of Object.entries(busAssignmentsDetails)) {
-        if (!state[bName]) {
-            state[bName] = { soc: details.soc, condition: details.condition, status: details.soc > 30 ? "Active" : "Blocked" };
+    // Synchronize state entries so uniqueId, busShortName, and routeId hold identical telemetry
+    for (const [uId, details] of Object.entries(vehicleAssignmentsDetails)) {
+        if (!state[uId]) {
+            state[uId] = { uniqueId: uId, soc: details.soc, condition: details.condition, status: details.soc > 30 ? "Active" : "Blocked" };
         }
-        state[bName].soc = details.soc;
-        state[bName].condition = details.condition;
-        state[bName].status = details.soc > 30 ? "Active" : details.soc > 15 ? "Warning" : "Blocked";
-        state[bName].assignedRouteId = details.assignedRouteId;
-        state[bName].assignedRouteDisplay = details.assignedRouteDisplay;
-        state[bName].blocked = details.blocked;
+        state[uId].uniqueId = uId;
+        state[uId].soc = details.soc;
+        state[uId].condition = details.condition;
+        state[uId].status = details.soc > 30 ? "Active" : details.soc > 15 ? "Warning" : "Blocked";
+        state[uId].assignedRouteId = details.assignedRouteId;
+        state[uId].assignedRouteDisplay = details.assignedRouteDisplay;
+        state[uId].assignedRouteShortName = details.assignedRouteShortName;
+        state[uId].blocked = details.blocked;
 
         const rId = details.assignedRouteId;
         if (!state[rId]) {
-            state[rId] = { soc: details.soc, condition: details.condition, status: state[bName].status };
+            state[rId] = { soc: details.soc, condition: details.condition, status: state[uId].status };
         }
         state[rId].soc = details.soc;
         state[rId].condition = details.condition;
-        state[rId].status = state[bName].status;
-        state[rId].busNumber = bName;
+        state[rId].status = state[uId].status;
+        state[rId].uniqueId = uId;
+        state[rId].busNumber = details.assignedRouteShortName;
         state[rId].blocked = details.blocked;
+
+        const bShort = details.assignedRouteShortName;
+        if (bShort) {
+            if (!state[bShort]) {
+                state[bShort] = { soc: details.soc, condition: details.condition, status: state[uId].status };
+            }
+            state[bShort].soc = details.soc;
+            state[bShort].condition = details.condition;
+            state[bShort].status = state[uId].status;
+            state[bShort].uniqueId = uId;
+            state[bShort].blocked = details.blocked;
+        }
     }
 
     state._assignments = mergedAssignments;
+    state._vehicleAssignments = vehicleAssignmentsDetails;
     state._busAssignments = busAssignmentsDetails;
-    state._blockedBuses = [...new Set(blockedBuses)];
+    state._blockedBuses = [...new Set(blockedVehicles)];
     state._blockedRouteIds = [...new Set(blockedRouteIds)];
     state.ranges = ranges;
 
@@ -548,7 +595,7 @@ function swapBusAssignments(state) {
         state._swapLog = currentSwapLog.concat(state._swapLog || []).slice(0, 50);
     }
 
-    console.log(`[SwapEngine] Vehicle-Centric Assignments updated. Blocked: ${state._blockedBuses.join(", ") || "none"}`);
+    console.log(`[SwapEngine] Unique-ID Vehicle Assignments updated. Blocked vehicles: ${state._blockedBuses.join(", ") || "none"}`);
     return state;
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -979,52 +1026,57 @@ function resolveBusAndRoute(rawBusId) {
     const allRoutes = loadRoutes();
     const busState = loadBusState();
     const assignments = busState._assignments || {};
+    const vehicleAssignments = busState._vehicleAssignments || {};
     const busAssignments = busState._busAssignments || {};
 
     const cleanLower = cleanId.toLowerCase();
     const cleanCompact = cleanId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 1. Vehicle-Centric: match by physical bus name (busNumber) first!
+    // 1. Match by uniqueId (EV-01..EV-54)
     let matchingRoute = allRoutes.find((r) => {
-        const rBus = String(r.busNumber || "").trim().toLowerCase();
-        const rBusCompact = rBus.replace(/[^a-zA-Z0-9]/g, "");
-        return rBus === cleanLower || rBusCompact === cleanCompact;
+        const uId = String(r.uniqueId || "").toLowerCase();
+        return uId === cleanLower || uId.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
     });
 
-    // 2. If not matched by busNumber, try by routeId or assigned route mapping
+    // 2. Match by busNumber (route short name, e.g. 401-A)
     if (!matchingRoute) {
         matchingRoute = allRoutes.find((r) => {
-            const rId = String(r.routeId);
-            const assigned = String(assignments[rId] || "").trim().toLowerCase();
-            const assignedCompact = assigned.replace(/[^a-zA-Z0-9]/g, "");
-            return (
-                rId === cleanId ||
-                assigned === cleanLower ||
-                assignedCompact === cleanCompact
-            );
+            const rBus = String(r.busNumber || "").trim().toLowerCase();
+            const rBusCompact = rBus.replace(/[^a-zA-Z0-9]/g, "");
+            return rBus === cleanLower || rBusCompact === cleanCompact;
         });
     }
 
-    const busNumber = matchingRoute ? matchingRoute.busNumber : cleanId;
-    const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : cleanId;
-
-    // Assigned GTFS route in vehicle-centric model
-    let assignedRouteId = (assignments && assignments[busNumber]) || null;
-    if (!assignedRouteId || !allRoutes.some(r => String(r.routeId) === String(assignedRouteId))) {
-        const found = Object.entries(assignments || {}).find(([k, v]) => v === busNumber && allRoutes.some(r => String(r.routeId) === k));
-        assignedRouteId = found ? found[0] : defaultRouteId;
+    // 3. Match by routeId
+    if (!matchingRoute) {
+        matchingRoute = allRoutes.find((r) => String(r.routeId) === cleanId);
     }
-    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
-    const assignedRecord = (busAssignments && busAssignments[busNumber]) || null;
-    const assignedRouteDisplay = assignedRecord?.assignedRouteDisplay
-        || (assignedRouteObj ? `Route ${assignedRouteObj.routeId} (${(calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0).toFixed(1)} km)` : `Route ${assignedRouteId}`);
 
-    // Vehicle-Centric: prioritize physical bus state entry (where ESP32 telemetry history is stored)
-    const stateEntry = busState[busNumber] 
-        || busState[cleanId] 
-        || busState[defaultRouteId] 
+    // Determine uniqueId of physical vehicle
+    let uniqueId = "";
+    if (matchingRoute) {
+        uniqueId = matchingRoute.uniqueId;
+    } else if (cleanId.toUpperCase().startsWith("EV-")) {
+        uniqueId = cleanId.toUpperCase();
+    } else {
+        uniqueId = assignments[cleanId] || cleanId;
+    }
+
+    // What route is assigned to this physical vehicle?
+    let assignedRouteId = (assignments && (assignments[uniqueId] || assignments[matchingRoute?.busNumber])) 
+        || (matchingRoute ? String(matchingRoute.routeId) : cleanId);
+    let assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
+
+    // Assigned display
+    const assignedRecord = (vehicleAssignments && vehicleAssignments[uniqueId]) || (busAssignments && busAssignments[uniqueId]) || null;
+    const assignedRouteDisplay = assignedRecord?.assignedRouteDisplay
+        || (assignedRouteObj ? `Route ${assignedRouteObj.routeId} - ${assignedRouteObj.busNumber} (${(calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0).toFixed(1)} km)` : `Route ${assignedRouteId}`);
+
+    // Telemetry state entry
+    const stateEntry = busState[uniqueId]
+        || (matchingRoute ? busState[matchingRoute.busNumber] : null)
+        || busState[cleanId]
         || busState[assignedRouteId]
-        || Object.entries(busState).find(([k]) => k.toLowerCase() === cleanLower || k.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() === cleanCompact)?.[1]
         || {};
 
     const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
@@ -1032,11 +1084,22 @@ function resolveBusAndRoute(rawBusId) {
     const routeDistanceKm = (assignedRouteObj && calculateRouteDistanceByRouteId(assignedRouteObj.routeId))
         || (matchingRoute && calculateRouteDistanceByRouteId(matchingRoute.routeId))
         || 28.7;
+    const isBlocked = (busState._blockedBuses || []).includes(uniqueId)
+        || (busState._blockedRouteIds || []).includes(assignedRouteId)
+        || (condition === "Not Good")
+        || (currentSoc < 25)
+        || (routeDistanceKm > 0 && Math.round(Math.max(0, currentSoc - 10) * 1.42) < routeDistanceKm);
+
+    const busNumber = assignedRouteObj ? assignedRouteObj.busNumber : (matchingRoute ? matchingRoute.busNumber : cleanId);
 
     return {
+        uniqueId,
+        unique_id: uniqueId,
+        vehicleId: uniqueId,
         busNumber,
-        busName: busNumber,
-        canonicalRouteId: defaultRouteId,
+        busShortName: busNumber,
+        busName: uniqueId,
+        canonicalRouteId: matchingRoute ? String(matchingRoute.routeId) : assignedRouteId,
         assignedRouteId,
         assignedRouteDisplay,
         assignedRouteObj,
@@ -1044,15 +1107,17 @@ function resolveBusAndRoute(rawBusId) {
         stateEntry,
         currentSoc,
         condition,
-        routeDistanceKm
+        routeDistanceKm,
+        blocked: isBlocked
     };
 }
 
 function getBusMicroData(rawBusId) {
-    const { currentSoc, routeDistanceKm, stateEntry, busNumber } = resolveBusAndRoute(rawBusId);
+    const { currentSoc, routeDistanceKm, stateEntry, uniqueId, busNumber } = resolveBusAndRoute(rawBusId);
     const history = Array.isArray(stateEntry.history) ? [...stateEntry.history] : [];
     const now = Date.now();
     const targetPoints = 30;
+    const idToUse = uniqueId || busNumber;
 
     // Ensure the latest point matches the live currentSoc
     if (history.length > 0) {
@@ -1062,7 +1127,7 @@ function getBusMicroData(rawBusId) {
                 timestamp: new Date().toISOString(),
                 soc: currentSoc,
                 odometer_km: routeDistanceKm,
-                bus_id: busNumber
+                bus_id: idToUse
             });
         }
     }
@@ -1080,14 +1145,14 @@ function getBusMicroData(rawBusId) {
                 timestamp: t,
                 soc: socVal,
                 odometer_km: odo,
-                bus_id: busNumber
+                bus_id: idToUse
             });
         }
         const combined = [...synthetic, ...history.map((h, idx) => ({
             timestamp: h.timestamp,
             soc: Number(h.soc),
             odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (history.length - 1 - idx) * 0.02)).toFixed(1)),
-            bus_id: busNumber
+            bus_id: idToUse
         }))];
         combined[combined.length - 1].soc = currentSoc;
         return combined;
@@ -1097,16 +1162,17 @@ function getBusMicroData(rawBusId) {
         timestamp: h.timestamp,
         soc: Number(h.soc),
         odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (arr.length - 1 - idx) * 0.02)).toFixed(1)),
-        bus_id: busNumber
+        bus_id: idToUse
     }));
     trimmed[trimmed.length - 1].soc = currentSoc;
     return trimmed;
 }
 
 function getBusMacroData(rawBusId) {
-    const { currentSoc, routeDistanceKm, busNumber } = resolveBusAndRoute(rawBusId);
+    const { currentSoc, routeDistanceKm, uniqueId, busNumber } = resolveBusAndRoute(rawBusId);
     const now = new Date();
     const logs = [];
+    const idToUse = uniqueId || busNumber;
 
     for (let offset = 29; offset >= 0; offset--) {
         const date = new Date(now.getTime() - offset * 24 * 3600 * 1000);
@@ -1133,7 +1199,7 @@ function getBusMacroData(rawBusId) {
             soc_end: endSoc,
             km,
             duration_hours: durationHours,
-            bus_id: busNumber
+            bus_id: idToUse
         });
     }
     return logs;
@@ -1194,17 +1260,25 @@ const server = http.createServer(async (req, res) => {
             const info = resolveBusAndRoute(busIdParam);
             sendJson(res, {
                 ok: true,
-                busName: info.busNumber,
-                bus_id: info.busNumber,
+                uniqueId: info.uniqueId,
+                unique_id: info.uniqueId,
+                vehicleId: info.uniqueId,
+                busName: info.uniqueId,
+                physicalVehicle: info.uniqueId,
+                busNumber: info.busNumber,
+                busShortName: info.busShortName,
+                bus_id: info.uniqueId,
                 routeId: info.canonicalRouteId,
                 assignedRouteId: info.assignedRouteId,
+                assignedRouteShortName: info.assignedRouteObj?.busNumber || info.busNumber,
                 assignedRouteDisplay: info.assignedRouteDisplay,
                 origin: info.assignedRouteObj?.origin || info.matchingRoute?.origin || "",
                 destination: info.assignedRouteObj?.destination || info.matchingRoute?.destination || "",
                 routeName: info.assignedRouteObj?.routeName || info.matchingRoute?.routeName || "",
                 soc: info.currentSoc,
                 condition: info.condition,
-                distanceKm: info.routeDistanceKm
+                distanceKm: info.routeDistanceKm,
+                blocked: info.blocked
             });
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to load bus summary", details: error.message }, 500);
@@ -1282,58 +1356,93 @@ const server = http.createServer(async (req, res) => {
                 req.on("end", () => {
                     try {
                         const payload = body ? JSON.parse(body) : {};
-                        const rawId = String(payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
+                        const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
 
                         if (!rawId) {
-                            sendJson(res, { ok: false, error: "bus (or routeId) is required" }, 400);
+                            sendJson(res, { ok: false, error: "unique_id or bus (or routeId) is required" }, 400);
                             return;
                         }
 
                         const allRoutes = loadRoutes();
-                        const matchingRoute = allRoutes.find(
-                            (r) => String(r.busNumber).trim().toLowerCase() === rawId.toLowerCase()
-                                || String(r.routeId) === rawId
-                        );
+                        const cleanLower = rawId.toLowerCase();
+                        const cleanCompact = rawId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-                        const busName = matchingRoute ? matchingRoute.busNumber : rawId;
-                        const routeId = matchingRoute ? String(matchingRoute.routeId) : "";
+                        let matchingRoute = allRoutes.find((r) => {
+                            const u = String(r.uniqueId || "").toLowerCase();
+                            return u === cleanLower || u.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
+                        });
+                        if (!matchingRoute) {
+                            matchingRoute = allRoutes.find((r) => {
+                                const b = String(r.busNumber || "").trim().toLowerCase();
+                                return b === cleanLower || b.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
+                            });
+                        }
+                        if (!matchingRoute) {
+                            matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
+                        }
+
+                        const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase() : "EV-01");
+                        const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
+                        const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 
                         const currentState = loadBusState();
-                        const existing = currentState[busName] || (routeId ? currentState[routeId] : {}) || {};
+                        const existing = currentState[uniqueId] || (busShortName ? currentState[busShortName] : {}) || (defaultRouteId ? currentState[defaultRouteId] : {}) || {};
                         const updatedEntry = normalizeBusStateEntry(payload, existing);
-                        currentState[busName] = updatedEntry;
-                        if (routeId) {
-                            currentState[routeId] = Object.assign({}, updatedEntry, { busNumber: busName });
+
+                        // Store primarily under uniqueId (physical vehicle)
+                        currentState[uniqueId] = updatedEntry;
+                        if (busShortName && busShortName !== uniqueId) {
+                            currentState[busShortName] = Object.assign({}, updatedEntry, { uniqueId });
+                        }
+                        if (defaultRouteId) {
+                            currentState[defaultRouteId] = Object.assign({}, updatedEntry, { uniqueId, busNumber: busShortName });
                         }
 
                         swapBusAssignments(currentState);
                         saveBusState(currentState);
 
                         // Forward to Python backend for micro/macro tracking
-                        fetch(`${PYTHON_API_BASE}/telemetry`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                bus_id: busName,
-                                soc: updatedEntry.soc,
-                                condition: updatedEntry.condition,
-                                status: updatedEntry.status
-                            })
-                        }).catch(() => {});
+                        const pythonIds = new Set([uniqueId, busShortName]);
+                        if (defaultRouteId) pythonIds.add(defaultRouteId);
+                        for (const pyId of pythonIds) {
+                            fetch(`${PYTHON_API_BASE}/telemetry`, {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({
+                                    bus_id: pyId,
+                                    soc: updatedEntry.soc,
+                                    condition: updatedEntry.condition,
+                                    status: updatedEntry.status
+                                })
+                            }).catch(() => {});
+                        }
 
-                        const assignedRouteId = (currentState._assignments || {})[busName] || routeId;
-                        const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId));
+                        const assignedRouteId = (currentState._assignments || {})[uniqueId] || defaultRouteId;
+                        const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
                         const assignedDist = assignedRouteObj ? (calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0) : 0;
-                        const assignedDisplay = `Route ${assignedRouteId} (${assignedDist.toFixed(1)} km)`;
-                        const isBlocked = (currentState._blockedBuses || []).includes(busName)
+                        const assignedDisplay = assignedRouteObj
+                            ? `Route ${assignedRouteId} - ${assignedRouteObj.busNumber} (${assignedDist.toFixed(1)} km)`
+                            : `Route ${assignedRouteId} (${assignedDist.toFixed(1)} km)`;
+                        const isBlocked = (currentState._blockedBuses || []).includes(uniqueId)
                                        || (currentState._blockedRouteIds || []).includes(assignedRouteId);
 
                         sendJson(res, {
                             ok: true,
-                            bus: busName,
+                            unique_id: uniqueId,
+                            uniqueId: uniqueId,
+                            bus: uniqueId,
+                            bus_id: uniqueId,
+                            busName: uniqueId,
+                            physicalVehicle: uniqueId,
+                            busShortName,
                             routeId: assignedRouteId,
+                            assignedRouteId,
+                            assignedRouteShortName: assignedRouteObj?.busNumber || busShortName,
+                            assignedRouteDistanceKm: assignedDist,
                             assignedRoute: assignedDisplay,
                             assignedRouteDisplay: assignedDisplay,
+                            origin: assignedRouteObj?.origin || "",
+                            destination: assignedRouteObj?.destination || "",
                             blocked: isBlocked,
                             state: updatedEntry
                         });
@@ -1377,40 +1486,54 @@ const server = http.createServer(async (req, res) => {
                         }
                     }
 
-                    // ── Vehicle-Centric: key telemetry by physical busName ──
-                    const rawId = String(payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
+                    const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
                     if (!rawId) {
-                        sendJson(res, { ok: false, error: "bus (or routeId) is required" }, 400);
+                        sendJson(res, { ok: false, error: "unique_id or bus (or routeId) is required" }, 400);
                         return;
                     }
 
                     const allRoutes = loadRoutes();
-                    const matchingRoute = allRoutes.find(
-                        (r) => String(r.busNumber).trim().toLowerCase() === rawId.toLowerCase()
-                            || String(r.routeId) === rawId
-                    );
+                    const cleanLower = rawId.toLowerCase();
+                    const cleanCompact = rawId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-                    const busName = matchingRoute ? matchingRoute.busNumber : rawId;
-                    const routeId = matchingRoute ? String(matchingRoute.routeId) : "";
-
-                    const currentState = loadBusState();
-                    const existing = currentState[busName] || (routeId ? currentState[routeId] : {}) || {};
-                    const updatedEntry = normalizeBusStateEntry(payload, existing);
-
-                    // Store by physical busName
-                    currentState[busName] = updatedEntry;
-                    if (routeId) {
-                        currentState[routeId] = Object.assign({}, updatedEntry, { busNumber: busName });
+                    let matchingRoute = allRoutes.find((r) => {
+                        const u = String(r.uniqueId || "").toLowerCase();
+                        return u === cleanLower || u.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
+                    });
+                    if (!matchingRoute) {
+                        matchingRoute = allRoutes.find((r) => {
+                            const b = String(r.busNumber || "").trim().toLowerCase();
+                            return b === cleanLower || b.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
+                        });
+                    }
+                    if (!matchingRoute) {
+                        matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
                     }
 
-                    // Run the vehicle-centric swap engine
-                    swapBusAssignments(currentState);
+                    const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase() : "EV-01");
+                    const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
+                    const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 
+                    const currentState = loadBusState();
+                    const existing = currentState[uniqueId] || (busShortName ? currentState[busShortName] : {}) || (defaultRouteId ? currentState[defaultRouteId] : {}) || {};
+                    const updatedEntry = normalizeBusStateEntry(payload, existing);
+
+                    // Store primarily under uniqueId (physical vehicle)
+                    currentState[uniqueId] = updatedEntry;
+                    if (busShortName && busShortName !== uniqueId) {
+                        currentState[busShortName] = Object.assign({}, updatedEntry, { uniqueId });
+                    }
+                    if (defaultRouteId) {
+                        currentState[defaultRouteId] = Object.assign({}, updatedEntry, { uniqueId, busNumber: busShortName });
+                    }
+
+                    // Run the unique-id bus swap engine
+                    swapBusAssignments(currentState);
                     saveBusState(currentState);
 
                     // Forward to Python backend (for micro/macro charts)
-                    const pythonIds = new Set([busName]);
-                    if (routeId) pythonIds.add(routeId);
+                    const pythonIds = new Set([uniqueId, busShortName]);
+                    if (defaultRouteId) pythonIds.add(defaultRouteId);
                     for (const pyId of pythonIds) {
                         fetch(`${PYTHON_API_BASE}/telemetry`, {
                             method: "POST",
@@ -1424,26 +1547,36 @@ const server = http.createServer(async (req, res) => {
                         }).catch(() => {});
                     }
 
-                    const assignedRouteId = (currentState._assignments || {})[busName] || routeId;
-                    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId));
+                    const assignedRouteId = (currentState._assignments || {})[uniqueId] || defaultRouteId;
+                    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
                     const assignedDist = assignedRouteObj ? (calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0) : 0;
-                    const assignedDisplay = `Route ${assignedRouteId} (${assignedDist.toFixed(1)} km)`;
-                    const isBlocked = (currentState._blockedBuses || []).includes(busName)
+                    const assignedDisplay = assignedRouteObj
+                        ? `Route ${assignedRouteId} - ${assignedRouteObj.busNumber} (${assignedDist.toFixed(1)} km)`
+                        : `Route ${assignedRouteId} (${assignedDist.toFixed(1)} km)`;
+                    const isBlocked = (currentState._blockedBuses || []).includes(uniqueId)
                                    || (currentState._blockedRouteIds || []).includes(assignedRouteId);
 
-                    console.log(`[Telemetry] Bus=${busName} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, AssignedRoute=${assignedDisplay}, Blocked=${isBlocked}`);
+                    console.log(`[Telemetry] Vehicle=${uniqueId} updated: SoC=${updatedEntry.soc}%, Condition=${updatedEntry.condition}, AssignedRoute=${assignedDisplay}, Blocked=${isBlocked}`);
                     sendJson(res, {
                         ok: true,
-                        message: `Telemetry updated successfully for Bus ${busName}`,
-                        bus: busName,
-                        bus_id: busName,
-                        assignedBus: busName,
-                        assignedBusShortName: busName,
+                        message: `Telemetry updated successfully for Bus ${uniqueId}`,
+                        unique_id: uniqueId,
+                        uniqueId: uniqueId,
+                        bus: uniqueId,
+                        bus_id: uniqueId,
+                        busName: uniqueId,
+                        physicalVehicle: uniqueId,
+                        busShortName,
+                        assignedBus: uniqueId,
+                        assignedBusShortName: busShortName,
                         routeId: assignedRouteId,
                         assignedRouteId: assignedRouteId,
+                        assignedRouteShortName: assignedRouteObj?.busNumber || busShortName,
                         assignedRouteDistanceKm: assignedDist,
                         assignedRoute: assignedDisplay,
                         assignedRouteDisplay: assignedDisplay,
+                        origin: assignedRouteObj?.origin || "",
+                        destination: assignedRouteObj?.destination || "",
                         blocked: isBlocked,
                         state: updatedEntry
                     });
@@ -1461,13 +1594,14 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/bus-assignments") {
         try {
             const currentState = loadBusState();
-            if (!currentState._assignments || !currentState._busAssignments) {
+            if (!currentState._assignments || !currentState._vehicleAssignments) {
                 swapBusAssignments(currentState);
                 saveBusState(currentState);
             }
             sendJson(res, {
                 ok: true,
                 assignments: currentState._assignments || {},
+                vehicleAssignments: currentState._vehicleAssignments || {},
                 busAssignments: currentState._busAssignments || {},
                 blockedBuses: currentState._blockedBuses || [],
                 blockedRouteIds: currentState._blockedRouteIds || [],
@@ -1485,27 +1619,40 @@ const server = http.createServer(async (req, res) => {
             const allRoutes = loadRoutes();
             const busState = loadBusState();
             const assignments = busState._assignments || {};
-            const busAssignments = busState._busAssignments || {};
 
             const fleet = allRoutes.map((r) => {
-                const busName = (r.busNumber || "").trim();
-                const assignedRouteId = assignments[busName] || String(r.routeId);
+                const uniqueId = r.uniqueId;
+                const assignedRouteId = assignments[uniqueId] || String(r.routeId);
                 const assignedRouteObj = allRoutes.find((x) => String(x.routeId) === String(assignedRouteId)) || r;
                 const dist = calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0;
-                const assignedDisplay = `Route ${assignedRouteId} (${dist.toFixed(1)} km)`;
+                const assignedDisplay = `Route ${assignedRouteId} - ${assignedRouteObj.busNumber} (${dist.toFixed(1)} km)`;
 
-                const state = busState[busName] || busState[r.routeId] || {};
+                const state = busState[uniqueId] || busState[r.busNumber] || busState[r.routeId] || {};
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
                 const status = state.status || (soc > 30 ? "Active" : soc > 15 ? "Warning" : "Blocked");
-                const isBlocked = (busState._blockedBuses || []).includes(busName) || (dist > 0 && Math.round(Math.max(0, soc - 10) * 1.42) < dist);
+                const range = Math.round(Math.max(0, soc - 10) * 1.42);
+                const isBlocked = (busState._blockedBuses || []).includes(uniqueId)
+                               || (busState._blockedRouteIds || []).includes(assignedRouteId)
+                               || (condition === "Not Good")
+                               || (soc < 25)
+                               || (dist > 0 && range < dist);
 
                 return {
-                    bus_id: busName,
-                    busName: busName,
+                    unique_id: uniqueId,
+                    uniqueId: uniqueId,
+                    vehicleId: uniqueId,
+                    bus_id: uniqueId,
+                    busName: uniqueId,
+                    physicalVehicle: uniqueId,
+                    defaultBusNumber: r.busNumber,
+                    defaultRouteId: String(r.routeId),
+                    assignedRouteId,
+                    assignedRouteShortName: assignedRouteObj.busNumber,
+                    origin: assignedRouteObj.origin,
+                    destination: assignedRouteObj.destination,
                     route: assignedDisplay,
                     assignedRoute: assignedDisplay,
-                    assignedRouteId: assignedRouteId,
                     routeDistanceKm: dist,
                     soc,
                     condition,

@@ -170,15 +170,16 @@
   <script>
     // -----------------------------------------------------------------------
     // Vehicle-Centric Analytics
-    //   bus_id   = Physical Vehicle Short Name (e.g. "401-A", "BC-7B PSS-NLGH-8thM")
-    //   route_id = Assigned/Default GTFS Route ID (e.g. "8781", "1427")
+    //   unique_id = Physical Bus Asset ID (e.g. "EV-01".."EV-54")
+    //   bus_id    = Physical Bus or Route Short Name (e.g. "401-A")
+    //   route_id  = Assigned/Default GTFS Route ID (e.g. "1367")
     // -----------------------------------------------------------------------
     const urlParams  = new URLSearchParams(window.location.search);
-    const busParam   = (urlParams.get("bus_id") || urlParams.get("bus") || "").trim();
+    const busParam   = (urlParams.get("unique_id") || urlParams.get("uniqueId") || urlParams.get("bus_id") || urlParams.get("bus") || "").trim();
     const routeParam = (urlParams.get("route_id") || "").trim();
 
     // Primary vehicle identity
-    let searchKey            = busParam || routeParam || "401-A";
+    let searchKey            = busParam || routeParam || "EV-01";
     let physicalBusName      = busParam || "";
     let assignedRouteId      = routeParam || "";
     let assignedRouteDisplay = "";
@@ -203,7 +204,7 @@
     }
 
     // -----------------------------------------------------------------------
-    // Fetch Summary Metadata (Vehicle name, assigned route, distance, condition)
+    // Fetch Summary Metadata (Vehicle uniqueId, assigned route, distance, condition)
     // -----------------------------------------------------------------------
     async function fetchSummary() {
       try {
@@ -211,13 +212,13 @@
         if (res.ok) {
           const info = await res.json();
           if (info.ok) {
-            physicalBusName = info.busName || searchKey;
+            physicalBusName = info.uniqueId || info.busName || searchKey;
             searchKey = physicalBusName;
             assignedRouteId = info.assignedRouteId || info.routeId || "";
             assignedRouteDisplay = info.assignedRouteDisplay || (assignedRouteId ? `Route ${assignedRouteId}` : "");
 
             // Update UI elements
-            document.getElementById("pageHeading").textContent = `Bus ${physicalBusName} SoC Analytics`;
+            document.getElementById("pageHeading").textContent = `Vehicle ${physicalBusName} Battery Analytics`;
             document.getElementById("busIdLabel").textContent = physicalBusName;
             const odText = (info.origin && info.destination) ? ` • ${info.origin} ➔ ${info.destination}` : "";
             document.getElementById("routeIdSub").textContent = assignedRouteDisplay ? `Assigned: ${assignedRouteDisplay}${odText}` : "Assigned: Active";

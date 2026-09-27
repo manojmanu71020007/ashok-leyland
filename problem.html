@@ -867,8 +867,9 @@
                 <table class="scheduled-table">
                     <thead>
                         <tr>
-                            <th>Bus / Route</th>
+                            <th>Route Line</th>
                             <th>Origin ➔ Destination</th>
+                            <th>Assigned Bus (Vehicle)</th>
                             <th>Departure Time</th>
                             <th>Arrival Time</th>
                             <th>Status</th>
@@ -878,7 +879,7 @@
                     </thead>
                     <tbody id="scheduled-time-tbody">
                         <tr>
-                            <td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
+                            <td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
                         </tr>
                     </tbody>
                 </table>
@@ -1083,20 +1084,20 @@
             if (!routes || !routes.length) return [];
             const list = [];
             routes.forEach((route) => {
-                const assignedName = busAssignments[String(route.routeId)];
-                const defaultName = route.busNumber;
-                if (assignedName && assignedName !== defaultName) {
-                    const donorRoute = routes.find((r) => String(r.busNumber).trim() === String(assignedName).trim());
+                const assignedVehicle = busAssignments[String(route.routeId)] || route.uniqueId;
+                const defaultVehicle = route.uniqueId || "";
+                if (assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle) {
+                    const donorRoute = routes.find((r) => r.uniqueId === assignedVehicle);
                     const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                    const liveState = busStates[String(route.routeId)] || {};
+                    const liveState = busStates[assignedVehicle] || busStates[String(route.routeId)] || {};
 
                     let reason = "";
                     if (Array.isArray(serverSwapLog)) {
                         const logMatch = serverSwapLog.find((log) =>
                             String(log.routeA) === String(route.routeId) ||
                             String(log.routeB) === String(route.routeId) ||
-                            String(log.busA) === String(assignedName) ||
-                            String(log.busB) === String(assignedName)
+                            String(log.vehicleA) === String(assignedVehicle) ||
+                            String(log.vehicleB) === String(assignedVehicle)
                         );
                         if (logMatch && logMatch.reason) {
                             reason = logMatch.reason;
@@ -1110,21 +1111,23 @@
                         const cond = rangeInfo.condition || liveState.condition || "Good";
 
                         if (cond === "Not Good") {
-                            reason = `Safety & Maintenance Alert: Original vehicle required depot inspection/maintenance. Swapped vehicle '${assignedName}' assigned to ensure safe and continuous passenger service.`;
+                            reason = `Safety & Maintenance Alert: Original vehicle (${defaultVehicle}) required depot inspection/maintenance. Swapped vehicle '${assignedVehicle}' assigned to Route ${route.routeId} (${route.busNumber}) to ensure safe passenger service.`;
                         } else if (distA > distB && distB > 0) {
-                            reason = `Range & Battery Optimization: Longer Route ${route.routeId} (${distA.toFixed(1)} km) prioritized with vehicle '${assignedName}' (SoC: ${soc}%) over shorter Route ${donorRoute?.routeId || "N/A"} (${distB.toFixed(1)} km) to prevent in-service battery depletion.`;
+                            reason = `Range & Battery Optimization: Longer Route ${route.routeId} (${route.busNumber}, ${distA.toFixed(1)} km) prioritized with vehicle '${assignedVehicle}' (SoC: ${soc}%) over shorter Route ${donorRoute?.routeId || "N/A"} (${donorRoute?.busNumber || "N/A"}, ${distB.toFixed(1)} km) to prevent in-service battery depletion.`;
                         } else {
-                            reason = `Fleet Energy Balancing: Vehicle '${assignedName}' (SoC: ${soc}%) assigned to Route ${route.routeId} for optimal depot turnaround and schedule reliability.`;
+                            reason = `Fleet Energy Balancing: Vehicle '${assignedVehicle}' (SoC: ${soc}%) assigned to Route ${route.routeId} (${route.busNumber}) for optimal depot turnaround and schedule reliability.`;
                         }
                     }
 
                     list.push({
                         routeId: route.routeId,
-                        defaultBus: defaultName,
-                        assignedBus: assignedName,
+                        busNumber: route.busNumber,
+                        defaultVehicle,
+                        assignedVehicle,
                         origin: route.origin || "Origin",
                         destination: route.destination || "Destination",
                         donorRouteId: donorRoute ? donorRoute.routeId : null,
+                        donorBusNumber: donorRoute ? donorRoute.busNumber : null,
                         rangeInfo,
                         liveState,
                         reason
@@ -1141,7 +1144,7 @@
 
             const filtered = swappedList.filter((item) => {
                 if (!query) return true;
-                const text = `${item.routeId} ${item.defaultBus} ${item.assignedBus} ${item.origin} ${item.destination} ${item.donorRouteId || ""} ${item.reason}`.toLowerCase();
+                const text = `${item.routeId} ${item.busNumber} ${item.defaultVehicle} ${item.assignedVehicle} ${item.origin} ${item.destination} ${item.donorRouteId || ""} ${item.reason}`.toLowerCase();
                 return text.includes(query);
             });
 
@@ -1161,10 +1164,10 @@
                 swappedCardsContainer.innerHTML = `
                     <div style="text-align:center; padding: 44px 20px; color: var(--muted);">
                         <div style="font-size: 2.6rem; margin-bottom: 12px;">🚍✨</div>
-                        <h3 style="margin: 0 0 8px; color: var(--ink); font-size: 1.15rem;">All Buses Operating on Default Schedules</h3>
+                        <h3 style="margin: 0 0 8px; color: var(--ink); font-size: 1.15rem;">All Vehicles Operating on Default Route Allocations</h3>
                         <p style="max-width: 480px; margin: 0 auto; font-size: 0.88rem; line-height: 1.5;">
-                            No route swaps are currently in effect. Every route is running with its original default vehicle.
-                            When battery levels, route distance, or maintenance status require preemption, the Swap Engine will reassign buses automatically.
+                            No route swaps are currently in effect. Every route schedule line is running with its assigned default vehicle.
+                            When battery levels, route distance, or maintenance status require preemption, the Swap Engine will reassign vehicles automatically.
                         </p>
                     </div>
                 `;
@@ -1188,14 +1191,14 @@
                 const isBlocked = blockedRouteIds.has(String(item.routeId));
 
                 const donorInfo = item.donorRouteId 
-                    ? `<span style="font-size:0.78rem; color:var(--muted); margin-left:6px;">(Exchanged from Route ${escapeHtml(item.donorRouteId)})</span>` 
+                    ? `<span style="font-size:0.78rem; color:var(--muted); margin-left:6px;">(Exchanged from Route ${escapeHtml(item.donorRouteId)} • ${escapeHtml(item.donorBusNumber || "")})</span>` 
                     : "";
 
                 return `
                     <div class="swap-card">
                         <div class="swap-card-header">
                             <div>
-                                <span class="swap-route-badge">Route ${escapeHtml(item.routeId)}</span>
+                                <span class="swap-route-badge">Route ${escapeHtml(item.routeId)} — ${escapeHtml(item.busNumber)}</span>
                                 <strong style="margin-left: 8px; font-size: 0.95rem; color: var(--ink);">
                                     ${escapeHtml(item.origin)} ➔ ${escapeHtml(item.destination)}
                                 </strong>
@@ -1207,15 +1210,15 @@
 
                         <div class="swap-exchange-flow">
                             <div>
-                                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); display: block; font-weight: 700; margin-bottom: 2px;">Original Scheduled Bus</span>
-                                <span class="bus-pill-default">${escapeHtml(item.defaultBus)}</span>
+                                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); display: block; font-weight: 700; margin-bottom: 2px;">Default Scheduled Vehicle</span>
+                                <span class="bus-pill-default">🚌 ${escapeHtml(item.defaultVehicle)}</span>
                             </div>
 
                             <div class="swap-arrow">⇄</div>
 
                             <div>
-                                <span style="font-size: 0.72rem; text-transform: uppercase; color: #0284c7; display: block; font-weight: 700; margin-bottom: 2px;">Finally Swapped Assigned Bus</span>
-                                <span class="bus-pill-swapped">✅ ${escapeHtml(item.assignedBus)}</span>
+                                <span style="font-size: 0.72rem; text-transform: uppercase; color: #0284c7; display: block; font-weight: 700; margin-bottom: 2px;">Finally Swapped Assigned Vehicle</span>
+                                <span class="bus-pill-swapped">✅ 🚌 ${escapeHtml(item.assignedVehicle)}</span>
                                 ${donorInfo}
                             </div>
                         </div>
@@ -1350,14 +1353,14 @@
                 return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
             });
 
-            routeSelect.innerHTML = `<option value="">— Select a bus (${sortedAllRoutes.length} buses available) —</option>` + sortedAllRoutes.map((route) => {
-                const assignedName = getAssignedBusName(route);
+            routeSelect.innerHTML = `<option value="">— Select a route (${sortedAllRoutes.length} available) —</option>` + sortedAllRoutes.map((route) => {
+                const assignedVehicle = getAssignedBusName(route);
+                const defaultVehicle = route.uniqueId || "";
+                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const isBlocked = blockedRouteIds.has(String(route.routeId));
-                const routePart = route.busNumber && route.busNumber !== assignedName
-                    ? ` [Route: ${route.busNumber}]`
-                    : "";
+                const vehiclePart = `[Assigned: ${assignedVehicle}${isSwapped ? ' 🔄 Swapped' : ''}]`;
                 const blockedPart = isBlocked ? " ⛔ Blocked" : "";
-                const label = `${assignedName}${routePart} — ${route.origin} to ${route.destination}${blockedPart}`;
+                const label = `${route.busNumber} (${route.origin} ➔ ${route.destination}) — ${vehiclePart}${blockedPart}`;
                 return `<option value="${route.routeId}">${label}</option>`;
             }).join("");
 
@@ -1471,12 +1474,14 @@
                 const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
                 const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
 
-                const isSwapped = Boolean(assignedName && route.busNumber && assignedName !== route.busNumber);
+                const assignedVehicle = getAssignedBusName(route);
+                const defaultVehicle = route.uniqueId || "";
+                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const titleHtml = isSwapped
-                    ? `<strong>${assignedName} <span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Bus</span></strong>`
-                    : `<strong>${assignedName}</strong>`;
+                    ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Vehicle: ${assignedVehicle}</span></strong>`
+                    : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#f0fdf4;color:#166534;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
                 const subtitleHtml = isSwapped
-                    ? `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId} • Default Bus: ${route.busNumber}</span>`
+                    ? `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId} • Scheduled Default: ${defaultVehicle}</span>`
                     : `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
                 return `
@@ -1489,7 +1494,7 @@
                             ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
                             <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
                         </div>
-                        <button class="route-arrow" type="button" aria-label="View ${assignedName} details">›</button>
+                        <button class="route-arrow" type="button" aria-label="View ${assignedVehicle} details">›</button>
                     </div>`;
             }).join("");
 
@@ -1502,9 +1507,10 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
+                    const assignedVehicle = getAssignedBusName(selectedRoute) || selectedRoute.uniqueId || selectedRoute.busNumber || "";
                     const params = new URLSearchParams();
-                    if (busShortName) params.set("bus_id", busShortName);
+                    if (assignedVehicle) params.set("unique_id", assignedVehicle);
+                    if (assignedVehicle) params.set("bus_id", assignedVehicle);
                     if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });
@@ -1568,12 +1574,14 @@
                     isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${estRange}km < ${dist}km</span>` : "",
                     (!badCondition && !isBlockedByRange && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
-                const isSwapped = Boolean(assignedName && route.busNumber && assignedName !== route.busNumber);
+                const assignedVehicle = getAssignedBusName(route);
+                const defaultVehicle = route.uniqueId || "";
+                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const titleHtml = isSwapped
-                    ? `<strong>${assignedName} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Bus</span></strong>`
-                    : `<strong>${assignedName}</strong>`;
+                    ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped: ${assignedVehicle}</span></strong>`
+                    : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
                 const subtitleHtml = isSwapped
-                    ? `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId} • Default Bus: ${route.busNumber}</span>`
+                    ? `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId} • Scheduled Default: ${defaultVehicle}</span>`
                     : `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
                 return `
@@ -1587,7 +1595,7 @@
                             ${tags}
                             <button class="route-arrow not-alloc-arrow" type="button"
                                 style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
-                                aria-label="View ${assignedName} details">›</button>
+                                aria-label="View ${assignedVehicle} details">›</button>
                         </div>
                     </div>`;
             }).join("");
@@ -1601,9 +1609,10 @@
                     if (!routeId) return;
                     const selectedRoute = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!selectedRoute) return;
-                    const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
+                    const assignedVehicle = getAssignedBusName(selectedRoute) || selectedRoute.uniqueId || selectedRoute.busNumber || "";
                     const params = new URLSearchParams();
-                    if (busShortName) params.set("bus_id", busShortName);
+                    if (assignedVehicle) params.set("unique_id", assignedVehicle);
+                    if (assignedVehicle) params.set("bus_id", assignedVehicle);
                     if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });
@@ -1707,12 +1716,14 @@
             }
 
             if (!filteredScheduledRoutes.length) {
-                scheduledTimeTbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching "${escapeHtml(schedQuery)}".</td></tr>`;
+                scheduledTimeTbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching "${escapeHtml(schedQuery)}".</td></tr>`;
                 return;
             }
 
             scheduledTimeTbody.innerHTML = filteredScheduledRoutes.map((route) => {
-                const assignedName = getAssignedBusName(route);
+                const assignedVehicle = getAssignedBusName(route);
+                const defaultVehicle = route.uniqueId || "";
+                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const isAllocated = allocatedSet.has(String(route.routeId));
                 const isSelected = String(route.routeId) === currentlySelectedId;
                 const timings = getRouteScheduleTimings(route, isSelected);
@@ -1720,15 +1731,26 @@
                 const arrFormatted = formatTimeForDisplay(timings.arrival);
                 const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
 
+                const state = busStates[assignedVehicle] || busStates[route.routeId] || busStates[route.busNumber] || {};
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+
                 return `
                     <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${route.routeId}" style="cursor:pointer;">
                         <td>
-                            <strong>${assignedName}</strong>
+                            <strong>${route.busNumber}</strong>
                             <div style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</div>
                         </td>
                         <td>
                             <div style="font-weight:600;">${route.origin} ➔ ${route.destination}</div>
                             <div style="color:var(--muted);font-size:.72rem;">${route.routeName}</div>
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 ${assignedVehicle}</span>
+                                ${isSwapped ? '<span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;">🔄 Swapped</span>' : ''}
+                            </div>
+                            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% • ${condition}</div>
                         </td>
                         <td>
                             <span class="time-badge departure">🕒 ${depFormatted}</span>
@@ -1746,7 +1768,7 @@
                             }
                         </td>
                         <td>
-                            <button class="route-arrow scheduled-arrow" type="button" data-route-id="${route.routeId}" aria-label="View ${assignedName} details">›</button>
+                            <button class="route-arrow scheduled-arrow" type="button" data-route-id="${route.routeId}" aria-label="View ${assignedVehicle} details">›</button>
                         </td>
                     </tr>
                 `;
@@ -1758,9 +1780,10 @@
                     const routeId = btn.dataset.routeId;
                     const route = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!route) return;
-                    const busShortName = getAssignedBusName(route) || route.busNumber || "";
+                    const assignedVehicle = getAssignedBusName(route) || route.uniqueId || route.busNumber || "";
                     const params = new URLSearchParams();
-                    if (busShortName) params.set("bus_id", busShortName);
+                    if (assignedVehicle) params.set("unique_id", assignedVehicle);
+                    if (assignedVehicle) params.set("bus_id", assignedVehicle);
                     if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });

@@ -16,71 +16,72 @@ const char *ASSIGNMENTS_URL = "https://ashok-leyland-bus-tracking.onrender.com/a
 WebServer server(80);
 Preferences prefs;
 
-// Vehicle-Centric Model: Physical Bus is the fixed entity; Route is dynamically assigned
+// Vehicle-Centric Model: Physical Bus (EV-01..EV-54) is the fixed entity; Route is dynamically assigned
 struct BusTelemetry {
-  const char *busName;       // Physical Bus Short Name (canonical fixed key)
+  const char *uniqueId;      // Physical Bus Vehicle ID (EV-01..EV-54)
+  const char *busName;       // Physical Bus Short Name / Default Route
   String assignedRoute;      // Assigned Route & Distance (updated dynamically from swap engine)
   uint8_t soc;
   const char *status;
   String condition;          // "Good" or "Not Good"
 };
 
-// 3. Complete Fleet Database of 54 Physical Buses
+// 3. Complete Fleet Database of 54 Physical Buses (EV-01 through EV-54)
 BusTelemetry fleet[] = {
-{"BC-7B PSS-NLGH-8thM", "Route 6080 (9.9 km)", 78, "Active", "Good"},
-  {"PSS-NLGDH-8THM", "Route 7834 (11.3 km)", 100, "Active", "Good"},
-  {"270-D PSS-ABG", "Route 4759 (9.9 km)", 100, "Active", "Good"},
-  {"273-B PSS-ABG", "Route 4798 (10.2 km)", 100, "Active", "Good"},
-  {"401-AK ABG-PSS", "Route 3907 (9.9 km)", 100, "Active", "Good"},
-  {"MBS-12 PSS-ANP", "Route 3831 (7.1 km)", 100, "Active", "Good"},
-  {"248-AB", "Route 3864 (10.1 km)", 100, "Active", "Good"},
-  {"MF-32 PSS-CKB", "Route 7143 (12.3 km)", 100, "Active", "Good"},
-  {"401-M PSS-KTS-D31G", "Route 1626 (8.4 km)", 100, "Active", "Good"},
-  {"PSS-TGPL-GGH", "Route 7403 (6.9 km)", 100, "Active", "Good"},
-  {"250-S PSS-GLB", "Route 2780 (8.9 km)", 100, "Active", "Good"},
-  {"252-A PSS-HAL ARDC", "Route 9636 (30.7 km)", 100, "Active", "Good"},
-  {"252-F PSS-HAL ARDC", "Route 9581 (29.2 km)", 100, "Active", "Good"},
-  {"BC-7B PSS-ANDRH-HRHC", "Route 7888 (7.6 km)", 100, "Active", "Good"},
-  {"253-J PSS-HGV", "Route 3920 (18.6 km)", 100, "Active", "Good"},
-  {"252-A PSS-ISROM", "Route 6551 (26.5 km)", 100, "Active", "Good"},
-  {"JHMS-PSS", "Route 7296 (5.2 km)", 100, "Active", "Good"},
-  {"MF-26 PSS-JHMS", "Route 3935 (4.6 km)", 100, "Active", "Good"},
-  {"251E PSS-KMT", "Route 6979 (17.5 km)", 100, "Active", "Good"},
-  {"252 PSS-KMT", "Route 2764 (18.6 km)", 100, "Active", "Good"},
-  {"507-B", "Route 3430 (36.9 km)", 100, "Active", "Good"},
-  {"254-E PSS-KMP", "Route 3158 (13.3 km)", 100, "Active", "Good"},
-  {"251-C PSS-RPS-LGR", "Route 2787 (5.7 km)", 100, "Active", "Good"},
-  {"PSS-NTTF-LGRNBS", "Route 3916 (5.7 km)", 100, "Active", "Good"},
-  {"MBS-17 MHB-HBL-JHV-PSS", "Route 8842 (33 km)", 100, "Active", "Good"},
-  {"256-F", "Route 2644 (20.3 km)", 100, "Active", "Good"},
-  {"401-AK PSS-ABG", "Route 3878 (9.9 km)", 100, "Active", "Good"},
-  {"252-L", "Route 2826 (14.6 km)", 100, "Active", "Good"},
-  {"BC-7B BDYH-PSS", "Route 8276 (5.3 km)", 100, "Active", "Good"},
-  {"D22-PSS", "Route 1548 (1.5 km)", 100, "Active", "Good"},
-  {"401-AM", "Route 1427 (41 km)", 100, "Active", "Good"},
-  {"507", "Route 8543 (27.7 km)", 100, "Active", "Good"},
-  {"252", "Route 1553 (16.3 km)", 100, "Active", "Good"},
-  {"252-F", "Route 1621 (14.2 km)", 100, "Active", "Good"},
-  {"273", "Route 2559 (20.3 km)", 100, "Active", "Good"},
-  {"G-252 KBS D9 D22-PSS", "Route 8178 (17.4 km)", 100, "Active", "Good"},
-  {"252 LGR-PSS", "Route 1610 (5.7 km)", 100, "Active", "Good"},
-  {"CHAKRA-7", "Route 9534 (7.4 km)", 100, "Active", "Good"},
-  {"401-AM PTH-PSS", "Route 1428 (19.8 km)", 100, "Active", "Good"},
-  {"252-A", "Route 1612 (17.8 km)", 100, "Active", "Good"},
-  {"PSS-RGPS-SMH", "Route 9108 (9.2 km)", 100, "Active", "Good"},
-  {"401-A", "Route 1367 (19.1 km)", 100, "Active", "Good"},
-  {"D9-PSS", "Route 1549 (1.6 km)", 100, "Active", "Good"},
-  {"500-D MRHB-HBL-PSS", "Route 7632 (32.7 km)", 100, "Active", "Good"},
-  {"CHAKRA-7A", "Route 9535 (9.5 km)", 100, "Active", "Good"},
-  {"250-SB PSS-SVG", "Route 2786 (13.7 km)", 100, "Active", "Good"},
-  {"273 SDN-PSS", "Route 8592 (9.4 km)", 100, "Active", "Good"},
-  {"250-F PSS-SSHL", "Route 2770 (12.8 km)", 100, "Active", "Good"},
-  {"250-E PSS-TMH", "Route 2767 (11.7 km)", 100, "Active", "Good"},
-  {"265-A PSS-TEPL", "Route 3951 (3.2 km)", 100, "Active", "Good"},
-  {"253-D PSS-TRN", "Route 2861 (21.5 km)", 100, "Active", "Good"},
-  {"273 VSD-RJB-PSS", "Route 9132 (21.6 km)", 100, "Active", "Good"},
-  {"265-D PSS-VGN", "Route 3629 (2.5 km)", 100, "Active", "Good"},
-  {"401-A PSS-SGP-YHK", "Route 8781 (20.5 km)", 100, "Active", "Good"},
+  {"EV-01", "BC-7B PSS-NLGH-8thM", "Route 6080 (9.9 km)", 78, "Active", "Good"},
+  {"EV-02", "PSS-NLGDH-8THM", "Route 7834 (11.3 km)", 100, "Active", "Good"},
+  {"EV-03", "270-D PSS-ABG", "Route 4759 (9.9 km)", 100, "Active", "Good"},
+  {"EV-04", "273-B PSS-ABG", "Route 4798 (10.2 km)", 100, "Active", "Good"},
+  {"EV-05", "401-AK ABG-PSS", "Route 3907 (9.9 km)", 100, "Active", "Good"},
+  {"EV-06", "MBS-12 PSS-ANP", "Route 3831 (7.1 km)", 100, "Active", "Good"},
+  {"EV-07", "248-AB", "Route 3864 (10.1 km)", 100, "Active", "Good"},
+  {"EV-08", "MF-32 PSS-CKB", "Route 7143 (12.3 km)", 100, "Active", "Good"},
+  {"EV-09", "401-M PSS-KTS-D31G", "Route 1626 (8.4 km)", 100, "Active", "Good"},
+  {"EV-10", "PSS-TGPL-GGH", "Route 7403 (6.9 km)", 100, "Active", "Good"},
+  {"EV-11", "250-S PSS-GLB", "Route 2780 (8.9 km)", 100, "Active", "Good"},
+  {"EV-12", "252-A PSS-HAL ARDC", "Route 9636 (30.7 km)", 100, "Active", "Good"},
+  {"EV-13", "252-F PSS-HAL ARDC", "Route 9581 (29.2 km)", 100, "Active", "Good"},
+  {"EV-14", "BC-7B PSS-ANDRH-HRHC", "Route 7888 (7.6 km)", 100, "Active", "Good"},
+  {"EV-15", "253-J PSS-HGV", "Route 3920 (18.6 km)", 100, "Active", "Good"},
+  {"EV-16", "252-A PSS-ISROM", "Route 6551 (26.5 km)", 100, "Active", "Good"},
+  {"EV-17", "JHMS-PSS", "Route 7296 (5.2 km)", 100, "Active", "Good"},
+  {"EV-18", "MF-26 PSS-JHMS", "Route 3935 (4.6 km)", 100, "Active", "Good"},
+  {"EV-19", "251E PSS-KMT", "Route 6979 (17.5 km)", 100, "Active", "Good"},
+  {"EV-20", "252 PSS-KMT", "Route 2764 (18.6 km)", 100, "Active", "Good"},
+  {"EV-21", "507-B", "Route 3430 (36.9 km)", 100, "Active", "Good"},
+  {"EV-22", "254-E PSS-KMP", "Route 3158 (13.3 km)", 100, "Active", "Good"},
+  {"EV-23", "251-C PSS-RPS-LGR", "Route 2787 (5.7 km)", 100, "Active", "Good"},
+  {"EV-24", "PSS-NTTF-LGRNBS", "Route 3916 (5.7 km)", 100, "Active", "Good"},
+  {"EV-25", "MBS-17 MHB-HBL-JHV-PSS", "Route 8842 (33 km)", 100, "Active", "Good"},
+  {"EV-26", "256-F", "Route 2644 (20.3 km)", 100, "Active", "Good"},
+  {"EV-27", "401-AK PSS-ABG", "Route 3878 (9.9 km)", 100, "Active", "Good"},
+  {"EV-28", "252-L", "Route 2826 (14.6 km)", 100, "Active", "Good"},
+  {"EV-29", "BC-7B BDYH-PSS", "Route 8276 (5.3 km)", 100, "Active", "Good"},
+  {"EV-30", "D22-PSS", "Route 1548 (1.5 km)", 100, "Active", "Good"},
+  {"EV-31", "401-AM", "Route 1427 (41 km)", 100, "Active", "Good"},
+  {"EV-32", "507", "Route 8543 (27.7 km)", 100, "Active", "Good"},
+  {"EV-33", "252", "Route 1553 (16.3 km)", 100, "Active", "Good"},
+  {"EV-34", "252-F", "Route 1621 (14.2 km)", 100, "Active", "Good"},
+  {"EV-35", "273", "Route 2559 (20.3 km)", 100, "Active", "Good"},
+  {"EV-36", "G-252 KBS D9 D22-PSS", "Route 8178 (17.4 km)", 100, "Active", "Good"},
+  {"EV-37", "252 LGR-PSS", "Route 1610 (5.7 km)", 100, "Active", "Good"},
+  {"EV-38", "CHAKRA-7", "Route 9534 (7.4 km)", 100, "Active", "Good"},
+  {"EV-39", "401-AM PTH-PSS", "Route 1428 (19.8 km)", 100, "Active", "Good"},
+  {"EV-40", "252-A", "Route 1612 (17.8 km)", 100, "Active", "Good"},
+  {"EV-41", "PSS-RGPS-SMH", "Route 9108 (9.2 km)", 100, "Active", "Good"},
+  {"EV-42", "401-A", "Route 1367 (19.1 km)", 100, "Active", "Good"},
+  {"EV-43", "D9-PSS", "Route 1549 (1.6 km)", 100, "Active", "Good"},
+  {"EV-44", "500-D MRHB-HBL-PSS", "Route 7632 (32.7 km)", 100, "Active", "Good"},
+  {"EV-45", "CHAKRA-7A", "Route 9535 (9.5 km)", 100, "Active", "Good"},
+  {"EV-46", "250-SB PSS-SVG", "Route 2786 (13.7 km)", 100, "Active", "Good"},
+  {"EV-47", "273 SDN-PSS", "Route 8592 (9.4 km)", 100, "Active", "Good"},
+  {"EV-48", "250-F PSS-SSHL", "Route 2770 (12.8 km)", 100, "Active", "Good"},
+  {"EV-49", "250-E PSS-TMH", "Route 2767 (11.7 km)", 100, "Active", "Good"},
+  {"EV-50", "265-A PSS-TEPL", "Route 3951 (3.2 km)", 100, "Active", "Good"},
+  {"EV-51", "253-D PSS-TRN", "Route 2861 (21.5 km)", 100, "Active", "Good"},
+  {"EV-52", "273 VSD-RJB-PSS", "Route 9132 (21.6 km)", 100, "Active", "Good"},
+  {"EV-53", "265-D PSS-VGN", "Route 3629 (2.5 km)", 100, "Active", "Good"},
+  {"EV-54", "401-A PSS-SGP-YHK", "Route 8781 (20.5 km)", 100, "Active", "Good"},
 };
 
 const size_t FLEET_SIZE = sizeof(fleet) / sizeof(fleet[0]);
@@ -113,12 +114,12 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
 <body>
   <main>
     <h1>Driver Terminal</h1>
-    <p>Select your physical bus and update telemetry. The assigned route is dynamically optimized from the cloud swap engine.</p>
+    <p>Select your physical vehicle (EV-01..EV-54) and update telemetry. The assigned route is dynamically optimized from the cloud swap engine.</p>
     <form id="telemetry-form">
-      <label for="bus-search">Search Physical Bus</label>
-      <input type="text" id="bus-search" placeholder="Type bus name (e.g. 401-A, MF-26, BC-7B)..." autocomplete="off" style="padding: 11px; border: 1px solid #b9c8d6; border-radius: 8px; margin-bottom: 6px;">
+      <label for="bus-search">Search Physical Vehicle (EV-01..EV-54 or Name)</label>
+      <input type="text" id="bus-search" placeholder="Type vehicle ID (e.g. EV-42) or route name..." autocomplete="off" style="padding: 11px; border: 1px solid #b9c8d6; border-radius: 8px; margin-bottom: 6px;">
 
-      <label for="bus-select">Select Physical Bus (<span id="bus-count">54</span> buses available)</label>
+      <label for="bus-select">Select Physical Vehicle (<span id="bus-count">54</span> vehicles available)</label>
       <select id="bus-select" name="bus" required>
         <option value="">Loading Fleet Data...</option>
       </select>
@@ -167,6 +168,8 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
 
       const filtered = q
         ? fleetData.filter(bus => 
+            (bus.unique_id && bus.unique_id.toLowerCase().includes(q)) || 
+            (bus.uniqueId && bus.uniqueId.toLowerCase().includes(q)) || 
             (bus.busName && bus.busName.toLowerCase().includes(q)) || 
             (bus.bus_id && bus.bus_id.toLowerCase().includes(q)) || 
             (bus.assignedRoute && bus.assignedRoute.toLowerCase().includes(q)) ||
@@ -179,13 +182,16 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       }
 
       if (filtered.length === 0) {
-        busSelect.innerHTML = '<option value="">No matching buses found</option>';
+        busSelect.innerHTML = '<option value="">No matching vehicles found</option>';
         return;
       }
 
-      busSelect.innerHTML = filtered.map(bus => 
-        `<option value="${bus.origIndex}">Bus ${bus.busName || bus.bus_id}: Assigned to ${bus.assignedRoute || bus.route} (${bus.soc}%)</option>`
-      ).join('');
+      busSelect.innerHTML = filtered.map(bus => {
+        const uId = bus.unique_id || bus.uniqueId || `EV-${String(bus.origIndex + 1).padStart(2, '0')}`;
+        const name = bus.busName || bus.bus_id || '';
+        const assigned = bus.assignedRoute || bus.route || '';
+        return `<option value="${bus.origIndex}">${uId} (${name}) ➔ Assigned: ${assigned} [${bus.soc}%]</option>`;
+      }).join('');
 
       if (prevVal !== "" && busSelect.querySelector(`option[value="${prevVal}"]`)) {
         busSelect.value = prevVal;
@@ -195,7 +201,7 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       updateFormForSelectedBus();
     }
 
-    // Vehicle-Centric: display selection box with physical bus name and dynamically assigned route
+    // Vehicle-Centric: display selection box with physical vehicle ID (EV-XX) and dynamically assigned route
     async function loadFleetDropdown() {
       try {
         const response = await fetch('/api/fleet');
@@ -208,9 +214,14 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
           const assignData = await assignRes.json();
           if (assignData) {
             fleetData.forEach(bus => {
+              const uId = bus.unique_id || bus.uniqueId;
               const bName = bus.busName || bus.bus_id;
-              if (assignData.busAssignments && assignData.busAssignments[bName]) {
+              if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
+                bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
+              } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
                 bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
+              } else if (uId && assignData.assignments && assignData.assignments[uId]) {
+                bus.assignedRoute = "Route " + assignData.assignments[uId];
               } else if (assignData.assignments && assignData.assignments[bName]) {
                 bus.assignedRoute = "Route " + assignData.assignments[bName];
               }
@@ -222,7 +233,7 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
 
         renderDropdown(busSearch.value);
       } catch (err) {
-        busSelect.innerHTML = `<option value="">Error loading buses</option>`;
+        busSelect.innerHTML = `<option value="">Error loading vehicles</option>`;
       }
     }
     loadFleetDropdown();
@@ -243,13 +254,14 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       try {
         const idx = parseInt(busSelect.value, 10);
         const b = fleetData[idx];
-        const bName = b ? (b.busName || b.bus_id) : busSelect.value;
+        const uId = b ? (b.unique_id || b.uniqueId || `EV-${String(idx + 1).padStart(2, '0')}`) : busSelect.value;
 
         const response = await fetch('/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ 
-            bus: bName,
+            bus: uId,
+            unique_id: uId,
             busIndex: idx,
             soc: slider.value,
             condition: conditionSelect.value 
@@ -265,7 +277,7 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
               fleetData[idx].assignedRoute = result.assignedRoute;
             }
           }
-          message.textContent = `Bus ${result.bus} updated! Assigned: ${result.assignedRoute}` + (result.blocked ? " (⛔ Blocked: Range < Route Distance)" : "");
+          message.textContent = `Vehicle ${result.unique_id || result.bus} updated! Assigned: ${result.assignedRoute}` + (result.blocked ? " (⛔ Blocked: Range < Route Distance)" : "");
           // Re-sync all assignments from server so all swapped dropdown items update!
           await loadFleetDropdown();
         } else {
@@ -324,8 +336,8 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     </header>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Physical Bus</th><th>Assigned Route</th><th>Live SoC</th><th>Battery Status</th><th>Condition</th><th>Assigned Action</th></tr></thead>
-        <tbody id="fleet"><tr><td colspan="6">Loading fleet data...</td></tr></tbody>
+        <thead><tr><th>Physical Vehicle</th><th>Default Route Line</th><th>Assigned Route</th><th>Live SoC</th><th>Battery Status</th><th>Condition</th><th>Assigned Action</th></tr></thead>
+        <tbody id="fleet"><tr><td colspan="7">Loading fleet data...</td></tr></tbody>
       </table>
     </div>
     <a href="/">Back to driver terminal</a>
@@ -345,6 +357,8 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     function renderTable() {
       const filterText = searchInput.value.toLowerCase();
       const filtered = latestData.filter(bus => 
+        (bus.unique_id && bus.unique_id.toLowerCase().includes(filterText)) || 
+        (bus.uniqueId && bus.uniqueId.toLowerCase().includes(filterText)) || 
         (bus.busName && bus.busName.toLowerCase().includes(filterText)) || 
         (bus.bus_id && bus.bus_id.toLowerCase().includes(filterText)) || 
         (bus.assignedRoute && bus.assignedRoute.toLowerCase().includes(filterText)) ||
@@ -352,6 +366,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
       );
 
       fleet.innerHTML = filtered.map(bus => {
+        const uId = bus.unique_id || bus.uniqueId || ('EV-' + String((bus.origIndex !== undefined ? bus.origIndex : 0) + 1).padStart(2, '0'));
         const state = stateFor(Number(bus.soc));
         const condBadge = bus.condition === 'Good' ? 'active' : 'blocked';
         
@@ -360,11 +375,12 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
            action = '<strong>URGENT: Route to Maintenance Depot</strong>';
         }
 
-        const busNameDisplay = bus.busName || bus.bus_id;
-        const routeDisplay = bus.assignedRoute || bus.route;
+        const busNameDisplay = bus.busName || bus.bus_id || '';
+        const routeDisplay = bus.assignedRoute || bus.route || '';
 
         return `<tr>
-          <td><strong>${busNameDisplay}</strong></td>
+          <td><strong style="color:var(--blue);">${uId}</strong></td>
+          <td>${busNameDisplay}</td>
           <td><strong>${routeDisplay}</strong></td>
           <td class="soc">${bus.soc}%</td>
           <td><span class="badge ${state.className}">${state.status}</span></td>
@@ -390,17 +406,25 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
             const assignData = await assignRes.json();
             const stateData = await stateRes.json();
             if (assignData) {
-              latestData.forEach(bus => {
+              latestData.forEach((bus, i) => {
+                bus.origIndex = i;
+                const uId = bus.unique_id || bus.uniqueId;
                 const bName = bus.busName || bus.bus_id;
-                if (assignData.busAssignments && assignData.busAssignments[bName]) {
+                if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
+                  bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
+                } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
                   bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
+                } else if (uId && assignData.assignments && assignData.assignments[uId]) {
+                  bus.assignedRoute = "Route " + assignData.assignments[uId];
                 } else if (assignData.assignments && assignData.assignments[bName]) {
                   bus.assignedRoute = "Route " + assignData.assignments[bName];
                 }
-                if (stateData && stateData.state && stateData.state[bName]) {
-                  const s = stateData.state[bName];
-                  if (s.soc !== undefined) bus.soc = s.soc;
-                  if (s.condition !== undefined) bus.condition = s.condition;
+                if (stateData && stateData.state) {
+                  const s = (uId && stateData.state[uId]) || (bName && stateData.state[bName]);
+                  if (s) {
+                    if (s.soc !== undefined) bus.soc = s.soc;
+                    if (s.condition !== undefined) bus.condition = s.condition;
+                  }
                 }
               });
             }
@@ -442,9 +466,15 @@ void handleFleetApi() {
   String json = "[";
   for (size_t i = 0; i < FLEET_SIZE; ++i) {
     if (i > 0) json += ",";
-    json += "{\"bus_id\":\"";
-    json += fleet[i].busName;
+    json += "{\"unique_id\":\"";
+    json += fleet[i].uniqueId;
+    json += "\",\"uniqueId\":\"";
+    json += fleet[i].uniqueId;
+    json += "\",\"bus_id\":\"";
+    json += fleet[i].uniqueId;
     json += "\",\"busName\":\"";
+    json += fleet[i].busName;
+    json += "\",\"defaultBusNumber\":\"";
     json += fleet[i].busName;
     json += "\",\"route\":\"";
     json += fleet[i].assignedRoute;
@@ -464,7 +494,7 @@ void handleFleetApi() {
 }
 
 void handleUpdate() {
-  if ((!server.hasArg("bus") && !server.hasArg("busIndex")) || !server.hasArg("soc") || !server.hasArg("condition")) {
+  if ((!server.hasArg("bus") && !server.hasArg("unique_id") && !server.hasArg("busIndex")) || !server.hasArg("soc") || !server.hasArg("condition")) {
     addCorsHeader();
     server.send(400, "application/json", "{\"error\":\"Missing required parameters\"}");
     return;
@@ -473,14 +503,14 @@ void handleUpdate() {
   int busIndex = -1;
   if (server.hasArg("busIndex")) {
     busIndex = server.arg("busIndex").toInt();
-  } else if (server.hasArg("bus")) {
-    String bArg = server.arg("bus");
-    // Check if it's an integer index or a bus name
+  } else {
+    String bArg = server.hasArg("unique_id") ? server.arg("unique_id") : server.arg("bus");
+    // Check if it's an integer index, a uniqueId (EV-XX), or a bus name
     if (bArg.length() <= 3 && bArg.toInt() >= 0 && bArg.toInt() < FLEET_SIZE) {
       busIndex = bArg.toInt();
     } else {
       for (size_t i = 0; i < FLEET_SIZE; ++i) {
-        if (bArg.equalsIgnoreCase(fleet[i].busName)) {
+        if (bArg.equalsIgnoreCase(fleet[i].uniqueId) || bArg.equalsIgnoreCase(fleet[i].busName)) {
           busIndex = i;
           break;
         }
@@ -497,7 +527,7 @@ void handleUpdate() {
     return;
   }
 
-  // 1. Update the ESP32's local telemetry for this physical bus
+  // 1. Update the ESP32's local telemetry for this physical vehicle
   fleet[busIndex].soc = static_cast<uint8_t>(soc);
   fleet[busIndex].condition = condition;
   recalculateStatus(fleet[busIndex]);
@@ -508,9 +538,11 @@ void handleUpdate() {
   prefs.putUChar(socKey.c_str(), static_cast<uint8_t>(soc));
   prefs.putString(condKey.c_str(), condition);
 
-  Serial.print("[NVS Saved] Bus ");
+  Serial.print("[NVS Saved] Vehicle ");
+  Serial.print(fleet[busIndex].uniqueId);
+  Serial.print(" (");
   Serial.print(fleet[busIndex].busName);
-  Serial.print(" -> SoC: ");
+  Serial.print(") -> SoC: ");
   Serial.print(soc);
   Serial.print("%, Condition: ");
   Serial.println(condition);
@@ -518,7 +550,7 @@ void handleUpdate() {
   String assignedRoute = fleet[busIndex].assignedRoute;
   bool blocked = false;
 
-  // 3. Forward to Render Cloud API using physical busName
+  // 3. Forward to Render Cloud API using uniqueId and physical busName
   if (WiFi.status() == WL_CONNECTED) {
     WiFiClientSecure secureClient;
     secureClient.setInsecure(); // Required for Render HTTPS certificates
@@ -529,7 +561,9 @@ void handleUpdate() {
     http.addHeader("Content-Type", "application/json");
     http.setTimeout(15000); // 15-second timeout to handle Render cold-starts safely
 
-    String jsonPayload = "{\"bus\":\"" + String(fleet[busIndex].busName) + 
+    String jsonPayload = "{\"unique_id\":\"" + String(fleet[busIndex].uniqueId) + 
+                         "\",\"bus\":\"" + String(fleet[busIndex].uniqueId) + 
+                         "\",\"busShortName\":\"" + String(fleet[busIndex].busName) + 
                          "\",\"soc\":" + String(soc) + 
                          ",\"condition\":\"" + fleet[busIndex].condition + "\"}";
     
@@ -537,8 +571,8 @@ void handleUpdate() {
     
     if (httpResponseCode == 200) {
       String responseBody = http.getString();
-      Serial.print("[Render Success] HTTP 200 for Bus ");
-      Serial.println(fleet[busIndex].busName);
+      Serial.print("[Render Success] HTTP 200 for Vehicle ");
+      Serial.println(fleet[busIndex].uniqueId);
 
       // Parse assignedRouteDisplay from swap engine response
       int keyIdx = responseBody.indexOf("\"assignedRouteDisplay\":\"");
@@ -573,8 +607,10 @@ void handleUpdate() {
   }
 
   addCorsHeader();
-  String resp = "{\"message\":\"Telemetry updated successfully for Bus " + String(fleet[busIndex].busName) + 
-                "\",\"bus\":\"" + String(fleet[busIndex].busName) + 
+  String resp = "{\"message\":\"Telemetry updated successfully for Vehicle " + String(fleet[busIndex].uniqueId) + 
+                "\",\"unique_id\":\"" + String(fleet[busIndex].uniqueId) + 
+                "\",\"bus\":\"" + String(fleet[busIndex].uniqueId) + 
+                "\",\"busShortName\":\"" + String(fleet[busIndex].busName) + 
                 "\",\"assignedRoute\":\"" + assignedRoute + 
                 "\",\"blocked\":" + (blocked ? "true" : "false") + "}";
   server.send(200, "application/json", resp);
