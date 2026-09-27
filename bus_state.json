@@ -466,35 +466,35 @@
   },
   "3878": {
     "status": "Active",
-    "rawStatus": "Active",
+    "rawStatus": "On Time",
     "soc": 80,
     "condition": "Good",
-    "updatedAt": "2026-09-27T03:24:21.931Z",
+    "updatedAt": "2026-09-27T08:58:57.641Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "07:35",
+        "departure": "07:30"
       }
     },
     "history": [
       {
-        "timestamp": "2026-09-27T03:24:21.931Z",
+        "timestamp": "2026-09-27T08:58:57.641Z",
         "soc": 16,
         "condition": "Good",
         "status": "On Time"
       }
     ],
+    "uniqueId": "EV-11",
     "busNumber": "401-AK PSS-ABG",
-    "blocked": false,
-    "uniqueId": "EV-11"
+    "blocked": false
   },
   "3907": {
     "status": "Active",
@@ -2507,36 +2507,34 @@
   },
   "401-AK PSS-ABG": {
     "status": "Active",
-    "rawStatus": "Active",
+    "rawStatus": "On Time",
     "soc": 80,
     "condition": "Good",
-    "updatedAt": "2026-09-27T03:24:21.931Z",
+    "updatedAt": "2026-09-27T08:58:57.641Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "07:35",
+        "departure": "07:30"
       }
     },
     "history": [
       {
-        "timestamp": "2026-09-27T03:24:21.931Z",
+        "timestamp": "2026-09-27T08:58:57.641Z",
         "soc": 16,
         "condition": "Good",
         "status": "On Time"
       }
     ],
-    "assignedRouteId": "3951",
-    "assignedRouteDisplay": "Route 3951 (3.2 km)",
-    "blocked": false,
-    "uniqueId": "EV-11"
+    "uniqueId": "EV-11",
+    "blocked": false
   },
   "252-L": {
     "soc": 100,
@@ -5491,10 +5489,34 @@
     "blocked": false
   },
   "EV-27": {
-    "uniqueId": "EV-27",
+    "status": "Warning",
+    "rawStatus": "On Time",
     "soc": 16,
     "condition": "Good",
-    "status": "Warning",
+    "updatedAt": "2026-09-27T08:58:57.641Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T08:58:57.641Z",
+        "soc": 16,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-27",
     "assignedRouteId": "3951",
     "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
     "assignedRouteShortName": "265-A PSS-TEPL",
