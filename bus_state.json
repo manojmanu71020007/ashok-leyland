@@ -486,25 +486,35 @@
   },
   "3907": {
     "status": "Active",
-    "statusTimings": {
-      "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
-      },
-      "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
-      },
-      "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
-      }
-    },
+    "rawStatus": "Active",
     "soc": 100,
     "condition": "Good",
+    "updatedAt": "2026-09-27T08:37:23.237Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T08:37:23.237Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-17",
     "busNumber": "401-AK ABG-PSS",
-    "blocked": false,
-    "uniqueId": "EV-17"
+    "blocked": false
   },
   "3916": {
     "status": "Active",
@@ -2220,13 +2230,35 @@
     "uniqueId": "EV-45"
   },
   "401-AK ABG-PSS": {
+    "status": "Active",
+    "rawStatus": "Active",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
-    "assignedRouteId": "1621",
-    "assignedRouteDisplay": "Route 1621 (13.6 km)",
-    "blocked": false,
-    "uniqueId": "EV-17"
+    "updatedAt": "2026-09-27T08:37:23.237Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T08:37:23.237Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-17",
+    "blocked": false
   },
   "MBS-12 PSS-ANP": {
     "soc": 65,
@@ -5173,10 +5205,34 @@
     "blocked": false
   },
   "EV-05": {
-    "uniqueId": "EV-05",
+    "status": "Active",
+    "rawStatus": "Active",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "updatedAt": "2026-09-27T08:37:23.237Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T08:37:23.237Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-05",
     "assignedRouteId": "2767",
     "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
     "assignedRouteShortName": "250-E PSS-TMH",
