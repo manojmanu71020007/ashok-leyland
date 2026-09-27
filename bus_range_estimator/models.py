@@ -64,6 +64,7 @@ class GTFSRoute:
     route_id: str             # fixed slot key — never reassigned
     route_short_name: str     # e.g. "600F"
     distance_km: float        # derived from GTFS shape (longest trip direction)
+    route_category: str = "SIMPLE"  # SIMPLE / MODERATE / COMPLEX (Page 4 matrix)
 
 
 @dataclass
@@ -72,10 +73,14 @@ class RouteAssignment:
 
     route_id: str
     route_distance_km: float
+    route_category: str = "SIMPLE"              # Page 4 route category
     assigned_bus_id: Optional[str] = None       # None means NO_DEPARTURE
     assigned_short_name: Optional[str] = None    # None means NO_DEPARTURE
+    assigned_category: Optional[str] = None     # A, B, or C (Page 4 range category)
     expected_range_km: float = 0.0
     last_swap_soc: Optional[float] = None        # incumbent SoC at time of last swap
+    matrix_compliant: bool = True               # whether assignment meets Page 4 matrix
+    swap_reason: str = ""                       # explanation of assignment or swap decision
 
     @property
     def no_departure(self) -> bool:

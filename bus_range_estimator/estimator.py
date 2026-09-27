@@ -102,8 +102,6 @@ def planned_range(
     used. The result is the available SOC adjusted by the fitted drain model.
     """
     rows = list(history)
-    if not rows:
-        return soc - reserve
 
     if route_code and slot:
         route_rows = [row for row in rows if row.route_code == route_code and row.slot == slot]

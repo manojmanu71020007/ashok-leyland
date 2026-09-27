@@ -804,6 +804,8 @@
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
                     <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
+                    <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
+                    <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
                     <div class="rule"><span>Fleet status</span><strong id="fleet-rule">Ready for dispatch</strong></div>
                 </div>
             </aside>
@@ -1473,6 +1475,11 @@
 
                 const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
                 const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
+                const routeDist = Number(route.gtfsDistanceKm) || 0;
+                const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
+                const busCat = rangeInfo.busCategory || (rangeInfo.estimatedRangeKm > 120 ? "A" : (rangeInfo.estimatedRangeKm >= 100 ? "B" : "C"));
+                const catBadge = `<span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
+                const tierBadge = `<span style="background:#fef3c7;color:#b45309;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
 
                 const assignedVehicle = getAssignedBusName(route);
                 const defaultVehicle = route.uniqueId || "";
@@ -1488,7 +1495,11 @@
                     <div class="route-row" data-route-id="${route.routeId}">
                         <div class="route-meta">
                             ${titleHtml}
-                            ${subtitleHtml}
+                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;">
+                                ${catBadge}
+                                ${tierBadge}
+                                ${subtitleHtml}
+                            </div>
                             <span>${route.origin} to ${route.destination}</span>
                             <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
                             ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
@@ -1577,6 +1588,11 @@
                 const assignedVehicle = getAssignedBusName(route);
                 const defaultVehicle = route.uniqueId || "";
                 const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
+                const routeDist = Number(route.gtfsDistanceKm) || 0;
+                const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
+                const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
+                const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
+                const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
                 const titleHtml = isSwapped
                     ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped: ${assignedVehicle}</span></strong>`
                     : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
@@ -1588,7 +1604,11 @@
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
                         <div class="route-meta">
                             ${titleHtml}
-                            ${subtitleHtml}
+                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;">
+                                ${catBadge}
+                                ${tierBadge}
+                                ${subtitleHtml}
+                            </div>
                             <span>${route.origin} to ${route.destination}</span>
                         </div>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
@@ -1875,10 +1895,37 @@
             const usableSoc = Math.max(0, liveSoc - 10);
             const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
 
+            // Page 4: Bus Range Category (Tier)
+            const busCategory = rangeValue > 120 ? "A" : (rangeValue >= 100 ? "B" : "C");
+
+            // Page 4: Time Slot Category
+            const departHours = departMinutes / 60;
+            let timeCategoryKey = "NORMAL";
+            let timeCategoryLabel = "Normal (Off-Peak)";
+            if (departHours >= 5 && departHours < 7) {
+                timeCategoryKey = "NORMAL";
+                timeCategoryLabel = "Normal (05:00–07:00)";
+            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
+                timeCategoryKey = "EXTREME_PEAK";
+                timeCategoryLabel = "Extreme Peak (07:00–10:00 & 16:00–20:00)";
+            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
+                timeCategoryKey = "PEAK";
+                timeCategoryLabel = "Peak (10:00–16:00 & 20:00–23:00)";
+            }
+
+            // Page 4 Priority Allocation Matrix
+            const allowedMatrix = {
+                simple: { NORMAL: ["A", "B", "C"], PEAK: ["A", "B"], EXTREME_PEAK: ["A", "B"] },
+                moderate: { NORMAL: ["A", "B"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
+            };
+            const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
+            const isMatrixCompliant = allowedCategories.includes(busCategory);
+
             // Block departure if estimated range < route distance (Logic 2)
             const isBlockedByRange = blockedRouteIds.has(String(selectedRoute.routeId));
             const rangeCovered = !isBlockedByRange && liveSoc > 25 && rangeValue >= routeDistance;
-            const ready = driverReady && effectiveClean && maintenanceClear && rangeCovered && complexity !== "complex";
+            const ready = driverReady && effectiveClean && maintenanceClear && rangeCovered && isMatrixCompliant;
 
             updateAllocationPanel();
 
@@ -1886,10 +1933,27 @@
             document.getElementById("range-result").textContent = `${rangeValue} km`;
             document.getElementById("current-soc-rule").textContent = `${liveSoc}%`;
             document.getElementById("range-rule").textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
-            document.getElementById("time-rule").textContent = departMinutes > 18 * 60 ? "Extreme peak" : "Standard peak";
-            document.getElementById("fleet-rule").textContent = ready
-                ? (manualCleanOverride ? "Ready for dispatch (manual override)" : "Ready for dispatch")
-                : (isBlockedByRange ? `Range insufficient (${rangeValue}km < ${routeDistance}km)` : (condition === "Not Good" ? "Maintenance Required" : (liveSoc <= 25 ? "Depot Charge Required" : "Needs review")));
+            document.getElementById("time-rule").textContent = timeCategoryLabel;
+
+            const busCatRule = document.getElementById("bus-category-rule");
+            if (busCatRule) busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
+            const matrixStatusRule = document.getElementById("matrix-status-rule");
+            if (matrixStatusRule) matrixStatusRule.textContent = isMatrixCompliant
+                ? `✅ Allowed (Cat ${allowedCategories.join('/')})`
+                : `⚠️ Required Cat ${allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+
+            let fleetReason = "Ready for dispatch";
+            if (manualCleanOverride) {
+                fleetReason = "Ready for dispatch (manual override)";
+            } else if (!ready) {
+                if (condition === "Not Good") fleetReason = "Maintenance Required";
+                else if (liveSoc <= 25) fleetReason = "Depot Charge Required (SoC <= 25%)";
+                else if (isBlockedByRange || rangeValue < routeDistance) fleetReason = `Range insufficient (${rangeValue}km < ${routeDistance}km)`;
+                else if (!isMatrixCompliant) fleetReason = `Page 4 Rule: ${complexity.toUpperCase()} route in ${timeCategoryKey} requires Category ${allowedCategories.join('/')} bus (bus is Cat ${busCategory})`;
+                else if (!driverReady) fleetReason = "Driver Not Assigned";
+                else fleetReason = "Needs review";
+            }
+            document.getElementById("fleet-rule").textContent = fleetReason;
         }
 
         async function loadData() {

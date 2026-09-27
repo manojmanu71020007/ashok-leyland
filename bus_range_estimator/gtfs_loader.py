@@ -71,13 +71,26 @@ def load_gtfs_routes(gtfs_dir: str | Path = "gtfs") -> Dict[str, GTFSRoute]:
         return _CACHE
 
     base = Path(gtfs_dir)
+    project_root = Path(__file__).resolve().parent.parent
     if not base.is_absolute():
         # Resolve relative to the project root (one level above this package)
-        base = Path(__file__).resolve().parent.parent / base
+        base = project_root / base
 
-    routes_rows = _read_csv(base / "routes.txt")
-    trips_rows  = _read_csv(base / "trips.txt")
-    shapes_rows = _read_csv(base / "shapes.txt")
+    def _find_file(filename: str, subfolder: str) -> Path:
+        candidates = [
+            base / filename,
+            base / subfolder / filename,
+            project_root / subfolder / filename,
+            project_root / filename,
+        ]
+        for c in candidates:
+            if c.exists():
+                return c
+        return base / filename
+
+    routes_rows = _read_csv(_find_file("routes.txt", "routes"))
+    trips_rows  = _read_csv(_find_file("trips.txt", "trips"))
+    shapes_rows = _read_csv(_find_file("shapes.txt", "shapes"))
 
     if not routes_rows or not trips_rows or not shapes_rows:
         _CACHE = {}
@@ -138,10 +151,12 @@ def load_gtfs_routes(gtfs_dir: str | Path = "gtfs") -> Dict[str, GTFSRoute]:
         dist = _shape_distance(sid)
         if dist <= 0:
             continue
+        route_cat = "COMPLEX" if dist >= 20.0 else ("MODERATE" if dist >= 10.0 else "SIMPLE")
         result[rid] = GTFSRoute(
             route_id=rid,
             route_short_name=route_short.get(rid, rid),
             distance_km=dist,
+            route_category=route_cat,
         )
 
     _CACHE = result

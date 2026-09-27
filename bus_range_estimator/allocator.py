@@ -40,7 +40,9 @@ def _slot_for_time(start_time: str) -> str:
         return "PEAK"
     if 16 <= hour < 20:
         return "EXTREME_PEAK"
-    return "PEAK"
+    if 20 <= hour < 23:
+        return "PEAK"
+    return "NORMAL"
 
 
 def can_swap_buses(

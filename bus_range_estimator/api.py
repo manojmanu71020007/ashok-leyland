@@ -518,3 +518,91 @@ def get_range(bus_id: str) -> dict[str, Any]:
         "blended_range_km": round(blended, 2),
         "range_category": categorize(blended),
     }
+
+
+@app.get("/matrix")
+def get_matrix() -> dict[str, Any]:
+    """Return the Page 4 Priority Allocation Matrix rules."""
+    from .swap_engine import ALLOWED_CATEGORIES, get_slot
+
+    return {
+        "ok": True,
+        "page": 4,
+        "title": "Priority Allocation Matrix",
+        "current_slot": get_slot(),
+        "bus_range_categories": {
+            "A": {"name": "High", "range_km": ">120 km"},
+            "B": {"name": "Medium", "range_km": "100-120 km"},
+            "C": {"name": "Low", "range_km": "<100 km"},
+        },
+        "route_categories": {
+            "SIMPLE": {"meaning": "Easy to operate", "distance_km": "< 10 km"},
+            "MODERATE": {"meaning": "Normal effort", "distance_km": "10 - 20 km"},
+            "COMPLEX": {"meaning": "Requires additional planning", "distance_km": ">= 20 km"},
+        },
+        "time_slots": {
+            "NORMAL": "05:00–07:00 (and 23:00–05:00)",
+            "EXTREME_PEAK": "07:00–10:00 and 16:00–20:00",
+            "PEAK": "10:00–16:00 and 20:00–23:00",
+        },
+        "allowed_categories": {
+            rcat: {slot: sorted(list(cats)) for slot, cats in slots.items()}
+            for rcat, slots in ALLOWED_CATEGORIES.items()
+        },
+    }
+
+
+@app.post("/swap/resync")
+def post_resync_swap(payload: dict[str, Any]) -> dict[str, Any]:
+    """Perform global greedy match respecting Page 4 Priority Allocation Matrix."""
+    from .gtfs_loader import load_gtfs_routes
+    from .swap_engine import resync_assignments, get_slot
+
+    slot = payload.get("slot") or get_slot()
+    buses_in = payload.get("buses", [])
+
+    buses = [
+        Bus(
+            bus_id=str(item["bus_id"]),
+            soc=float(item.get("soc", 100.0)),
+            soh=float(item.get("soh", 1.0)),
+            interior_clean=bool(item.get("interior_clean", True)),
+            exterior_clean=bool(item.get("exterior_clean", True)),
+            available=bool(item.get("available", True)),
+            short_name=str(item.get("short_name", "")),
+        )
+        for item in buses_in
+    ]
+
+    routes_dict = load_gtfs_routes()
+    routes_list = list(routes_dict.values())
+    assignments_in: dict[str, RouteAssignment] = {}
+
+    updated = resync_assignments(
+        buses=buses,
+        gtfs_routes=routes_list,
+        trip_logs=[],
+        telemetry=[],
+        assignments=assignments_in,
+        slot=slot,
+    )
+
+    return {
+        "ok": True,
+        "slot": slot,
+        "assignments": {
+            rid: {
+                "route_id": a.route_id,
+                "assigned_bus_id": a.assigned_bus_id,
+                "assigned_short_name": a.assigned_short_name,
+                "assigned_category": a.assigned_category,
+                "route_category": a.route_category,
+                "route_distance_km": a.route_distance_km,
+                "expected_range_km": a.expected_range_km,
+                "matrix_compliant": a.matrix_compliant,
+                "swap_reason": a.swap_reason,
+            }
+            for rid, a in updated.items()
+        },
+    }
+

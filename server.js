@@ -349,6 +349,70 @@ const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC — fallback when Python AP
 const SOC_BUFFER_PCT = 10;          // reserve: usable SoC = soc - buffer
 const DEPOT_MIN_SOC_FLOOR = 25;     // matches Python DEPOT_MIN_SOC_FLOOR in config.py
 
+// ── Page 4 Priority Allocation Matrix ─────────────────────────────────────────
+// Maps Route Category (Difficulty) x Time Slot -> Allowed Bus Range Categories.
+// Category A: > 120 km | Category B: 100-120 km | Category C: < 100 km
+const ALLOWED_CATEGORIES = {
+    SIMPLE: {
+        NORMAL: ["A", "B", "C"],
+        PEAK: ["A", "B"],
+        EXTREME_PEAK: ["A", "B"]
+    },
+    MODERATE: {
+        NORMAL: ["A", "B"],
+        PEAK: ["A"],
+        EXTREME_PEAK: ["A"]
+    },
+    COMPLEX: {
+        NORMAL: ["A"],
+        PEAK: ["A"],
+        EXTREME_PEAK: ["A"]
+    }
+};
+
+/**
+ * Maps a Date or hour to Page 4 Time Slot.
+ * 05:00–07:00 -> NORMAL
+ * 07:00–10:00 -> EXTREME_PEAK
+ * 10:00–16:00 -> PEAK
+ * 16:00–20:00 -> EXTREME_PEAK
+ * 20:00–23:00 -> PEAK
+ * 23:00–05:00 -> NORMAL (Off-peak night)
+ */
+function getTimeSlot(date = new Date()) {
+    const hour = typeof date === "number" ? date : date.getHours();
+    if (hour >= 5 && hour < 7) return "NORMAL";
+    if (hour >= 7 && hour < 10) return "EXTREME_PEAK";
+    if (hour >= 10 && hour < 16) return "PEAK";
+    if (hour >= 16 && hour < 20) return "EXTREME_PEAK";
+    if (hour >= 20 && hour < 23) return "PEAK";
+    return "NORMAL";
+}
+
+/**
+ * Returns route category ("SIMPLE" | "MODERATE" | "COMPLEX") from distance or explicit tag.
+ */
+function getRouteCategory(distKm, explicit) {
+    if (explicit && ["SIMPLE", "MODERATE", "COMPLEX"].includes(String(explicit).toUpperCase())) {
+        return String(explicit).toUpperCase();
+    }
+    const d = Number(distKm) || 0;
+    if (d >= 20.0) return "COMPLEX";
+    if (d >= 10.0) return "MODERATE";
+    return "SIMPLE";
+}
+
+/**
+ * Returns bus range category ("A" | "B" | "C") based on Page 4 thresholds.
+ * Category A: > 120 km | Category B: 100 - 120 km | Category C: < 100 km
+ */
+function getBusCategory(rangeKm) {
+    const r = Number(rangeKm) || 0;
+    if (r > 120.0) return "A";
+    if (r >= 100.0) return "B";
+    return "C";
+}
+
 // Per-vehicle blended range cache: uniqueId → { rangeKm, category, ts }
 // Populated asynchronously by fetchAndCachePythonRange() after every telemetry save.
 // estimatedRangeKm() uses this if available; falls back to the flat formula otherwise.
@@ -403,16 +467,21 @@ function fetchAndCachePythonRange(uniqueId, soc) {
  */
 function swapBusAssignments(state) {
     const allRoutes = loadRoutes();
+    const currentSlot = getTimeSlot();
 
-    const routeInfos = allRoutes.map((r) => ({
-        uniqueId: r.uniqueId,
-        routeId: String(r.routeId),
-        busShortName: (r.busNumber || "N/A").trim(),
-        routeName: (r.routeName || "").trim(),
-        origin: r.origin || "",
-        destination: r.destination || "",
-        gtfsDistanceKm: calculateRouteDistanceByRouteId(r.routeId)
-    })).filter((r) => r.gtfsDistanceKm !== null && r.gtfsDistanceKm > 0);
+    const routeInfos = allRoutes.map((r) => {
+        const dist = calculateRouteDistanceByRouteId(r.routeId);
+        return {
+            uniqueId: r.uniqueId,
+            routeId: String(r.routeId),
+            busShortName: (r.busNumber || "N/A").trim(),
+            routeName: (r.routeName || "").trim(),
+            origin: r.origin || "",
+            destination: r.destination || "",
+            gtfsDistanceKm: dist,
+            routeCategory: getRouteCategory(dist, r.routeCategory || (state[r.routeId] && state[r.routeId].routeCategory))
+        };
+    }).filter((r) => r.gtfsDistanceKm !== null && r.gtfsDistanceKm > 0);
 
     if (!routeInfos.length) return state;
 
@@ -421,12 +490,16 @@ function swapBusAssignments(state) {
     for (const r of routeInfos) {
         const uId = r.uniqueId;
         const s = state[uId] || state[r.busShortName] || state[r.routeId] || {};
+        const soc = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100;
+        const range = estimatedRangeKm(soc, uId);
         vehicleTelemetry[uId] = {
             uniqueId: uId,
             defaultRouteId: r.routeId,
             defaultBusShortName: r.busShortName,
-            soc: Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100,
-            condition: s.condition || "Good"
+            soc,
+            condition: s.condition || "Good",
+            estimatedRangeKm: range,
+            busCategory: getBusCategory(range)
         };
     }
 
@@ -457,10 +530,16 @@ function swapBusAssignments(state) {
         vehicleToRoute[v] = r.routeId;
     }
 
-    // Sort routes descending by GTFS distance (longest route first)
-    const sortedRoutes = [...routeInfos].sort((a, b) => b.gtfsDistanceKm - a.gtfsDistanceKm);
+    // Page 4 Operational Difficulty Priority:
+    // COMPLEX routes first, then MODERATE, then SIMPLE. Within same tier, longest distance first.
+    const catRanks = { COMPLEX: 0, MODERATE: 1, SIMPLE: 2 };
+    const sortedRoutes = [...routeInfos].sort((a, b) => {
+        const rDiff = (catRanks[a.routeCategory] ?? 2) - (catRanks[b.routeCategory] ?? 2);
+        if (rDiff !== 0) return rDiff;
+        return b.gtfsDistanceKm - a.gtfsDistanceKm;
+    });
 
-    // Greedy swap passes with 5% hysteresis
+    // Greedy swap passes with Page 4 Priority Allocation Matrix and 5% hysteresis
     let changed = true;
     let guard = 50;
     const currentSwapLog = [];
@@ -468,54 +547,87 @@ function swapBusAssignments(state) {
     while (changed && guard-- > 0) {
         changed = false;
         for (let i = 0; i < sortedRoutes.length - 1; i++) {
-            const rLong = sortedRoutes[i];      // Longer route (e.g. 41.0 km)
-            const rShort = sortedRoutes[i + 1];  // Shorter route (e.g. 1.5 km)
+            const rHigh = sortedRoutes[i];      // Higher priority / difficulty route
+            const rLow = sortedRoutes[i + 1];   // Lower priority route
 
-            const vLong = routeToVehicle[rLong.routeId];
-            const vShort = routeToVehicle[rShort.routeId];
+            const vHigh = routeToVehicle[rHigh.routeId];
+            const vLow = routeToVehicle[rLow.routeId];
 
-            const tLong = vehicleTelemetry[vLong] || { soc: 100, condition: "Good" };
-            const tShort = vehicleTelemetry[vShort] || { soc: 100, condition: "Good" };
+            const tHigh = vehicleTelemetry[vHigh] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
+            const tLow = vehicleTelemetry[vLow] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
 
-            // The longer route needs the higher SoC / operational vehicle!
-            // Swap if vehicle on long route is broken (Not Good) while vehicle on short route is Good,
-            // OR if both are Good and vehicle on short route has > 5% SoC advantage over vehicle on long route.
-            const shouldSwap = (tShort.condition === "Good" && tLong.condition === "Not Good") ||
-                               (tShort.condition === "Good" && tLong.condition === "Good" && (tShort.soc - tLong.soc > SWAP_THRESHOLD_PCT));
+            const allowedHigh = (ALLOWED_CATEGORIES[rHigh.routeCategory] || ALLOWED_CATEGORIES.SIMPLE)[currentSlot] || ["A"];
+            const isHighCompliant = allowedHigh.includes(tHigh.busCategory);
+            const isLowCompliantForHigh = allowedHigh.includes(tLow.busCategory);
+
+            let shouldSwap = false;
+            let reason = "";
+
+            // 1. Safety & Maintenance: vehicle on higher priority route is broken while lower route vehicle is Good
+            if (tHigh.condition === "Not Good" && tLow.condition === "Good") {
+                shouldSwap = true;
+                reason = `Safety & Maintenance Alert: Higher priority Route ${rHigh.routeId} (${rHigh.busShortName}, ${rHigh.routeCategory}) had vehicle '${vHigh}' in '${tHigh.condition}' condition. Reassigned operational vehicle '${vLow}' to Route ${rHigh.routeId} to prevent in-service breakdown.`;
+            }
+            // 2. Depot dispatch floor: vehicle on high priority route is below 25% floor
+            else if (tHigh.soc < DEPOT_MIN_SOC_FLOOR && tLow.soc >= DEPOT_MIN_SOC_FLOOR) {
+                shouldSwap = true;
+                reason = `Depot Dispatch Floor Alert: Route ${rHigh.routeId} (${rHigh.busShortName}) had vehicle '${vHigh}' with SoC ${tHigh.soc}% below 25% floor. Reassigned vehicle '${vLow}' (${tLow.soc}% SoC).`;
+            }
+            // 3. Physical distance shortfall: vehicle on rHigh cannot cover the route km, but vLow can
+            else if (tHigh.estimatedRangeKm < rHigh.gtfsDistanceKm && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm && tLow.condition === "Good") {
+                shouldSwap = true;
+                reason = `Range Shortfall Alert: Route ${rHigh.routeId} (${rHigh.gtfsDistanceKm.toFixed(1)} km) exceeded range of vehicle '${vHigh}' (${tHigh.estimatedRangeKm} km). Reassigned vehicle '${vLow}' (${tLow.estimatedRangeKm} km).`;
+            }
+            // 4. Page 4 Priority Allocation Matrix Violation & Upgrade:
+            // High priority route vehicle violates matrix (e.g. Cat B/C on Complex route in Extreme Peak) while vLow is compliant (Cat A)
+            else if (!isHighCompliant && isLowCompliantForHigh && tLow.condition === "Good" && tLow.soc >= DEPOT_MIN_SOC_FLOOR && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm) {
+                shouldSwap = true;
+                reason = `Page 4 Priority Allocation Matrix: Route ${rHigh.routeId} (${rHigh.routeCategory}, ${currentSlot}) requires Category ${allowedHigh.join('/')}, but vehicle '${vHigh}' is Category ${tHigh.busCategory} (${tHigh.estimatedRangeKm} km). Reassigned Category ${tLow.busCategory} vehicle '${vLow}' (${tLow.estimatedRangeKm} km).`;
+            }
+            // 5. Page 4 Simple Route Conservation during Normal hours:
+            // If rLow is Simple during Normal, and vLow is Category A while rHigh is Complex/Moderate and has Category B/C,
+            // promote vLow (Cat A) to rHigh and let rLow take vHigh (Cat B/C)
+            else if (currentSlot === "NORMAL" && rLow.routeCategory === "SIMPLE" && tLow.busCategory === "A" && tHigh.busCategory !== "A" && isLowCompliantForHigh && tLow.condition === "Good" && tLow.soc >= DEPOT_MIN_SOC_FLOOR && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm) {
+                shouldSwap = true;
+                reason = `Page 4 Resource Balancing: Route ${rHigh.routeId} (${rHigh.routeCategory}) prioritized with Category A vehicle '${vLow}' (${tLow.soc}% SoC), while Simple Route ${rLow.routeId} (${rLow.busShortName}) allocated Category ${tHigh.busCategory} vehicle '${vHigh}'.`;
+            }
+            // 6. Range Optimization with 5% SoC Hysteresis (both Good, vLow can cover rHigh):
+            else if (tLow.condition === "Good" && tHigh.condition === "Good" && (tLow.soc - tHigh.soc > SWAP_THRESHOLD_PCT) && (tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm)) {
+                if (!isHighCompliant || isLowCompliantForHigh) {
+                    shouldSwap = true;
+                    reason = `Range Optimization: Higher priority Route ${rHigh.routeId} (${rHigh.busShortName}, ${rHigh.routeCategory}, ${rHigh.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vHigh}' with lower battery (${tHigh.soc}%). Reassigned vehicle '${vLow}' (${tLow.soc}% SoC, Category ${tLow.busCategory}) exceeding 5% hysteresis.`;
+                }
+            }
 
             if (shouldSwap) {
-                let reason = "";
-                if (tLong.condition === "Not Good" && tShort.condition === "Good") {
-                    reason = `Safety & Maintenance Alert: Longer Route ${rLong.routeId} (${rLong.busShortName}, ${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vLong}' in 'Not Good' condition. Reassigned operational vehicle '${vShort}' to Route ${rLong.routeId} to prevent in-service breakdown.`;
-                } else if (tShort.soc - tLong.soc > SWAP_THRESHOLD_PCT) {
-                    reason = `Range Optimization: Longer Route ${rLong.routeId} (${rLong.busShortName}, ${rLong.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vLong}' with lower battery (${tLong.soc}%). Reassigned vehicle '${vShort}' (${tShort.soc}% SoC) to longer route to prevent mid-route battery depletion.`;
-                } else {
-                    reason = `Fleet battery balancing: Reassigned vehicle '${vShort}' onto Route ${rLong.routeId} (${rLong.busShortName}).`;
-                }
-
                 currentSwapLog.push({
                     timestamp: new Date().toISOString(),
-                    routeA: rLong.routeId,
-                    routeShortNameA: rLong.busShortName,
-                    routeLineA: `${rLong.busShortName} (${rLong.origin} ➔ ${rLong.destination})`,
-                    distA: rLong.gtfsDistanceKm,
-                    vehicleA: vLong,
-                    socA: tLong.soc,
-                    routeB: rShort.routeId,
-                    routeShortNameB: rShort.busShortName,
-                    routeLineB: `${rShort.busShortName} (${rShort.origin} ➔ ${rShort.destination})`,
-                    distB: rShort.gtfsDistanceKm,
-                    vehicleB: vShort,
-                    socB: tShort.soc,
-                    swappedVehicle: vShort,
+                    routeA: rHigh.routeId,
+                    routeShortNameA: rHigh.busShortName,
+                    routeLineA: `${rHigh.busShortName} (${rHigh.origin} ➔ ${rHigh.destination})`,
+                    distA: rHigh.gtfsDistanceKm,
+                    categoryA: rHigh.routeCategory,
+                    vehicleA: vHigh,
+                    socA: tHigh.soc,
+                    busCategoryA: tHigh.busCategory,
+                    routeB: rLow.routeId,
+                    routeShortNameB: rLow.busShortName,
+                    routeLineB: `${rLow.busShortName} (${rLow.origin} ➔ ${rLow.destination})`,
+                    distB: rLow.gtfsDistanceKm,
+                    categoryB: rLow.routeCategory,
+                    vehicleB: vLow,
+                    socB: tLow.soc,
+                    busCategoryB: tLow.busCategory,
+                    swappedVehicle: vLow,
+                    timeSlot: currentSlot,
                     reason
                 });
 
                 // Swap route assignments between these two physical vehicles
-                routeToVehicle[rLong.routeId] = vShort;
-                routeToVehicle[rShort.routeId] = vLong;
-                vehicleToRoute[vShort] = rLong.routeId;
-                vehicleToRoute[vLong] = rShort.routeId;
+                routeToVehicle[rHigh.routeId] = vLow;
+                routeToVehicle[rLow.routeId] = vHigh;
+                vehicleToRoute[vLow] = rHigh.routeId;
+                vehicleToRoute[vHigh] = rLow.routeId;
 
                 changed = true;
             }
@@ -533,10 +645,13 @@ function swapBusAssignments(state) {
         const uId = r.uniqueId;
         const assignedRouteId = vehicleToRoute[uId] || r.routeId;
         const assignedRouteObj = routeInfos.find((x) => x.routeId === assignedRouteId) || r;
-        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good" };
+        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
         const range = estimatedRangeKm(t.soc, uId);
         const dist = assignedRouteObj.gtfsDistanceKm;
         const isBlocked = (dist > 0 && range < dist) || (t.condition === "Not Good") || (t.soc < 25);
+        const allowed = (ALLOWED_CATEGORIES[assignedRouteObj.routeCategory] || ALLOWED_CATEGORIES.SIMPLE)[currentSlot] || ["A"];
+        const busCat = t.busCategory || getBusCategory(range);
+        const matrixCompliant = allowed.includes(busCat);
 
         if (isBlocked) {
             blockedVehicles.push(uId);
@@ -557,6 +672,11 @@ function swapBusAssignments(state) {
             destination: assignedRouteObj.destination,
             assignedRouteDistanceKm: dist,
             assignedRouteDisplay: routeDisplay,
+            routeCategory: assignedRouteObj.routeCategory,
+            timeSlot: currentSlot,
+            busCategory: busCat,
+            allowedCategories: allowed,
+            matrixCompliant,
             soc: t.soc,
             condition: t.condition,
             estimatedRangeKm: range,
@@ -569,6 +689,11 @@ function swapBusAssignments(state) {
 
         ranges[assignedRouteId] = {
             assignedVehicle: uId,
+            routeCategory: assignedRouteObj.routeCategory,
+            timeSlot: currentSlot,
+            busCategory: busCat,
+            allowedCategories: allowed,
+            matrixCompliant,
             soc: t.soc,
             condition: t.condition,
             estimatedRangeKm: range,
@@ -1649,6 +1774,8 @@ const server = http.createServer(async (req, res) => {
             }
             sendJson(res, {
                 ok: true,
+                timeSlot: getTimeSlot(),
+                allowedCategoriesMatrix: ALLOWED_CATEGORIES,
                 assignments: currentState._assignments || {},
                 vehicleAssignments: currentState._vehicleAssignments || {},
                 busAssignments: currentState._busAssignments || {},
@@ -1660,6 +1787,33 @@ const server = http.createServer(async (req, res) => {
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to load bus assignments", details: error.message }, 500);
         }
+        return;
+    }
+
+    // ── GET /api/matrix ──────────────────────────────────────────────────────
+    if (pathname === "/api/matrix") {
+        sendJson(res, {
+            ok: true,
+            page: 4,
+            title: "Priority Allocation Matrix",
+            currentSlot: getTimeSlot(),
+            busRangeCategories: {
+                A: { name: "High", rangeKm: ">120 km" },
+                B: { name: "Medium", rangeKm: "100-120 km" },
+                C: { name: "Low", rangeKm: "<100 km" }
+            },
+            routeCategories: {
+                SIMPLE: { meaning: "Easy to operate", distanceKm: "< 10 km" },
+                MODERATE: { meaning: "Normal effort", distanceKm: "10 - 20 km" },
+                COMPLEX: { meaning: "Requires additional planning", distanceKm: ">= 20 km" }
+            },
+            timeSlots: {
+                NORMAL: "05:00–07:00 (and 23:00–05:00)",
+                EXTREME_PEAK: "07:00–10:00 and 16:00–20:00",
+                PEAK: "10:00–16:00 and 20:00–23:00"
+            },
+            allowedCategories: ALLOWED_CATEGORIES
+        });
         return;
     }
 
