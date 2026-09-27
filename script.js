@@ -169,8 +169,8 @@ function renderBusList(list) {
             return `
                 <article class="bus-card ${isActive}" data-route-id="${bus.routeId}">
                     <h4>
-                        <a href="bus-details.html?bus_id=${encodeURIComponent(bus.busNumber || "")}&route_id=${encodeURIComponent(bus.routeId || "")}" style="color: inherit; text-decoration: none;">
-                            ${bus.busNumber}
+                        <a href="bus-details.html?unique_id=${encodeURIComponent(bus.uniqueId || "")}&bus_id=${encodeURIComponent(bus.uniqueId || bus.busNumber || "")}&route_id=${encodeURIComponent(bus.routeId || "")}" style="color: inherit; text-decoration: none;">
+                            <span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:0.85em;margin-right:4px;">🚌 ${bus.uniqueId}</span> ${bus.busNumber}
                         </a>
                         - ${bus.routeName}
                     </h4>
@@ -969,11 +969,14 @@ function toBusModel(route, index, sharedState = {}) {
     const destination = (route.destination || "Unknown Destination").trim();
     const routeStops = buildRouteStopNames(routeId);
     const routeTrips = gtfsBundle ? gtfsBundle.trips.filter((trip) => String(trip.routeId) === routeId) : [];
-    const primaryTrip = routeTrips[0] || null;
+    const uniqueId = route.uniqueId || `EV-${String(index + 1).padStart(2, "0")}`;
 
     const model = {
+        uniqueId,
+        vehicleId: uniqueId,
         routeId,
         busNumber,
+        routeShortName: busNumber,
         routeName: route.routeName || `${origin} ⇔ ${destination}`,
         origin,
         destination,
@@ -1144,21 +1147,34 @@ function selectBus(bus) {
 
 function filterBuses() {
     const busNumberQuery = normalize(busNumberEl.value);
+    const cleanBusQuery = busNumberQuery.replace(/[^a-z0-9]/gi, "");
     const originQuery = normalize(originEl.value);
     const destinationQuery = normalize(destinationEl.value);
+
+    function checkBusMatch(bus) {
+        if (!busNumberQuery) return true;
+        const bNum = normalize(bus.busNumber || "");
+        const rId = normalize(bus.routeId || "");
+        const uId = normalize(bus.uniqueId || "");
+        if (bNum.includes(busNumberQuery)) return true;
+        if (rId.includes(busNumberQuery)) return true;
+        if (uId.includes(busNumberQuery)) return true;
+        if (cleanBusQuery && uId.replace(/[^a-z0-9]/gi, "").includes(cleanBusQuery)) return true;
+        return false;
+    }
 
     if (matchesSpecialSearch()) {
         let specialResults = filterForSpecialSearch();
 
         if (busNumberQuery) {
-            specialResults = specialResults.filter((bus) => normalize(bus.busNumber).includes(busNumberQuery));
+            specialResults = specialResults.filter(checkBusMatch);
         }
 
         return specialResults;
     }
 
     return buses.filter((bus) => {
-        const busMatch = !busNumberQuery || normalize(bus.busNumber).includes(busNumberQuery);
+        const busMatch = checkBusMatch(bus);
         const originMatch = !originQuery || normalize(bus.origin).includes(originQuery);
         const destinationMatch = !destinationQuery || normalize(bus.destination).includes(destinationQuery);
 
