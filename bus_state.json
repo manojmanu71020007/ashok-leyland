@@ -676,8 +676,32 @@
   },
   "7834": {
     "status": "Active",
-    "condition": "Good",
+    "rawStatus": "On Time",
     "soc": 100,
+    "condition": "Good",
+    "updatedAt": "2026-09-27T03:53:31.764Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T03:53:31.764Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "busNumber": "270-D PSS-ABG",
     "blocked": false
   },
@@ -1641,9 +1665,33 @@
     }
   ],
   "PSS-NLGDH-8THM": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "updatedAt": "2026-09-27T03:53:31.764Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T03:53:31.764Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "assignedRouteId": "2826",
     "assignedRouteDisplay": "Route 2826 (16.1 km)",
     "blocked": false
