@@ -983,6 +983,7 @@ function normalizeBusStateEntry(entry, existing = {}) {
         ? Math.max(0, Math.min(100, Number(entry.soc)))
         : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : 100);
     const condition = entry?.condition ? String(entry.condition) : (existing?.condition || "Good");
+    const driver = entry?.driver ? String(entry.driver) : (existing?.driver || "Driver Assigned");
     const timings = entry?.statusTimings && typeof entry.statusTimings === "object"
         ? entry.statusTimings
         : (existing?.statusTimings || {});
@@ -1010,6 +1011,7 @@ function normalizeBusStateEntry(entry, existing = {}) {
         rawStatus,
         soc,
         condition: condition === "Not Good" ? "Not Good" : "Good",
+        driver,
         updatedAt: nowIso,
         statusTimings: {
             Delayed: {
@@ -1305,6 +1307,7 @@ function resolveBusAndRoute(rawBusId) {
         stateEntry,
         currentSoc,
         condition,
+        driver: stateEntry.driver || "Driver Assigned",
         routeDistanceKm,
         blocked: isBlocked
     };
@@ -1651,6 +1654,7 @@ const server = http.createServer(async (req, res) => {
                 routeName: info.assignedRouteObj?.routeName || info.matchingRoute?.routeName || "",
                 soc: info.currentSoc,
                 condition: info.condition,
+                driver: info.driver || info.stateEntry?.driver || "Driver Assigned",
                 distanceKm: info.routeDistanceKm,
                 blocked: info.blocked
             });
@@ -1947,6 +1951,7 @@ const server = http.createServer(async (req, res) => {
                         busShortName,
                         assignedBus: uniqueId,
                         assignedBusShortName: busShortName,
+                        driver: updatedEntry.driver,
                         routeId: assignedRouteId,
                         assignedRouteId: assignedRouteId,
                         assignedRouteShortName: assignedRouteObj?.busNumber || busShortName,

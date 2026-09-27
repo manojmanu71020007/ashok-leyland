@@ -23,6 +23,10 @@ struct BusTelemetry {
   const char *status;
   String condition;          // "Good" or "Not Good"
   String defaultBus;         // Original Bus Short Name saved on boot
+  String driver;             // Allocated driver name/status
+
+  BusTelemetry(const char *rId, const char *aBus, uint8_t s, const char *st, const char *cond, const char *drv = "Driver Assigned")
+    : routeId(rId), assignedBus(aBus), soc(s), status(st), condition(cond), defaultBus(""), driver(drv) {}
 };
 
 // 3. Complete Fleet Database initialized to 100% SoC (6080 defaults to 78%) and "Good" Condition
@@ -129,6 +133,17 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
         <option value="Not Good">Not Good (Maintenance Required)</option>
       </select>
 
+      <label for="driver">Driver Allocation</label>
+      <select id="driver" name="driver">
+        <option value="Driver Assigned">Driver Assigned (Ready for Duty)</option>
+        <option value="Driver 1 (Ramesh - Shift A)">Driver 1 (Ramesh - Shift A)</option>
+        <option value="Driver 2 (Suresh - Shift B)">Driver 2 (Suresh - Shift B)</option>
+        <option value="Driver 3 (Manjunath - Shift C)">Driver 3 (Manjunath - Shift C)</option>
+        <option value="Driver 4 (Anand - Shift A)">Driver 4 (Anand - Shift A)</option>
+        <option value="Driver 5 (Kiran - Shift B)">Driver 5 (Kiran - Shift B)</option>
+        <option value="No Driver">No Driver (Unavailable / Off Duty)</option>
+      </select>
+
       <label for="soc">State of Charge (Battery %)</label>
       <input id="soc" name="soc" type="range" min="0" max="100" value="100">
       <output class="soc-value" id="soc-value" for="soc">100%</output>
@@ -147,6 +162,7 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
     const busCount = document.getElementById('bus-count');
     const busSelect = document.getElementById('bus-select');
     const conditionSelect = document.getElementById('condition');
+    const driverSelect = document.getElementById('driver');
     const submit = document.getElementById('submit');
 
     let fleetData = [];
@@ -158,6 +174,9 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
         slider.value = bus.soc;
         output.textContent = bus.soc + '%';
         conditionSelect.value = bus.condition || 'Good';
+        if (driverSelect) {
+          driverSelect.value = bus.driver || 'Driver Assigned';
+        }
       }
     }
 
@@ -218,8 +237,9 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
         const bShort = bus.bus_short_name || (bus.default_bus ? bus.default_bus.split(' ')[0] : (bus.route ? bus.route.split(' ')[0] : 'Bus'));
         const assigned = bus.assignedBus || bus.route || evId;
 
-        // Display [EV-XX] Route [ID] • [bus_short_name] ➔ Assigned: [Assigned Bus] ([SoC]%)
-        const label = `[${evId}] Route ${rId} • ${bShort} ➔ Assigned: ${assigned} (${bus.soc}%)`;
+        // Display [EV-XX] Route [ID] • [bus_short_name] ➔ Assigned: [Assigned Bus] ([SoC]%) • 👤 [Driver]
+        const drvName = bus.driver || 'Driver Assigned';
+        const label = `[${evId}] Route ${rId} • ${bShort} ➔ Assigned: ${assigned} (${bus.soc}%) • 👤 ${drvName}`;
         return `<option value="${bus.origIndex}">${label}</option>`;
       }).join('');
 
@@ -275,6 +295,7 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
               if (s) {
                 if (s.soc !== undefined && s.soc !== null) bus.soc = Number(s.soc);
                 if (s.condition) bus.condition = s.condition;
+                if (s.driver) bus.driver = s.driver;
               }
             });
           }
@@ -309,7 +330,8 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
           body: new URLSearchParams({ 
             bus: busSelect.value, 
             soc: slider.value,
-            condition: conditionSelect.value 
+            condition: conditionSelect.value,
+            driver: driverSelect ? driverSelect.value : 'Driver Assigned'
           })
         });
         const result = await response.json();
@@ -319,12 +341,13 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
           if (fleetData[idx]) {
             fleetData[idx].soc = slider.value;
             fleetData[idx].condition = conditionSelect.value;
+            if (driverSelect) fleetData[idx].driver = driverSelect.value;
             if (result.assignedBus) {
               fleetData[idx].route = result.assignedBus;
               fleetData[idx].assignedBus = result.assignedBus;
             }
           }
-          message.textContent = `Route ${result.routeId} updated! Assigned: ${result.assignedBus}` + (result.blocked ? " (⛔ Blocked: Range < Distance)" : "");
+          message.textContent = `Route ${result.routeId} updated! Driver: ${result.driver || (driverSelect ? driverSelect.value : 'Assigned')} | Bus: ${result.assignedBus}` + (result.blocked ? " (⛔ Blocked: Range < Distance)" : "");
           // Re-sync all assignments from server so all swapped dropdown items update!
           await loadFleetDropdown();
         } else {
@@ -383,8 +406,8 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     </header>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>EV Number</th><th>Route ID</th><th>Bus Short Name</th><th>Assigned Bus / EV</th><th>Live SoC</th><th>Battery Status</th><th>Condition</th><th>Assigned Action</th></tr></thead>
-        <tbody id="fleet"><tr><td colspan="8">Loading fleet data...</td></tr></tbody>
+        <thead><tr><th>EV Number</th><th>Route ID</th><th>Bus Short Name</th><th>Assigned Bus / EV</th><th>Driver</th><th>Live SoC</th><th>Battery Status</th><th>Condition</th><th>Assigned Action</th></tr></thead>
+        <tbody id="fleet"><tr><td colspan="9">Loading fleet data...</td></tr></tbody>
       </table>
     </div>
     <a href="/">Back to driver terminal</a>
@@ -448,6 +471,9 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
 
         const state = stateFor(Number(bus.soc));
         const condBadge = bus.condition === 'Good' ? 'active' : 'blocked';
+        const drvName = bus.driver || 'Driver Assigned';
+        const isDrvAssigned = !drvName.toLowerCase().includes('no');
+        const drvBadge = isDrvAssigned ? 'active' : 'warning';
         
         let action = state.action;
         if (bus.condition === 'Not Good') {
@@ -464,6 +490,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
           <td><strong>${rId}</strong></td>
           <td>${bShort}</td>
           <td>${busDisplay}</td>
+          <td><span class="badge ${drvBadge}">👤 ${drvName}</span></td>
           <td class="soc">${bus.soc}%</td>
           <td><span class="badge ${state.className}">${state.status}</span></td>
           <td><span class="badge ${condBadge}">${bus.condition}</span></td>
@@ -510,6 +537,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
                 if (s) {
                   if (s.soc !== undefined && s.soc !== null) bus.soc = Number(s.soc);
                   if (s.condition !== undefined) bus.condition = s.condition;
+                  if (s.driver) bus.driver = s.driver;
                 }
               });
             }
@@ -582,6 +610,8 @@ void handleFleetApi() {
     json += fleet[i].status;
     json += "\",\"condition\":\"";
     json += fleet[i].condition;
+    json += "\",\"driver\":\"";
+    json += fleet[i].driver;
     json += "\"}";
   }
   json += "]";
@@ -632,6 +662,7 @@ void handleUpdate() {
 
   const int soc = server.arg("soc").toInt();
   String condition = server.arg("condition");
+  String driver = server.hasArg("driver") ? server.arg("driver") : "Driver Assigned";
 
   if (busIndex < 0 || busIndex >= static_cast<int>(FLEET_SIZE) || soc < 0 || soc > 100) {
     addCorsHeader();
@@ -642,13 +673,16 @@ void handleUpdate() {
   // 1. Update the ESP32's local telemetry for this route ID
   fleet[busIndex].soc = static_cast<uint8_t>(soc);
   fleet[busIndex].condition = condition;
+  fleet[busIndex].driver = driver;
   recalculateStatus(fleet[busIndex]);
 
   // 2. Persist to Non-Volatile Storage (NVS Flash) by route ID
   String socKey = "s_" + String(fleet[busIndex].routeId);
   String condKey = "c_" + String(fleet[busIndex].routeId);
+  String drvKey = "d_" + String(fleet[busIndex].routeId);
   prefs.putUChar(socKey.c_str(), static_cast<uint8_t>(soc));
   prefs.putString(condKey.c_str(), condition);
+  prefs.putString(drvKey.c_str(), driver);
 
   // Safe printing — avoids printf buffer overflow and corrupted characters
   Serial.print("[NVS Saved] Route ");
@@ -656,7 +690,9 @@ void handleUpdate() {
   Serial.print(" -> SoC: ");
   Serial.print(soc);
   Serial.print("%, Condition: ");
-  Serial.println(condition);
+  Serial.print(condition);
+  Serial.print(", Driver: ");
+  Serial.println(driver);
 
   String assignedBus = fleet[busIndex].assignedBus;
   bool blocked = false;
@@ -674,7 +710,8 @@ void handleUpdate() {
 
     String jsonPayload = "{\"routeId\":\"" + String(fleet[busIndex].routeId) + 
                          "\",\"soc\":" + String(soc) + 
-                         ",\"condition\":\"" + fleet[busIndex].condition + "\"}";
+                         ",\"condition\":\"" + fleet[busIndex].condition + 
+                         "\",\"driver\":\"" + fleet[busIndex].driver + "\"}";
     
     int httpResponseCode = http.POST(jsonPayload);
     
@@ -717,6 +754,7 @@ void handleUpdate() {
   String resp = "{\"message\":\"Telemetry updated successfully for Route " + String(fleet[busIndex].routeId) + 
                 "\",\"routeId\":\"" + String(fleet[busIndex].routeId) + 
                 "\",\"assignedBus\":\"" + assignedBus + 
+                "\",\"driver\":\"" + driver + 
                 "\",\"blocked\":" + (blocked ? "true" : "false") + "}";
   server.send(200, "application/json", resp);
 }
@@ -733,12 +771,13 @@ void setup() {
     fleet[i].defaultBus = fleet[i].assignedBus;
   }
 
-  // 2. Restore saved SoC, condition, and swapped bus names from ESP32 Flash Memory (NVS)
+  // 2. Restore saved SoC, condition, driver, and swapped bus names from ESP32 Flash Memory (NVS)
   prefs.begin("bussoc", false);
   for (size_t i = 0; i < FLEET_SIZE; ++i) {
     String socKey = "s_" + String(fleet[i].routeId);
     String condKey = "c_" + String(fleet[i].routeId);
     String busKey = "b_" + String(fleet[i].routeId);
+    String drvKey = "d_" + String(fleet[i].routeId);
     if (prefs.isKey(socKey.c_str())) {
       fleet[i].soc = prefs.getUChar(socKey.c_str(), fleet[i].soc);
     }
@@ -747,6 +786,9 @@ void setup() {
     }
     if (prefs.isKey(busKey.c_str())) {
       fleet[i].assignedBus = prefs.getString(busKey.c_str(), fleet[i].assignedBus);
+    }
+    if (prefs.isKey(drvKey.c_str())) {
+      fleet[i].driver = prefs.getString(drvKey.c_str(), fleet[i].driver);
     }
     recalculateStatus(fleet[i]);
   }

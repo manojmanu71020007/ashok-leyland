@@ -2400,14 +2400,19 @@
                 return;
             }
 
-            const routeDistance = selectedRouteDistance ?? distance;
-            const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.busNumber] || {};
+            const assignedVehicle = getAssignedBusName(selectedRoute);
+            const busState = busStates[selectedRoute.routeId] || busStates[assignedVehicle] || busStates[selectedRoute.busNumber] || {};
             const liveSoc = Number.isFinite(Number(busState.soc)) ? Number(busState.soc) : 98;
             const condition = busState.condition || "Good";
+            const driverStatus = busState.driver || "Driver Assigned";
 
             if (condition === "Not Good") {
                 document.getElementById("maintenance").checked = false;
                 document.getElementById("interior").checked = false;
+            }
+            if (driverStatus.toLowerCase().includes("no")) {
+                const driverSelectEl = document.getElementById("driver");
+                if (driverSelectEl) driverSelectEl.value = "unavailable";
             }
 
             const interiorChecked = document.getElementById("interior").checked;
