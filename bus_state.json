@@ -206,8 +206,8 @@
   "1610": {
     "status": "Active",
     "condition": "Good",
-    "soc": 65,
-    "busNumber": "MF-26 PSS-JHMS",
+    "soc": 39,
+    "busNumber": "265-D PSS-VGN",
     "blocked": false
   },
   "1612": {
@@ -338,7 +338,7 @@
     "status": "Active",
     "condition": "Good",
     "soc": 70,
-    "busNumber": "JHMS-PSS",
+    "busNumber": "252 LGR-PSS",
     "blocked": false
   },
   "2826": {
@@ -395,8 +395,8 @@
   "3831": {
     "status": "Active",
     "condition": "Good",
-    "soc": 78,
-    "busNumber": "BC-7B PSS-NLGH-8thM",
+    "soc": 70,
+    "busNumber": "BC-7B BDYH-PSS",
     "blocked": false
   },
   "3864": {
@@ -461,8 +461,8 @@
   "3916": {
     "status": "Active",
     "condition": "Good",
-    "soc": 70,
-    "busNumber": "252 LGR-PSS",
+    "soc": 65,
+    "busNumber": "MF-26 PSS-JHMS",
     "blocked": false
   },
   "3920": {
@@ -570,10 +570,10 @@
   },
   "6080": {
     "status": "Active",
-    "rawStatus": "On Time",
+    "rawStatus": "Active",
     "soc": 100,
     "condition": "Good",
-    "updatedAt": "2026-09-26T17:15:52.640Z",
+    "updatedAt": "2026-09-27T03:46:09.072Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -590,8 +590,8 @@
     },
     "history": [
       {
-        "timestamp": "2026-09-26T17:15:52.640Z",
-        "soc": 100,
+        "timestamp": "2026-09-27T03:46:09.072Z",
+        "soc": 32,
         "condition": "Good",
         "status": "On Time"
       }
@@ -640,7 +640,7 @@
   "7296": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 39,
+    "soc": 32,
     "condition": "Good",
     "updatedAt": "2026-09-26T06:35:59.443Z",
     "statusTimings": {
@@ -657,14 +657,14 @@
         "departure": "07:30"
       }
     },
-    "busNumber": "265-A PSS-TEPL",
+    "busNumber": "BC-7B PSS-NLGH-8thM",
     "blocked": false
   },
   "7403": {
     "status": "Active",
     "condition": "Good",
     "soc": 70,
-    "busNumber": "BC-7B BDYH-PSS",
+    "busNumber": "JHMS-PSS",
     "blocked": false
   },
   "7632": {
@@ -739,7 +739,7 @@
         "status": "On Time"
       }
     ],
-    "busNumber": "265-D PSS-VGN",
+    "busNumber": "265-A PSS-TEPL",
     "blocked": false
   },
   "8543": {
@@ -969,9 +969,9 @@
   "BC-7B PSS-NLGH-8thM": {
     "status": "Active",
     "rawStatus": "Active",
-    "soc": 78,
+    "soc": 32,
     "condition": "Good",
-    "updatedAt": "2026-09-22T14:38:07.402Z",
+    "updatedAt": "2026-09-27T03:46:09.072Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -986,8 +986,16 @@
         "departure": "07:30"
       }
     },
-    "assignedRouteId": "3831",
-    "assignedRouteDisplay": "Route 3831 (7.1 km)",
+    "history": [
+      {
+        "timestamp": "2026-09-27T03:46:09.072Z",
+        "soc": 32,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "assignedRouteId": "7296",
+    "assignedRouteDisplay": "Route 7296 (5.2 km)",
     "blocked": false
   },
   "CHAKRA-7": {
@@ -1024,7 +1032,7 @@
     "1548": "D22-PSS",
     "1549": "252-A PSS-HAL ARDC",
     "1553": "273-B PSS-ABG",
-    "1610": "MF-26 PSS-JHMS",
+    "1610": "265-D PSS-VGN",
     "1612": "254-E PSS-KMP",
     "1621": "401-AK ABG-PSS",
     "1626": "251-C PSS-RPS-LGR",
@@ -1035,17 +1043,17 @@
     "2770": "507-B",
     "2780": "PSS-TGPL-GGH",
     "2786": "248-AB",
-    "2787": "JHMS-PSS",
+    "2787": "252 LGR-PSS",
     "2826": "PSS-NLGDH-8THM",
     "2861": "401-AM PTH-PSS",
     "3158": "273 SDN-PSS",
     "3430": "252-F PSS-HAL ARDC",
     "3629": "PSS-RGPS-SMH",
-    "3831": "BC-7B PSS-NLGH-8thM",
+    "3831": "BC-7B BDYH-PSS",
     "3864": "500-D MRHB-HBL-PSS",
     "3878": "251E PSS-KMT",
     "3907": "252-A",
-    "3916": "252 LGR-PSS",
+    "3916": "MF-26 PSS-JHMS",
     "3920": "250-SB PSS-SVG",
     "3935": "D9-PSS",
     "3951": "401-AK PSS-ABG",
@@ -1055,13 +1063,13 @@
     "6551": "273",
     "6979": "250-F PSS-SSHL",
     "7143": "256-F",
-    "7296": "265-A PSS-TEPL",
-    "7403": "BC-7B BDYH-PSS",
+    "7296": "BC-7B PSS-NLGH-8thM",
+    "7403": "JHMS-PSS",
     "7632": "252-A PSS-ISROM",
     "7834": "270-D PSS-ABG",
     "7888": "PSS-NTTF-LGRNBS",
     "8178": "250-E PSS-TMH",
-    "8276": "265-D PSS-VGN",
+    "8276": "265-A PSS-TEPL",
     "8543": "401-A PSS-SGP-YHK",
     "8592": "BC-7B PSS-ANDRH-HRHC",
     "8781": "253-J PSS-HGV",
@@ -1077,7 +1085,7 @@
     "D22-PSS": "1548",
     "252-A PSS-HAL ARDC": "1549",
     "273-B PSS-ABG": "1553",
-    "MF-26 PSS-JHMS": "1610",
+    "265-D PSS-VGN": "1610",
     "254-E PSS-KMP": "1612",
     "401-AK ABG-PSS": "1621",
     "251-C PSS-RPS-LGR": "1626",
@@ -1088,17 +1096,17 @@
     "507-B": "2770",
     "PSS-TGPL-GGH": "2780",
     "248-AB": "2786",
-    "JHMS-PSS": "2787",
+    "252 LGR-PSS": "2787",
     "PSS-NLGDH-8THM": "2826",
     "401-AM PTH-PSS": "2861",
     "273 SDN-PSS": "3158",
     "252-F PSS-HAL ARDC": "3430",
     "PSS-RGPS-SMH": "3629",
-    "BC-7B PSS-NLGH-8thM": "3831",
+    "BC-7B BDYH-PSS": "3831",
     "500-D MRHB-HBL-PSS": "3864",
     "251E PSS-KMT": "3878",
     "252-A": "3907",
-    "252 LGR-PSS": "3916",
+    "MF-26 PSS-JHMS": "3916",
     "250-SB PSS-SVG": "3920",
     "D9-PSS": "3935",
     "401-AK PSS-ABG": "3951",
@@ -1107,13 +1115,13 @@
     "401-AM": "6080",
     "250-F PSS-SSHL": "6979",
     "256-F": "7143",
-    "265-A PSS-TEPL": "7296",
-    "BC-7B BDYH-PSS": "7403",
+    "BC-7B PSS-NLGH-8thM": "7296",
+    "JHMS-PSS": "7403",
     "252-A PSS-ISROM": "7632",
     "270-D PSS-ABG": "7834",
     "PSS-NTTF-LGRNBS": "7888",
     "250-E PSS-TMH": "8178",
-    "265-D PSS-VGN": "8276",
+    "265-A PSS-TEPL": "8276",
     "401-A PSS-SGP-YHK": "8543",
     "BC-7B PSS-ANDRH-HRHC": "8592",
     "253-J PSS-HGV": "8781",
@@ -1131,6 +1139,66 @@
     "3629"
   ],
   "_swapLog": [
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "3831",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 7.07,
+      "routeB": "7403",
+      "busB": "BC-7B BDYH-PSS",
+      "distB": 6.94,
+      "reason": "Range Optimization: Longer Route 3831 (7.1 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle 'BC-7B BDYH-PSS' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "7403",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 6.94,
+      "routeB": "2787",
+      "busB": "JHMS-PSS",
+      "distB": 5.72,
+      "reason": "Range Optimization: Longer Route 7403 (6.9 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle 'JHMS-PSS' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "2787",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 5.72,
+      "routeB": "3916",
+      "busB": "252 LGR-PSS",
+      "distB": 5.69,
+      "reason": "Range Optimization: Longer Route 2787 (5.7 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle '252 LGR-PSS' (70% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "3916",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 5.69,
+      "routeB": "1610",
+      "busB": "MF-26 PSS-JHMS",
+      "distB": 5.69,
+      "reason": "Range Optimization: Longer Route 3916 (5.7 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle 'MF-26 PSS-JHMS' (65% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "1610",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 5.69,
+      "routeB": "8276",
+      "busB": "265-D PSS-VGN",
+      "distB": 5.29,
+      "reason": "Range Optimization: Longer Route 1610 (5.7 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle '265-D PSS-VGN' (39% SoC) to longer route to prevent mid-route battery depletion."
+    },
+    {
+      "timestamp": "2026-09-27T03:46:09.073Z",
+      "routeA": "8276",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 5.29,
+      "routeB": "7296",
+      "busB": "265-A PSS-TEPL",
+      "distB": 5.19,
+      "reason": "Range Optimization: Longer Route 8276 (5.3 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (32%). Reassigned vehicle '265-A PSS-TEPL' (39% SoC) to longer route to prevent mid-route battery depletion."
+    },
     {
       "timestamp": "2026-09-27T03:24:21.932Z",
       "routeA": "4798",
@@ -1570,66 +1638,6 @@
       "busB": "401-AK ABG-PSS",
       "distB": 13.34,
       "reason": "Range Optimization: Longer Route 1621 (13.6 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '401-AK ABG-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "3158",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 13.34,
-      "routeB": "2770",
-      "busB": "273 SDN-PSS",
-      "distB": 12.71,
-      "reason": "Range Optimization: Longer Route 3158 (13.3 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '273 SDN-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "2770",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 12.71,
-      "routeB": "7143",
-      "busB": "507-B",
-      "distB": 12.25,
-      "reason": "Range Optimization: Longer Route 2770 (12.7 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '507-B' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "7143",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 12.25,
-      "routeB": "2767",
-      "busB": "256-F",
-      "distB": 11.66,
-      "reason": "Range Optimization: Longer Route 7143 (12.3 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '256-F' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "2767",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 11.66,
-      "routeB": "7834",
-      "busB": "CHAKRA-7A",
-      "distB": 11.31,
-      "reason": "Range Optimization: Longer Route 2767 (11.7 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle 'CHAKRA-7A' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "7834",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 11.31,
-      "routeB": "4798",
-      "busB": "270-D PSS-ABG",
-      "distB": 10.21,
-      "reason": "Range Optimization: Longer Route 7834 (11.3 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '270-D PSS-ABG' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "4798",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 10.21,
-      "routeB": "3864",
-      "busB": "401-AK PSS-ABG",
-      "distB": 10.05,
-      "reason": "Range Optimization: Longer Route 4798 (10.2 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '401-AK PSS-ABG' (100% SoC) to longer route to prevent mid-route battery depletion."
     }
   ],
   "PSS-NLGDH-8THM": {
@@ -1780,16 +1788,16 @@
     "soc": 70,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "2787",
-    "assignedRouteDisplay": "Route 2787 (5.7 km)",
+    "assignedRouteId": "7403",
+    "assignedRouteDisplay": "Route 7403 (6.9 km)",
     "blocked": false
   },
   "MF-26 PSS-JHMS": {
     "soc": 65,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "1610",
-    "assignedRouteDisplay": "Route 1610 (5.7 km)",
+    "assignedRouteId": "3916",
+    "assignedRouteDisplay": "Route 3916 (5.7 km)",
     "blocked": false
   },
   "251E PSS-KMT": {
@@ -1900,8 +1908,8 @@
     "soc": 70,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "7403",
-    "assignedRouteDisplay": "Route 7403 (6.9 km)",
+    "assignedRouteId": "3831",
+    "assignedRouteDisplay": "Route 3831 (7.1 km)",
     "blocked": false
   },
   "D22-PSS": {
@@ -1940,8 +1948,8 @@
     "soc": 70,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "3916",
-    "assignedRouteDisplay": "Route 3916 (5.7 km)",
+    "assignedRouteId": "2787",
+    "assignedRouteDisplay": "Route 2787 (5.7 km)",
     "blocked": false
   },
   "401-AM PTH-PSS": {
@@ -2084,8 +2092,8 @@
     "soc": 39,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "7296",
-    "assignedRouteDisplay": "Route 7296 (5.2 km)",
+    "assignedRouteId": "8276",
+    "assignedRouteDisplay": "Route 8276 (5.3 km)",
     "blocked": false
   },
   "253-D PSS-TRN": {
@@ -2108,8 +2116,8 @@
     "soc": 39,
     "condition": "Good",
     "status": "Active",
-    "assignedRouteId": "8276",
-    "assignedRouteDisplay": "Route 8276 (5.3 km)",
+    "assignedRouteId": "1610",
+    "assignedRouteDisplay": "Route 1610 (5.7 km)",
     "blocked": false
   },
   "401-A PSS-SGP-YHK": {
@@ -2153,12 +2161,12 @@
     },
     "BC-7B PSS-NLGH-8thM": {
       "busName": "BC-7B PSS-NLGH-8thM",
-      "assignedRouteId": "3831",
-      "assignedRouteDistanceKm": 7.07,
-      "assignedRouteDisplay": "Route 3831 (7.1 km)",
-      "soc": 78,
+      "assignedRouteId": "7296",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 (5.2 km)",
+      "soc": 32,
       "condition": "Good",
-      "estimatedRangeKm": 97,
+      "estimatedRangeKm": 31,
       "blocked": false
     },
     "PSS-NLGDH-8THM": {
@@ -2313,9 +2321,9 @@
     },
     "JHMS-PSS": {
       "busName": "JHMS-PSS",
-      "assignedRouteId": "2787",
-      "assignedRouteDistanceKm": 5.72,
-      "assignedRouteDisplay": "Route 2787 (5.7 km)",
+      "assignedRouteId": "7403",
+      "assignedRouteDistanceKm": 6.94,
+      "assignedRouteDisplay": "Route 7403 (6.9 km)",
       "soc": 70,
       "condition": "Good",
       "estimatedRangeKm": 85,
@@ -2323,9 +2331,9 @@
     },
     "MF-26 PSS-JHMS": {
       "busName": "MF-26 PSS-JHMS",
-      "assignedRouteId": "1610",
+      "assignedRouteId": "3916",
       "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 1610 (5.7 km)",
+      "assignedRouteDisplay": "Route 3916 (5.7 km)",
       "soc": 65,
       "condition": "Good",
       "estimatedRangeKm": 78,
@@ -2433,9 +2441,9 @@
     },
     "BC-7B BDYH-PSS": {
       "busName": "BC-7B BDYH-PSS",
-      "assignedRouteId": "7403",
-      "assignedRouteDistanceKm": 6.94,
-      "assignedRouteDisplay": "Route 7403 (6.9 km)",
+      "assignedRouteId": "3831",
+      "assignedRouteDistanceKm": 7.07,
+      "assignedRouteDisplay": "Route 3831 (7.1 km)",
       "soc": 70,
       "condition": "Good",
       "estimatedRangeKm": 85,
@@ -2483,9 +2491,9 @@
     },
     "252 LGR-PSS": {
       "busName": "252 LGR-PSS",
-      "assignedRouteId": "3916",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 3916 (5.7 km)",
+      "assignedRouteId": "2787",
+      "assignedRouteDistanceKm": 5.72,
+      "assignedRouteDisplay": "Route 2787 (5.7 km)",
       "soc": 70,
       "condition": "Good",
       "estimatedRangeKm": 85,
@@ -2613,9 +2621,9 @@
     },
     "265-A PSS-TEPL": {
       "busName": "265-A PSS-TEPL",
-      "assignedRouteId": "7296",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 (5.2 km)",
+      "assignedRouteId": "8276",
+      "assignedRouteDistanceKm": 5.29,
+      "assignedRouteDisplay": "Route 8276 (5.3 km)",
       "soc": 39,
       "condition": "Good",
       "estimatedRangeKm": 41,
@@ -2643,9 +2651,9 @@
     },
     "265-D PSS-VGN": {
       "busName": "265-D PSS-VGN",
-      "assignedRouteId": "8276",
-      "assignedRouteDistanceKm": 5.29,
-      "assignedRouteDisplay": "Route 8276 (5.3 km)",
+      "assignedRouteId": "1610",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 1610 (5.7 km)",
       "soc": 39,
       "condition": "Good",
       "estimatedRangeKm": 41,
@@ -2712,9 +2720,9 @@
       "blocked": false
     },
     "1610": {
-      "soc": 65,
+      "soc": 39,
       "condition": "Good",
-      "estimatedRangeKm": 78,
+      "estimatedRangeKm": 41,
       "gtfsDistanceKm": 5.69,
       "blocked": false
     },
@@ -2831,9 +2839,9 @@
       "blocked": true
     },
     "3831": {
-      "soc": 78,
+      "soc": 70,
       "condition": "Good",
-      "estimatedRangeKm": 97,
+      "estimatedRangeKm": 85,
       "gtfsDistanceKm": 7.07,
       "blocked": false
     },
@@ -2859,9 +2867,9 @@
       "blocked": false
     },
     "3916": {
-      "soc": 70,
+      "soc": 65,
       "condition": "Good",
-      "estimatedRangeKm": 85,
+      "estimatedRangeKm": 78,
       "gtfsDistanceKm": 5.69,
       "blocked": false
     },
@@ -2929,9 +2937,9 @@
       "blocked": false
     },
     "7296": {
-      "soc": 39,
+      "soc": 32,
       "condition": "Good",
-      "estimatedRangeKm": 41,
+      "estimatedRangeKm": 31,
       "gtfsDistanceKm": 5.19,
       "blocked": false
     },
