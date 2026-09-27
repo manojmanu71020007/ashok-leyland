@@ -183,7 +183,7 @@
     "rawStatus": "On Time",
     "soc": 81,
     "condition": "Not Good",
-    "updatedAt": "2026-09-26T19:08:20.781Z",
+    "updatedAt": "2026-09-27T10:19:36.513Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -200,15 +200,15 @@
     },
     "history": [
       {
-        "timestamp": "2026-09-26T19:08:20.781Z",
+        "timestamp": "2026-09-27T10:19:36.513Z",
         "soc": 33,
         "condition": "Good",
         "status": "On Time"
       }
     ],
+    "uniqueId": "EV-30",
     "busNumber": "D9-PSS",
-    "blocked": true,
-    "uniqueId": "EV-30"
+    "blocked": true
   },
   "1553": {
     "status": "Active",
@@ -2876,7 +2876,7 @@
     "rawStatus": "On Time",
     "soc": 81,
     "condition": "Not Good",
-    "updatedAt": "2026-09-26T19:08:20.781Z",
+    "updatedAt": "2026-09-27T10:19:36.513Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -2893,16 +2893,14 @@
     },
     "history": [
       {
-        "timestamp": "2026-09-26T19:08:20.781Z",
+        "timestamp": "2026-09-27T10:19:36.513Z",
         "soc": 33,
         "condition": "Good",
         "status": "On Time"
       }
     ],
-    "assignedRouteId": "7296",
-    "assignedRouteDisplay": "Route 7296 (5.2 km)",
-    "blocked": true,
-    "uniqueId": "EV-30"
+    "uniqueId": "EV-30",
+    "blocked": true
   },
   "500-D MRHB-HBL-PSS": {
     "soc": 100,
@@ -4774,7 +4772,7 @@
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "273 VSD-RJB-PSS": {
@@ -4791,7 +4789,7 @@
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-53": {
@@ -5027,7 +5025,7 @@
       "assignedVehicle": "EV-52",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "gtfsDistanceKm": 25.28,
       "blocked": false
     },
@@ -6001,10 +5999,34 @@
     "blocked": false
   },
   "EV-43": {
-    "uniqueId": "EV-43",
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 33,
     "condition": "Good",
-    "status": "Active",
+    "updatedAt": "2026-09-27T10:19:36.513Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:36.513Z",
+        "soc": 33,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-43",
     "assignedRouteId": "8276",
     "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
     "assignedRouteShortName": "BC-7B BDYH-PSS",
@@ -7026,7 +7048,7 @@
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-53": {
