@@ -1019,11 +1019,35 @@
   },
   "9132": {
     "status": "Active",
-    "condition": "Good",
+    "rawStatus": "On Time",
     "soc": 100,
+    "condition": "Good",
+    "updatedAt": "2026-09-27T10:19:28.970Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:28.970Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-54",
     "busNumber": "273 VSD-RJB-PSS",
-    "blocked": false,
-    "uniqueId": "EV-54"
+    "blocked": false
   },
   "9534": {
     "status": "Active",
@@ -2953,13 +2977,35 @@
     "uniqueId": "EV-52"
   },
   "273 VSD-RJB-PSS": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
-    "assignedRouteId": "9581",
-    "assignedRouteDisplay": "Route 9581 (29.2 km)",
-    "blocked": false,
-    "uniqueId": "EV-54"
+    "updatedAt": "2026-09-27T10:19:28.970Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:28.970Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-54",
+    "blocked": false
   },
   "265-D PSS-VGN": {
     "soc": 8,
@@ -3113,7 +3159,7 @@
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "270-D PSS-ABG": {
@@ -3130,7 +3176,7 @@
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-04": {
@@ -5149,7 +5195,7 @@
       "assignedVehicle": "EV-03",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "gtfsDistanceKm": 11.31,
       "blocked": false
     },
@@ -6045,10 +6091,34 @@
     "blocked": false
   },
   "EV-52": {
-    "uniqueId": "EV-52",
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "updatedAt": "2026-09-27T10:19:28.970Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:28.970Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-52",
     "assignedRouteId": "2861",
     "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
     "assignedRouteShortName": "253-D PSS-TRN",
@@ -6123,7 +6193,7 @@
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-04": {
