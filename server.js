@@ -68,6 +68,19 @@ let cachedShapesByShapeId = null;
 let cachedGtfsScheduleSummary = null;
 let cachedGtfsBundleJson = null;
 const cachedRouteDistances = new Map();
+let cachedRouteTripCounts = null;
+
+function getRouteTripCounts() {
+    if (cachedRouteTripCounts) return cachedRouteTripCounts;
+    const trips = loadTrips();
+    const counts = new Map();
+    for (const t of trips) {
+        const rId = String(t.routeId || "").trim();
+        counts.set(rId, (counts.get(rId) || 0) + 1);
+    }
+    cachedRouteTripCounts = counts;
+    return cachedRouteTripCounts;
+}
 
 function loadRoutes() {
     if (cachedRoutes) return cachedRoutes;
@@ -78,11 +91,15 @@ function loadRoutes() {
         return [];
     }
 
+    const tripCounts = getRouteTripCounts();
+
     cachedRoutes = lines.slice(1).map((line, idx) => {
         const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
         const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
         const padIndex = String(idx + 1).padStart(2, "0");
         const uniqueId = `EV-${padIndex}`;
+        const cleanRouteId = String(routeId || "").trim();
+        const tripCount = tripCounts.get(cleanRouteId) || 0;
 
         return {
             uniqueId,
@@ -94,7 +111,8 @@ function loadRoutes() {
             destination,
             agencyId,
             routeType,
-            routeId
+            routeId: cleanRouteId,
+            tripCount
         };
     });
     return cachedRoutes;
@@ -206,6 +224,7 @@ function loadGtfsScheduleSummary() {
 
     const trips = loadTrips();
     const stopTimes = loadStopTimes();
+    const tripCounts = getRouteTripCounts();
 
     const tripToRoute = new Map();
     for (const t of trips) {
@@ -219,12 +238,21 @@ function loadGtfsScheduleSummary() {
         const dep = st.departureTime || st.arrivalTime;
         const arr = st.arrivalTime || st.departureTime;
         if (!scheduleMap[rId]) {
-            scheduleMap[rId] = { firstDep: dep, lastArr: arr, count: 0 };
+            scheduleMap[rId] = { firstDep: dep, lastArr: arr, count: 0, tripCount: tripCounts.get(String(rId)) || 0 };
         }
         const item = scheduleMap[rId];
         item.count += 1;
         if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
         if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
+    }
+
+    // Ensure all routes with trips are represented
+    for (const [rId, c] of tripCounts.entries()) {
+        if (!scheduleMap[rId]) {
+            scheduleMap[rId] = { firstDep: "06:00:00", lastArr: "21:00:00", count: 0, tripCount: c };
+        } else {
+            scheduleMap[rId].tripCount = c;
+        }
     }
 
     cachedGtfsScheduleSummary = scheduleMap;
@@ -1375,6 +1403,158 @@ function getBusMacroData(rawBusId) {
     return logs;
 }
 
+function getBusTasks(busIdentifier, routeIdParam) {
+    const rawBus = String(busIdentifier || "").trim();
+    const allRoutes = loadRoutes();
+    const busState = loadBusState();
+    const assignments = busState._assignments || {};
+
+    let targetRoute = null;
+    let uniqueId = "EV-01";
+
+    if (routeIdParam) {
+        targetRoute = allRoutes.find(r => String(r.routeId) === String(routeIdParam));
+    }
+
+    if (!targetRoute && rawBus) {
+        const info = resolveBusAndRoute(rawBus);
+        uniqueId = info.uniqueId || rawBus;
+        targetRoute = info.assignedRouteObj || info.matchingRoute;
+    }
+
+    if (!targetRoute && allRoutes.length > 0) {
+        targetRoute = allRoutes[0];
+    }
+
+    if (!targetRoute) {
+        return { ok: false, error: "Route not found" };
+    }
+
+    const assignedVehicle = (assignments && (assignments[String(targetRoute.routeId)] || assignments[targetRoute.uniqueId] || assignments[targetRoute.busNumber])) || targetRoute.uniqueId || uniqueId;
+    const finalUniqueId = assignedVehicle || uniqueId;
+
+    const stateEntry = busState[finalUniqueId] || busState[targetRoute.routeId] || busState[targetRoute.busNumber] || {};
+    const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
+    const condition = stateEntry.condition || "Good";
+
+    const distKm = calculateRouteDistanceByRouteId(targetRoute.routeId) || 28.7;
+    const estRangeKm = Math.round(Math.max(0, currentSoc - SOC_BUFFER_PCT) * RANGE_KM_PER_SOC_PCT);
+    const estChargePctPerTrip = Number((distKm / RANGE_KM_PER_SOC_PCT).toFixed(1));
+    const estChargeKwhPerTrip = Number((distKm * 0.85).toFixed(1));
+
+    const allTrips = loadTrips();
+    const routeTrips = allTrips.filter(t => String(t.routeId) === String(targetRoute.routeId));
+    const totalTrips = routeTrips.length || targetRoute.tripCount || 1;
+
+    const usableBatteryAboveDepotFloor = Math.max(0, currentSoc - DEPOT_MIN_SOC_FLOOR);
+    const maxFeasibleTrips = estChargePctPerTrip > 0
+        ? Math.floor(usableBatteryAboveDepotFloor / estChargePctPerTrip)
+        : 0;
+
+    const tasks = [];
+    let runningSoc = currentSoc;
+    const baseHour = 7;
+    const baseMin = 30;
+
+    const sampleTrips = routeTrips.slice(0, 6);
+    if (sampleTrips.length === 0) {
+        sampleTrips.push(
+            { tripId: "1", tripHeadsign: targetRoute.destination, directionId: "0" },
+            { tripId: "2", tripHeadsign: targetRoute.origin, directionId: "1" }
+        );
+    }
+
+    sampleTrips.forEach((trip, idx) => {
+        const tripNum = idx + 1;
+        const startOffsetMinutes = idx * 60;
+        const totalStartMins = (baseHour * 60 + baseMin + startOffsetMinutes) % 1440;
+        const tripDurationMins = Math.max(25, Math.round((distKm / 28) * 60));
+        const totalEndMins = (totalStartMins + tripDurationMins) % 1440;
+
+        const depTime = `${String(Math.floor(totalStartMins / 60)).padStart(2, "0")}:${String(totalStartMins % 60).padStart(2, "0")}`;
+        const arrTime = `${String(Math.floor(totalEndMins / 60)).padStart(2, "0")}:${String(totalEndMins % 60).padStart(2, "0")}`;
+
+        const isOutbound = String(trip.directionId) === "0";
+        const fromStop = isOutbound ? targetRoute.origin : targetRoute.destination;
+        const toStop = isOutbound ? targetRoute.destination : targetRoute.origin;
+        const headsign = trip.tripHeadsign || toStop;
+
+        const socStart = Number(runningSoc.toFixed(1));
+        const socEnd = Number(Math.max(0, runningSoc - estChargePctPerTrip).toFixed(1));
+        runningSoc = socEnd;
+
+        const isFeasible = socEnd >= DEPOT_MIN_SOC_FLOOR && condition === "Good";
+        let statusText = isFeasible ? "✅ Feasible (Ready)" : (socEnd < DEPOT_MIN_SOC_FLOOR ? "⚡ Low SoC (<25% floor)" : "🔧 Maintenance Required");
+
+        tasks.push({
+            taskNumber: tripNum,
+            taskType: "Passenger Service Trip",
+            tripId: trip.tripId,
+            headsign,
+            direction: isOutbound ? "Outbound" : "Inbound",
+            fromStop,
+            toStop,
+            departureTime: depTime,
+            arrivalTime: arrTime,
+            distanceKm: distKm,
+            estimatedChargePct: estChargePctPerTrip,
+            estimatedChargeKwh: estChargeKwhPerTrip,
+            projectedSocStart: socStart,
+            projectedSocEnd: socEnd,
+            isFeasible,
+            status: statusText
+        });
+
+        if (socEnd <= DEPOT_MIN_SOC_FLOOR && idx < sampleTrips.length - 1) {
+            const chargeStartMins = (totalEndMins + 15) % 1440;
+            const chargeEndMins = (chargeStartMins + 45) % 1440;
+            const chargeDep = `${String(Math.floor(chargeStartMins / 60)).padStart(2, "0")}:${String(chargeStartMins % 60).padStart(2, "0")}`;
+            const chargeArr = `${String(Math.floor(chargeEndMins / 60)).padStart(2, "0")}:${String(chargeEndMins % 60).padStart(2, "0")}`;
+            const recoveredSoc = 95.0;
+
+            tasks.push({
+                taskNumber: `Charge-${tripNum}`,
+                taskType: "Depot Fast Charging",
+                tripId: `CHG-${finalUniqueId}`,
+                headsign: "Depot Fast DC Charger Bay",
+                direction: "Depot Service",
+                fromStop: toStop,
+                toStop: "Depot Charging Station",
+                departureTime: chargeDep,
+                arrivalTime: chargeArr,
+                distanceKm: 0,
+                estimatedChargePct: -Number((recoveredSoc - socEnd).toFixed(1)),
+                estimatedChargeKwh: Number(((recoveredSoc - socEnd) * 1.2).toFixed(1)),
+                projectedSocStart: socEnd,
+                projectedSocEnd: recoveredSoc,
+                isFeasible: true,
+                status: "🔌 Fast DC Recharge to 95%"
+            });
+            runningSoc = recoveredSoc;
+        }
+    });
+
+    return {
+        ok: true,
+        uniqueId: finalUniqueId,
+        assignedVehicle: finalUniqueId,
+        busNumber: targetRoute.busNumber,
+        routeId: targetRoute.routeId,
+        routeName: targetRoute.routeName,
+        origin: targetRoute.origin,
+        destination: targetRoute.destination,
+        currentSoc,
+        condition,
+        distanceKm: distKm,
+        estimatedChargePctPerTrip,
+        estimatedChargeKwhPerTrip,
+        estimatedRangeKm: estRangeKm,
+        totalAssignedTrips: totalTrips,
+        maxFeasibleTrips,
+        tasks
+    };
+}
+
 const server = http.createServer(async (req, res) => {
     if (req.method === "OPTIONS") {
         res.writeHead(204, {
@@ -1395,6 +1575,30 @@ const server = http.createServer(async (req, res) => {
             sendJson(res, { count: routes.length, routes });
         } catch (error) {
             sendJson(res, { error: "Failed to load routes", details: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/bus-tasks" || pathname === "/api/route-tasks") {
+        try {
+            const bus = (requestUrl.searchParams.get("bus") || "").trim();
+            const routeId = (requestUrl.searchParams.get("routeId") || requestUrl.searchParams.get("route_id") || "").trim();
+            const data = getBusTasks(bus, routeId);
+            sendJson(res, data);
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load bus tasks", details: error.message }, 500);
+        }
+        return;
+    }
+
+    const tasksMatch = pathname.match(/^\/api\/bus\/([^/]+)\/tasks$/);
+    if (tasksMatch) {
+        try {
+            const busIdParam = decodeURIComponent(tasksMatch[1]);
+            const data = getBusTasks(busIdParam);
+            sendJson(res, data);
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load bus tasks", details: error.message }, 500);
         }
         return;
     }

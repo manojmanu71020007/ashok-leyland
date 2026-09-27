@@ -744,6 +744,143 @@
             line-height: 1.45;
             color: #854d0e;
         }
+
+        /* Selected route trips duty banner */
+        .selected-route-trips-banner {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-left: 4px solid #0284c7;
+            border-radius: 8px;
+            font-size: 0.83rem;
+            color: #0369a1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            animation: fadeIn 0.2s ease;
+        }
+
+        /* Tasks Column Action in Scheduled Time */
+        .tasks-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 999px;
+            padding: 4px 8px 4px 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        }
+        .tasks-action-btn:hover {
+            background: #dcfce7;
+            border-color: #86efac;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.18);
+        }
+        .tasks-count-pill {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #166534;
+            white-space: nowrap;
+        }
+        .tasks-action-btn .route-arrow {
+            width: 20px;
+            height: 20px;
+            font-size: 0.82rem;
+            box-shadow: none;
+            background: #16a34a;
+            color: #ffffff;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            margin-left: 2px;
+            border: none;
+        }
+        .tasks-action-btn:hover .route-arrow {
+            background: #15803d;
+            transform: translateX(1px);
+        }
+
+        /* Tasks Modal Components */
+        .task-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .task-kpi-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+        }
+        .task-kpi-card .task-kpi-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 4px;
+        }
+        .task-kpi-card .task-kpi-val {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .task-kpi-card .task-kpi-sub {
+            font-size: 0.72rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .tasks-table-wrap {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            background: #ffffff;
+        }
+        .tasks-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.81rem;
+        }
+        .tasks-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            padding: 9px 12px;
+            text-align: left;
+            border-bottom: 1px solid #cbd5e1;
+            white-space: nowrap;
+        }
+        .tasks-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #f1f5f9;
+            color: var(--ink);
+        }
+        .tasks-table tr:last-child td {
+            border-bottom: none;
+        }
+        .tasks-table tr:hover td {
+            background: #f8fafc;
+        }
+        .tasks-table .charging-row td {
+            background: #fffbeb;
+            color: #92400e;
+        }
+        .trip-count-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
     </style>
 </head>
 <body>
@@ -771,11 +908,20 @@
                 <div class="fields">
                     <label class="wide">
                         Route search
-                        <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number or route name" />
+                        <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number, ID, or route name" />
                     </label>
-                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— All <span id="route-count-badge">54</span> buses available</span>
+                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">All 54 buses available</span></span>
                         <select id="route-select"><option value="">Loading all buses...</option></select>
                     </label>
+                    <div id="selected-route-trips-banner" class="selected-route-trips-banner" style="display:none;">
+                        <div>
+                            <strong>🎯 Assigned Duty:</strong> <span id="banner-bus-id" style="font-weight:700;">EV-01</span> on Route <span id="banner-route-name" style="font-weight:700;">401-A</span> (<span id="banner-stops-name">Peenya ➔ KBS</span>)
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span class="trip-count-badge" id="banner-trip-count" style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:.75rem;">211 Trips</span>
+                            <span id="banner-charge-info" style="font-size:.76rem; color:#0369a1; font-weight:700; background:#e0f2fe; padding:2px 8px; border-radius:6px;">⚡ Est. Charge: ~20.2% SoC</span>
+                        </div>
+                    </div>
                     <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7"></label>
                     <label>Departure time<input id="departure" type="time" value="07:30"></label>
                     <label>Route category<select id="complexity"><option value="simple">Simple</option><option value="moderate" selected>Moderate</option><option value="complex">Complex</option></select></label>
@@ -796,12 +942,15 @@
                     <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
                     <div class="kpi"><strong id="bus-departure">0</strong><span>Buses available for departure</span></div>
                     <div class="kpi"><strong id="driver-total">0</strong><span>Assigned drivers</span></div>
+                    <div class="kpi" id="kpi-trips"><strong id="trips-result">—</strong><span>Assigned trips</span></div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
                     <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Expected range</span></div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
+                    <div class="rule"><span>Assigned trips</span><strong id="trips-rule">—</strong></div>
+                    <div class="rule"><span>Est. trip charge</span><strong id="est-charge-rule">—</strong></div>
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
                     <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
@@ -876,7 +1025,7 @@
                             <th>Arrival Time</th>
                             <th>Status</th>
                             <th>Allocation</th>
-                            <th>Action</th>
+                            <th>Tasks</th>
                         </tr>
                     </thead>
                     <tbody id="scheduled-time-tbody">
@@ -909,6 +1058,29 @@
 
                 <div id="swapped-cards-container" class="modal-body">
                     <!-- Cards populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Bus Tasks & Route Duty Schedule Modal Dialog -->
+        <div id="bus-tasks-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
+            <div class="modal-dialog" style="max-width:920px;" role="dialog" aria-modal="true" aria-labelledby="bus-tasks-modal-title">
+                <div class="modal-header">
+                    <div>
+                        <div class="eyebrow" style="margin-bottom:4px; color:#0369a1;">GTFS Route &amp; Energy Feasibility Schedule</div>
+                        <h2 id="bus-tasks-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+                            <span>📋 Bus Assigned Tasks</span>
+                            <span id="tasks-modal-bus-badge" class="bus-pill-swapped" style="font-size:.85rem; padding:3px 10px;">EV-01</span>
+                        </h2>
+                        <p id="tasks-modal-subtitle" style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
+                            Schedule of duty tasks for this vehicle based on GTFS route distance and battery charge estimation.
+                        </p>
+                    </div>
+                    <button type="button" id="close-tasks-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+                </div>
+
+                <div id="tasks-modal-body" class="modal-body" style="padding:20px 24px; gap:16px;">
+                    <!-- Populated dynamically by JavaScript -->
                 </div>
             </div>
         </div>
@@ -1300,14 +1472,52 @@
             });
         }
 
+        function updateSelectedBusDutyBanner() {
+            const banner = document.getElementById("selected-route-trips-banner");
+            if (!banner) return;
+            const selectedRoute = routes.find((r) => String(r.routeId) === String(routeSelect.value));
+            if (!selectedRoute || !routeSelect.value) {
+                banner.style.display = "none";
+                return;
+            }
+
+            const assignedVehicle = getAssignedBusName(selectedRoute);
+            const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
+            const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
+            const distKm = Number(rangeInfo.gtfsDistanceKm || selectedRoute.distanceKm || calculateRouteDistanceKm(selectedRoute.routeId) || selectedRouteDistance || 28.7);
+            const estChargePct = Number((distKm / 1.42).toFixed(1));
+            const estChargeKwh = Number((distKm * 0.85).toFixed(1));
+
+            banner.style.display = "flex";
+            const busIdEl = document.getElementById("banner-bus-id");
+            const routeNameEl = document.getElementById("banner-route-name");
+            const stopsNameEl = document.getElementById("banner-stops-name");
+            const tripCountEl = document.getElementById("banner-trip-count");
+            const chargeInfoEl = document.getElementById("banner-charge-info");
+
+            if (busIdEl) busIdEl.textContent = assignedVehicle;
+            if (routeNameEl) routeNameEl.textContent = selectedRoute.busNumber;
+            if (stopsNameEl) stopsNameEl.textContent = `${selectedRoute.origin} ➔ ${selectedRoute.destination}`;
+            if (tripCountEl) tripCountEl.textContent = `🎯 ${tripCount} GTFS Trips`;
+            if (chargeInfoEl) chargeInfoEl.textContent = `⚡ Est. Charge: ~${estChargePct}% SoC (${estChargeKwh} kWh) • ${distKm.toFixed(1)} km`;
+        }
+
         function renderRoutes() {
             const query = (routeSearch.value || "").trim().toLowerCase();
+            const cleanCompactQuery = query.replace(/[^a-zA-Z0-9]/g, "");
             const filteredRoutes = query
                 ? routes.filter((route) => {
-                    // Search by GTFS name OR by swap-assigned name
-                    const assignedName = getAssignedBusName(route);
-                    const text = `${assignedName} ${route.busNumber || ""} ${route.origin || ""} ${route.destination || ""} ${route.routeName || ""}`.toLowerCase();
-                    return text.includes(query);
+                    // Search by GTFS busNumber, routeId, unique vehicle ID, assigned vehicle, or terminal stop names
+                    const assignedName = String(getAssignedBusName(route) || "");
+                    const busNum = String(route.busNumber || "");
+                    const routeId = String(route.routeId || "");
+                    const routeName = String(route.routeName || "");
+                    const origin = String(route.origin || "");
+                    const dest = String(route.destination || "");
+                    const uniqueId = String(route.uniqueId || "");
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${uniqueId}`.toLowerCase();
+                    const textCompact = text.replace(/[^a-zA-Z0-9]/g, "");
+                    return text.includes(query) || (cleanCompactQuery && textCompact.includes(cleanCompactQuery));
                 })
                 : routes;
 
@@ -1348,34 +1558,62 @@
             // Preserve whatever the user currently has selected
             const previouslySelected = routeSelect.value;
 
-            // ── Route <select>: always show ALL buses in the fleet, sorted alphabetically ──
-            const sortedAllRoutes = routes.slice().sort((a, b) => {
+            // ── Route <select>: Filter options based on routeSearch query and display assigned trips count ──
+            const displayRoutes = (query ? filteredRoutes : routes).slice().sort((a, b) => {
                 const nameA = String(getAssignedBusName(a) || a.busNumber || a.routeId);
                 const nameB = String(getAssignedBusName(b) || b.busNumber || b.routeId);
                 return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
             });
 
-            routeSelect.innerHTML = `<option value="">— Select a route (${sortedAllRoutes.length} available) —</option>` + sortedAllRoutes.map((route) => {
-                const assignedVehicle = getAssignedBusName(route);
-                const defaultVehicle = route.uniqueId || "";
-                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
-                const isBlocked = blockedRouteIds.has(String(route.routeId));
-                const vehiclePart = `[Assigned: ${assignedVehicle}${isSwapped ? ' 🔄 Swapped' : ''}]`;
-                const blockedPart = isBlocked ? " ⛔ Blocked" : "";
-                const label = `${route.busNumber} (${route.origin} ➔ ${route.destination}) — ${vehiclePart}${blockedPart}`;
-                return `<option value="${route.routeId}">${label}</option>`;
-            }).join("");
-
-            // Restore the previous selection if it still exists
-            if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
-                routeSelect.value = previouslySelected;
-            } else if (query && filteredRoutes.length === 1 && !previouslySelected) {
-                // If user searched for a bus number and exactly 1 matches, auto-select it
-                routeSelect.value = String(filteredRoutes[0].routeId);
+            const countBadge = document.getElementById("route-count-badge");
+            if (countBadge) {
+                countBadge.textContent = query
+                    ? `${displayRoutes.length} matching of ${routes.length}`
+                    : `All ${routes.length} buses available`;
             }
 
-            const countBadge = document.getElementById("route-count-badge");
-            if (countBadge) countBadge.textContent = String(routes.length);
+            if (displayRoutes.length === 0) {
+                routeSelect.innerHTML = `<option value="">— No buses match "${escapeHtml(query)}" —</option>`;
+            } else {
+                const defaultPlaceholder = query
+                    ? `— Select from ${displayRoutes.length} matching bus${displayRoutes.length === 1 ? '' : 'es'} —`
+                    : `— Select a route (${routes.length} available) —`;
+
+                routeSelect.innerHTML = `<option value="">${defaultPlaceholder}</option>` + displayRoutes.map((route) => {
+                    const assignedVehicle = getAssignedBusName(route);
+                    const defaultVehicle = route.uniqueId || "";
+                    const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
+                    const isBlocked = blockedRouteIds.has(String(route.routeId));
+                    const vehiclePart = `[Assigned: ${assignedVehicle}${isSwapped ? ' 🔄 Swapped' : ''}]`;
+                    const blockedPart = isBlocked ? " ⛔ Blocked" : "";
+                    const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
+                    const tripsPart = tripCount ? ` • 🎯 ${tripCount} Trips assigned` : "";
+                    const label = `${route.busNumber} (${route.origin} ➔ ${route.destination})${tripsPart} — ${vehiclePart}${blockedPart}`;
+                    return `<option value="${route.routeId}">${label}</option>`;
+                }).join("");
+            }
+
+            // Restore selection or auto-select the searched bus
+            if (query && displayRoutes.length === 1) {
+                routeSelect.value = String(displayRoutes[0].routeId);
+            } else if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
+                routeSelect.value = previouslySelected;
+            } else if (query && displayRoutes.length > 0) {
+                const exact = displayRoutes.find(r =>
+                    String(r.busNumber).toLowerCase() === query ||
+                    String(r.uniqueId).toLowerCase() === query ||
+                    String(getAssignedBusName(r)).toLowerCase() === query ||
+                    String(r.routeId) === query
+                );
+                if (exact) {
+                    routeSelect.value = String(exact.routeId);
+                } else if (!routeSelect.value) {
+                    routeSelect.value = String(displayRoutes[0].routeId);
+                }
+            }
+
+            // Update duty banner for the selected bus
+            updateSelectedBusDutyBanner();
 
             // Update allocation title and SOC/Range KPIs based on selection
             updateAllocationPanel();
@@ -1480,6 +1718,8 @@
                 const busCat = rangeInfo.busCategory || (rangeInfo.estimatedRangeKm > 120 ? "A" : (rangeInfo.estimatedRangeKm >= 100 ? "B" : "C"));
                 const catBadge = `<span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
                 const tierBadge = `<span style="background:#fef3c7;color:#b45309;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
+                const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
+                const tripsBadge = `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #bfdbfe;">🎯 ${tripCount} Trips</span>`;
 
                 const assignedVehicle = getAssignedBusName(route);
                 const defaultVehicle = route.uniqueId || "";
@@ -1495,9 +1735,10 @@
                     <div class="route-row" data-route-id="${route.routeId}">
                         <div class="route-meta">
                             ${titleHtml}
-                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;">
+                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap;">
                                 ${catBadge}
                                 ${tierBadge}
+                                ${tripsBadge}
                                 ${subtitleHtml}
                             </div>
                             <span>${route.origin} to ${route.destination}</span>
@@ -1593,6 +1834,8 @@
                 const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
                 const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
                 const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
+                const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
+                const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
                 const titleHtml = isSwapped
                     ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped: ${assignedVehicle}</span></strong>`
                     : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
@@ -1604,9 +1847,10 @@
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
                         <div class="route-meta">
                             ${titleHtml}
-                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;">
+                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap;">
                                 ${catBadge}
                                 ${tierBadge}
+                                ${tripsBadge}
                                 ${subtitleHtml}
                             </div>
                             <span>${route.origin} to ${route.destination}</span>
@@ -1731,7 +1975,7 @@
             }
 
             if (!routesToDisplay.length) {
-                scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching the filter criteria.</td></tr>';
+                scheduledTimeTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">No scheduled buses matching the filter criteria.</td></tr>';
                 return;
             }
 
@@ -1788,24 +2032,23 @@
                             }
                         </td>
                         <td>
-                            <button class="route-arrow scheduled-arrow" type="button" data-route-id="${route.routeId}" aria-label="View ${assignedVehicle} details">›</button>
+                            <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+                                <button class="tasks-action-btn scheduled-tasks-btn" type="button" data-route-id="${route.routeId}" data-bus="${assignedVehicle}" title="Click to view assigned tasks and route schedule for ${assignedVehicle}">
+                                    <span class="tasks-count-pill">📋 ${route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0} Tasks</span>
+                                    <span class="route-arrow">›</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join("");
 
-            scheduledTimeTbody.querySelectorAll(".scheduled-arrow").forEach((btn) => {
+            scheduledTimeTbody.querySelectorAll(".scheduled-tasks-btn").forEach((btn) => {
                 btn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     const routeId = btn.dataset.routeId;
-                    const route = routes.find((r) => String(r.routeId) === String(routeId));
-                    if (!route) return;
-                    const assignedVehicle = getAssignedBusName(route) || route.uniqueId || route.busNumber || "";
-                    const params = new URLSearchParams();
-                    if (assignedVehicle) params.set("unique_id", assignedVehicle);
-                    if (assignedVehicle) params.set("bus_id", assignedVehicle);
-                    if (routeId) params.set("route_id", routeId);
-                    window.location.href = `/bus-details.html?${params.toString()}`;
+                    const busId = btn.dataset.bus;
+                    openBusTasksModal(routeId, busId);
                 });
             });
 
@@ -1821,6 +2064,273 @@
                     await recommend();
                 });
             });
+        }
+
+        // ── Bus Tasks Modal Dialog & Energy Feasibility ──────────────────────
+        const busTasksModalBackdrop = document.getElementById("bus-tasks-modal-backdrop");
+        const closeTasksModalBtn = document.getElementById("close-tasks-modal-btn");
+        const tasksModalBody = document.getElementById("tasks-modal-body");
+        const tasksModalBusBadge = document.getElementById("tasks-modal-bus-badge");
+        const tasksModalSubtitle = document.getElementById("tasks-modal-subtitle");
+
+        async function openBusTasksModal(routeId, busId) {
+            if (!busTasksModalBackdrop) return;
+            busTasksModalBackdrop.style.display = "flex";
+            busTasksModalBackdrop.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+
+            const targetRoute = routes.find((r) => String(r.routeId) === String(routeId)) || routes[0] || {};
+            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.uniqueId || "EV-01";
+
+            if (tasksModalBusBadge) {
+                tasksModalBusBadge.textContent = assignedVehicle;
+            }
+            if (tasksModalSubtitle) {
+                tasksModalSubtitle.textContent = `Duty tasks assigned to ${assignedVehicle} on Route ${targetRoute.busNumber || routeId} (${targetRoute.origin || ''} ➔ ${targetRoute.destination || ''}) based on GTFS dataset.`;
+            }
+
+            if (tasksModalBody) {
+                tasksModalBody.innerHTML = `
+                    <div style="text-align:center;padding:36px;color:var(--muted);">
+                        <div style="font-size:2.2rem;margin-bottom:8px;">⏳</div>
+                        <div>Loading assigned tasks and GTFS route energy schedule for <strong>${escapeHtml(assignedVehicle)}</strong>…</div>
+                    </div>
+                `;
+            }
+
+            let taskData = null;
+            try {
+                const res = await fetch(`/api/bus-tasks?bus=${encodeURIComponent(assignedVehicle)}&routeId=${encodeURIComponent(routeId)}`);
+                if (res.ok) {
+                    taskData = await res.json();
+                }
+            } catch (e) {
+                console.warn("Could not fetch remote bus tasks, falling back to client calculation", e);
+            }
+
+            // Client-side fallback if server fails
+            if (!taskData || !taskData.ok) {
+                const state = busStates[assignedVehicle] || busStates[targetRoute.routeId] || busStates[targetRoute.busNumber] || {};
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const condition = state.condition || "Good";
+                const distKm = Number(targetRoute.distanceKm || calculateRouteDistanceKm(targetRoute.routeId) || 28.7);
+                const estChargePct = Number((distKm / 1.42).toFixed(1));
+                const estChargeKwh = Number((distKm * 0.85).toFixed(1));
+                const estRange = Math.round(Math.max(0, soc - 10) * 1.42);
+                const totalTrips = targetRoute.tripCount || gtfsScheduleMap.get(String(routeId))?.tripCount || 4;
+                const maxFeasible = estChargePct > 0 ? Math.floor(Math.max(0, soc - 25) / estChargePct) : 0;
+
+                const tasks = [
+                    {
+                        taskNumber: 1,
+                        taskType: "Passenger Service Trip",
+                        tripId: "TRIP-101",
+                        headsign: targetRoute.destination,
+                        direction: "Outbound",
+                        fromStop: targetRoute.origin,
+                        toStop: targetRoute.destination,
+                        departureTime: "07:30",
+                        arrivalTime: "08:15",
+                        distanceKm: distKm,
+                        estimatedChargePct: estChargePct,
+                        estimatedChargeKwh: estChargeKwh,
+                        projectedSocStart: soc,
+                        projectedSocEnd: Number(Math.max(0, soc - estChargePct).toFixed(1)),
+                        isFeasible: (soc - estChargePct) >= 25,
+                        status: (soc - estChargePct) >= 25 ? "✅ Feasible (Ready)" : "⚡ Low SoC (<25% floor)"
+                    },
+                    {
+                        taskNumber: 2,
+                        taskType: "Passenger Service Trip",
+                        tripId: "TRIP-102",
+                        headsign: targetRoute.origin,
+                        direction: "Inbound",
+                        fromStop: targetRoute.destination,
+                        toStop: targetRoute.origin,
+                        departureTime: "08:45",
+                        arrivalTime: "09:30",
+                        distanceKm: distKm,
+                        estimatedChargePct: estChargePct,
+                        estimatedChargeKwh: estChargeKwh,
+                        projectedSocStart: Number(Math.max(0, soc - estChargePct).toFixed(1)),
+                        projectedSocEnd: Number(Math.max(0, soc - 2 * estChargePct).toFixed(1)),
+                        isFeasible: (soc - 2 * estChargePct) >= 25,
+                        status: (soc - 2 * estChargePct) >= 25 ? "✅ Feasible (Ready)" : "⚡ Low SoC (<25% floor)"
+                    }
+                ];
+
+                taskData = {
+                    ok: true,
+                    uniqueId: assignedVehicle,
+                    assignedVehicle,
+                    busNumber: targetRoute.busNumber,
+                    routeId: targetRoute.routeId,
+                    routeName: targetRoute.routeName,
+                    origin: targetRoute.origin,
+                    destination: targetRoute.destination,
+                    currentSoc: soc,
+                    condition,
+                    distanceKm: distKm,
+                    estimatedChargePctPerTrip: estChargePct,
+                    estimatedChargeKwhPerTrip: estChargeKwh,
+                    estimatedRangeKm: estRange,
+                    totalAssignedTrips: totalTrips,
+                    maxFeasibleTrips: maxFeasible,
+                    tasks
+                };
+            }
+
+            renderBusTasksContent(taskData);
+        }
+
+        function closeBusTasksModal() {
+            if (!busTasksModalBackdrop) return;
+            busTasksModalBackdrop.style.display = "none";
+            busTasksModalBackdrop.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        function renderBusTasksContent(data) {
+            if (!tasksModalBody) return;
+            const soc = data.currentSoc ?? 100;
+            const cond = data.condition || "Good";
+            const dist = (data.distanceKm || 0).toFixed(1);
+            const estChargePct = data.estimatedChargePctPerTrip ?? 20.2;
+            const estChargeKwh = data.estimatedChargeKwhPerTrip ?? 24.3;
+            const estRange = data.estimatedRangeKm ?? 106;
+            const totalTrips = data.totalAssignedTrips || 0;
+            const maxFeasible = data.maxFeasibleTrips || 0;
+            const vehicle = data.assignedVehicle || data.uniqueId || "EV-01";
+            const busNum = data.busNumber || "N/A";
+            const origin = data.origin || "Origin";
+            const dest = data.destination || "Destination";
+            const isMaintenance = cond === "Not Good";
+            const isLowSoc = soc <= 25;
+
+            let feasibilityAlert = "";
+            if (isMaintenance) {
+                feasibilityAlert = `
+                    <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;color:#991b1b;font-size:0.85rem;line-height:1.45;">
+                        <strong>⚠️ Maintenance Safety Warning:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> is currently flagged for maintenance inspection. Scheduled tasks should remain on hold until depot technical clearance.
+                    </div>`;
+            } else if (isLowSoc) {
+                feasibilityAlert = `
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;color:#92400e;font-size:0.85rem;line-height:1.45;">
+                        <strong>⚡ Battery Reserve Notice:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> battery is at <strong>${soc}% SoC</strong> (at or below 25% minimum depot reserve floor). Vehicle must plug into depot fast DC charging before commencing next passenger duty.
+                    </div>`;
+            } else {
+                feasibilityAlert = `
+                    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;color:#166534;font-size:0.85rem;line-height:1.45;">
+                        <strong>✅ Energy Feasible on GTFS Route:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> holds <strong>${soc}% SoC (~${estRange} km range)</strong>, sufficient for <strong>${maxFeasible} service trip(s)</strong> of ${dist} km (consuming ~${estChargePct}% SoC per trip) while strictly maintaining the 25% depot safety buffer.
+                    </div>`;
+            }
+
+            const taskRows = (data.tasks || []).map((t) => {
+                const isCharge = t.taskType && t.taskType.toLowerCase().includes("charge");
+                const socChange = isCharge ? `+${Math.abs(t.estimatedChargePct)}% SoC` : `-${Math.abs(t.estimatedChargePct)}% SoC (${t.estimatedChargeKwh} kWh)`;
+                const socChangeColor = isCharge ? '#16a34a' : '#0369a1';
+                const rowClass = isCharge ? 'charging-row' : '';
+                const badgeColor = isCharge ? '#0284c7' : '#166534';
+                const badgeBg = isCharge ? '#e0f2fe' : '#dcfce7';
+
+                return `
+                    <tr class="${rowClass}">
+                        <td style="font-weight:700;">Task #${t.taskNumber}</td>
+                        <td>
+                            <span style="background:${badgeBg};color:${badgeColor};font-weight:700;padding:2px 7px;border-radius:4px;font-size:0.7rem;white-space:nowrap;">
+                                ${isCharge ? '🔌 Fast Charge' : '🚌 Service Trip'}
+                            </span>
+                            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">ID: ${escapeHtml(t.tripId)}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">🕒 ${escapeHtml(t.departureTime)} ➔ ${escapeHtml(t.arrivalTime)}</div>
+                            <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.direction)}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:600;">${escapeHtml(t.fromStop)} ➔ ${escapeHtml(t.toStop)}</div>
+                            <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.headsign)}</div>
+                        </td>
+                        <td><strong>${t.distanceKm} km</strong></td>
+                        <td style="color:${socChangeColor};font-weight:700;">${socChange}</td>
+                        <td>
+                            <div style="font-weight:700;">${t.projectedSocStart}% ➔ ${t.projectedSocEnd}%</div>
+                            <div style="font-size:0.72rem;color:${t.projectedSocEnd >= 25 ? '#16a34a' : '#dc2626'};">${t.projectedSocEnd >= 25 ? '✓ Above 25% floor' : '⚠️ Below 25% floor'}</div>
+                        </td>
+                        <td>
+                            <span class="status-pill ${t.isFeasible ? 'status-ahead' : 'status-delayed'}" style="font-size:0.72rem;">
+                                ${escapeHtml(t.status)}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            tasksModalBody.innerHTML = `
+                <div class="task-kpi-grid">
+                    <div class="task-kpi-card">
+                        <div class="task-kpi-label">Assigned Vehicle</div>
+                        <div class="task-kpi-val" style="color:#0369a1;">🚌 ${escapeHtml(vehicle)}</div>
+                        <div class="task-kpi-sub">Route ${escapeHtml(busNum)} • ID: ${escapeHtml(data.routeId)}</div>
+                    </div>
+                    <div class="task-kpi-card">
+                        <div class="task-kpi-label">GTFS Route Distance</div>
+                        <div class="task-kpi-val">${dist} km</div>
+                        <div class="task-kpi-sub">${escapeHtml(origin)} ⇔ ${escapeHtml(dest)}</div>
+                    </div>
+                    <div class="task-kpi-card">
+                        <div class="task-kpi-label">Est. Charge / Trip</div>
+                        <div class="task-kpi-val" style="color:#08755f;">~${estChargePct}% SoC</div>
+                        <div class="task-kpi-sub">${estChargeKwh} kWh at 0.85 kWh/km</div>
+                    </div>
+                    <div class="task-kpi-card">
+                        <div class="task-kpi-label">Assigned GTFS Trips</div>
+                        <div class="task-kpi-val">${totalTrips} Trips</div>
+                        <div class="task-kpi-sub">${maxFeasible} feasible before recharge</div>
+                    </div>
+                </div>
+
+                ${feasibilityAlert}
+
+                <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <h4 style="margin:0;font-size:0.95rem;color:var(--ink);">📅 Specified Route Duty Schedule (Sequential Tasks)</h4>
+                        <span style="font-size:0.75rem;color:var(--muted);font-weight:600;">Based on GTFS departure timetable &amp; battery drain model</span>
+                    </div>
+                    <div class="tasks-table-wrap">
+                        <table class="tasks-table">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Type</th>
+                                    <th>Timings</th>
+                                    <th>Segment (Stops)</th>
+                                    <th>Distance</th>
+                                    <th>Est. Charge</th>
+                                    <th>Projected SoC</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${taskRows}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p style="margin:8px 0 0;font-size:0.74rem;color:var(--muted);line-height:1.4;">
+                        * Note: A total of <strong>${totalTrips} timetable trips</strong> are assigned to Route ${escapeHtml(busNum)} in the GTFS dataset. The above sequence outlines the active and upcoming duty tasks allocated to Bus <strong>${escapeHtml(vehicle)}</strong> according to its estimated charge and the GTFS distance.
+                    </p>
+                </div>
+
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid #e2e8f0;flex-wrap:wrap;gap:10px;">
+                    <a href="/bus-details.html?unique_id=${encodeURIComponent(vehicle)}&bus_id=${encodeURIComponent(vehicle)}&route_id=${encodeURIComponent(data.routeId)}"
+                       class="btn-secondary"
+                       style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-weight:700;font-size:0.82rem;background:#0f172a;color:#fff;">
+                        📊 View Full Hardware Telemetry &amp; Battery Analytics ↗
+                    </a>
+                    <button type="button" onclick="closeBusTasksModal()" class="btn-secondary" style="padding:8px 18px;border-radius:8px;border:1px solid #cbd5e1;background:#f8fafc;font-weight:600;font-size:0.82rem;cursor:pointer;">
+                        Close
+                    </button>
+                </div>
+            `;
         }
 
         function updateAssignedDriverCount() {
@@ -1842,6 +2352,9 @@
             const rangeRule = document.getElementById("range-rule");
             const timeRule = document.getElementById("time-rule");
             const fleetRule = document.getElementById("fleet-rule");
+            const tripsResultEl = document.getElementById("trips-result");
+            const tripsRuleEl = document.getElementById("trips-rule");
+            const estChargeRuleEl = document.getElementById("est-charge-rule");
 
             if (!selectedRoute || !routeSelect.value) {
                 titleEl.textContent = "Allocation result";
@@ -1853,11 +2366,24 @@
                 rangeRule.textContent = "—";
                 timeRule.textContent = "—";
                 fleetRule.textContent = "—";
+                if (tripsResultEl) tripsResultEl.textContent = "—";
+                if (tripsRuleEl) tripsRuleEl.textContent = "—";
+                if (estChargeRuleEl) estChargeRuleEl.textContent = "—";
             } else {
                 const assignedName = getAssignedBusName(selectedRoute);
                 titleEl.textContent = `Allocation result of ${assignedName}`;
                 socKpi.style.opacity = "1";
                 rangeKpi.style.opacity = "1";
+
+                const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
+                const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
+                const distKm = Number(rangeInfo.gtfsDistanceKm || selectedRoute.distanceKm || calculateRouteDistanceKm(selectedRoute.routeId) || selectedRouteDistance || 28.7);
+                const estChargePct = Number((distKm / 1.42).toFixed(1));
+                const estChargeKwh = Number((distKm * 0.85).toFixed(1));
+
+                if (tripsResultEl) tripsResultEl.textContent = String(tripCount);
+                if (tripsRuleEl) tripsRuleEl.textContent = `${tripCount} trips (GTFS dataset)`;
+                if (estChargeRuleEl) estChargeRuleEl.textContent = `~${estChargePct}% SoC (${estChargeKwh} kWh)`;
             }
         }
 
@@ -1934,6 +2460,18 @@
             document.getElementById("current-soc-rule").textContent = `${liveSoc}%`;
             document.getElementById("range-rule").textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
             document.getElementById("time-rule").textContent = timeCategoryLabel;
+
+            const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
+            const distKm = routeDistance;
+            const estChargePct = Number((distKm / 1.42).toFixed(1));
+            const estChargeKwh = Number((distKm * 0.85).toFixed(1));
+
+            const tripsResultEl = document.getElementById("trips-result");
+            if (tripsResultEl) tripsResultEl.textContent = String(tripCount);
+            const tripsRuleEl = document.getElementById("trips-rule");
+            if (tripsRuleEl) tripsRuleEl.textContent = `${tripCount} trips (GTFS dataset)`;
+            const estChargeRuleEl = document.getElementById("est-charge-rule");
+            if (estChargeRuleEl) estChargeRuleEl.textContent = `~${estChargePct}% SoC (${estChargeKwh} kWh)`;
 
             const busCatRule = document.getElementById("bus-category-rule");
             if (busCatRule) busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
@@ -2121,6 +2659,22 @@
                     });
                 }
 
+                if (closeTasksModalBtn) {
+                    closeTasksModalBtn.addEventListener("click", closeBusTasksModal);
+                }
+                if (busTasksModalBackdrop) {
+                    busTasksModalBackdrop.addEventListener("click", (e) => {
+                        if (e.target === busTasksModalBackdrop) {
+                            closeBusTasksModal();
+                        }
+                    });
+                }
+                window.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape" && busTasksModalBackdrop && busTasksModalBackdrop.style.display === "flex") {
+                        closeBusTasksModal();
+                    }
+                });
+
                 await updateSelectedRouteDistance();
                 await recommend();
 
@@ -2153,7 +2707,7 @@
                     notAllocatedSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
                 }
                 if (scheduledTimeTbody) {
-                    scheduledTimeTbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted);">GTFS schedule data unavailable</td></tr>';
+                    scheduledTimeTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">GTFS schedule data unavailable</td></tr>';
                 }
                 document.getElementById("route-distance-rule").textContent = "N/A";
             }
