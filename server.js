@@ -278,24 +278,47 @@ function calculateRouteDistanceByRouteId(routeId) {
     return dist;
 }
 
-function calculateRouteDistance(busNumber) {
-    const route = loadRoutes().find((candidate) => candidate.busNumber === busNumber);
+function calculateRouteDistance(busIdentifier) {
+    const raw = String(busIdentifier || "").trim();
+    const allRoutes = loadRoutes();
+    const busState = loadBusState();
+    const assignments = busState._assignments || {};
+
+    let route = allRoutes.find((candidate) => candidate.busNumber === raw);
     if (!route) {
-        return { ok: false, statusCode: 404, error: `Bus ${busNumber} was not found in routes.txt.` };
+        route = allRoutes.find((candidate) => String(candidate.routeId) === raw);
+    }
+    if (!route) {
+        const rawLower = raw.toLowerCase();
+        const rawCompact = raw.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+        route = allRoutes.find((candidate) => {
+            const b = String(candidate.busNumber || "").toLowerCase();
+            return b === rawLower || b.replace(/[^a-zA-Z0-9]/g, "") === rawCompact;
+        });
     }
 
-    const distanceKm = calculateRouteDistanceByRouteId(route.routeId);
+    if (!route) {
+        return { ok: false, statusCode: 404, error: `Bus or Route ${busIdentifier} was not found in routes.txt.` };
+    }
+
+    const busName = route.busNumber;
+    const assignedRouteId = (assignments && (assignments[busName] || assignments[String(route.routeId)])) || route.routeId;
+    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || route;
+
+    const distanceKm = calculateRouteDistanceByRouteId(assignedRouteObj.routeId) ?? calculateRouteDistanceByRouteId(route.routeId);
     if (distanceKm === null) {
-        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busNumber}.` };
+        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busIdentifier}.` };
     }
 
-    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.routeId));
+    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(assignedRouteObj.routeId));
     const selectedTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
 
     return {
         ok: true,
-        busNumber,
-        routeId: route.routeId,
+        busNumber: busName,
+        routeId: assignedRouteObj.routeId,
+        assignedRouteId: assignedRouteObj.routeId,
+        originalRouteId: route.routeId,
         tripId: selectedTrip ? selectedTrip.tripId : "",
         shapeId: selectedTrip ? selectedTrip.shapeId : "",
         distanceKm
@@ -956,55 +979,76 @@ function resolveBusAndRoute(rawBusId) {
     const allRoutes = loadRoutes();
     const busState = loadBusState();
     const assignments = busState._assignments || {};
+    const busAssignments = busState._busAssignments || {};
 
     const cleanLower = cleanId.toLowerCase();
     const cleanCompact = cleanId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 1. Find matching route by routeId, busNumber, or assigned bus name
-    const matchingRoute = allRoutes.find((r) => {
-        const rId = String(r.routeId);
+    // 1. Vehicle-Centric: match by physical bus name (busNumber) first!
+    let matchingRoute = allRoutes.find((r) => {
         const rBus = String(r.busNumber || "").trim().toLowerCase();
         const rBusCompact = rBus.replace(/[^a-zA-Z0-9]/g, "");
-        const assigned = String(assignments[rId] || "").trim().toLowerCase();
-        const assignedCompact = assigned.replace(/[^a-zA-Z0-9]/g, "");
-
-        return (
-            rId === cleanId ||
-            rBus === cleanLower ||
-            rBusCompact === cleanCompact ||
-            assigned === cleanLower ||
-            assignedCompact === cleanCompact
-        );
+        return rBus === cleanLower || rBusCompact === cleanCompact;
     });
 
-    const canonicalRouteId = matchingRoute ? String(matchingRoute.routeId) : cleanId;
-    const busNumber = matchingRoute ? matchingRoute.busNumber : cleanId;
-    const assignedName = (assignments && assignments[canonicalRouteId]) || busNumber;
+    // 2. If not matched by busNumber, try by routeId or assigned route mapping
+    if (!matchingRoute) {
+        matchingRoute = allRoutes.find((r) => {
+            const rId = String(r.routeId);
+            const assigned = String(assignments[rId] || "").trim().toLowerCase();
+            const assignedCompact = assigned.replace(/[^a-zA-Z0-9]/g, "");
+            return (
+                rId === cleanId ||
+                assigned === cleanLower ||
+                assignedCompact === cleanCompact
+            );
+        });
+    }
 
-    // Look for state entry by routeId, busNumber, assignedName, or rawBusId
-    const stateEntry = busState[canonicalRouteId] 
-        || busState[busNumber] 
-        || busState[assignedName] 
+    const busNumber = matchingRoute ? matchingRoute.busNumber : cleanId;
+    const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : cleanId;
+
+    // Assigned GTFS route in vehicle-centric model
+    let assignedRouteId = (assignments && assignments[busNumber]) || null;
+    if (!assignedRouteId || !allRoutes.some(r => String(r.routeId) === String(assignedRouteId))) {
+        const found = Object.entries(assignments || {}).find(([k, v]) => v === busNumber && allRoutes.some(r => String(r.routeId) === k));
+        assignedRouteId = found ? found[0] : defaultRouteId;
+    }
+    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
+    const assignedRecord = (busAssignments && busAssignments[busNumber]) || null;
+    const assignedRouteDisplay = assignedRecord?.assignedRouteDisplay
+        || (assignedRouteObj ? `Route ${assignedRouteObj.routeId} (${(calculateRouteDistanceByRouteId(assignedRouteObj.routeId) || 0).toFixed(1)} km)` : `Route ${assignedRouteId}`);
+
+    // Vehicle-Centric: prioritize physical bus state entry (where ESP32 telemetry history is stored)
+    const stateEntry = busState[busNumber] 
         || busState[cleanId] 
+        || busState[defaultRouteId] 
+        || busState[assignedRouteId]
         || Object.entries(busState).find(([k]) => k.toLowerCase() === cleanLower || k.replace(/[^a-zA-Z0-9]/g, "").toLowerCase() === cleanCompact)?.[1]
         || {};
 
     const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
-    const routeDistanceKm = (matchingRoute && calculateRouteDistanceByRouteId(matchingRoute.routeId)) || 28.7;
+    const condition = stateEntry.condition || "Good";
+    const routeDistanceKm = (assignedRouteObj && calculateRouteDistanceByRouteId(assignedRouteObj.routeId))
+        || (matchingRoute && calculateRouteDistanceByRouteId(matchingRoute.routeId))
+        || 28.7;
 
     return {
-        canonicalRouteId,
         busNumber,
-        assignedName,
+        busName: busNumber,
+        canonicalRouteId: defaultRouteId,
+        assignedRouteId,
+        assignedRouteDisplay,
         matchingRoute,
         stateEntry,
         currentSoc,
+        condition,
         routeDistanceKm
     };
 }
 
 function getBusMicroData(rawBusId) {
-    const { currentSoc, routeDistanceKm, stateEntry } = resolveBusAndRoute(rawBusId);
+    const { currentSoc, routeDistanceKm, stateEntry, busNumber } = resolveBusAndRoute(rawBusId);
     const history = Array.isArray(stateEntry.history) ? [...stateEntry.history] : [];
     const now = Date.now();
     const targetPoints = 30;
@@ -1016,7 +1060,8 @@ function getBusMicroData(rawBusId) {
             history.push({
                 timestamp: new Date().toISOString(),
                 soc: currentSoc,
-                odometer_km: routeDistanceKm
+                odometer_km: routeDistanceKm,
+                bus_id: busNumber
             });
         }
     }
@@ -1033,13 +1078,15 @@ function getBusMicroData(rawBusId) {
             synthetic.push({
                 timestamp: t,
                 soc: socVal,
-                odometer_km: odo
+                odometer_km: odo,
+                bus_id: busNumber
             });
         }
         const combined = [...synthetic, ...history.map((h, idx) => ({
             timestamp: h.timestamp,
             soc: Number(h.soc),
-            odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (history.length - 1 - idx) * 0.02)).toFixed(1))
+            odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (history.length - 1 - idx) * 0.02)).toFixed(1)),
+            bus_id: busNumber
         }))];
         combined[combined.length - 1].soc = currentSoc;
         return combined;
@@ -1048,14 +1095,15 @@ function getBusMicroData(rawBusId) {
     const trimmed = history.slice(-50).map((h, idx, arr) => ({
         timestamp: h.timestamp,
         soc: Number(h.soc),
-        odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (arr.length - 1 - idx) * 0.02)).toFixed(1))
+        odometer_km: Number((routeDistanceKm * Math.max(0.1, 1 - (arr.length - 1 - idx) * 0.02)).toFixed(1)),
+        bus_id: busNumber
     }));
     trimmed[trimmed.length - 1].soc = currentSoc;
     return trimmed;
 }
 
 function getBusMacroData(rawBusId) {
-    const { currentSoc, routeDistanceKm } = resolveBusAndRoute(rawBusId);
+    const { currentSoc, routeDistanceKm, busNumber } = resolveBusAndRoute(rawBusId);
     const now = new Date();
     const logs = [];
 
@@ -1083,7 +1131,8 @@ function getBusMacroData(rawBusId) {
             soc_start: startSoc,
             soc_end: endSoc,
             km,
-            duration_hours: durationHours
+            duration_hours: durationHours,
+            bus_id: busNumber
         });
     }
     return logs;
@@ -1133,6 +1182,28 @@ const server = http.createServer(async (req, res) => {
             sendJson(res, data);
         } catch (error) {
             sendJson(res, { error: "Failed to load micro data", details: error.message }, 500);
+        }
+        return;
+    }
+
+    const summaryMatch = pathname.match(/^\/api\/bus\/([^/]+)\/summary$/);
+    if (summaryMatch) {
+        try {
+            const busIdParam = decodeURIComponent(summaryMatch[1]);
+            const info = resolveBusAndRoute(busIdParam);
+            sendJson(res, {
+                ok: true,
+                busName: info.busNumber,
+                bus_id: info.busNumber,
+                routeId: info.canonicalRouteId,
+                assignedRouteId: info.assignedRouteId,
+                assignedRouteDisplay: info.assignedRouteDisplay,
+                soc: info.currentSoc,
+                condition: info.condition,
+                distanceKm: info.routeDistanceKm
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load bus summary", details: error.message }, 500);
         }
         return;
     }

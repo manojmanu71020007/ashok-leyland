@@ -1503,8 +1503,9 @@
                     const selectedRoute = routes.find((route) => String(route.routeId) === String(routeId));
                     if (!selectedRoute) return;
                     const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
-                    const params = new URLSearchParams({ route_id: routeId });
+                    const params = new URLSearchParams();
                     if (busShortName) params.set("bus_id", busShortName);
+                    if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
@@ -1601,8 +1602,9 @@
                     const selectedRoute = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!selectedRoute) return;
                     const busShortName = getAssignedBusName(selectedRoute) || selectedRoute.busNumber || "";
-                    const params = new URLSearchParams({ route_id: routeId });
+                    const params = new URLSearchParams();
                     if (busShortName) params.set("bus_id", busShortName);
+                    if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
@@ -1757,8 +1759,9 @@
                     const route = routes.find((r) => String(r.routeId) === String(routeId));
                     if (!route) return;
                     const busShortName = getAssignedBusName(route) || route.busNumber || "";
-                    const params = new URLSearchParams({ route_id: routeId });
+                    const params = new URLSearchParams();
                     if (busShortName) params.set("bus_id", busShortName);
+                    if (routeId) params.set("route_id", routeId);
                     window.location.href = `/bus-details.html?${params.toString()}`;
                 });
             });
