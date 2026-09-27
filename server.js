@@ -1039,6 +1039,7 @@ function resolveBusAndRoute(rawBusId) {
         canonicalRouteId: defaultRouteId,
         assignedRouteId,
         assignedRouteDisplay,
+        assignedRouteObj,
         matchingRoute,
         stateEntry,
         currentSoc,
@@ -1198,6 +1199,9 @@ const server = http.createServer(async (req, res) => {
                 routeId: info.canonicalRouteId,
                 assignedRouteId: info.assignedRouteId,
                 assignedRouteDisplay: info.assignedRouteDisplay,
+                origin: info.assignedRouteObj?.origin || info.matchingRoute?.origin || "",
+                destination: info.assignedRouteObj?.destination || info.matchingRoute?.destination || "",
+                routeName: info.assignedRouteObj?.routeName || info.matchingRoute?.routeName || "",
                 soc: info.currentSoc,
                 condition: info.condition,
                 distanceKm: info.routeDistanceKm

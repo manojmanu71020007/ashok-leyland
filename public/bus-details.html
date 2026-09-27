@@ -219,7 +219,8 @@
             // Update UI elements
             document.getElementById("pageHeading").textContent = `Bus ${physicalBusName} SoC Analytics`;
             document.getElementById("busIdLabel").textContent = physicalBusName;
-            document.getElementById("routeIdSub").textContent = assignedRouteDisplay ? `Assigned: ${assignedRouteDisplay}` : "Assigned: Active";
+            const odText = (info.origin && info.destination) ? ` • ${info.origin} ➔ ${info.destination}` : "";
+            document.getElementById("routeIdSub").textContent = assignedRouteDisplay ? `Assigned: ${assignedRouteDisplay}${odText}` : "Assigned: Active";
 
             if (Number.isFinite(Number(info.soc))) {
               document.getElementById("currentSoc").textContent = `${Math.round(info.soc)}%`;
