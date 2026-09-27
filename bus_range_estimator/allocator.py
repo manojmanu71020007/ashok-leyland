@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Iterable, Sequence
 
-from .config import DEFAULTS
+from .config import DEFAULTS, DEPOT_MIN_SOC_FLOOR
 from .estimator import categorize, planned_range
 from .models import Bus, Schedule
 
@@ -50,14 +50,18 @@ def can_swap_buses(
     hysteresis: float = SOC_HYSTERESIS_PERCENT,
 ) -> bool:
     """Evaluate whether candidate_bus can replace current_bus under SoC hysteresis.
-    
-    Swap is permitted if candidate_bus has an SoC advantage strictly exceeding the
-    hysteresis threshold (default 5%).
-    If current_bus is no longer available/clean/qualified, swap is always permitted.
+
+    Swap is always permitted when the current bus fails eligibility:
+    - Not available / not cleaned
+    - SoC below the depot dispatch floor (DEPOT_MIN_SOC_FLOOR = 25%)
+
+    When the current bus is still eligible, swap requires the challenger's SoC
+    to exceed the current bus's SoC by strictly more than the hysteresis band.
     """
     if not current_bus.available or not current_bus.interior_clean or not current_bus.exterior_clean:
         return True
-    if current_bus.soc < 98:
+    if current_bus.soc < DEPOT_MIN_SOC_FLOOR:
+        # Current bus is below the safety floor — no grace band, reassign immediately.
         return True
 
     soc_diff = float(candidate_bus.soc) - float(current_bus.soc)
@@ -120,8 +124,11 @@ def allocate(
                 candidate["reason"] = "Bus is unavailable or not cleaned."
                 candidates.append(candidate)
                 continue
-            if bus.soc < 98:
-                candidate["reason"] = "SOC below 98% required for dispatch."
+            if bus.soc < DEPOT_MIN_SOC_FLOOR:
+                candidate["reason"] = (
+                    f"SoC {bus.soc:.1f}% is below the depot dispatch floor "
+                    f"({DEPOT_MIN_SOC_FLOOR:.0f}%). Bus excluded from all routes."
+                )
                 candidates.append(candidate)
                 continue
 

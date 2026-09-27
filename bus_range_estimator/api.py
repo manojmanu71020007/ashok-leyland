@@ -401,5 +401,120 @@ def post_swap(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.get("/range/{bus_id}")
 def get_range(bus_id: str) -> dict[str, Any]:
-    """Return a placeholder range response for a given bus."""
-    return {"ok": True, "bus_id": bus_id, "range_km": 0.0}
+    """Return planned, live, and blended range estimates for a bus.
+
+    This endpoint is called by server.js on every telemetry update to replace
+    the static 1.42 km/% multiplier with historically-fitted coefficients and
+    live SOC regression.
+
+    Response fields
+    ---------------
+    ok              : bool
+    bus_id          : str
+    soc             : float   — current SoC from telemetry or bus_state.json
+    planned_range_km: float   — historical-fit range (always available)
+    live_range_km   : float | null — live regression (null if window too small)
+    blended_range_km: float   — final estimate used by the swap engine
+    range_category  : "A" | "B" | "C"
+    """
+    from .estimator import blend as _blend, categorize, live_range as _live_range, planned_range as _planned_range
+    from .models import TelemetryPoint as _TelPt, TripLog as _TLog
+
+    connection = get_db_connection()
+    try:
+        # ── Trip history (last 30 days) ───────────────────────────────────────
+        macro_rows = connection.execute(
+            """
+            SELECT bus_id, route_code, slot, soc_start, soc_end, km, duration_hours, timestamp
+            FROM trip_logs
+            WHERE bus_id = ? AND timestamp >= datetime('now', '-30 days')
+            ORDER BY timestamp ASC
+            """,
+            (bus_id,),
+        ).fetchall()
+
+        # ── Live telemetry (last 20 minutes) ─────────────────────────────────
+        micro_rows = connection.execute(
+            """
+            SELECT bus_id, timestamp, soc, odometer_km
+            FROM telemetry_points
+            WHERE bus_id = ? AND timestamp >= datetime('now', '-20 minutes')
+            ORDER BY timestamp ASC
+            """,
+            (bus_id,),
+        ).fetchall()
+    finally:
+        connection.close()
+
+    # Build TripLog objects
+    trip_logs: list[_TLog] = []
+    for r in macro_rows:
+        d = dict(r)
+        try:
+            ts = datetime.strptime(d["timestamp"], "%Y-%m-%dT%H:%M:%S")
+        except (ValueError, TypeError):
+            continue
+        trip_logs.append(
+            _TLog(
+                bus_id=d["bus_id"],
+                route_code=d.get("route_code") or "",
+                slot=d.get("slot") or "NORMAL",
+                soc_start=float(d["soc_start"]),
+                soc_end=float(d["soc_end"]),
+                km=float(d["km"]),
+                duration_hours=float(d["duration_hours"]),
+                timestamp=ts,
+            )
+        )
+
+    # Build TelemetryPoint objects
+    telem_points: list[_TelPt] = []
+    for r in micro_rows:
+        d = dict(r)
+        try:
+            ts = datetime.strptime(d["timestamp"], "%Y-%m-%dT%H:%M:%S")
+        except (ValueError, TypeError):
+            continue
+        telem_points.append(
+            _TelPt(
+                bus_id=d["bus_id"],
+                timestamp=ts,
+                soc=float(d["soc"]),
+                odometer_km=float(d["odometer_km"]),
+            )
+        )
+
+    # Current SoC
+    current_soc = _get_current_bus_soc(bus_id)
+    if telem_points:
+        current_soc = telem_points[-1].soc
+
+    # ── Planned range (historical fit) ────────────────────────────────────────
+    p_range = _planned_range(
+        trip_logs,
+        bus_id=bus_id,
+        route_code=None,
+        slot=None,
+        soc=current_soc,
+    )
+
+    # ── Live range (may be None) ──────────────────────────────────────────────
+    l_range = _live_range(telem_points) if len(telem_points) >= 5 else None
+
+    # ── Blended range ─────────────────────────────────────────────────────────
+    window_min = 0.0
+    if l_range is not None and len(telem_points) >= 2:
+        window_min = (
+            (telem_points[-1].timestamp - telem_points[0].timestamp).total_seconds() / 60.0
+        )
+    blended = _blend(planned=p_range, live=l_range, window_minutes=window_min)
+
+    return {
+        "ok": True,
+        "bus_id": bus_id,
+        "soc": round(current_soc, 2),
+        "planned_range_km": round(p_range, 2),
+        "live_range_km": round(l_range, 2) if l_range is not None else None,
+        "blended_range_km": round(blended, 2),
+        "range_category": categorize(blended),
+    }

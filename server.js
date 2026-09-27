@@ -345,13 +345,58 @@ function calculateRouteDistance(busIdentifier) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const SWAP_THRESHOLD_PCT = 5;       // minimum SoC gap (%) needed to trigger a swap
-const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC (matches problem.html formula)
+const RANGE_KM_PER_SOC_PCT = 1.42;  // km per 1% SoC — fallback when Python API is unavailable
 const SOC_BUFFER_PCT = 10;          // reserve: usable SoC = soc - buffer
+const DEPOT_MIN_SOC_FLOOR = 25;     // matches Python DEPOT_MIN_SOC_FLOOR in config.py
 
-function estimatedRangeKm(soc) {
+// Per-vehicle blended range cache: uniqueId → { rangeKm, category, ts }
+// Populated asynchronously by fetchAndCachePythonRange() after every telemetry save.
+// estimatedRangeKm() uses this if available; falls back to the flat formula otherwise.
+const _pythonRangeCache = new Map();
+const PYTHON_RANGE_TTL_MS = 60_000; // 60 s — discard stale Python estimates
+
+/**
+ * Return the estimated range in km for a bus.
+ * Uses the Python blended estimate (planned+live) when available and fresh,
+ * otherwise falls back to the flat 1.42 km/% formula.
+ *
+ * @param {number} soc      - current SoC %
+ * @param {string} [uniqueId] - EV-01…EV-54 key for the Python cache lookup
+ */
+function estimatedRangeKm(soc, uniqueId) {
+    if (uniqueId) {
+        const cached = _pythonRangeCache.get(uniqueId);
+        if (cached && (Date.now() - cached.ts) < PYTHON_RANGE_TTL_MS) {
+            return cached.rangeKm;
+        }
+    }
+    // Fallback: flat formula
     const usable = Math.max(0, soc - SOC_BUFFER_PCT);
     return Math.round(usable * RANGE_KM_PER_SOC_PCT);
 }
+
+/**
+ * Fire-and-forget: fetch blended range from Python and update the cache.
+ * Never awaited from the hot path — does not block telemetry responses.
+ *
+ * @param {string} uniqueId - EV-01…EV-54
+ * @param {number} soc      - current SoC (used as cache fallback if Python fails)
+ */
+function fetchAndCachePythonRange(uniqueId, soc) {
+    fetch(`${PYTHON_API_BASE}/range/${encodeURIComponent(uniqueId)}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((data) => {
+            if (data && data.ok && Number.isFinite(data.blended_range_km) && data.blended_range_km > 0) {
+                _pythonRangeCache.set(uniqueId, {
+                    rangeKm: data.blended_range_km,
+                    category: data.range_category || "C",
+                    ts: Date.now()
+                });
+            }
+        })
+        .catch(() => {}); // silent — Python sidecar may not be running locally
+}
+
 
 /**
  * Runs the physical vehicle (unique_id: EV-01..EV-54) bus-swap algorithm and updates state._assignments in-place.
@@ -489,7 +534,7 @@ function swapBusAssignments(state) {
         const assignedRouteId = vehicleToRoute[uId] || r.routeId;
         const assignedRouteObj = routeInfos.find((x) => x.routeId === assignedRouteId) || r;
         const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good" };
-        const range = estimatedRangeKm(t.soc);
+        const range = estimatedRangeKm(t.soc, uId);
         const dist = assignedRouteObj.gtfsDistanceKm;
         const isBlocked = (dist > 0 && range < dist) || (t.condition === "Not Good") || (t.soc < 25);
 
@@ -1416,6 +1461,8 @@ const server = http.createServer(async (req, res) => {
                                 })
                             }).catch(() => {});
                         }
+                        // Refresh Python blended range cache for this vehicle (fire-and-forget)
+                        fetchAndCachePythonRange(uniqueId, updatedEntry.soc);
 
                         const assignedRouteId = (currentState._assignments || {})[uniqueId] || defaultRouteId;
                         const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;
@@ -1546,6 +1593,8 @@ const server = http.createServer(async (req, res) => {
                             })
                         }).catch(() => {});
                     }
+                    // Refresh Python blended range cache for this vehicle (fire-and-forget)
+                    fetchAndCachePythonRange(uniqueId, updatedEntry.soc);
 
                     const assignedRouteId = (currentState._assignments || {})[uniqueId] || defaultRouteId;
                     const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || matchingRoute;

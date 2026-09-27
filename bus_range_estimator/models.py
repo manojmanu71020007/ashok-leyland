@@ -41,6 +41,7 @@ class Bus:
     interior_clean: bool
     exterior_clean: bool
     available: bool
+    short_name: str = ""          # physical bus label shown on ESP dropdown (e.g. "600F")
     history: list[TripLog] = field(default_factory=list)
 
 
@@ -54,3 +55,29 @@ class Schedule:
     trips: int
     start_time: str
     scheduled_hours: float
+
+
+@dataclass
+class GTFSRoute:
+    """A GTFS route slot — the key is fixed and never changes."""
+
+    route_id: str             # fixed slot key — never reassigned
+    route_short_name: str     # e.g. "600F"
+    distance_km: float        # derived from GTFS shape (longest trip direction)
+
+
+@dataclass
+class RouteAssignment:
+    """Current bus-to-route mapping produced by the swap engine."""
+
+    route_id: str
+    route_distance_km: float
+    assigned_bus_id: Optional[str] = None       # None means NO_DEPARTURE
+    assigned_short_name: Optional[str] = None    # None means NO_DEPARTURE
+    expected_range_km: float = 0.0
+    last_swap_soc: Optional[float] = None        # incumbent SoC at time of last swap
+
+    @property
+    def no_departure(self) -> bool:
+        """True when no eligible bus is available for this route."""
+        return self.assigned_bus_id is None

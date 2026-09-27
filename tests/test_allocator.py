@@ -91,8 +91,11 @@ def test_soc_hysteresis_prevents_small_gap_swaps():
 
 
 def test_soc_hysteresis_allows_swap_if_assigned_bus_becomes_ineligible():
-    """If assigned bus drops below 98% SoC or becomes dirty, candidate with <= 5% gap CAN take over."""
-    bus_a_disqualified = Bus(bus_id="B_A", soc=95.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
+    """If assigned bus drops below DEPOT_MIN_SOC_FLOOR (25%) it is excluded from the
+    eligible pool entirely, so a candidate with <= 5% SoC gap CAN take over
+    (no hysteresis grace band applies to a bus below the safety floor)."""
+    # B_A is at 20% — below DEPOT_MIN_SOC_FLOOR=25%, so it is excluded from allocate()
+    bus_a_disqualified = Bus(bus_id="B_A", soc=20.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
     bus_b = Bus(bus_id="B_B", soc=99.0, soh=0.95, interior_clean=True, exterior_clean=True, available=True)
     schedule = Schedule(
         route_code="600F",
@@ -110,8 +113,9 @@ def test_soc_hysteresis_allows_swap_if_assigned_bus_becomes_ineligible():
         current_assignments={"600F": "B_A"},
         now=now,
     )
-    assert ranking[0]["bus_id"] == "B_B"
-    assert ranking[0]["eligible"] is True
+    # B_B should be first because B_A is excluded from the eligible pool
+    eligible = [r for r in ranking if r.get("eligible")]
+    assert eligible[0]["bus_id"] == "B_B"
 
 
 def test_can_swap_buses_helper():
