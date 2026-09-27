@@ -955,6 +955,7 @@
                     <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
+                    <div class="rule"><span>Driver status</span><strong id="driver-status-rule">—</strong></div>
                     <div class="rule"><span>Fleet status</span><strong id="fleet-rule">Ready for dispatch</strong></div>
                 </div>
             </aside>
@@ -965,7 +966,7 @@
                 <div class="panel-heading-row">
                     <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
                 </div>
-                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance) &amp; condition Good.</p>
+                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
                 <div class="region-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
                     <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
@@ -980,7 +981,7 @@
                 <div class="panel-heading-row">
                     <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
                 </div>
-                <p class="panel-note" style="margin-bottom:12px;">Ineligible — low SoC or maintenance required.</p>
+                <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
                 <div class="region-search-wrap not-allocated-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
                     <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses (bus, route, reason...)" autocomplete="off" spellcheck="false" />
@@ -1536,7 +1537,20 @@
                 // If swap engine says blocked → not allocated
                 if (blockedRouteIds.has(String(route.routeId))) return false;
 
-                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                const assignedName = getAssignedBusName(route);
+                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
+
+                // DRIVER ALLOCATION GATE: If there is no driver for that particular EV bus,
+                // it MUST come under Not Allocated Buses list, no matter the SoC!
+                const driverStatus = state.driver || "Driver Assigned";
+                if (driverStatus.toLowerCase().includes("no")) return false;
+
+                // Also check if the user manually toggled driver availability in the schedule form for this selected route
+                if (String(route.routeId) === String(manuallySelectedId)) {
+                    const driverSelectEl = document.getElementById("driver");
+                    if (driverSelectEl && driverSelectEl.value === "unavailable") return false;
+                }
+
                 if (!state || Object.keys(state).length === 0) return true; // no telemetry → assume factory-fresh 100%
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
@@ -1622,11 +1636,21 @@
             const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
             const notAllocatedRoutes = filteredRoutes.filter((r) => {
                 if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
+                // If the bus is in allocatedRoutes, it does not belong in notAllocated
+                if (allocatedIds.has(String(r.routeId))) return false;
                 // Include routes blocked by swap engine even without telemetry
                 if (blockedRouteIds.has(String(r.routeId))) return true;
-                const state = busStates[r.routeId] || busStates[r.busNumber] || {};
+                const assignedName = getAssignedBusName(r);
+                const state = busStates[r.routeId] || busStates[r.uniqueId] || busStates[assignedName] || busStates[r.busNumber] || {};
+                const driverStatus = state.driver || "Driver Assigned";
+                // If no driver assigned, ALWAYS include in notAllocated
+                if (driverStatus.toLowerCase().includes("no")) return true;
+                if (String(r.routeId) === String(manuallySelectedId)) {
+                    const driverSelectEl = document.getElementById("driver");
+                    if (driverSelectEl && driverSelectEl.value === "unavailable") return true;
+                }
                 if (!state || Object.keys(state).length === 0) return false;
-                return !allocatedIds.has(String(r.routeId));
+                return true;
             });
 
             lastFilteredRoutes = filteredRoutes;
@@ -1811,10 +1835,12 @@
             }
 
             notAllocatedSummary.innerHTML = filtered.map((route) => {
-                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
+                const assignedName = getAssignedBusName(route);
+                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
-                const assignedName = getAssignedBusName(route);
+                const driverStatus = state.driver || "Driver Assigned";
+                const noDriver = driverStatus.toLowerCase().includes("no");
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
                 const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
                 const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm)) ? Number(rangeInfo.estimatedRangeKm) : Math.round(Math.max(0, soc - 10) * 1.42);
@@ -1822,9 +1848,10 @@
                 const badCondition = condition === "Not Good";
                 const lowSocFloor = soc < 25;
                 const tags = [
+                    noDriver ? `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:700;">👤 No Driver Assigned</span>` : "",
                     badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
                     isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${estRange}km < ${dist}km</span>` : "",
-                    (!badCondition && !isBlockedByRange && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
+                    (!badCondition && !isBlockedByRange && !noDriver && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
                 const assignedVehicle = getAssignedBusName(route);
                 const defaultVehicle = route.uniqueId || "";
@@ -2345,8 +2372,33 @@
         }
 
         function updateAssignedDriverCount() {
-            const assignedDrivers = document.getElementById("driver").value === "ready" ? routes.length : 0;
-            document.getElementById("driver-total").textContent = String(assignedDrivers);
+            const el = document.getElementById("driver-total");
+            if (!el) return;
+            if (!routes || !routes.length) {
+                el.textContent = "0";
+                return;
+            }
+            const selectedRouteId = routeSelect ? String(routeSelect.value) : "";
+            const driverSelectEl = document.getElementById("driver");
+            const manualDriverVal = driverSelectEl ? driverSelectEl.value : null;
+
+            let assignedCount = 0;
+            routes.forEach((route) => {
+                const rId = String(route.routeId);
+                const assignedName = getAssignedBusName(route);
+                const state = busStates[rId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
+                const drv = state.driver || "Driver Assigned";
+                let isDriverAssigned = !drv.toLowerCase().includes("no");
+
+                // If this is the currently selected route in the Schedule form, respect the manual dropdown
+                if (rId === selectedRouteId && manualDriverVal) {
+                    isDriverAssigned = manualDriverVal === "ready";
+                }
+
+                if (isDriverAssigned) assignedCount++;
+            });
+
+            el.textContent = String(assignedCount);
         }
 
         let busStates = {};
@@ -2363,6 +2415,7 @@
             const rangeRule = document.getElementById("range-rule");
             const timeRule = document.getElementById("time-rule");
             const fleetRule = document.getElementById("fleet-rule");
+            const driverRule = document.getElementById("driver-status-rule");
             const tripsResultEl = document.getElementById("trips-result");
             const tripsRuleEl = document.getElementById("trips-rule");
             const estChargeRuleEl = document.getElementById("est-charge-rule");
@@ -2377,6 +2430,7 @@
                 rangeRule.textContent = "—";
                 timeRule.textContent = "—";
                 fleetRule.textContent = "—";
+                if (driverRule) driverRule.textContent = "—";
                 if (tripsResultEl) tripsResultEl.textContent = "—";
                 if (tripsRuleEl) tripsRuleEl.textContent = "—";
                 if (estChargeRuleEl) estChargeRuleEl.textContent = "—";
@@ -2385,6 +2439,14 @@
                 titleEl.textContent = `Allocation result of ${assignedName}`;
                 socKpi.style.opacity = "1";
                 rangeKpi.style.opacity = "1";
+
+                const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.uniqueId] || busStates[assignedName] || busStates[selectedRoute.busNumber] || {};
+                const drv = busState.driver || "Driver Assigned";
+                const isNoDrv = drv.toLowerCase().includes("no");
+                if (driverRule) {
+                    driverRule.textContent = isNoDrv ? "⛔ No Driver Assigned" : "✅ Driver Assigned";
+                    driverRule.style.color = isNoDrv ? "#dc2626" : "#16a34a";
+                }
 
                 const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
                 const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
@@ -2500,6 +2562,12 @@
                 ? `✅ Allowed (Cat ${allowedCategories.join('/')})`
                 : `⚠️ Required Cat ${allowedCategories.join('/')} (Current: Cat ${busCategory})`;
 
+            const driverRule = document.getElementById("driver-status-rule");
+            if (driverRule) {
+                driverRule.textContent = driverReadyFinal ? "✅ Driver Assigned (Ready)" : "⛔ No Driver Assigned";
+                driverRule.style.color = driverReadyFinal ? "#16a34a" : "#dc2626";
+            }
+
             let fleetReason = "Ready for dispatch";
             if (manualCleanOverride) {
                 fleetReason = "Ready for dispatch (manual override)";
@@ -2512,6 +2580,7 @@
                 else fleetReason = "Needs review";
             }
             document.getElementById("fleet-rule").textContent = fleetReason;
+            updateAssignedDriverCount();
         }
 
         async function loadData() {
@@ -2596,7 +2665,11 @@
                     renderRoutes();
                     await recommend();
                 });
-                document.getElementById("driver").addEventListener("change", updateAssignedDriverCount);
+                document.getElementById("driver").addEventListener("change", async () => {
+                    updateAssignedDriverCount();
+                    renderRoutes();
+                    await recommend();
+                });
 
                 document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((btn) => {
                     btn.addEventListener("click", () => {

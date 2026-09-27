@@ -526,6 +526,7 @@ function swapBusAssignments(state) {
             defaultBusShortName: r.busShortName,
             soc,
             condition: s.condition || "Good",
+            driver: s.driver || "Driver Assigned",
             estimatedRangeKm: range,
             busCategory: getBusCategory(range)
         };
@@ -673,10 +674,11 @@ function swapBusAssignments(state) {
         const uId = r.uniqueId;
         const assignedRouteId = vehicleToRoute[uId] || r.routeId;
         const assignedRouteObj = routeInfos.find((x) => x.routeId === assignedRouteId) || r;
-        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
+        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good", driver: "Driver Assigned", estimatedRangeKm: 128, busCategory: "A" };
         const range = estimatedRangeKm(t.soc, uId);
         const dist = assignedRouteObj.gtfsDistanceKm;
-        const isBlocked = (dist > 0 && range < dist) || (t.condition === "Not Good") || (t.soc < 25);
+        const isNoDriver = Boolean(t.driver && t.driver.toLowerCase().includes("no"));
+        const isBlocked = (dist > 0 && range < dist) || (t.condition === "Not Good") || (t.soc < 25) || isNoDriver;
         const allowed = (ALLOWED_CATEGORIES[assignedRouteObj.routeCategory] || ALLOWED_CATEGORIES.SIMPLE)[currentSlot] || ["A"];
         const busCat = t.busCategory || getBusCategory(range);
         const matrixCompliant = allowed.includes(busCat);
@@ -707,6 +709,7 @@ function swapBusAssignments(state) {
             matrixCompliant,
             soc: t.soc,
             condition: t.condition,
+            driver: t.driver || "Driver Assigned",
             estimatedRangeKm: range,
             blocked: isBlocked
         };
@@ -724,6 +727,7 @@ function swapBusAssignments(state) {
             matrixCompliant,
             soc: t.soc,
             condition: t.condition,
+            driver: t.driver || "Driver Assigned",
             estimatedRangeKm: range,
             gtfsDistanceKm: dist,
             blocked: isBlocked
