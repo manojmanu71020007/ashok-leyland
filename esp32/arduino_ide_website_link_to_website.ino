@@ -247,21 +247,39 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
           }
         });
 
-        // Query the live website for the swap-engine assigned bus names for each routeId
+        // Query the live website for the swap-engine assigned bus names and real-time SoC
         try {
-          const assignRes = await fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-assignments');
-          const assignData = await assignRes.json();
-          if (assignData && assignData.assignments) {
+          const [assignRes, stateRes] = await Promise.all([
+            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-assignments'),
+            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-state')
+          ]);
+          if (assignRes.ok) {
+            const assignData = await assignRes.json();
+            if (assignData && assignData.assignments) {
+              fleetData.forEach(bus => {
+                const rId = bus.routeId || bus.bus_id;
+                if (assignData.assignments[rId]) {
+                  bus.route = assignData.assignments[rId];
+                  bus.assignedBus = assignData.assignments[rId];
+                }
+              });
+            }
+          }
+          if (stateRes && stateRes.ok) {
+            const stateData = await stateRes.json();
+            const stateMap = (stateData && stateData.state) ? stateData.state : (stateData || {});
             fleetData.forEach(bus => {
               const rId = bus.routeId || bus.bus_id;
-              if (assignData.assignments[rId]) {
-                bus.route = assignData.assignments[rId];
-                bus.assignedBus = assignData.assignments[rId];
+              const evId = bus.ev_id || bus.unique_id;
+              const s = stateMap[rId] || stateMap[evId] || (bus.default_bus ? stateMap[bus.default_bus.split(' ')[0]] : null);
+              if (s) {
+                if (s.soc !== undefined && s.soc !== null) bus.soc = Number(s.soc);
+                if (s.condition) bus.condition = s.condition;
               }
             });
           }
         } catch (e) {
-          console.log('Using local assignments');
+          console.log('Using local assignments and state fallback', e);
         }
 
         renderDropdown(busSearch.value);
@@ -479,16 +497,18 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
           if (assignRes.ok && stateRes.ok) {
             const assignData = await assignRes.json();
             const stateData = await stateRes.json();
+            const stateMap = (stateData && stateData.state) ? stateData.state : (stateData || {});
             if (assignData && assignData.assignments) {
               latestData.forEach(bus => {
                 const rId = bus.routeId || bus.bus_id;
+                const evId = bus.ev_id || bus.unique_id;
                 if (assignData.assignments[rId]) {
                   bus.route = assignData.assignments[rId];
                   bus.assignedBus = assignData.assignments[rId];
                 }
-                if (stateData && stateData[rId]) {
-                  const s = stateData[rId];
-                  if (s.soc !== undefined) bus.soc = s.soc;
+                const s = stateMap[rId] || stateMap[evId] || (bus.default_bus ? stateMap[bus.default_bus.split(' ')[0]] : null);
+                if (s) {
+                  if (s.soc !== undefined && s.soc !== null) bus.soc = Number(s.soc);
                   if (s.condition !== undefined) bus.condition = s.condition;
                 }
               });
