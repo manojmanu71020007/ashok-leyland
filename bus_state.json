@@ -473,9 +473,9 @@
     "blocked": false
   },
   "3935": {
-    "status": "Active",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 33,
+    "soc": 23,
     "condition": "Good",
     "updatedAt": "2026-09-25T17:07:53.373Z",
     "statusTimings": {
@@ -492,8 +492,8 @@
         "departure": "14:55"
       }
     },
-    "busNumber": "D9-PSS",
-    "blocked": false
+    "busNumber": "BC-7B PSS-NLGH-8thM",
+    "blocked": true
   },
   "3951": {
     "status": "Warning",
@@ -573,7 +573,7 @@
     "rawStatus": "Active",
     "soc": 100,
     "condition": "Good",
-    "updatedAt": "2026-09-27T03:46:09.072Z",
+    "updatedAt": "2026-09-27T03:59:05.692Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -592,6 +592,12 @@
       {
         "timestamp": "2026-09-27T03:46:09.072Z",
         "soc": 32,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-27T03:59:05.692Z",
+        "soc": 23,
         "condition": "Good",
         "status": "On Time"
       }
@@ -640,7 +646,7 @@
   "7296": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 32,
+    "soc": 33,
     "condition": "Good",
     "updatedAt": "2026-09-26T06:35:59.443Z",
     "statusTimings": {
@@ -657,7 +663,7 @@
         "departure": "07:30"
       }
     },
-    "busNumber": "BC-7B PSS-NLGH-8thM",
+    "busNumber": "D9-PSS",
     "blocked": false
   },
   "7403": {
@@ -991,11 +997,11 @@
     "blocked": false
   },
   "BC-7B PSS-NLGH-8thM": {
-    "status": "Active",
+    "status": "Warning",
     "rawStatus": "Active",
-    "soc": 32,
+    "soc": 23,
     "condition": "Good",
-    "updatedAt": "2026-09-27T03:46:09.072Z",
+    "updatedAt": "2026-09-27T03:59:05.692Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -1016,11 +1022,17 @@
         "soc": 32,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-27T03:59:05.692Z",
+        "soc": 23,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
-    "assignedRouteId": "7296",
-    "assignedRouteDisplay": "Route 7296 (5.2 km)",
-    "blocked": false
+    "assignedRouteId": "3935",
+    "assignedRouteDisplay": "Route 3935 (4.6 km)",
+    "blocked": true
   },
   "CHAKRA-7": {
     "status": "Active",
@@ -1079,7 +1091,7 @@
     "3907": "252-A",
     "3916": "MF-26 PSS-JHMS",
     "3920": "250-SB PSS-SVG",
-    "3935": "D9-PSS",
+    "3935": "BC-7B PSS-NLGH-8thM",
     "3951": "401-AK PSS-ABG",
     "4759": "250-S PSS-GLB",
     "4798": "MF-32 PSS-CKB",
@@ -1087,7 +1099,7 @@
     "6551": "273",
     "6979": "250-F PSS-SSHL",
     "7143": "256-F",
-    "7296": "BC-7B PSS-NLGH-8thM",
+    "7296": "D9-PSS",
     "7403": "JHMS-PSS",
     "7632": "252-A PSS-ISROM",
     "7834": "270-D PSS-ABG",
@@ -1132,14 +1144,14 @@
     "252-A": "3907",
     "MF-26 PSS-JHMS": "3916",
     "250-SB PSS-SVG": "3920",
-    "D9-PSS": "3935",
+    "BC-7B PSS-NLGH-8thM": "3935",
     "401-AK PSS-ABG": "3951",
     "250-S PSS-GLB": "4759",
     "MF-32 PSS-CKB": "4798",
     "401-AM": "6080",
     "250-F PSS-SSHL": "6979",
     "256-F": "7143",
-    "BC-7B PSS-NLGH-8thM": "7296",
+    "D9-PSS": "7296",
     "JHMS-PSS": "7403",
     "252-A PSS-ISROM": "7632",
     "270-D PSS-ABG": "7834",
@@ -1157,12 +1169,23 @@
     "253-D PSS-TRN": "9636"
   },
   "_blockedRouteIds": [
+    "3935",
     "1549",
     "3951",
     "1548",
     "3629"
   ],
   "_swapLog": [
+    {
+      "timestamp": "2026-09-27T03:59:05.693Z",
+      "routeA": "7296",
+      "busA": "BC-7B PSS-NLGH-8thM",
+      "distA": 5.19,
+      "routeB": "3935",
+      "busB": "D9-PSS",
+      "distB": 4.57,
+      "reason": "Range Optimization: Longer Route 7296 (5.2 km) had vehicle 'BC-7B PSS-NLGH-8thM' with lower battery (23%). Reassigned vehicle 'D9-PSS' (33% SoC) to longer route to prevent mid-route battery depletion."
+    },
     {
       "timestamp": "2026-09-27T03:46:09.073Z",
       "routeA": "3831",
@@ -1652,16 +1675,6 @@
       "busB": "248-AB",
       "distB": 13.62,
       "reason": "Range Optimization: Longer Route 2786 (13.7 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '248-AB' (100% SoC) to longer route to prevent mid-route battery depletion."
-    },
-    {
-      "timestamp": "2026-09-26T19:03:23.594Z",
-      "routeA": "1621",
-      "busA": "252-A PSS-HAL ARDC",
-      "distA": 13.62,
-      "routeB": "3158",
-      "busB": "401-AK ABG-PSS",
-      "distB": 13.34,
-      "reason": "Range Optimization: Longer Route 1621 (13.6 km) had vehicle '252-A PSS-HAL ARDC' with lower battery (8%). Reassigned vehicle '401-AK ABG-PSS' (100% SoC) to longer route to prevent mid-route battery depletion."
     }
   ],
   "PSS-NLGDH-8THM": {
@@ -2084,8 +2097,8 @@
         "status": "On Time"
       }
     ],
-    "assignedRouteId": "3935",
-    "assignedRouteDisplay": "Route 3935 (4.6 km)",
+    "assignedRouteId": "7296",
+    "assignedRouteDisplay": "Route 7296 (5.2 km)",
     "blocked": false
   },
   "500-D MRHB-HBL-PSS": {
@@ -2209,13 +2222,13 @@
     },
     "BC-7B PSS-NLGH-8thM": {
       "busName": "BC-7B PSS-NLGH-8thM",
-      "assignedRouteId": "7296",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 (5.2 km)",
-      "soc": 32,
+      "assignedRouteId": "3935",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 (4.6 km)",
+      "soc": 23,
       "condition": "Good",
-      "estimatedRangeKm": 31,
-      "blocked": false
+      "estimatedRangeKm": 18,
+      "blocked": true
     },
     "PSS-NLGDH-8THM": {
       "busName": "PSS-NLGDH-8THM",
@@ -2599,9 +2612,9 @@
     },
     "D9-PSS": {
       "busName": "D9-PSS",
-      "assignedRouteId": "3935",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 (4.6 km)",
+      "assignedRouteId": "7296",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 (5.2 km)",
       "soc": 33,
       "condition": "Good",
       "estimatedRangeKm": 33,
@@ -2719,6 +2732,7 @@
     }
   },
   "_blockedBuses": [
+    "BC-7B PSS-NLGH-8thM",
     "252-A PSS-HAL ARDC",
     "401-AK PSS-ABG",
     "D22-PSS",
@@ -2929,11 +2943,11 @@
       "blocked": false
     },
     "3935": {
-      "soc": 33,
+      "soc": 23,
       "condition": "Good",
-      "estimatedRangeKm": 33,
+      "estimatedRangeKm": 18,
       "gtfsDistanceKm": 4.57,
-      "blocked": false
+      "blocked": true
     },
     "3951": {
       "soc": 16,
@@ -2985,9 +2999,9 @@
       "blocked": false
     },
     "7296": {
-      "soc": 32,
+      "soc": 33,
       "condition": "Good",
-      "estimatedRangeKm": 31,
+      "estimatedRangeKm": 33,
       "gtfsDistanceKm": 5.19,
       "blocked": false
     },
