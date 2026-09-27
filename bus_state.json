@@ -614,6 +614,10 @@
   },
   "4759": {
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 83,
+    "condition": "Good",
+    "updatedAt": "2026-09-27T10:19:21.119Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -628,11 +632,17 @@
         "departure": "07:30"
       }
     },
-    "soc": 83,
-    "condition": "Good",
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:21.119Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-09",
     "busNumber": "270-D PSS-ABG",
-    "blocked": false,
-    "uniqueId": "EV-09"
+    "blocked": false
   },
   "4798": {
     "status": "Active",
@@ -2234,13 +2244,35 @@
     "uniqueId": "EV-03"
   },
   "270-D PSS-ABG": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 83,
     "condition": "Good",
-    "status": "Active",
-    "assignedRouteId": "7834",
-    "assignedRouteDisplay": "Route 7834 (11.3 km)",
-    "blocked": false,
-    "uniqueId": "EV-09"
+    "updatedAt": "2026-09-27T10:19:21.119Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:21.119Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-09",
+    "blocked": false
   },
   "273-B PSS-ABG": {
     "soc": 100,
@@ -3149,7 +3181,7 @@
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "401-AK ABG-PSS": {
@@ -3166,7 +3198,7 @@
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-06": {
@@ -4901,7 +4933,7 @@
       "assignedVehicle": "EV-05",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "gtfsDistanceKm": 11.66,
       "blocked": false
     },
@@ -5247,10 +5279,34 @@
     "blocked": false
   },
   "EV-03": {
-    "uniqueId": "EV-03",
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "updatedAt": "2026-09-27T10:19:21.119Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-27T10:19:21.119Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-03",
     "assignedRouteId": "7834",
     "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
     "assignedRouteShortName": "PSS-NLGDH-8THM",
@@ -6101,7 +6157,7 @@
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "soc": 100,
       "condition": "Good",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 90,
       "blocked": false
     },
     "EV-06": {
