@@ -116,8 +116,8 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
     <h1>Driver Terminal</h1>
     <p>Select your physical vehicle (EV-01..EV-54) and update telemetry. The assigned route is dynamically optimized from the cloud swap engine.</p>
     <form id="telemetry-form">
-      <label for="bus-search">Search Physical Vehicle (EV Number, Route ID, or Bus Short Name)</label>
-      <input type="text" id="bus-search" placeholder="Search EV Number (e.g. EV-42, 42), Bus Short Name (401-A), or Route ID (1367)..." autocomplete="off" style="padding: 11px; border: 1px solid #b9c8d6; border-radius: 8px; margin-bottom: 6px;">
+      <label for="bus-search">Search Physical Vehicle (EV-01..EV-54 or Name)</label>
+      <input type="text" id="bus-search" placeholder="Type vehicle ID (e.g. EV-42) or route name..." autocomplete="off" style="padding: 11px; border: 1px solid #b9c8d6; border-radius: 8px; margin-bottom: 6px;">
 
       <label for="bus-select">Select Physical Vehicle (<span id="bus-count">54</span> vehicles available)</label>
       <select id="bus-select" name="bus" required>
@@ -164,48 +164,17 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
 
     function renderDropdown(filterText = '') {
       const q = filterText.trim().toLowerCase();
-      const cleanQ = q.replace(/[^a-z0-9]/gi, "");
-      const cleanQNum = cleanQ.replace(/^ev0*/, "");
       const prevVal = busSelect.value;
 
       const filtered = q
-        ? fleetData.filter(bus => {
-            const uId = String(bus.unique_id || bus.uniqueId || `EV-${String((bus.origIndex !== undefined ? bus.origIndex : 0) + 1).padStart(2, '0')}`).toLowerCase();
-            const cleanU = uId.replace(/[^a-z0-9]/gi, "");
-            const uNum = cleanU.replace(/^ev0*/, "");
-
-            const shortName = String(bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : '')).toLowerCase();
-            const cleanShort = shortName.replace(/[^a-z0-9]/gi, "");
-
-            const bName = String(bus.busName || bus.bus_id || "").toLowerCase();
-            const cleanBName = bName.replace(/[^a-z0-9]/gi, "");
-
-            const rId = String(bus.routeId || bus.defaultRouteId || "").toLowerCase();
-            const assignedRId = String(bus.assignedRouteId || "").toLowerCase();
-
-            const assignedShort = String(bus.assignedRouteShortName || "").toLowerCase();
-            const cleanAssignedShort = assignedShort.replace(/[^a-z0-9]/gi, "");
-
-            const routeStr = String(bus.assignedRoute || bus.route || "").toLowerCase();
-
-            // 1. EV Number search (e.g. EV-42, ev42, 42, ev-01, 1)
-            if (uId.includes(q)) return true;
-            if (cleanQ && (cleanU.includes(cleanQ) || (cleanQNum && uNum === cleanQNum))) return true;
-
-            // 2. Bus Short Name search (e.g. 401-A, 401A, 401, MF-26)
-            if (shortName && (shortName.includes(q) || (cleanShort && cleanQ && cleanShort.includes(cleanQ)))) return true;
-            if (bName && (bName.includes(q) || (cleanBName && cleanQ && cleanBName.includes(cleanQ)))) return true;
-            if (assignedShort && (assignedShort.includes(q) || (cleanAssignedShort && cleanQ && cleanAssignedShort.includes(cleanQ)))) return true;
-
-            // 3. Route ID search (e.g. 1367, 6080, 3935)
-            if (rId && (rId.includes(q) || (cleanQ && rId.includes(cleanQ)))) return true;
-            if (assignedRId && (assignedRId.includes(q) || (cleanQ && assignedRId.includes(cleanQ)))) return true;
-
-            // 4. Assigned route string search
-            if (routeStr && routeStr.includes(q)) return true;
-
-            return false;
-          })
+        ? fleetData.filter(bus => 
+            (bus.unique_id && bus.unique_id.toLowerCase().includes(q)) || 
+            (bus.uniqueId && bus.uniqueId.toLowerCase().includes(q)) || 
+            (bus.busName && bus.busName.toLowerCase().includes(q)) || 
+            (bus.bus_id && bus.bus_id.toLowerCase().includes(q)) || 
+            (bus.assignedRoute && bus.assignedRoute.toLowerCase().includes(q)) ||
+            (bus.route && bus.route.toLowerCase().includes(q))
+          )
         : fleetData;
 
       if (busCount) {
@@ -219,11 +188,9 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
 
       busSelect.innerHTML = filtered.map(bus => {
         const uId = bus.unique_id || bus.uniqueId || `EV-${String(bus.origIndex + 1).padStart(2, '0')}`;
-        const shortName = bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : 'Bus');
-        const rId = bus.routeId || bus.defaultRouteId || bus.assignedRouteId || '';
-        const rPart = rId ? `Route ${rId} • ` : '';
-        const assigned = bus.assignedRoute || bus.route || ('Route ' + rId);
-        return `<option value="${bus.origIndex}">[${uId}] ${rPart}${shortName} ➔ Assigned: ${assigned} [${bus.soc}%]</option>`;
+        const name = bus.busName || bus.bus_id || '';
+        const assigned = bus.assignedRoute || bus.route || '';
+        return `<option value="${bus.origIndex}">${uId} (${name}) ➔ Assigned: ${assigned} [${bus.soc}%]</option>`;
       }).join('');
 
       if (prevVal !== "" && busSelect.querySelector(`option[value="${prevVal}"]`)) {
@@ -238,61 +205,30 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
     async function loadFleetDropdown() {
       try {
         const response = await fetch('/api/fleet');
-        const raw = await response.json();
-        fleetData = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.fleet) ? raw.fleet : []);
-        fleetData.forEach((bus, i) => {
-          bus.origIndex = i;
-          if (!bus.busShortName && bus.busName) {
-            bus.busShortName = bus.defaultBusNumber || bus.busName.split(' ')[0];
-          }
-        });
+        fleetData = await response.json();
+        fleetData.forEach((bus, i) => { bus.origIndex = i; });
 
-        // Query the live website for the swap-engine assigned route and live SoC for each bus
+        // Query the live website for the swap-engine assigned route for each bus
         try {
-          const [assignRes, stateRes] = await Promise.all([
-            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-assignments'),
-            fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-state')
-          ]);
-          if (assignRes.ok) {
-            const assignData = await assignRes.json();
-            if (assignData) {
-              fleetData.forEach(bus => {
-                const uId = bus.unique_id || bus.uniqueId;
-                const bName = bus.busShortName || bus.busName || bus.bus_id;
-                if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
-                  bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
-                  bus.assignedRouteId = assignData.vehicleAssignments[uId].assignedRouteId;
-                  bus.assignedRouteShortName = assignData.vehicleAssignments[uId].assignedRouteShortName;
-                } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
-                  bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
-                  bus.assignedRouteId = assignData.busAssignments[bName].assignedRouteId;
-                  bus.assignedRouteShortName = assignData.busAssignments[bName].assignedRouteShortName;
-                } else if (uId && assignData.assignments && assignData.assignments[uId]) {
-                  bus.assignedRoute = "Route " + assignData.assignments[uId];
-                  bus.assignedRouteId = assignData.assignments[uId];
-                } else if (assignData.assignments && assignData.assignments[bName]) {
-                  bus.assignedRoute = "Route " + assignData.assignments[bName];
-                  bus.assignedRouteId = assignData.assignments[bName];
-                }
-              });
-            }
-          }
-          if (stateRes.ok) {
-            const stateData = await stateRes.json();
-            if (stateData && stateData.state) {
-              fleetData.forEach(bus => {
-                const uId = bus.unique_id || bus.uniqueId;
-                const bName = bus.busShortName || bus.busName;
-                const s = (uId && stateData.state[uId]) || (bName && stateData.state[bName]);
-                if (s) {
-                  if (s.soc !== undefined) bus.soc = s.soc;
-                  if (s.condition !== undefined) bus.condition = s.condition;
-                }
-              });
-            }
+          const assignRes = await fetch('https://ashok-leyland-bus-tracking.onrender.com/api/bus-assignments');
+          const assignData = await assignRes.json();
+          if (assignData) {
+            fleetData.forEach(bus => {
+              const uId = bus.unique_id || bus.uniqueId;
+              const bName = bus.busName || bus.bus_id;
+              if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
+                bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
+              } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
+                bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
+              } else if (uId && assignData.assignments && assignData.assignments[uId]) {
+                bus.assignedRoute = "Route " + assignData.assignments[uId];
+              } else if (assignData.assignments && assignData.assignments[bName]) {
+                bus.assignedRoute = "Route " + assignData.assignments[bName];
+              }
+            });
           }
         } catch (e) {
-          console.log('Using local assignments and state');
+          console.log('Using local assignments');
         }
 
         renderDropdown(busSearch.value);
@@ -394,7 +330,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     <header>
       <div>
         <h1>Live Fleet Dashboard</h1>
-        <input type="text" id="dashboard-search" class="search-bar" placeholder="Filter by EV number (EV-42), Bus Short Name (401-A), or Route ID (1367)...">
+        <input type="text" id="dashboard-search" class="search-bar" placeholder="Filter specific bus or route...">
       </div>
       <span class="updated" id="updated">Connecting...</span>
     </header>
@@ -419,54 +355,18 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
     }
 
     function renderTable() {
-      const filterText = searchInput.value.toLowerCase().trim();
-      const cleanFilter = filterText.replace(/[^a-z0-9]/gi, "");
-      const cleanFilterNum = cleanFilter.replace(/^ev0*/, "");
-
-      const filtered = latestData.filter(bus => {
-        const uId = String(bus.unique_id || bus.uniqueId || ('EV-' + String((bus.origIndex !== undefined ? bus.origIndex : 0) + 1).padStart(2, '0'))).toLowerCase();
-        const cleanU = uId.replace(/[^a-z0-9]/gi, "");
-        const uNum = cleanU.replace(/^ev0*/, "");
-
-        const shortName = String(bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : '')).toLowerCase();
-        const cleanShort = shortName.replace(/[^a-z0-9]/gi, "");
-
-        const bName = String(bus.busName || bus.bus_id || "").toLowerCase();
-        const cleanBName = bName.replace(/[^a-z0-9]/gi, "");
-
-        const rId = String(bus.routeId || bus.defaultRouteId || "").toLowerCase();
-        const assignedRId = String(bus.assignedRouteId || "").toLowerCase();
-
-        const assignedShort = String(bus.assignedRouteShortName || "").toLowerCase();
-        const cleanAssignedShort = assignedShort.replace(/[^a-z0-9]/gi, "");
-
-        const routeStr = String(bus.assignedRoute || bus.route || "").toLowerCase();
-
-        // 1. EV Number search (e.g. EV-42, ev42, 42, ev-01, 1)
-        if (uId.includes(filterText)) return true;
-        if (cleanFilter && (cleanU.includes(cleanFilter) || (cleanFilterNum && uNum === cleanFilterNum))) return true;
-
-        // 2. Bus Short Name search (e.g. 401-A, 401A, 401, MF-26)
-        if (shortName && (shortName.includes(filterText) || (cleanShort && cleanFilter && cleanShort.includes(cleanFilter)))) return true;
-        if (bName && (bName.includes(filterText) || (cleanBName && cleanFilter && cleanBName.includes(cleanFilter)))) return true;
-        if (assignedShort && (assignedShort.includes(filterText) || (cleanAssignedShort && cleanFilter && cleanAssignedShort.includes(cleanFilter)))) return true;
-
-        // 3. Route ID search (e.g. 1367, 6080, 3935)
-        if (rId && (rId.includes(filterText) || (cleanFilter && rId.includes(cleanFilter)))) return true;
-        if (assignedRId && (assignedRId.includes(filterText) || (cleanFilter && assignedRId.includes(cleanFilter)))) return true;
-
-        // 4. Assigned route string search
-        if (routeStr && routeStr.includes(filterText)) return true;
-
-        return false;
-      });
+      const filterText = searchInput.value.toLowerCase();
+      const filtered = latestData.filter(bus => 
+        (bus.unique_id && bus.unique_id.toLowerCase().includes(filterText)) || 
+        (bus.uniqueId && bus.uniqueId.toLowerCase().includes(filterText)) || 
+        (bus.busName && bus.busName.toLowerCase().includes(filterText)) || 
+        (bus.bus_id && bus.bus_id.toLowerCase().includes(filterText)) || 
+        (bus.assignedRoute && bus.assignedRoute.toLowerCase().includes(filterText)) ||
+        (bus.route && bus.route.toLowerCase().includes(filterText))
+      );
 
       fleet.innerHTML = filtered.map(bus => {
         const uId = bus.unique_id || bus.uniqueId || ('EV-' + String((bus.origIndex !== undefined ? bus.origIndex : 0) + 1).padStart(2, '0'));
-        const shortName = bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : 'Bus');
-        const rId = bus.routeId || bus.defaultRouteId || bus.assignedRouteId || '';
-        const scheduledDisplay = rId ? `Route ${rId} • ${shortName}` : shortName;
-
         const state = stateFor(Number(bus.soc));
         const condBadge = bus.condition === 'Good' ? 'active' : 'blocked';
         
@@ -475,11 +375,12 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
            action = '<strong>URGENT: Route to Maintenance Depot</strong>';
         }
 
+        const busNameDisplay = bus.busName || bus.bus_id || '';
         const routeDisplay = bus.assignedRoute || bus.route || '';
 
         return `<tr>
           <td><strong style="color:var(--blue);">${uId}</strong></td>
-          <td>${scheduledDisplay}</td>
+          <td>${busNameDisplay}</td>
           <td><strong>${routeDisplay}</strong></td>
           <td class="soc">${bus.soc}%</td>
           <td><span class="badge ${state.className}">${state.status}</span></td>
@@ -493,8 +394,7 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
       try {
         const response = await fetch('/api/fleet', { cache: 'no-store' });
         if (!response.ok) throw new Error('HTTP ' + response.status);
-        const raw = await response.json();
-        latestData = Array.isArray(raw) ? raw : (raw && Array.isArray(raw.fleet) ? raw.fleet : []);
+        latestData = await response.json();
 
         // Sync with Render Cloud assignments and live state so ESP and Website are 100% identical
         try {
@@ -512,16 +412,12 @@ const char DASHBOARD_PAGE[] PROGMEM = R"rawliteral(
                 const bName = bus.busName || bus.bus_id;
                 if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
                   bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
-                  bus.assignedRouteId = assignData.vehicleAssignments[uId].assignedRouteId;
                 } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
                   bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
-                  bus.assignedRouteId = assignData.busAssignments[bName].assignedRouteId;
                 } else if (uId && assignData.assignments && assignData.assignments[uId]) {
                   bus.assignedRoute = "Route " + assignData.assignments[uId];
-                  bus.assignedRouteId = assignData.assignments[uId];
                 } else if (assignData.assignments && assignData.assignments[bName]) {
                   bus.assignedRoute = "Route " + assignData.assignments[bName];
-                  bus.assignedRouteId = assignData.assignments[bName];
                 }
                 if (stateData && stateData.state) {
                   const s = (uId && stateData.state[uId]) || (bName && stateData.state[bName]);
@@ -570,23 +466,6 @@ void handleFleetApi() {
   String json = "[";
   for (size_t i = 0; i < FLEET_SIZE; ++i) {
     if (i > 0) json += ",";
-
-    // Extract routeId from assignedRoute (e.g. "Route 1367 (19.1 km)" -> "1367")
-    String rId = "";
-    int rPos = fleet[i].assignedRoute.indexOf("Route ");
-    if (rPos != -1) {
-      int sPos = fleet[i].assignedRoute.indexOf(' ', rPos + 6);
-      if (sPos != -1) rId = fleet[i].assignedRoute.substring(rPos + 6, sPos);
-      else rId = fleet[i].assignedRoute.substring(rPos + 6);
-    }
-
-    // Extract busShortName (e.g. "401-A YES-YHK" -> "401-A")
-    String bShort = String(fleet[i].busName);
-    int spacePos = bShort.indexOf(' ');
-    if (spacePos != -1) {
-      bShort = bShort.substring(0, spacePos);
-    }
-
     json += "{\"unique_id\":\"";
     json += fleet[i].uniqueId;
     json += "\",\"uniqueId\":\"";
@@ -595,16 +474,8 @@ void handleFleetApi() {
     json += fleet[i].uniqueId;
     json += "\",\"busName\":\"";
     json += fleet[i].busName;
-    json += "\",\"busShortName\":\"";
-    json += bShort;
     json += "\",\"defaultBusNumber\":\"";
-    json += bShort;
-    json += "\",\"routeId\":\"";
-    json += rId;
-    json += "\",\"defaultRouteId\":\"";
-    json += rId;
-    json += "\",\"assignedRouteId\":\"";
-    json += rId;
+    json += fleet[i].busName;
     json += "\",\"route\":\"";
     json += fleet[i].assignedRoute;
     json += "\",\"assignedRoute\":\"";
@@ -634,43 +505,15 @@ void handleUpdate() {
     busIndex = server.arg("busIndex").toInt();
   } else {
     String bArg = server.hasArg("unique_id") ? server.arg("unique_id") : server.arg("bus");
-    String cleanBArg = bArg;
-    cleanBArg.replace("-", "");
-    cleanBArg.replace(" ", "");
-    cleanBArg.toLowerCase();
-    String rawNum = cleanBArg;
-    if (rawNum.startsWith("ev")) rawNum = rawNum.substring(2);
-
-    for (size_t i = 0; i < FLEET_SIZE; ++i) {
-      String uIdStr = String(fleet[i].uniqueId);
-      String uClean = uIdStr;
-      uClean.replace("-", "");
-      uClean.toLowerCase();
-      String uNum = uClean;
-      if (uNum.startsWith("ev")) uNum = uNum.substring(2);
-
-      String bNameStr = String(fleet[i].busName);
-      String bClean = bNameStr;
-      bClean.replace("-", "");
-      bClean.replace(" ", "");
-      bClean.toLowerCase();
-
-      String rIdStr = "";
-      int rPos = fleet[i].assignedRoute.indexOf("Route ");
-      if (rPos != -1) {
-        int sPos = fleet[i].assignedRoute.indexOf(' ', rPos + 6);
-        if (sPos != -1) rIdStr = fleet[i].assignedRoute.substring(rPos + 6, sPos);
-        else rIdStr = fleet[i].assignedRoute.substring(rPos + 6);
-      }
-
-      if (bArg.equalsIgnoreCase(fleet[i].uniqueId) || 
-          cleanBArg.equalsIgnoreCase(uClean) || 
-          (rawNum.length() > 0 && rawNum.equalsIgnoreCase(uNum)) ||
-          bArg.equalsIgnoreCase(fleet[i].busName) || 
-          bClean.indexOf(cleanBArg) != -1 ||
-          (rIdStr.length() > 0 && bArg.equalsIgnoreCase(rIdStr))) {
-        busIndex = i;
-        break;
+    // Check if it's an integer index, a uniqueId (EV-XX), or a bus name
+    if (bArg.length() <= 3 && bArg.toInt() >= 0 && bArg.toInt() < FLEET_SIZE) {
+      busIndex = bArg.toInt();
+    } else {
+      for (size_t i = 0; i < FLEET_SIZE; ++i) {
+        if (bArg.equalsIgnoreCase(fleet[i].uniqueId) || bArg.equalsIgnoreCase(fleet[i].busName)) {
+          busIndex = i;
+          break;
+        }
       }
     }
   }

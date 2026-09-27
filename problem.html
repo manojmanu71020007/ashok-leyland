@@ -756,9 +756,6 @@
             </div>
             <div class="topbar-actions">
                 <div class="live-chip">AI recommendation workspace</div>
-                <a href="/driver.html" class="swapped-buses-top-btn" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;" title="Open Driver Telemetry Terminal">
-                    <span>⚡ Driver Terminal</span>
-                </a>
                 <button id="open-swapped-btn" class="swapped-buses-top-btn" type="button" title="View swapped buses, assignments and reasons">
                     <span>Swapped Buses</span>
                     <span id="swapped-badge-count" class="swapped-badge-count">0</span>
@@ -773,10 +770,10 @@
                 <p class="panel-note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
                 <div class="fields">
                     <label class="wide">
-                        Search Bus / Route / EV Vehicle
-                        <input id="route-search" class="route-search" type="text" placeholder="Search by EV number (e.g. EV-42), Bus Short Name (401-A), or Route ID (1367)..." />
+                        Route search
+                        <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number or route name" />
                     </label>
-                    <label class="wide">Select Bus / Route / EV Vehicle <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">54</span> buses available</span>
+                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— All <span id="route-count-badge">54</span> buses available</span>
                         <select id="route-select"><option value="">Loading all buses...</option></select>
                     </label>
                     <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7"></label>
@@ -820,7 +817,7 @@
                 <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance) &amp; condition Good.</p>
                 <div class="region-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated by EV number (EV-42), Bus Short Name (401-A), Route ID (1367)..." autocomplete="off" spellcheck="false" />
+                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear allocated search" style="display:none;">✕</button>
                 </div>
                 <div id="route-summary" class="route-list">
@@ -835,7 +832,7 @@
                 <p class="panel-note" style="margin-bottom:12px;">Ineligible — low SoC or maintenance required.</p>
                 <div class="region-search-wrap not-allocated-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated by EV number, Bus Short Name, Route ID, reason..." autocomplete="off" spellcheck="false" />
+                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses (bus, route, reason...)" autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-not-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear not allocated search" style="display:none;">✕</button>
                 </div>
                 <div id="not-allocated-summary" class="route-list">
@@ -860,7 +857,7 @@
             <div class="scheduled-toolbar">
                 <div class="region-search-wrap scheduled-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by EV number (EV-42), Bus Short Name (401-A), Route ID (1367), origin, destination..." autocomplete="off" spellcheck="false" />
+                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number, route, origin, destination, time, status..." autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
                 </div>
                 <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
@@ -905,7 +902,7 @@
                 </div>
 
                 <div class="modal-search-wrap">
-                    <input type="text" id="swapped-modal-search" class="region-search-input" placeholder="🔍 Filter swapped routes by EV number (EV-42), Bus Short Name (401-A), Route ID (1367), stop..." autocomplete="off">
+                    <input type="text" id="swapped-modal-search" class="region-search-input" placeholder="🔍 Filter swapped routes by route ID, bus name, stop..." autocomplete="off">
                 </div>
 
                 <div id="swapped-cards-container" class="modal-body">
@@ -1144,26 +1141,10 @@
             if (!swappedCardsContainer) return;
             const swappedList = computeSwappedBusesList();
             const query = String(filterQuery || "").trim().toLowerCase();
-            const cleanQuery = query.replace(/[^a-z0-9]/gi, "");
 
             const filtered = swappedList.filter((item) => {
                 if (!query) return true;
-                const busNum = String(item.busNumber || "").toLowerCase();
-                const routeId = String(item.routeId || "").toLowerCase();
-                const defaultVeh = String(item.defaultVehicle || "").toLowerCase();
-                const assignedVeh = String(item.assignedVehicle || "").toLowerCase();
-                const origin = String(item.origin || "").toLowerCase();
-                const dest = String(item.destination || "").toLowerCase();
-                const donor = String(item.donorRouteId || "").toLowerCase();
-                const reason = String(item.reason || "").toLowerCase();
-
-                if (busNum.includes(query) || routeId.includes(query) || defaultVeh.includes(query) || assignedVeh.includes(query)) return true;
-                if (cleanQuery) {
-                    const cleanDef = defaultVeh.replace(/[^a-z0-9]/gi, "");
-                    const cleanAss = assignedVeh.replace(/[^a-z0-9]/gi, "");
-                    if (cleanDef.includes(cleanQuery) || cleanAss.includes(cleanQuery)) return true;
-                }
-                const text = `${origin} ${dest} ${donor} ${reason}`.toLowerCase();
+                const text = `${item.routeId} ${item.busNumber} ${item.defaultVehicle} ${item.assignedVehicle} ${item.origin} ${item.destination} ${item.donorRouteId || ""} ${item.reason}`.toLowerCase();
                 return text.includes(query);
             });
 
@@ -1317,40 +1298,14 @@
             });
         }
 
-        let lastSelectedRouteId = "";
-
         function renderRoutes() {
             const query = (routeSearch.value || "").trim().toLowerCase();
-            const cleanQuery = query.replace(/[^a-z0-9]/gi, "");
-
             const filteredRoutes = query
                 ? routes.filter((route) => {
-                    const assignedVehicle = String(getAssignedBusName(route) || "").toLowerCase();
-                    const defaultVehicle = String(route.uniqueId || "").toLowerCase();
-                    const busShort = String(route.busNumber || "").toLowerCase();
-                    const routeId = String(route.routeId || "").toLowerCase();
-                    const origin = String(route.origin || "").toLowerCase();
-                    const dest = String(route.destination || "").toLowerCase();
-                    const routeName = String(route.routeName || "").toLowerCase();
-
-                    // 1. bus_short_name search (e.g. 401-A, MF-26, BC-7B)
-                    if (busShort.includes(query)) return true;
-
-                    // 2. route-id search (e.g. 1367, 6080)
-                    if (routeId.includes(query)) return true;
-
-                    // 3. EV numbers search (e.g. EV-42, EV42, 42, EV-15)
-                    if (defaultVehicle.includes(query) || assignedVehicle.includes(query)) return true;
-                    if (cleanQuery) {
-                        const cleanDefault = defaultVehicle.replace(/[^a-z0-9]/gi, "");
-                        const cleanAssigned = assignedVehicle.replace(/[^a-z0-9]/gi, "");
-                        if (cleanDefault.includes(cleanQuery) || cleanAssigned.includes(cleanQuery)) return true;
-                    }
-
-                    // 4. Origin, Destination, Route Name
-                    if (origin.includes(query) || dest.includes(query) || routeName.includes(query)) return true;
-
-                    return false;
+                    // Search by GTFS name OR by swap-assigned name
+                    const assignedName = getAssignedBusName(route);
+                    const text = `${assignedName} ${route.busNumber || ""} ${route.origin || ""} ${route.destination || ""} ${route.routeName || ""}`.toLowerCase();
+                    return text.includes(query);
                 })
                 : routes;
 
@@ -1388,49 +1343,37 @@
 
             const totalBuses = routes.length;
 
-            // Preserve whatever route the user selected previously
-            if (routeSelect.value) {
-                lastSelectedRouteId = routeSelect.value;
-            }
-            const previouslySelected = lastSelectedRouteId;
+            // Preserve whatever the user currently has selected
+            const previouslySelected = routeSelect.value;
 
-            // ── Route <select>: when searching, show filtered routes; when empty, show all 54 routes ──
-            const routesForDropdown = query ? filteredRoutes : routes;
-            const sortedRoutesForDropdown = routesForDropdown.slice().sort((a, b) => {
-                const nameA = String(a.uniqueId || a.busNumber || a.routeId);
-                const nameB = String(b.uniqueId || b.busNumber || b.routeId);
+            // ── Route <select>: always show ALL buses in the fleet, sorted alphabetically ──
+            const sortedAllRoutes = routes.slice().sort((a, b) => {
+                const nameA = String(getAssignedBusName(a) || a.busNumber || a.routeId);
+                const nameB = String(getAssignedBusName(b) || b.busNumber || b.routeId);
                 return nameA.localeCompare(nameB, undefined, { numeric: true, sensitivity: "base" });
             });
 
-            const headerOption = query
-                ? `<option value="">— Showing ${sortedRoutesForDropdown.length} matching routes (filtered) —</option>`
-                : `<option value="">— Select a route (${sortedRoutesForDropdown.length} available) —</option>`;
-
-            routeSelect.innerHTML = headerOption + sortedRoutesForDropdown.map((route) => {
+            routeSelect.innerHTML = `<option value="">— Select a route (${sortedAllRoutes.length} available) —</option>` + sortedAllRoutes.map((route) => {
                 const assignedVehicle = getAssignedBusName(route);
                 const defaultVehicle = route.uniqueId || "";
                 const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const isBlocked = blockedRouteIds.has(String(route.routeId));
                 const vehiclePart = `[Assigned: ${assignedVehicle}${isSwapped ? ' 🔄 Swapped' : ''}]`;
                 const blockedPart = isBlocked ? " ⛔ Blocked" : "";
-                const label = `[${defaultVehicle}] Route ${route.routeId} • ${route.busNumber} (${route.origin} ➔ ${route.destination}) — ${vehiclePart}${blockedPart}`;
+                const label = `${route.busNumber} (${route.origin} ➔ ${route.destination}) — ${vehiclePart}${blockedPart}`;
                 return `<option value="${route.routeId}">${label}</option>`;
             }).join("");
 
-            // Restore previous selection if in dropdown, or auto-select if exactly 1 match
+            // Restore the previous selection if it still exists
             if (previouslySelected && routeSelect.querySelector(`option[value="${previouslySelected}"]`)) {
                 routeSelect.value = previouslySelected;
-            } else if (query && filteredRoutes.length === 1) {
+            } else if (query && filteredRoutes.length === 1 && !previouslySelected) {
+                // If user searched for a bus number and exactly 1 matches, auto-select it
                 routeSelect.value = String(filteredRoutes[0].routeId);
-                lastSelectedRouteId = routeSelect.value;
-            } else {
-                routeSelect.value = "";
             }
 
             const countBadge = document.getElementById("route-count-badge");
-            if (countBadge) {
-                countBadge.textContent = query ? `${filteredRoutes.length} of ${routes.length}` : `${routes.length}`;
-            }
+            if (countBadge) countBadge.textContent = String(routes.length);
 
             // Update allocation title and SOC/Range KPIs based on selection
             updateAllocationPanel();
@@ -1474,11 +1417,9 @@
             const manuallySelectedId = routeSelect ? routeSelect.value : null;
             const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
 
-            const cleanAllocQuery = query.replace(/[^a-z0-9]/gi, "");
             const filtered = query
                 ? sourceList.filter((route) => {
                     const assignedName = String(getAssignedBusName(route) || "");
-                    const defaultVehicle = String(route.uniqueId || "");
                     const busNum = String(route.busNumber || "");
                     const routeId = String(route.routeId || "");
                     const routeName = String(route.routeName || "");
@@ -1486,16 +1427,7 @@
                     const dest = String(route.destination || "");
                     const state = busStates[route.routeId] || busStates[route.busNumber] || {};
                     const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
-
-                    if (busNum.toLowerCase().includes(query)) return true;
-                    if (routeId.toLowerCase().includes(query)) return true;
-                    if (defaultVehicle.toLowerCase().includes(query) || assignedName.toLowerCase().includes(query)) return true;
-                    if (cleanAllocQuery) {
-                        const cleanDefault = defaultVehicle.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        const cleanAssigned = assignedName.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        if (cleanDefault.includes(cleanAllocQuery) || cleanAssigned.includes(cleanAllocQuery)) return true;
-                    }
-                    const text = `${routeName} ${origin} ${dest} ${soc}% ${soc}`.toLowerCase();
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc}`.toLowerCase();
                     return text.includes(query);
                 })
                 : sourceList;
@@ -1593,11 +1525,9 @@
                 clearNotAllocatedBtn.style.display = query ? "inline-flex" : "none";
             }
 
-            const cleanNotAllocQuery = query.replace(/[^a-z0-9]/gi, "");
             const filtered = query
                 ? sourceList.filter((route) => {
                     const assignedName = String(getAssignedBusName(route) || "");
-                    const defaultVehicle = String(route.uniqueId || "");
                     const busNum = String(route.busNumber || "");
                     const routeId = String(route.routeId || "");
                     const routeName = String(route.routeName || "");
@@ -1607,16 +1537,7 @@
                     const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
                     const condition = String(state.condition || "");
                     const isBlocked = blockedRouteIds.has(String(route.routeId)) ? "blocked range" : "";
-
-                    if (busNum.toLowerCase().includes(query)) return true;
-                    if (routeId.toLowerCase().includes(query)) return true;
-                    if (defaultVehicle.toLowerCase().includes(query) || assignedName.toLowerCase().includes(query)) return true;
-                    if (cleanNotAllocQuery) {
-                        const cleanDefault = defaultVehicle.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        const cleanAssigned = assignedName.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        if (cleanDefault.includes(cleanNotAllocQuery) || cleanAssigned.includes(cleanNotAllocQuery)) return true;
-                    }
-                    const text = `${routeName} ${origin} ${dest} ${soc}% ${soc} ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
                     return text.includes(query);
                 })
                 : sourceList;
@@ -1760,11 +1681,9 @@
             const allocatedSet = new Set(lastAllocatedRoutes.map((r) => String(r.routeId)));
             const currentlySelectedId = String(routeSelect ? routeSelect.value : "");
 
-            const cleanSchedQuery = schedQuery.replace(/[^a-z0-9]/gi, "");
             const filteredScheduledRoutes = schedQuery
                 ? routesToDisplay.filter((route) => {
-                    const assignedVehicle = String(getAssignedBusName(route) || "");
-                    const defaultVehicle = String(route.uniqueId || "");
+                    const assignedName = String(getAssignedBusName(route) || "");
                     const busNum = String(route.busNumber || "");
                     const routeId = String(route.routeId || "");
                     const routeName = String(route.routeName || "");
@@ -1776,22 +1695,9 @@
                     const timings = getRouteScheduleTimings(route, isSelected);
                     const depFormatted = formatTimeForDisplay(timings.departure);
                     const arrFormatted = formatTimeForDisplay(timings.arrival);
-                    const status = (timings.status || "").toLowerCase();
-
-                    // 1. bus_short_name search
-                    if (busNum.toLowerCase().includes(schedQuery)) return true;
-                    // 2. route-id search
-                    if (routeId.toLowerCase().includes(schedQuery)) return true;
-                    // 3. EV numbers search (default and assigned)
-                    if (defaultVehicle.toLowerCase().includes(schedQuery) || assignedVehicle.toLowerCase().includes(schedQuery)) return true;
-                    if (cleanSchedQuery) {
-                        const cleanDefault = defaultVehicle.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        const cleanAssigned = assignedVehicle.replace(/[^a-z0-9]/gi, "").toLowerCase();
-                        if (cleanDefault.includes(cleanSchedQuery) || cleanAssigned.includes(cleanSchedQuery)) return true;
-                    }
-                    // 4. Other fields
-                    const otherText = `${routeName} ${origin} ${dest} ${allocLabel} ${status} ${timings.departure} ${timings.arrival} ${depFormatted} ${arrFormatted}`.toLowerCase();
-                    return otherText.includes(schedQuery);
+                    const status = timings.status || "";
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${allocLabel} ${status} ${timings.departure} ${timings.arrival} ${depFormatted} ${arrFormatted}`.toLowerCase();
+                    return text.includes(schedQuery);
                 })
                 : routesToDisplay;
 

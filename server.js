@@ -1460,7 +1460,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/api/telemetry" || pathname === "/telemetry" || pathname === "/update" || pathname === "/api/update" || (pathname === "/" && req.method === "POST")) {
+    if (pathname === "/api/telemetry" || pathname === "/telemetry" || (pathname === "/" && req.method === "POST")) {
         if (req.method !== "POST") {
             sendJson(res, { ok: false, error: "Method not allowed" }, 405);
             return;
@@ -1495,13 +1495,10 @@ const server = http.createServer(async (req, res) => {
                     const allRoutes = loadRoutes();
                     const cleanLower = rawId.toLowerCase();
                     const cleanCompact = rawId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-                    const rawNum = cleanCompact.replace(/^ev0*/, "");
 
                     let matchingRoute = allRoutes.find((r) => {
                         const u = String(r.uniqueId || "").toLowerCase();
-                        const uCompact = u.replace(/[^a-zA-Z0-9]/g, "");
-                        const uNum = uCompact.replace(/^ev0*/, "");
-                        return u === cleanLower || uCompact === cleanCompact || (rawNum && uNum === rawNum);
+                        return u === cleanLower || u.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
                     });
                     if (!matchingRoute) {
                         matchingRoute = allRoutes.find((r) => {
@@ -1646,12 +1643,9 @@ const server = http.createServer(async (req, res) => {
                     uniqueId: uniqueId,
                     vehicleId: uniqueId,
                     bus_id: uniqueId,
-                    busName: r.busNumber,
-                    busShortName: r.busNumber,
-                    busNumber: r.busNumber,
+                    busName: uniqueId,
                     physicalVehicle: uniqueId,
                     defaultBusNumber: r.busNumber,
-                    routeId: String(r.routeId),
                     defaultRouteId: String(r.routeId),
                     assignedRouteId,
                     assignedRouteShortName: assignedRouteObj.busNumber,
@@ -1799,11 +1793,6 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/problem.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
         sendFile(res, path.join(BASE_DIR, "problem.html"), "text/html");
-        return;
-    }
-
-    if (pathname === "/driver" || pathname === "/driver.html" || pathname === "/driver-terminal") {
-        sendFile(res, path.join(BASE_DIR, "driver.html"), "text/html");
         return;
     }
 

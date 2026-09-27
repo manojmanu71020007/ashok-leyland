@@ -131,14 +131,9 @@
 
     <div class="header">
       <h1 id="pageHeading">Bus SoC &amp; Battery Analytics</h1>
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-        <select id="vehicleSelector" style="background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:0.88rem;font-weight:600;cursor:pointer;">
-          <option value="">Switch Vehicle / Route...</option>
-        </select>
-        <div class="view-switcher" aria-label="Chart view switcher">
-          <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
-          <button class="view-btn" data-view="micro">Micro View (Live)</button>
-        </div>
+      <div class="view-switcher" aria-label="Chart view switcher">
+        <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
+        <button class="view-btn" data-view="micro">Micro View (Live)</button>
       </div>
     </div>
 
@@ -450,51 +445,11 @@
     }
 
     // -----------------------------------------------------------------------
-    // Vehicle Selector (EV-01..EV-54, Route ID, Bus Short Name)
-    // -----------------------------------------------------------------------
-    async function initVehicleSelector() {
-      try {
-        const res = await fetch("/api/fleet");
-        if (!res.ok) return;
-        const data = await res.json();
-        const fleetList = Array.isArray(data) ? data : (data && Array.isArray(data.fleet) ? data.fleet : []);
-        const selectEl = document.getElementById("vehicleSelector");
-        if (!selectEl || !fleetList.length) return;
-
-        selectEl.innerHTML = `<option value="">— Switch Vehicle (${fleetList.length} available) —</option>` + fleetList.map(b => {
-          const uId = b.unique_id || b.uniqueId || "";
-          const name = b.busName || b.defaultBusNumber || b.bus_id || "";
-          const rId = b.routeId || b.defaultRouteId || b.assignedRouteId || "";
-          const rPart = rId ? `Route ${rId} • ` : "";
-          const selected = (uId === searchKey || name === searchKey || rId === searchKey) ? "selected" : "";
-          return `<option value="${uId}" ${selected}>[${uId}] ${rPart}${name}</option>`;
-        }).join("");
-
-        selectEl.addEventListener("change", async (e) => {
-          const newId = e.target.value;
-          if (!newId) return;
-          searchKey = newId;
-          const params = new URLSearchParams(window.location.search);
-          params.set("unique_id", newId);
-          params.delete("bus");
-          params.delete("bus_id");
-          params.delete("route_id");
-          window.history.pushState({}, "", `${window.location.pathname}?${params.toString()}`);
-          await fetchSummary();
-          await renderView(currentView);
-        });
-      } catch (err) {
-        console.warn("Could not populate vehicleSelector", err);
-      }
-    }
-
-    // -----------------------------------------------------------------------
     // Boot
     // -----------------------------------------------------------------------
     (async function init() {
       await fetchSummary();
       await renderView("macro");
-      await initVehicleSelector();
       startLivePolling();
     })();
   </script>
