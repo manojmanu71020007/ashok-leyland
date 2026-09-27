@@ -156,10 +156,6 @@
           <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Cleanliness &amp; Condition</div>
           <div id="busCondition" style="font-size: 1.4rem; font-weight: 700; margin-top: 8px;">Good</div>
         </div>
-        <div style="background: rgba(14, 165, 233, 0.08); padding: 16px; border-radius: 12px; border: 1px solid rgba(14, 165, 233, 0.2);">
-          <div style="color:#94a3b8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em;">Allocated Driver</div>
-          <div id="busDriver" style="font-size: 1.25rem; font-weight: 700; margin-top: 8px; color: #38bdf8;">Driver Assigned</div>
-        </div>
       </div>
     </div>
 
@@ -238,10 +234,6 @@
               const isGood = info.condition === "Good";
               condEl.textContent = isGood ? "Good" : "Maintenance Req.";
               condEl.style.color = isGood ? "#16a34a" : "#dc2626";
-            }
-            if (info.driver) {
-              const drvEl = document.getElementById("busDriver");
-              if (drvEl) drvEl.textContent = info.driver;
             }
             return info;
           }
