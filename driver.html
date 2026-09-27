@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EV Bus Driver Terminal | Ashok Leyland</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --ink: #0f172a;
+      --muted: #64748b;
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --line: #e2e8f0;
+      --bg: #f8fafc;
+      --panel: #ffffff;
+      --green: #16a34a;
+      --yellow: #d97706;
+      --red: #dc2626;
+      --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      padding: 24px 16px 48px;
+    }
+    .shell {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    header.header {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      color: white;
+      padding: 24px 28px;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    header h1 {
+      margin: 0 0 6px;
+      font-size: 1.8rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header p {
+      margin: 0;
+      color: #94a3b8;
+      font-size: 0.95rem;
+    }
+    .nav-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    .nav-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--card-shadow);
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    label {
+      display: block;
+      margin: 18px 0 8px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      color: #334155;
+    }
+    .search-wrap {
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .search-input {
+      width: 100%;
+      padding: 13px 16px;
+      font-size: 0.98rem;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      background: white;
+      transition: all 0.2s ease;
+    }
+    .search-input:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .badge-count {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #3730a3;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-left: 6px;
+    }
+    select.bus-select {
+      width: 100%;
+      padding: 13px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 10px;
+      background: white;
+      color: var(--ink);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    select.bus-select:focus {
+      outline: none;
+      border-color: var(--blue);
+    }
+    .vehicle-overview {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .overview-item span {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .overview-item strong {
+      font-size: 1.05rem;
+      color: var(--ink);
+    }
+    .soc-section {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 20px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .soc-display {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--blue);
+      line-height: 1;
+      margin: 12px 0;
+    }
+    input[type=range] {
+      width: 100%;
+      height: 10px;
+      accent-color: var(--blue);
+      cursor: pointer;
+      margin: 10px 0 16px;
+    }
+    .presets {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .preset-btn {
+      background: white;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .preset-btn:hover {
+      background: #f1f5f9;
+      border-color: var(--blue);
+      color: var(--blue);
+    }
+    .preset-btn.warn {
+      border-color: #fca5a5;
+      color: #b91c1c;
+    }
+    .preset-btn.warn:hover {
+      background: #fee2e2;
+    }
+    .submit-btn {
+      width: 100%;
+      margin-top: 24px;
+      padding: 15px 20px;
+      border: 0;
+      border-radius: 12px;
+      background: var(--blue);
+      color: white;
+      font-size: 1.05rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+    }
+    .submit-btn:hover {
+      background: var(--blue-dark);
+      transform: translateY(-1px);
+    }
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: wait;
+      transform: none;
+    }
+    #feedback {
+      margin-top: 18px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      display: none;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    #feedback.success {
+      display: block;
+      background: #dcfce7;
+      border: 1px solid #86efac;
+      color: #14532d;
+    }
+    #feedback.warning {
+      display: block;
+      background: #fef9c3;
+      border: 1px solid #fde047;
+      color: #713f12;
+    }
+    #feedback.error {
+      display: block;
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #7f1d1d;
+    }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .badge.active { background: #dcfce7; color: #15803d; }
+    .badge.warning { background: #fef3c7; color: #b45309; }
+    .badge.blocked { background: #fee2e2; color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="header">
+      <div>
+        <h1>⚡ Driver Telemetry Terminal</h1>
+        <p>Dynamic cloud swap engine connection • Enter vehicle battery &amp; condition</p>
+      </div>
+      <nav class="nav-links">
+        <a href="/index.html" class="nav-btn">📍 Bus Tracking</a>
+        <a href="/problem.html" class="nav-btn">📊 Smart Scheduling</a>
+        <a href="/bus-details.html" class="nav-btn">🔋 Analytics</a>
+      </nav>
+    </header>
+
+    <div class="grid">
+      <main class="card">
+        <h2>🛠️ Update Vehicle Telemetry</h2>
+        <p style="color:var(--muted);font-size:0.92rem;margin-top:0;">Search by EV Number (e.g. EV-42, 42), Bus Short Name (401-A), or Route ID (1367) to quickly select any vehicle.</p>
+        
+        <form id="telemetry-form">
+          <label for="bus-search">
+            Search Physical Vehicle
+            <span id="vehicle-count" class="badge-count">54 vehicles</span>
+          </label>
+          <div class="search-wrap">
+            <input 
+              type="text" 
+              id="bus-search" 
+              class="search-input" 
+              placeholder="Search EV Number (e.g. EV-42, 42), Bus Short Name (401-A), or Route ID (1367)..." 
+              autocomplete="off"
+            />
+          </div>
+
+          <label for="bus-select">Select Physical Vehicle</label>
+          <select id="bus-select" class="bus-select" name="bus" required>
+            <option value="">Loading fleet data...</option>
+          </select>
+
+          <div class="vehicle-overview" id="vehicle-card">
+            <div class="overview-item">
+              <span>Physical Vehicle</span>
+              <strong id="card-uid">EV-01</strong>
+            </div>
+            <div class="overview-item">
+              <span>Default Route</span>
+              <strong id="card-default-route">Route 1367 • 401-A</strong>
+            </div>
+            <div class="overview-item">
+              <span>Cloud Assigned Route</span>
+              <strong id="card-assigned-route">Route 1367 - 401-A (19.1 km)</strong>
+            </div>
+            <div class="overview-item">
+              <span>Dispatch Status</span>
+              <strong id="card-status"><span class="badge active">Active</span></strong>
+            </div>
+          </div>
+
+          <div class="soc-section">
+            <label for="soc" style="margin-top:0;">Battery State of Charge (SoC %)</label>
+            <div class="soc-display" id="soc-value">100%</div>
+            <input id="soc" name="soc" type="range" min="0" max="100" value="100">
+            <div class="presets">
+              <button type="button" class="preset-btn warn" onclick="setSoc(10)">10% (Low / Force Swap)</button>
+              <button type="button" class="preset-btn warn" onclick="setSoc(20)">20% (Low)</button>
+              <button type="button" class="preset-btn" onclick="setSoc(50)">50% (Medium)</button>
+              <button type="button" class="preset-btn" onclick="setSoc(80)">80% (Good)</button>
+              <button type="button" class="preset-btn" onclick="setSoc(100)">100% (Full Battery)</button>
+            </div>
+          </div>
+
+          <label for="condition">Bus Condition / Cleaning</label>
+          <select id="condition" class="bus-select" name="condition">
+            <option value="Good">Good (Clean / No issues / Ready)</option>
+            <option value="Not Good">Not Good (Maintenance / Cleaning Required)</option>
+          </select>
+
+          <button id="submit-btn" class="submit-btn" type="submit">Update Telemetry &amp; Run Swap Engine</button>
+        </form>
+
+        <div id="feedback" role="alert"></div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('telemetry-form');
+    const slider = document.getElementById('soc');
+    const output = document.getElementById('soc-value');
+    const busSearch = document.getElementById('bus-search');
+    const busSelect = document.getElementById('bus-select');
+    const conditionSelect = document.getElementById('condition');
+    const submitBtn = document.getElementById('submit-btn');
+    const feedback = document.getElementById('feedback');
+    const vehicleCount = document.getElementById('vehicle-count');
+
+    const cardUid = document.getElementById('card-uid');
+    const cardDefaultRoute = document.getElementById('card-default-route');
+    const cardAssignedRoute = document.getElementById('card-assigned-route');
+    const cardStatus = document.getElementById('card-status');
+
+    let fleetData = [];
+
+    function setSoc(val) {
+      slider.value = val;
+      updateSocDisplay(val);
+    }
+
+    function updateSocDisplay(val) {
+      output.textContent = val + '%';
+      if (val > 30) {
+        output.style.color = "var(--green)";
+      } else if (val > 15) {
+        output.style.color = "var(--yellow)";
+      } else {
+        output.style.color = "var(--red)";
+      }
+    }
+
+    slider.addEventListener('input', () => updateSocDisplay(slider.value));
+
+    function updateFormForSelectedBus() {
+      const idx = busSelect.value;
+      if (idx !== "" && fleetData[idx]) {
+        const bus = fleetData[idx];
+        slider.value = bus.soc !== undefined ? bus.soc : 100;
+        updateSocDisplay(slider.value);
+        conditionSelect.value = bus.condition || 'Good';
+
+        const uId = bus.unique_id || bus.uniqueId || `EV-${String(bus.origIndex + 1).padStart(2, '0')}`;
+        const shortName = bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : 'Bus');
+        const rId = bus.routeId || bus.defaultRouteId || '';
+        const assigned = bus.assignedRoute || bus.route || ('Route ' + rId);
+
+        cardUid.textContent = uId;
+        cardDefaultRoute.textContent = rId ? `Route ${rId} • ${shortName}` : shortName;
+        cardAssignedRoute.textContent = assigned;
+
+        const socNum = Number(bus.soc);
+        let badgeClass = "active";
+        let statusText = "Active / On Route";
+        if (bus.condition === "Not Good") {
+          badgeClass = "blocked";
+          statusText = "Maintenance Depot";
+        } else if (socNum < 25) {
+          badgeClass = "blocked";
+          statusText = "Blocked (< 25% Battery)";
+        } else if (socNum <= 30) {
+          badgeClass = "warning";
+          statusText = "Low Battery (Swap Recommended)";
+        }
+        cardStatus.innerHTML = `<span class="badge ${badgeClass}">${statusText}</span>`;
+      }
+    }
+
+    function renderDropdown(filterText = '') {
+      const q = filterText.trim().toLowerCase();
+      const cleanQ = q.replace(/[^a-z0-9]/gi, "");
+      const cleanQNum = cleanQ.replace(/^ev0*/, "");
+      const prevVal = busSelect.value;
+
+      const filtered = q
+        ? fleetData.filter(bus => {
+            const uId = String(bus.unique_id || bus.uniqueId || `EV-${String((bus.origIndex !== undefined ? bus.origIndex : 0) + 1).padStart(2, '0')}`).toLowerCase();
+            const cleanU = uId.replace(/[^a-z0-9]/gi, "");
+            const uNum = cleanU.replace(/^ev0*/, "");
+
+            const shortName = String(bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : '')).toLowerCase();
+            const cleanShort = shortName.replace(/[^a-z0-9]/gi, "");
+
+            const bName = String(bus.busName || bus.bus_id || "").toLowerCase();
+            const cleanBName = bName.replace(/[^a-z0-9]/gi, "");
+
+            const rId = String(bus.routeId || bus.defaultRouteId || "").toLowerCase();
+            const assignedRId = String(bus.assignedRouteId || "").toLowerCase();
+
+            const assignedShort = String(bus.assignedRouteShortName || "").toLowerCase();
+            const cleanAssignedShort = assignedShort.replace(/[^a-z0-9]/gi, "");
+
+            const routeStr = String(bus.assignedRoute || bus.route || "").toLowerCase();
+
+            // 1. EV Number search (e.g. EV-42, ev42, 42, ev-01, 1)
+            if (uId.includes(q)) return true;
+            if (cleanQ && (cleanU.includes(cleanQ) || (cleanQNum && uNum === cleanQNum))) return true;
+
+            // 2. Bus Short Name search (e.g. 401-A, 401A, 401, MF-26)
+            if (shortName && (shortName.includes(q) || (cleanShort && cleanQ && cleanShort.includes(cleanQ)))) return true;
+            if (bName && (bName.includes(q) || (cleanBName && cleanQ && cleanBName.includes(cleanQ)))) return true;
+            if (assignedShort && (assignedShort.includes(q) || (cleanAssignedShort && cleanQ && cleanAssignedShort.includes(cleanQ)))) return true;
+
+            // 3. Route ID search (e.g. 1367, 6080, 3935)
+            if (rId && (rId.includes(q) || (cleanQ && rId.includes(cleanQ)))) return true;
+            if (assignedRId && (assignedRId.includes(q) || (cleanQ && assignedRId.includes(cleanQ)))) return true;
+
+            // 4. Assigned route string search
+            if (routeStr && routeStr.includes(q)) return true;
+
+            return false;
+          })
+        : fleetData;
+
+      if (vehicleCount) {
+        vehicleCount.textContent = `${filtered.length} / ${fleetData.length} vehicles`;
+      }
+
+      if (filtered.length === 0) {
+        busSelect.innerHTML = '<option value="">No matching vehicles found</option>';
+        return;
+      }
+
+      busSelect.innerHTML = filtered.map(bus => {
+        const uId = bus.unique_id || bus.uniqueId || `EV-${String(bus.origIndex + 1).padStart(2, '0')}`;
+        const shortName = bus.busShortName || bus.defaultBusNumber || bus.busNumber || (bus.busName ? bus.busName.split(' ')[0] : 'Bus');
+        const rId = bus.routeId || bus.defaultRouteId || bus.assignedRouteId || '';
+        const rPart = rId ? `Route ${rId} • ` : '';
+        const assigned = bus.assignedRoute || bus.route || ('Route ' + rId);
+        return `<option value="${bus.origIndex}">[${uId}] ${rPart}${shortName} ➔ Assigned: ${assigned} [${bus.soc}%]</option>`;
+      }).join('');
+
+      if (prevVal !== "" && busSelect.querySelector(`option[value="${prevVal}"]`)) {
+        busSelect.value = prevVal;
+      } else if (filtered.length === 1) {
+        busSelect.value = String(filtered[0].origIndex);
+      }
+      updateFormForSelectedBus();
+    }
+
+    async function loadFleet() {
+      try {
+        const res = await fetch('/api/fleet');
+        const data = await res.json();
+        fleetData = Array.isArray(data) ? data : (data && Array.isArray(data.fleet) ? data.fleet : []);
+        fleetData.forEach((bus, i) => {
+          bus.origIndex = i;
+          if (!bus.busShortName && bus.busName) {
+            bus.busShortName = bus.defaultBusNumber || bus.busName.split(' ')[0];
+          }
+        });
+
+        // Sync with dynamic cloud swap engine assignments and state
+        try {
+          const [assignRes, stateRes] = await Promise.all([
+            fetch('/api/bus-assignments'),
+            fetch('/api/bus-state')
+          ]);
+          if (assignRes.ok) {
+            const assignData = await assignRes.json();
+            if (assignData) {
+              fleetData.forEach(bus => {
+                const uId = bus.unique_id || bus.uniqueId;
+                const bName = bus.busShortName || bus.busName || bus.bus_id;
+                if (uId && assignData.vehicleAssignments && assignData.vehicleAssignments[uId]) {
+                  bus.assignedRoute = assignData.vehicleAssignments[uId].assignedRouteDisplay;
+                  bus.assignedRouteId = assignData.vehicleAssignments[uId].assignedRouteId;
+                  bus.assignedRouteShortName = assignData.vehicleAssignments[uId].assignedRouteShortName;
+                } else if (assignData.busAssignments && assignData.busAssignments[bName]) {
+                  bus.assignedRoute = assignData.busAssignments[bName].assignedRouteDisplay;
+                  bus.assignedRouteId = assignData.busAssignments[bName].assignedRouteId;
+                  bus.assignedRouteShortName = assignData.busAssignments[bName].assignedRouteShortName;
+                }
+              });
+            }
+          }
+          if (stateRes.ok) {
+            const stateData = await stateRes.json();
+            if (stateData && stateData.state) {
+              fleetData.forEach(bus => {
+                const uId = bus.unique_id || bus.uniqueId;
+                const bName = bus.busShortName || bus.busName;
+                const s = (uId && stateData.state[uId]) || (bName && stateData.state[bName]);
+                if (s) {
+                  if (s.soc !== undefined) bus.soc = s.soc;
+                  if (s.condition !== undefined) bus.condition = s.condition;
+                }
+              });
+            }
+          }
+        } catch (e) {
+          console.log('Using local assignments');
+        }
+
+        renderDropdown(busSearch.value);
+      } catch (err) {
+        busSelect.innerHTML = '<option value="">Error loading vehicles from cloud</option>';
+      }
+    }
+
+    busSearch.addEventListener('input', () => renderDropdown(busSearch.value));
+    busSelect.addEventListener('change', updateFormForSelectedBus);
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      feedback.className = "warning";
+      feedback.textContent = "Updating cloud telemetry and calculating intelligent route swaps...";
+
+      try {
+        const idx = parseInt(busSelect.value, 10);
+        const bus = fleetData[idx];
+        const uId = bus ? (bus.unique_id || bus.uniqueId || `EV-${String(idx + 1).padStart(2, '0')}`) : busSelect.value;
+        const bShort = bus ? (bus.busShortName || bus.defaultBusNumber || "") : "";
+
+        const payload = {
+          unique_id: uId,
+          bus: uId,
+          busShortName: bShort,
+          soc: parseInt(slider.value, 10),
+          condition: conditionSelect.value
+        };
+
+        const res = await fetch('/api/telemetry', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          feedback.className = "success";
+          const assigned = result.assignedRoute || result.assignedRouteDisplay || (result.assignedRouteId ? `Route ${result.assignedRouteId}` : "");
+          feedback.innerHTML = `<strong>✅ Telemetry Updated!</strong><br>Physical Vehicle <strong>${uId}</strong> (${bShort}) is now assigned to: <strong>${assigned}</strong>.`;
+
+          if (fleetData[idx]) {
+            fleetData[idx].soc = slider.value;
+            fleetData[idx].condition = conditionSelect.value;
+            if (result.assignedRoute) fleetData[idx].assignedRoute = result.assignedRoute;
+            if (result.assignedRouteId) fleetData[idx].assignedRouteId = result.assignedRouteId;
+          }
+          updateFormForSelectedBus();
+          renderDropdown(busSearch.value);
+        } else {
+          feedback.className = "error";
+          feedback.textContent = result.error || "Failed to update telemetry.";
+        }
+      } catch (err) {
+        feedback.className = "error";
+        feedback.textContent = "Error contacting cloud swap engine.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    loadFleet();
+    setInterval(loadFleet, 8000);
+  </script>
+</body>
+</html>
