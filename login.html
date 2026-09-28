@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <title>Login – Bus Tracking System</title>
     <style>
         :root {
             --bg-1: #140b2d;
@@ -23,11 +23,7 @@
             --radius: 24px;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
@@ -43,6 +39,7 @@
             padding: 24px;
         }
 
+        /* ── Layout ── */
         .page-wrapper {
             width: 100%;
             max-width: 1100px;
@@ -52,21 +49,19 @@
             align-items: center;
         }
 
-        .hero {
-            color: #fff;
-            padding: 24px;
-        }
+        /* ── Hero ── */
+        .hero { color: #fff; padding: 24px; }
 
         .hero-badge {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: rgba(255, 255, 255, 0.12);
-            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
             padding: 10px 16px;
             border-radius: 999px;
-            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             margin-bottom: 24px;
             font-weight: 600;
         }
@@ -82,388 +77,805 @@
             font-size: 1.05rem;
             line-height: 1.7;
             max-width: 560px;
-            color: rgba(255, 255, 255, 0.82);
+            color: rgba(255,255,255,0.82);
         }
 
-        .hero-stats {
-            margin-top: 28px;
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
+        .hero-stats { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; }
 
         .stat {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.14);
             border-radius: 18px;
             padding: 14px 18px;
             min-width: 150px;
         }
 
-        .stat strong {
-            display: block;
-            font-size: 1.1rem;
-            color: #fff;
-            margin-bottom: 4px;
-        }
+        .stat strong { display: block; font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
+        .stat span { color: rgba(255,255,255,0.74); font-size: 0.92rem; }
 
-        .stat span {
-            color: rgba(255, 255, 255, 0.74);
-            font-size: 0.92rem;
-        }
-
+        /* ── Card ── */
         .card {
-            background: rgba(255, 255, 255, 0.97);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(255,255,255,0.97);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255,255,255,0.45);
         }
 
+        /* ── Tab switcher ── */
+        .tab-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .tab-btn {
+            padding: 18px;
+            border: none;
+            background: transparent;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--accent-2);
+            border-bottom-color: var(--accent-2);
+            background: rgba(37,99,235,0.04);
+        }
+
+        /* ── Panels ── */
+        .panel { display: none; }
+        .panel.active { display: block; }
+
         .card-header {
-            padding: 34px 32px 18px;
+            padding: 28px 32px 16px;
             text-align: center;
             border-bottom: 1px solid #edf2f7;
         }
 
         .logo {
-            width: 72px;
-            height: 72px;
-            border-radius: 22px;
-            margin: 0 auto 16px;
+            width: 68px; height: 68px;
+            border-radius: 20px;
+            margin: 0 auto 14px;
             display: grid;
             place-items: center;
             background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             color: white;
-            font-size: 2rem;
-            box-shadow: 0 12px 30px rgba(37, 99, 235, 0.28);
+            font-size: 1.9rem;
+            box-shadow: 0 12px 30px rgba(37,99,235,0.28);
         }
 
         .card-header h2 {
-            font-size: 1.9rem;
+            font-size: 1.75rem;
             color: var(--text-dark);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: -0.03em;
         }
 
-        .card-header p {
-            color: var(--text-muted);
-            font-size: 0.98rem;
-        }
+        .card-header p { color: var(--text-muted); font-size: 0.95rem; }
 
-        .card-body {
-            padding: 28px 32px 32px;
-        }
+        .card-body { padding: 24px 32px 28px; }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+        /* ── Form ── */
+        .form-group { margin-bottom: 16px; }
 
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 7px;
             font-weight: 600;
             color: var(--text-dark);
-            font-size: 0.95rem;
+            font-size: 0.93rem;
         }
 
-        .input-wrap {
-            position: relative;
-        }
+        .input-wrap { position: relative; }
 
-        input {
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
             width: 100%;
             border: 1.5px solid var(--border);
-            border-radius: 16px;
-            padding: 15px 18px;
-            font-size: 1rem;
+            border-radius: 14px;
+            padding: 13px 16px;
+            font-size: 0.97rem;
             color: var(--text-dark);
             outline: none;
             background: #fff;
             transition: all 0.25s ease;
         }
 
-        input::placeholder {
-            color: #8b95a7;
-        }
+        input::placeholder { color: #8b95a7; }
 
         input:focus {
             border-color: #5b7cff;
-            box-shadow: 0 0 0 4px rgba(91, 124, 255, 0.12);
+            box-shadow: 0 0 0 4px rgba(91,124,255,0.12);
         }
+
+        input.error-field { border-color: #ef4444; }
 
         .toggle-password {
             position: absolute;
-            top: 50%;
-            right: 14px;
+            top: 50%; right: 12px;
             transform: translateY(-50%);
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 1.05rem;
-            color: #718096;
-            padding: 6px;
+            border: none; background: transparent;
+            cursor: pointer; font-size: 1rem;
+            color: #718096; padding: 6px;
         }
 
+        /* ── Password strength ── */
+        .strength-bar {
+            margin-top: 6px;
+            height: 4px;
+            border-radius: 4px;
+            background: #e5e7eb;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+
+        .strength-label {
+            font-size: 0.78rem;
+            margin-top: 4px;
+            color: var(--text-muted);
+        }
+
+        /* ── Form row ── */
         .form-row {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            margin: 6px 0 22px;
+            margin: 4px 0 18px;
             flex-wrap: wrap;
         }
 
-        .forgot-link,
-        .secondary-link {
+        .forgot-link, .secondary-link {
             color: #375ec5;
             text-decoration: none;
             font-weight: 600;
             transition: 0.2s ease;
+            font-size: 0.9rem;
         }
 
-        .forgot-link:hover,
-        .secondary-link:hover {
-            text-decoration: underline;
-            opacity: 0.9;
-        }
+        .forgot-link:hover, .secondary-link:hover { text-decoration: underline; opacity: 0.9; }
 
+        /* ── Primary button ── */
         .primary-btn {
             width: 100%;
             border: none;
-            border-radius: 16px;
-            padding: 15px 18px;
+            border-radius: 14px;
+            padding: 14px 18px;
             font-size: 1rem;
             font-weight: 700;
             color: white;
             cursor: pointer;
             background: linear-gradient(135deg, var(--button-1), var(--button-2));
-            box-shadow: 0 14px 28px rgba(20, 30, 48, 0.28);
+            box-shadow: 0 12px 28px rgba(20,30,48,0.28);
             transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
         }
 
-        .primary-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 16px 34px rgba(20, 30, 48, 0.34);
-            opacity: 0.98;
+        .primary-btn:hover { transform: translateY(-1px); box-shadow: 0 16px 34px rgba(20,30,48,0.34); opacity: 0.98; }
+        .primary-btn:active { transform: translateY(0); }
+        .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        /* ── Google button ── */
+        .google-btn {
+            width: 100%;
+            border: 1.5px solid #d1d5db;
+            border-radius: 14px;
+            padding: 13px 18px;
+            font-size: 0.97rem;
+            font-weight: 600;
+            color: #374151;
+            background: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
         }
 
-        .primary-btn:active {
-            transform: translateY(0);
-        }
+        .google-btn:hover { background: #f9fafb; border-color: #9ca3af; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
+        .google-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+        /* ── Divider ── */
         .divider {
-            margin: 24px 0 18px;
+            margin: 18px 0 16px;
             display: flex;
             align-items: center;
             gap: 12px;
             color: #94a3b8;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
         }
 
-        .divider::before,
-        .divider::after {
+        .divider::before, .divider::after {
             content: "";
             flex: 1;
             height: 1px;
             background: #e6edf7;
         }
 
-        .signup-box {
-            text-align: center;
-            font-size: 0.98rem;
-            color: var(--text-dark);
+        /* ── Alert messages ── */
+        .alert {
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 14px;
+            display: none;
         }
 
-        .signup-box a {
-            margin-left: 6px;
-            color: #7c3aed;
-            font-weight: 700;
-            text-decoration: none;
-        }
+        .alert.show { display: flex; align-items: flex-start; gap: 8px; }
+        .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
 
-        .signup-box a:hover {
-            text-decoration: underline;
-        }
-
+        /* ── Footer note ── */
         .footer-note {
-            margin-top: 18px;
+            margin-top: 16px;
             text-align: center;
-            font-size: 0.86rem;
+            font-size: 0.83rem;
             color: #94a3b8;
         }
 
+        /* ── Loading spinner ── */
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── Responsive ── */
         @media (max-width: 920px) {
-            .page-wrapper {
-                grid-template-columns: 1fr;
-            }
-
-            .hero {
-                text-align: center;
-                padding-bottom: 0;
-            }
-
-            .hero p {
-                margin: 0 auto;
-            }
-
-            .hero-stats {
-                justify-content: center;
-            }
+            .page-wrapper { grid-template-columns: 1fr; }
+            .hero { text-align: center; padding-bottom: 0; }
+            .hero p { margin: 0 auto; }
+            .hero-stats { justify-content: center; }
         }
 
         @media (max-width: 560px) {
-            body {
-                padding: 16px;
-            }
-
-            .card-header,
-            .card-body {
-                padding-left: 20px;
-                padding-right: 20px;
-            }
-
-            .card-header h2 {
-                font-size: 1.55rem;
-            }
-
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            input,
-            .primary-btn {
-                border-radius: 14px;
-            }
+            body { padding: 16px; }
+            .card-header, .card-body { padding-left: 18px; padding-right: 18px; }
+            .card-header h2 { font-size: 1.5rem; }
+            .hero h1 { font-size: 2rem; }
         }
     </style>
 </head>
 <body>
-    <main class="page-wrapper">
-        <section class="hero" aria-label="Website intro">
-            <div class="hero-badge">🚍 Bus Tracking System</div>
-            <h1>Welcome back to your dashboard</h1>
-            <p>
-                Sign in securely to access live bus tracking, route details, and real-time updates.
-                Designed to match your website’s modern dark blue and purple theme.
-            </p>
+<main class="page-wrapper">
 
-            <div class="hero-stats">
-                <div class="stat">
-                    <strong>Secure Access</strong>
-                    <span>Protected login experience</span>
-                </div>
-                <div class="stat">
-                    <strong>Fast UI</strong>
-                    <span>Simple and responsive layout</span>
-                </div>
-                <div class="stat">
-                    <strong>Modern Design</strong>
-                    <span>Clean cards and gradients</span>
-                </div>
-            </div>
-        </section>
+    <!-- ── Hero ── -->
+    <section class="hero" aria-label="Website intro">
+        <div class="hero-badge">🚍 Bus Tracking System</div>
+        <h1>Welcome to your Dashboard</h1>
+        <p>
+            Sign in securely to access live bus tracking, route details, and real-time updates.
+            New here? Create an account with your Google profile in seconds.
+        </p>
+        <div class="hero-stats">
+            <div class="stat"><strong>Secure Access</strong><span>Google-backed authentication</span></div>
+            <div class="stat"><strong>Fast UI</strong><span>Simple and responsive layout</span></div>
+            <div class="stat"><strong>Modern Design</strong><span>Clean cards and gradients</span></div>
+        </div>
+    </section>
 
-        <section class="card" aria-label="Login form">
+    <!-- ── Auth Card ── -->
+    <section class="card" aria-label="Authentication">
+
+        <!-- Tab switcher -->
+        <div class="tab-row" role="tablist">
+            <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')">Sign In</button>
+            <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')">Sign Up</button>
+        </div>
+
+        <!-- ══════════════════════════════════════════ LOGIN PANEL ══════════════════════════════════════════ -->
+        <div class="panel active" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
             <div class="card-header">
                 <div class="logo">🔐</div>
-                <h2>Login</h2>
-                <p>Please enter your details to continue</p>
+                <h2>Welcome Back</h2>
+                <p>Sign in to your account to continue</p>
             </div>
-
             <div class="card-body">
-                <form>
+
+                <!-- Alert -->
+                <div class="alert alert-error" id="login-alert" role="alert"></div>
+
+                <!-- Google sign-in -->
+                <button class="google-btn" id="btn-google-login" type="button" onclick="signInWithGoogle()">
+                    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+
+                <div class="divider">or sign in with email</div>
+
+                <form id="form-login" novalidate>
                     <div class="form-group">
-                        <label for="email">Mobile number / Email</label>
+                        <label for="login-email">Email Address</label>
                         <div class="input-wrap">
-                            <input
-                                type="text"
-                                id="email"
-                                name="email"
-                                placeholder="Enter mobile number or email"
-                                autocomplete="username"
-                                required
-                            />
+                            <input type="email" id="login-email" name="email"
+                                   placeholder="Enter your email" autocomplete="username" required />
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="password">Password</label>
+                        <label for="login-password">Password</label>
                         <div class="input-wrap">
-                            <input
-                                type="password"
-                                id="password"
-                                name="password"
-                                placeholder="Enter your password"
-                                autocomplete="current-password"
-                                required
-                            />
-                            <button class="toggle-password" type="button" id="togglePassword" aria-label="Show password">
-                                👁️
-                            </button>
+                            <input type="password" id="login-password" name="password"
+                                   placeholder="Enter your password" autocomplete="current-password" required />
+                            <button class="toggle-password" type="button" data-target="login-password" aria-label="Show password">👁️</button>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <a href="/index.html" class="secondary-link" id="ignoreOption">Ignore</a>
-                        <a href="#" class="forgot-link">Forgot Password?</a>
+                        <a href="#" class="forgot-link" id="forgot-link">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" class="primary-btn">Sign In</button>
-
-                    <div class="divider">or</div>
-
-                    <div class="signup-box">
-                        Don't have an account?
-                        <a href="#">Sign Up</a>
-                    </div>
-
-                    <div class="footer-note">
-                        By signing in, you agree to the terms and privacy policy.
-                    </div>
+                    <button type="submit" class="primary-btn" id="btn-login">Sign In</button>
                 </form>
+
+                <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
             </div>
-        </section>
-    </main>
+        </div>
 
-    <script>
-        const loginForm = document.querySelector("form");
-        const emailInput = document.getElementById("email");
-        const passwordInput = document.getElementById("password");
-        const togglePassword = document.getElementById("togglePassword");
-        const ignoreOption = document.getElementById("ignoreOption");
+        <!-- ══════════════════════════════════════════ SIGN UP PANEL ══════════════════════════════════════════ -->
+        <div class="panel" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup">
+            <div class="card-header">
+                <div class="logo">🚀</div>
+                <h2>Create Account</h2>
+                <p>Sign up to get started</p>
+            </div>
+            <div class="card-body">
 
-        togglePassword.addEventListener("click", () => {
-            const isPassword = passwordInput.type === "password";
-            passwordInput.type = isPassword ? "text" : "password";
-            togglePassword.textContent = isPassword ? "🙈" : "👁️";
-            togglePassword.setAttribute("aria-label", isPassword ? "Hide password" : "Show password");
-        });
+                <!-- Alert -->
+                <div class="alert alert-error" id="signup-alert" role="alert"></div>
 
-        ignoreOption.addEventListener("click", (event) => {
-            event.preventDefault();
-            localStorage.setItem("accessMode", "ignore");
-            sessionStorage.setItem("isLoggedIn", "false");
-            window.location.href = "/index.html";
-        });
+                <!-- Google sign-up -->
+                <button class="google-btn" id="btn-google-signup" type="button" onclick="signUpWithGoogle()">
+                    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Sign up with Google
+                </button>
 
-        loginForm.addEventListener("submit", (event) => {
-            event.preventDefault();
+                <div class="divider">or create account with email</div>
 
-            const identity = emailInput.value.trim();
-            const password = passwordInput.value.trim();
+                <!-- ℹ️ Info box: Google account required -->
+                <div class="alert alert-info show" style="margin-bottom:14px;">
+                    <span>ℹ️</span>
+                    <span>You must sign up using a <strong>Google account</strong>, then set a custom password to use for future logins.</span>
+                </div>
 
-            if (!identity || !password) {
-                alert("Please enter Mobile number / Email and Password.");
-                return;
-            }
+                <form id="form-signup" novalidate>
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <div class="input-wrap">
+                            <input type="text" id="signup-name" name="name"
+                                   placeholder="Your full name" autocomplete="name" required />
+                        </div>
+                    </div>
 
+                    <div class="form-group">
+                        <label for="signup-email">Google Email Address</label>
+                        <div class="input-wrap">
+                            <input type="email" id="signup-email" name="email"
+                                   placeholder="yourname@gmail.com" autocomplete="email" required />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-password">Create Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="signup-password" name="password"
+                                   placeholder="Min 8 characters" autocomplete="new-password" required />
+                            <button class="toggle-password" type="button" data-target="signup-password" aria-label="Show password">👁️</button>
+                        </div>
+                        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+                        <div class="strength-label" id="strength-label"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-confirm">Confirm Password</label>
+                        <div class="input-wrap">
+                            <input type="password" id="signup-confirm" name="confirm"
+                                   placeholder="Re-enter your password" autocomplete="new-password" required />
+                            <button class="toggle-password" type="button" data-target="signup-confirm" aria-label="Show password">👁️</button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="primary-btn" id="btn-signup">Create Account</button>
+                </form>
+
+                <div class="footer-note">By signing up, you agree to our terms and privacy policy.</div>
+            </div>
+        </div>
+
+    </section>
+</main>
+
+<!-- ─────────────────────────── Firebase SDK ─────────────────────────── -->
+<script type="module">
+    // ─── Firebase configuration ────────────────────────────────────────────────
+    const firebaseConfig = {
+        apiKey: "AIzaSyDkTLrbsx9ttciXDYMnljsZ0l46Qgn3lm0",
+        authDomain: "smart-bus-scheduling.firebaseapp.com",
+        projectId: "smart-bus-scheduling",
+        storageBucket: "smart-bus-scheduling.firebasestorage.app",
+        messagingSenderId: "807662015582",
+        appId: "1:807662015582:web:44f9c687827aafe27590cf",
+        measurementId: "G-8KS1F3JP18"
+    };
+    // ──────────────────────────────────────────────────────────────────────────
+
+    import { initializeApp }                                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+        getAuth,
+        GoogleAuthProvider,
+        signInWithPopup,
+        signInWithEmailAndPassword,
+        createUserWithEmailAndPassword,
+        updateProfile,
+        fetchSignInMethodsForEmail,
+        sendPasswordResetEmail,
+        linkWithCredential,
+        EmailAuthProvider,
+        onAuthStateChanged,
+        signOut
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const app      = initializeApp(firebaseConfig);
+    const auth     = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    // ── Config placeholder detection ──
+    const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
+
+    // ── Guard: if Firebase is not configured, show setup instructions ──
+    if (!isConfigured) {
+        showSetupBanner();
+    }
+
+    // ── Persist auth state ─────────────────────────────────────────────────────
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            // User is signed in — redirect away from login page
             localStorage.setItem("accessMode", "login");
             sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", user.email || "");
+            sessionStorage.setItem("userName",  user.displayName || "");
             window.location.href = "/problem.html";
+        }
+    });
+
+    // ── Expose to global scope (onclick attributes) ────────────────────────────
+    window.signInWithGoogle  = signInWithGoogle;
+    window.signUpWithGoogle  = signUpWithGoogle;
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  SIGN IN WITH GOOGLE
+    // ══════════════════════════════════════════════════════════════════════════
+    async function signInWithGoogle() {
+        if (!isConfigured) { showSetupBanner(); return; }
+        const btn = document.getElementById("btn-google-login");
+        setLoading(btn, true, "Signing in…");
+        clearAlert("login-alert");
+        try {
+            await signInWithPopup(auth, provider);
+            // onAuthStateChanged handles redirect
+        } catch (err) {
+            showAlert("login-alert", "error", friendlyError(err));
+            setLoading(btn, false, "Continue with Google");
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  SIGN UP WITH GOOGLE (then link email/password on the sign-up form)
+    // ══════════════════════════════════════════════════════════════════════════
+    async function signUpWithGoogle() {
+        if (!isConfigured) { showSetupBanner(); return; }
+        const btn = document.getElementById("btn-google-signup");
+        setLoading(btn, true, "Connecting…");
+        clearAlert("signup-alert");
+        try {
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+            // Pre-fill the email field with the Google account email
+            document.getElementById("signup-email").value = user.email;
+            document.getElementById("signup-name").value  = user.displayName || "";
+            document.getElementById("signup-email").readOnly = true;
+
+            showAlert("signup-alert", "success",
+                `✅ Google account verified (${user.email}). Now create your custom password below and click "Create Account".`);
+
+            // Store Google credential temporarily so we can link it later
+            window._googleUser = user;
+        } catch (err) {
+            showAlert("signup-alert", "error", friendlyError(err));
+        } finally {
+            setLoading(btn, false, "Sign up with Google");
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  LOGIN FORM — email / password
+    // ══════════════════════════════════════════════════════════════════════════
+    document.getElementById("form-login").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!isConfigured) { showSetupBanner(); return; }
+
+        const email    = document.getElementById("login-email").value.trim();
+        const password = document.getElementById("login-password").value;
+        const btn      = document.getElementById("btn-login");
+
+        clearAlert("login-alert");
+
+        if (!email || !password) {
+            showAlert("login-alert", "error", "Please enter your email and password.");
+            return;
+        }
+
+        // Check if user exists
+        try {
+            const methods = await fetchSignInMethodsForEmail(auth, email);
+            if (methods.length === 0) {
+                showAlert("login-alert", "error", "No account found with this email. Please sign up first.");
+                return;
+            }
+        } catch (err) {
+            showAlert("login-alert", "error", friendlyError(err));
+            return;
+        }
+
+        setLoading(btn, true, "Signing in…");
+
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            // onAuthStateChanged handles redirect
+        } catch (err) {
+            showAlert("login-alert", "error", friendlyError(err));
+            setLoading(btn, false, "Sign In");
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  SIGN UP FORM — Google-verified email + custom password
+    // ══════════════════════════════════════════════════════════════════════════
+    document.getElementById("form-signup").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (!isConfigured) { showSetupBanner(); return; }
+
+        const name     = document.getElementById("signup-name").value.trim();
+        const email    = document.getElementById("signup-email").value.trim();
+        const password = document.getElementById("signup-password").value;
+        const confirm  = document.getElementById("signup-confirm").value;
+        const btn      = document.getElementById("btn-signup");
+
+        clearAlert("signup-alert");
+
+        // ── Validation ──
+        if (!name) {
+            showAlert("signup-alert", "error", "Please enter your full name.");
+            return;
+        }
+        if (!email) {
+            showAlert("signup-alert", "error", "Please enter your Google email address.");
+            return;
+        }
+        if (!email.toLowerCase().endsWith("@gmail.com") && !window._googleUser) {
+            showAlert("signup-alert", "error", "Please click \"Sign up with Google\" first to verify your Google account.");
+            return;
+        }
+        if (password.length < 8) {
+            showAlert("signup-alert", "error", "Password must be at least 8 characters long.");
+            return;
+        }
+        if (password !== confirm) {
+            showAlert("signup-alert", "error", "Passwords do not match.");
+            return;
+        }
+
+        setLoading(btn, true, "Creating account…");
+
+        try {
+            let user;
+
+            if (window._googleUser) {
+                // ── Path A: Google sign-in already done — sign out then re-create with email+password ──
+                // We sign out the Google session and create a proper email/password account.
+                await signOut(auth);
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                user = cred.user;
+            } else {
+                // ── Path B: No Google popup done yet — create the account and require Google email ──
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                user = cred.user;
+            }
+
+            // Update display name
+            await updateProfile(user, { displayName: name });
+
+            // Store registration info
+            localStorage.setItem("accessMode", "login");
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", user.email || "");
+            sessionStorage.setItem("userName",  name);
+
+            // Redirect
+            window.location.href = "/problem.html";
+
+        } catch (err) {
+            showAlert("signup-alert", "error", friendlyError(err));
+            setLoading(btn, false, "Create Account");
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  FORGOT PASSWORD
+    // ══════════════════════════════════════════════════════════════════════════
+    document.getElementById("forgot-link").addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (!isConfigured) { showSetupBanner(); return; }
+
+        const email = document.getElementById("login-email").value.trim();
+        if (!email) {
+            showAlert("login-alert", "error", "Enter your email address above, then click Forgot Password.");
+            return;
+        }
+        try {
+            await sendPasswordResetEmail(auth, email);
+            showAlert("login-alert", "success", `✅ Password reset email sent to ${email}. Check your inbox.`);
+        } catch (err) {
+            showAlert("login-alert", "error", friendlyError(err));
+        }
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  IGNORE BUTTON
+    // ══════════════════════════════════════════════════════════════════════════
+    document.getElementById("ignoreOption").addEventListener("click", (e) => {
+        e.preventDefault();
+        localStorage.setItem("accessMode", "ignore");
+        sessionStorage.setItem("isLoggedIn", "false");
+        window.location.href = "/index.html";
+    });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ══════════════════════════════════════════════════════════════════════════
+
+    function friendlyError(err) {
+        const code = err?.code || "";
+        const map = {
+            "auth/invalid-email":               "Invalid email address.",
+            "auth/user-disabled":               "This account has been disabled.",
+            "auth/user-not-found":              "No account found with this email. Please sign up.",
+            "auth/wrong-password":              "Incorrect password. Please try again.",
+            "auth/email-already-in-use":        "An account with this email already exists. Please sign in.",
+            "auth/weak-password":               "Password is too weak. Use at least 8 characters.",
+            "auth/popup-closed-by-user":        "Google sign-in was cancelled. Please try again.",
+            "auth/popup-blocked":               "Pop-up was blocked by your browser. Allow pop-ups and try again.",
+            "auth/network-request-failed":      "Network error. Check your internet connection.",
+            "auth/too-many-requests":           "Too many attempts. Please wait a moment and try again.",
+            "auth/invalid-credential":          "Invalid credentials. Please check your email or password.",
+            "auth/account-exists-with-different-credential":
+                                                "An account already exists with the same email but a different sign-in method.",
+        };
+        return map[code] || err?.message || "Something went wrong. Please try again.";
+    }
+
+    function showAlert(id, type, msg) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = `alert alert-${type} show`;
+        el.innerHTML = `<span>${type === "error" ? "⚠️" : type === "success" ? "✅" : "ℹ️"}</span><span>${msg}</span>`;
+    }
+
+    function clearAlert(id) {
+        const el = document.getElementById(id);
+        if (el) { el.className = "alert"; el.textContent = ""; }
+    }
+
+    function setLoading(btn, loading, text) {
+        if (!btn) return;
+        btn.disabled = loading;
+        btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
+    }
+
+    function showSetupBanner() {
+        const existing = document.getElementById("setup-banner");
+        if (existing) return;
+        const banner = document.createElement("div");
+        banner.id = "setup-banner";
+        banner.style.cssText = `
+            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+            background: #7c3aed; color: white;
+            padding: 12px 20px; text-align: center; font-size: 0.9rem; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        `;
+        banner.innerHTML = `
+            ⚙️ Firebase is not configured yet.
+            <a href="https://console.firebase.google.com/" target="_blank"
+               style="color:#fde68a; text-decoration:underline;">Set up your Firebase project</a>
+            and replace the <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">firebaseConfig</code>
+            in <strong>login.html</strong>.
+        `;
+        document.body.prepend(banner);
+    }
+</script>
+
+<!-- ─── Tab switching + UI helpers (non-module) ─────────────────────── -->
+<script>
+    // Tab switching
+    function switchTab(tab) {
+        const panels = ["login", "signup"];
+        panels.forEach((t) => {
+            document.getElementById(`tab-${t}`).classList.toggle("active", t === tab);
+            document.getElementById(`tab-${t}`).setAttribute("aria-selected", t === tab);
+            document.getElementById(`panel-${t}`).classList.toggle("active", t === tab);
         });
-    </script>
+    }
+
+    // Toggle password visibility for all toggle buttons
+    document.querySelectorAll(".toggle-password").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const input = document.getElementById(btn.dataset.target);
+            const isPass = input.type === "password";
+            input.type = isPass ? "text" : "password";
+            btn.textContent = isPass ? "🙈" : "👁️";
+            btn.setAttribute("aria-label", isPass ? "Hide password" : "Show password");
+        });
+    });
+
+    // Password strength meter
+    document.getElementById("signup-password").addEventListener("input", function () {
+        const val   = this.value;
+        const fill  = document.getElementById("strength-fill");
+        const label = document.getElementById("strength-label");
+
+        let score = 0;
+        if (val.length >= 8)                score++;
+        if (/[A-Z]/.test(val))              score++;
+        if (/[0-9]/.test(val))              score++;
+        if (/[^A-Za-z0-9]/.test(val))       score++;
+
+        const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e"];
+        const labels = ["Weak", "Fair", "Good", "Strong"];
+
+        fill.style.width    = val.length ? `${(score / 4) * 100}%` : "0%";
+        fill.style.background = val.length ? colors[score - 1] || colors[0] : "#e5e7eb";
+        label.textContent   = val.length ? labels[score - 1] || labels[0] : "";
+    });
+</script>
 </body>
 </html>
