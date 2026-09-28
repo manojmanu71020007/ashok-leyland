@@ -203,12 +203,12 @@
     "blocked": false
   },
   "1548": {
-    "status": "Active",
-    "rawStatus": "On Time",
-    "soc": 81,
-    "condition": "Not Good",
+    "status": "Blocked",
+    "rawStatus": "Active",
+    "soc": 8,
+    "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-27T17:01:46.287Z",
+    "updatedAt": "2026-09-28T13:55:30.433Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -247,16 +247,22 @@
         "soc": 81,
         "condition": "Not Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-28T13:55:30.433Z",
+        "soc": 18,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-12",
     "busNumber": "D22-PSS",
     "blocked": true
   },
   "1549": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 8,
+    "soc": 18,
     "condition": "Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
@@ -299,7 +305,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-30",
     "busNumber": "D9-PSS",
     "blocked": true
   },
@@ -1497,8 +1503,8 @@
     "1367": "EV-36",
     "1427": "EV-21",
     "1428": "EV-19",
-    "1548": "EV-30",
-    "1549": "EV-12",
+    "1548": "EV-12",
+    "1549": "EV-30",
     "1553": "EV-08",
     "1610": "EV-18",
     "1612": "EV-46",
@@ -1554,10 +1560,10 @@
     "401-AM": "EV-21",
     "EV-19": "1428",
     "401-AM PTH-PSS": "EV-19",
-    "EV-30": "1548",
-    "D22-PSS": "EV-30",
-    "EV-12": "1549",
-    "D9-PSS": "EV-12",
+    "EV-12": "1548",
+    "D22-PSS": "EV-12",
+    "EV-30": "1549",
+    "D9-PSS": "EV-30",
     "EV-08": "1553",
     "EV-18": "1610",
     "252 LGR-PSS": "EV-18",
@@ -1655,13 +1661,35 @@
     "252-A PSS-HAL ARDC": "EV-32"
   },
   "_blockedRouteIds": [
-    "1549",
-    "3629",
     "1548",
+    "3629",
+    "1549",
     "3951"
   ],
   "_swapLog": [
     {
+      "timestamp": "2026-09-28T13:55:30.435Z",
+      "routeA": "1549",
+      "routeShortNameA": "D9-PSS",
+      "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
+      "distA": 1.63,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-12",
+      "socA": 8,
+      "busCategoryA": "C",
+      "routeB": "1548",
+      "routeShortNameB": "D22-PSS",
+      "routeLineB": "D22-PSS (Peenya 2nd Stage ➔ Depot-22 Peenya)",
+      "distB": 1.52,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-30",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-30",
+      "timeSlot": "PEAK",
+      "reason": "Range Shortfall Alert: Route 1549 (1.6 km) exceeded range of vehicle 'EV-12' (0 km). Reassigned vehicle 'EV-30' (11 km)."
+    },
+    {
       "timestamp": "2026-09-28T13:51:19.279Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
@@ -2738,28 +2766,6 @@
       "swappedVehicle": "EV-30",
       "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-30' (81% SoC)."
-    },
-    {
-      "timestamp": "2026-09-28T13:51:19.279Z",
-      "routeA": "3951",
-      "routeShortNameA": "265-A PSS-TEPL",
-      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
-      "distA": 3.17,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-30",
-      "socA": 81,
-      "busCategoryA": "B",
-      "routeB": "3629",
-      "routeShortNameB": "265-D PSS-VGN",
-      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
-      "distB": 2.48,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-50",
-      "socB": 23,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-50",
-      "timeSlot": "PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-30' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3951 to prevent in-service breakdown."
     }
   ],
   "PSS-NLGDH-8THM": {
@@ -3219,12 +3225,12 @@
     "uniqueId": "EV-53"
   },
   "D22-PSS": {
-    "status": "Active",
-    "rawStatus": "On Time",
-    "soc": 81,
-    "condition": "Not Good",
+    "status": "Blocked",
+    "rawStatus": "Active",
+    "soc": 8,
+    "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-27T17:01:46.287Z",
+    "updatedAt": "2026-09-28T13:55:30.433Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -3263,9 +3269,15 @@
         "soc": 81,
         "condition": "Not Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-28T13:55:30.433Z",
+        "soc": 18,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-12",
     "blocked": true
   },
   "401-AM": {
@@ -3543,9 +3555,9 @@
     "blocked": false
   },
   "D9-PSS": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 8,
+    "soc": 18,
     "condition": "Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
@@ -3588,7 +3600,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-30",
     "blocked": true
   },
   "500-D MRHB-HBL-PSS": {
@@ -4442,12 +4454,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1548",
+      "assignedRouteShortName": "D22-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Depot-22 Peenya",
+      "assignedRouteDistanceKm": 1.52,
+      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
       "busCategory": "C",
@@ -4468,12 +4480,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1548",
+      "assignedRouteShortName": "D22-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Depot-22 Peenya",
+      "assignedRouteDistanceKm": 1.52,
+      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
       "busCategory": "C",
@@ -4914,7 +4926,7 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "507-B": {
@@ -4939,7 +4951,7 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "EV-22": {
@@ -5356,24 +5368,24 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "1548",
-      "assignedRouteShortName": "D22-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Depot-22 Peenya",
-      "assignedRouteDistanceKm": 1.52,
-      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
-      "busCategory": "B",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": true,
-      "soc": 81,
-      "condition": "Not Good",
+      "matrixCompliant": false,
+      "soc": 18,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 101,
+      "estimatedRangeKm": 11,
       "blocked": true
     },
     "D22-PSS": {
@@ -5382,24 +5394,24 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "1548",
-      "assignedRouteShortName": "D22-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Depot-22 Peenya",
-      "assignedRouteDistanceKm": 1.52,
-      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
-      "busCategory": "B",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": true,
-      "soc": 81,
-      "condition": "Not Good",
+      "matrixCompliant": false,
+      "soc": 18,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 101,
+      "estimatedRangeKm": 11,
       "blocked": true
     },
     "EV-31": {
@@ -6581,7 +6593,7 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "gtfsDistanceKm": 40.53,
       "blocked": false
     },
@@ -6602,23 +6614,6 @@
       "blocked": false
     },
     "1548": {
-      "assignedVehicle": "EV-30",
-      "routeCategory": "SIMPLE",
-      "timeSlot": "PEAK",
-      "busCategory": "B",
-      "allowedCategories": [
-        "A",
-        "B"
-      ],
-      "matrixCompliant": true,
-      "soc": 81,
-      "condition": "Not Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 101,
-      "gtfsDistanceKm": 1.52,
-      "blocked": true
-    },
-    "1549": {
       "assignedVehicle": "EV-12",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
@@ -6632,6 +6627,23 @@
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 0,
+      "gtfsDistanceKm": 1.52,
+      "blocked": true
+    },
+    "1549": {
+      "assignedVehicle": "EV-30",
+      "routeCategory": "SIMPLE",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
+      "allowedCategories": [
+        "A",
+        "B"
+      ],
+      "matrixCompliant": false,
+      "soc": 18,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 11,
       "gtfsDistanceKm": 1.63,
       "blocked": true
     },
@@ -7702,9 +7714,9 @@
     "soc": 8,
     "condition": "Good",
     "status": "Blocked",
-    "assignedRouteId": "1549",
-    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
-    "assignedRouteShortName": "D9-PSS",
+    "assignedRouteId": "1548",
+    "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
+    "assignedRouteShortName": "D22-PSS",
     "blocked": true
   },
   "EV-13": {
@@ -7987,12 +7999,12 @@
     "blocked": false
   },
   "EV-30": {
-    "status": "Active",
-    "rawStatus": "On Time",
-    "soc": 81,
-    "condition": "Not Good",
+    "status": "Warning",
+    "rawStatus": "Active",
+    "soc": 18,
+    "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-27T17:01:46.287Z",
+    "updatedAt": "2026-09-28T13:55:30.433Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -8031,12 +8043,18 @@
         "soc": 81,
         "condition": "Not Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-28T13:55:30.433Z",
+        "soc": 18,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "EV-30",
-    "assignedRouteId": "1548",
-    "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
-    "assignedRouteShortName": "D22-PSS",
+    "assignedRouteId": "1549",
+    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+    "assignedRouteShortName": "D9-PSS",
     "blocked": true
   },
   "EV-31": {
@@ -8937,12 +8955,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1548",
+      "assignedRouteShortName": "D22-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Depot-22 Peenya",
+      "assignedRouteDistanceKm": 1.52,
+      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
       "busCategory": "C",
@@ -9181,7 +9199,7 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "EV-22": {
@@ -9394,24 +9412,24 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "1548",
-      "assignedRouteShortName": "D22-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Depot-22 Peenya",
-      "assignedRouteDistanceKm": 1.52,
-      "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "PEAK",
-      "busCategory": "B",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": true,
-      "soc": 81,
-      "condition": "Not Good",
+      "matrixCompliant": false,
+      "soc": 18,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 101,
+      "estimatedRangeKm": 11,
       "blocked": true
     },
     "EV-31": {
