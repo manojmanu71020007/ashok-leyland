@@ -302,14 +302,10 @@ function renderBusDetails(bus) {
         <p><strong>Bus Number:</strong> ${bus.busNumber}</p>
         <p><strong>Route ID:</strong> ${bus.routeId}</p>
         <p><strong>Route:</strong> ${displayRoute}</p>
-        <p><strong>Battery SoC:</strong> <span class="telemetry-badge ${socBadgeClass}">⚡ ${socVal}%</span></p>
-        <p><strong>Condition:</strong> <span class="telemetry-badge ${condBadgeClass}">${condText}</span></p>
-        <p><strong>Fleet Status:</strong> <span class="telemetry-badge badge-status">${bus.status || "Active"}</span></p>
         <p><strong>Origin:</strong> ${displayOrigin}</p>
         <p><strong>Destination:</strong> ${displayDestination}</p>
         ${timingSectionHtml}
         <p><strong>Total Distance:</strong> ${totalDistanceText}</p>
-        <p><strong>ETA:</strong> 9 minutes</p>
         <p><strong>Trip ID:</strong> ${bus.tripId || "N/A"}</p>
         <p><strong>Shape ID:</strong> ${bus.shapeId || "N/A"}</p>
     `;
