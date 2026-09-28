@@ -1196,8 +1196,12 @@
                 distanceInput.value = payload.distanceKm;
                 totalDistanceEl.textContent = `${payload.distanceKm.toFixed(2)} km`;
             } catch (error) {
-                totalDistanceEl.textContent = "Unavailable";
+                const fallbackKm = calculateRouteDistanceKm(selectedRoute.routeId) || Number(selectedRoute.distanceKm) || 28.7;
+                selectedRouteDistance = fallbackKm;
+                distanceInput.value = fallbackKm;
+                totalDistanceEl.textContent = `${fallbackKm.toFixed(2)} km`;
             }
+            recommend();
         }
 
         function fiveMinutesLater(value) {
@@ -2405,7 +2409,18 @@
         let recommendClicked = false;
 
         function updateAllocationPanel() {
+            recommend();
+        }
+
+        async function recommend() {
+            const distanceInput = document.getElementById("distance");
+            const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
+            const departure = (document.getElementById("departure")?.value) || "07:30";
+            const complexityEl = document.getElementById("complexity");
+            const complexity = (complexityEl ? complexityEl.value : "moderate") || "moderate";
             const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
+            const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
+
             const titleEl = document.getElementById("allocation-title");
             const socKpi = document.getElementById("kpi-soc");
             const rangeKpi = document.getElementById("kpi-range");
@@ -2419,86 +2434,61 @@
             const tripsResultEl = document.getElementById("trips-result");
             const tripsRuleEl = document.getElementById("trips-rule");
             const estChargeRuleEl = document.getElementById("est-charge-rule");
+            const busCatRule = document.getElementById("bus-category-rule");
+            const matrixStatusRule = document.getElementById("matrix-status-rule");
 
             if (!selectedRoute || !routeSelect.value) {
-                titleEl.textContent = "Allocation result";
-                socResult.textContent = "—";
-                rangeResult.textContent = "—";
-                socKpi.style.opacity = "0.4";
-                rangeKpi.style.opacity = "0.4";
-                currentSocRule.textContent = "—";
-                rangeRule.textContent = "—";
-                timeRule.textContent = "—";
-                fleetRule.textContent = "—";
-                if (driverRule) driverRule.textContent = "—";
+                if (titleEl) titleEl.textContent = "Allocation result";
+                if (socResult) socResult.textContent = "—";
+                if (rangeResult) rangeResult.textContent = "—";
+                if (socKpi) socKpi.style.opacity = "0.4";
+                if (rangeKpi) rangeKpi.style.opacity = "0.4";
+                if (currentSocRule) currentSocRule.textContent = "—";
+                if (rangeRule) rangeRule.textContent = "—";
+                if (timeRule) timeRule.textContent = "—";
+                if (fleetRule) { fleetRule.textContent = "—"; fleetRule.style.color = ""; }
+                if (driverRule) { driverRule.textContent = "—"; driverRule.style.color = ""; }
                 if (tripsResultEl) tripsResultEl.textContent = "—";
                 if (tripsRuleEl) tripsRuleEl.textContent = "—";
                 if (estChargeRuleEl) estChargeRuleEl.textContent = "—";
-            } else {
-                const assignedName = getAssignedBusName(selectedRoute);
-                titleEl.textContent = `Allocation result of ${assignedName}`;
-                socKpi.style.opacity = "1";
-                rangeKpi.style.opacity = "1";
-
-                const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.uniqueId] || busStates[assignedName] || busStates[selectedRoute.busNumber] || {};
-                const drv = busState.driver || "Driver Assigned";
-                const isNoDrv = drv.toLowerCase().includes("no");
-                if (driverRule) {
-                    driverRule.textContent = isNoDrv ? "⛔ No Driver Assigned" : "✅ Driver Assigned";
-                    driverRule.style.color = isNoDrv ? "#dc2626" : "#16a34a";
-                }
-
-                const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
-                const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
-                const distKm = Number(rangeInfo.gtfsDistanceKm || selectedRoute.distanceKm || calculateRouteDistanceKm(selectedRoute.routeId) || selectedRouteDistance || 28.7);
-                const estChargePct = Number((distKm / 1.42).toFixed(1));
-                const estChargeKwh = Number((distKm * 0.85).toFixed(1));
-
-                if (tripsResultEl) tripsResultEl.textContent = String(tripCount);
-                if (tripsRuleEl) tripsRuleEl.textContent = `${tripCount} trips (GTFS dataset)`;
-                if (estChargeRuleEl) estChargeRuleEl.textContent = `~${estChargePct}% SoC (${estChargeKwh} kWh)`;
-            }
-        }
-
-        async function recommend() {
-            const distance = Number(document.getElementById("distance").value) || 0;
-            const departure = document.getElementById("departure").value;
-            const complexity = document.getElementById("complexity").value;
-            const driverReady = document.getElementById("driver").value === "ready";
-            const selectedRoute = routes.find((route) => String(route.routeId) === String(routeSelect.value));
-            const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
-
-            if (!selectedRoute) {
-                updateAllocationPanel();
+                if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
+                if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
                 return;
             }
 
             const assignedVehicle = getAssignedBusName(selectedRoute);
-            const busState = busStates[selectedRoute.routeId] || busStates[assignedVehicle] || busStates[selectedRoute.busNumber] || {};
+            if (titleEl) titleEl.textContent = `Allocation result of ${assignedVehicle}`;
+            if (socKpi) socKpi.style.opacity = "1";
+            if (rangeKpi) rangeKpi.style.opacity = "1";
+
+            const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.uniqueId] || busStates[assignedVehicle] || busStates[selectedRoute.busNumber] || {};
             const liveSoc = Number.isFinite(Number(busState.soc)) ? Number(busState.soc) : 98;
             const condition = busState.condition || "Good";
             const driverStatus = busState.driver || "Driver Assigned";
 
             if (condition === "Not Good") {
-                document.getElementById("maintenance").checked = false;
-                document.getElementById("interior").checked = false;
+                const maintEl = document.getElementById("maintenance");
+                const intEl = document.getElementById("interior");
+                if (maintEl) maintEl.checked = false;
+                if (intEl) intEl.checked = false;
             }
-            // Sync driver select from cloud state and re-read the gate flag
+
+            // Sync driver select from cloud state and check readiness
             const driverSelectEl = document.getElementById("driver");
-            if (driverStatus.toLowerCase().includes("no")) {
+            const isCloudNoDriver = driverStatus.toLowerCase().includes("no");
+            if (isCloudNoDriver) {
                 if (driverSelectEl) driverSelectEl.value = "unavailable";
-            } else {
-                if (driverSelectEl && driverSelectEl.value !== "unavailable") driverSelectEl.value = "ready";
             }
-            const driverReadyFinal = (driverSelectEl ? driverSelectEl.value : "ready") === "ready";
+            const driverReadyFinal = (driverSelectEl ? driverSelectEl.value : "ready") === "ready" && !isCloudNoDriver;
 
-            const interiorChecked = document.getElementById("interior").checked;
-            const exteriorChecked = document.getElementById("exterior").checked;
+            const interiorChecked = document.getElementById("interior") ? document.getElementById("interior").checked : true;
+            const exteriorChecked = document.getElementById("exterior") ? document.getElementById("exterior").checked : true;
             const clean = interiorChecked && exteriorChecked && condition === "Good";
-            const maintenanceClear = document.getElementById("maintenance").checked && condition === "Good";
+            const maintenanceClear = (document.getElementById("maintenance") ? document.getElementById("maintenance").checked : true) && condition === "Good";
 
-            const manualCleanOverride = !interiorChecked && selectedRoute;
-            const effectiveClean = manualCleanOverride || clean;
+            // Manual override: operator consciously overrides clean gate via Recommend button
+            const isManualCleanOverride = recommendClicked && !interiorChecked && selectedRoute;
+            const effectiveClean = isManualCleanOverride || clean;
 
             const usableSoc = Math.max(0, liveSoc - 10);
             const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
@@ -2530,56 +2520,71 @@
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
             const isMatrixCompliant = allowedCategories.includes(busCategory);
 
+            // Calculate precise route distance
+            const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
+            const routeDistance = Number(
+                distance || 
+                selectedRouteDistance || 
+                rangeInfo.gtfsDistanceKm || 
+                selectedRoute.distanceKm || 
+                calculateRouteDistanceKm(selectedRoute.routeId) || 
+                28.7
+            );
+
             // Block departure if estimated range < route distance (Logic 2)
             const isBlockedByRange = blockedRouteIds.has(String(selectedRoute.routeId));
             const rangeCovered = !isBlockedByRange && liveSoc > 25 && rangeValue >= routeDistance;
             const ready = driverReadyFinal && effectiveClean && maintenanceClear && rangeCovered && isMatrixCompliant;
 
-            updateAllocationPanel();
-
-            document.getElementById("soc-result").textContent = `${liveSoc}%`;
-            document.getElementById("range-result").textContent = `${rangeValue} km`;
-            document.getElementById("current-soc-rule").textContent = `${liveSoc}%`;
-            document.getElementById("range-rule").textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
-            document.getElementById("time-rule").textContent = timeCategoryLabel;
+            if (socResult) socResult.textContent = `${liveSoc}%`;
+            if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
+            if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
+            if (rangeRule) rangeRule.textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
+            if (timeRule) timeRule.textContent = timeCategoryLabel;
 
             const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
             const distKm = routeDistance;
             const estChargePct = Number((distKm / 1.42).toFixed(1));
             const estChargeKwh = Number((distKm * 0.85).toFixed(1));
 
-            const tripsResultEl = document.getElementById("trips-result");
             if (tripsResultEl) tripsResultEl.textContent = String(tripCount);
-            const tripsRuleEl = document.getElementById("trips-rule");
             if (tripsRuleEl) tripsRuleEl.textContent = `${tripCount} trips (GTFS dataset)`;
-            const estChargeRuleEl = document.getElementById("est-charge-rule");
             if (estChargeRuleEl) estChargeRuleEl.textContent = `~${estChargePct}% SoC (${estChargeKwh} kWh)`;
 
-            const busCatRule = document.getElementById("bus-category-rule");
-            if (busCatRule) busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
-            const matrixStatusRule = document.getElementById("matrix-status-rule");
-            if (matrixStatusRule) matrixStatusRule.textContent = isMatrixCompliant
-                ? `✅ Allowed (Cat ${allowedCategories.join('/')})`
-                : `⚠️ Required Cat ${allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+            if (busCatRule) {
+                busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
+                busCatRule.style.color = busCategory === "A" ? "#16a34a" : (busCategory === "B" ? "#2563eb" : "#d97706");
+            }
 
-            const driverRule = document.getElementById("driver-status-rule");
+            if (matrixStatusRule) {
+                matrixStatusRule.textContent = isMatrixCompliant
+                    ? `✅ Allowed (Cat ${allowedCategories.join('/')})`
+                    : `⚠️ Required Cat ${allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+                matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
+            }
+
             if (driverRule) {
-                driverRule.textContent = driverReadyFinal ? "✅ Driver Assigned (Ready)" : "⛔ No Driver Assigned";
+                driverRule.textContent = driverReadyFinal ? "✅ Driver Assigned" : "⛔ No Driver Assigned";
                 driverRule.style.color = driverReadyFinal ? "#16a34a" : "#dc2626";
             }
 
             let fleetReason = "Ready for dispatch";
-            if (manualCleanOverride) {
-                fleetReason = "Ready for dispatch (manual override)";
-            } else if (!ready) {
+            if (!ready) {
                 if (!driverReadyFinal) fleetReason = "No Driver Assigned — Bus Not Allocated";
                 else if (condition === "Not Good") fleetReason = "Maintenance Required";
                 else if (liveSoc <= 25) fleetReason = "Depot Charge Required (SoC <= 25%)";
-                else if (isBlockedByRange || rangeValue < routeDistance) fleetReason = `Range insufficient (${rangeValue}km < ${routeDistance}km)`;
+                else if (isBlockedByRange || rangeValue < routeDistance) fleetReason = `Range insufficient (${rangeValue}km < ${routeDistance.toFixed(2)}km)`;
                 else if (!isMatrixCompliant) fleetReason = `Page 4 Rule: ${complexity.toUpperCase()} route in ${timeCategoryKey} requires Category ${allowedCategories.join('/')} bus (bus is Cat ${busCategory})`;
+                else if (!clean) fleetReason = "Cleaning Required (Interior/Exterior)";
                 else fleetReason = "Needs review";
+            } else if (!clean && isManualCleanOverride) {
+                fleetReason = "Ready for dispatch (manual clean override)";
             }
-            document.getElementById("fleet-rule").textContent = fleetReason;
+
+            if (fleetRule) {
+                fleetRule.textContent = fleetReason;
+                fleetRule.style.color = ready ? "#16a34a" : "#dc2626";
+            }
             updateAssignedDriverCount();
         }
 
@@ -2657,7 +2662,11 @@
                     renderRoutes();
                     await recommend();
                 });
-                routeSearch.addEventListener("input", renderRoutes);
+                routeSearch.addEventListener("input", async () => {
+                    renderRoutes();
+                    await updateSelectedRouteDistance();
+                    await recommend();
+                });
                 document.getElementById("recommend").addEventListener("click", async () => {
                     recommendClicked = true;
                     await updateSelectedRouteDistance();
@@ -2665,11 +2674,37 @@
                     renderRoutes();
                     await recommend();
                 });
-                document.getElementById("driver").addEventListener("change", async () => {
-                    updateAssignedDriverCount();
-                    renderRoutes();
-                    await recommend();
+                const driverSelectInput = document.getElementById("driver");
+                if (driverSelectInput) {
+                    driverSelectInput.addEventListener("change", async () => {
+                        updateAssignedDriverCount();
+                        renderRoutes();
+                        await recommend();
+                    });
+                }
+
+                const complexityEl = document.getElementById("complexity");
+                if (complexityEl) {
+                    complexityEl.addEventListener("change", async () => {
+                        await recommend();
+                    });
+                }
+
+                ["interior", "exterior", "maintenance"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.addEventListener("change", async () => {
+                            await recommend();
+                        });
+                    }
                 });
+
+                const distanceEl = document.getElementById("distance");
+                if (distanceEl) {
+                    distanceEl.addEventListener("input", async () => {
+                        await recommend();
+                    });
+                }
 
                 document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((btn) => {
                     btn.addEventListener("click", () => {
@@ -2685,6 +2720,12 @@
                     departureEl.addEventListener("input", async () => {
                         await syncScheduleTiming();
                         renderRoutes();
+                        await recommend();
+                    });
+                    departureEl.addEventListener("change", async () => {
+                        await syncScheduleTiming();
+                        renderRoutes();
+                        await recommend();
                     });
                 }
 
