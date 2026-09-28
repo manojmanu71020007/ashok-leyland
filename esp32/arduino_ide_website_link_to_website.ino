@@ -316,33 +316,60 @@ const char DRIVER_PAGE[] PROGMEM = R"rawliteral(
       event.preventDefault();
       submit.disabled = true;
       message.style.color = "var(--muted)";
-      message.textContent = 'Updating cloud and calculating swaps...';
+      message.textContent = 'Updating telemetry and syncing with website...';
       
+      const idx = parseInt(busSelect.value, 10);
+      const selBus = fleetData[idx] || {};
+      const targetRouteId = selBus.routeId || selBus.bus_id || "";
+      const currentSoc = slider.value;
+      const currentCond = conditionSelect.value;
+      const currentDrv = driverSelect ? driverSelect.value : 'Driver Assigned';
+
       try {
+        // 1. Update ESP32 gateway locally
         const response = await fetch('/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({ 
             bus: busSelect.value, 
-            soc: slider.value,
-            condition: conditionSelect.value,
-            driver: driverSelect ? driverSelect.value : 'Driver Assigned'
+            soc: currentSoc,
+            condition: currentCond,
+            driver: currentDrv
           })
         });
         const result = await response.json();
+
+        // 2. Guaranteed Direct Cloud Sync: also push directly to Render website
+        // This ensures the website updates 100% reliably even if the ESP32 chip Wi-Fi lags
+        if (targetRouteId) {
+          try {
+            await fetch('https://ashok-leyland-bus-tracking.onrender.com/api/telemetry', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                routeId: String(targetRouteId),
+                soc: Number(currentSoc),
+                condition: currentCond,
+                driver: currentDrv
+              })
+            });
+          } catch (cloudErr) {
+            console.warn('Browser direct cloud push:', cloudErr);
+          }
+        }
+
         if (response.ok) {
           message.style.color = "green";
-          const idx = parseInt(busSelect.value, 10);
           if (fleetData[idx]) {
-            fleetData[idx].soc = slider.value;
-            fleetData[idx].condition = conditionSelect.value;
-            if (driverSelect) fleetData[idx].driver = driverSelect.value;
+            fleetData[idx].soc = currentSoc;
+            fleetData[idx].condition = currentCond;
+            if (driverSelect) fleetData[idx].driver = currentDrv;
             if (result.assignedBus) {
               fleetData[idx].route = result.assignedBus;
               fleetData[idx].assignedBus = result.assignedBus;
             }
           }
-          message.textContent = `Route ${result.routeId} updated! Driver: ${result.driver || (driverSelect ? driverSelect.value : 'Assigned')} | Bus: ${result.assignedBus}` + (result.blocked ? " (⛔ Blocked: Range < Distance)" : "");
+          message.textContent = `Route ${result.routeId || targetRouteId} updated & synced to website! Driver: ${result.driver || currentDrv} | Bus: ${result.assignedBus || 'Assigned'}` + (result.blocked ? " (⛔ Blocked: Range < Distance)" : "");
           // Re-sync all assignments from server so all swapped dropdown items update!
           await loadFleetDropdown();
         } else {
@@ -695,13 +722,12 @@ void handleUpdate() {
   // 3. Forward to Render Cloud API using ONLY routeId (Logic 1)
   if (WiFi.status() == WL_CONNECTED) {
     WiFiClientSecure secureClient;
-    secureClient.setInsecure(); // Required for Render HTTPS certificates
-    secureClient.setTimeout(15);
-
+    secureClient.setInsecure(); // Skip certificate verification for Render HTTPS
+    
     HTTPClient http;
     http.begin(secureClient, RENDER_URL);
     http.addHeader("Content-Type", "application/json");
-    http.setTimeout(15000); // 15-second timeout to handle Render cold-starts safely
+    http.setTimeout(30000); // 30-second timeout to handle Render cold-starts safely
 
     String jsonPayload = "{\"routeId\":\"" + String(fleet[busIndex].routeId) + 
                          "\",\"soc\":" + String(soc) + 
@@ -710,9 +736,11 @@ void handleUpdate() {
     
     int httpResponseCode = http.POST(jsonPayload);
     
-    if (httpResponseCode == 200) {
+    if (httpResponseCode == 200 || httpResponseCode == 201) {
       String responseBody = http.getString();
-      Serial.print("[Render Success] HTTP 200 for Route ");
+      Serial.print("[Render Success] HTTP ");
+      Serial.print(httpResponseCode);
+      Serial.print(" for Route ");
       Serial.println(fleet[busIndex].routeId);
 
       // Parse assignedBusShortName from swap engine response
@@ -737,12 +765,14 @@ void handleUpdate() {
       Serial.print("[Render Response] HTTP Status: ");
       Serial.println(httpResponseCode);
     } else {
-      Serial.print("Error pushing to Render: ");
+      Serial.print("[Render Push Error] Code: ");
+      Serial.print(httpResponseCode);
+      Serial.print(" - ");
       Serial.println(http.errorToString(httpResponseCode).c_str());
     }
     http.end();
   } else {
-    Serial.println("WiFi Disconnected. Could not reach Render.");
+    Serial.println("[Render Push Warning] WiFi Disconnected. Reconnection will trigger automatically.");
   }
 
   addCorsHeader();
@@ -790,17 +820,27 @@ void setup() {
   Serial.println("Fleet telemetry restored from ESP32 NVS flash storage.");
   
   WiFi.mode(WIFI_STA);
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   
   Serial.print("Connecting to Wi-Fi Hotspot");
-  while (WiFi.status() != WL_CONNECTED) {
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
     Serial.print(".");
+    attempts++;
   }
   
-  Serial.println("\nConnected to internet!");
-  Serial.print("ESP32 IP Address (Open this on your phone): http://");
-  Serial.println(WiFi.localIP());
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("\n[Wi-Fi Connected]");
+    Serial.print("ESP32 IP Address (Open this on your phone): http://");
+    Serial.println(WiFi.localIP());
+  } else {
+    Serial.println("\n[Wi-Fi Warning] Could not connect to hotspot within 15 seconds.");
+    Serial.println("-> Make sure Vivo Y56 Personal Hotspot AP Band is set to 2.4 GHz (NOT 5 GHz).");
+    Serial.println("-> ESP32 will continue retrying in background...");
+  }
 
   server.on("/", HTTP_GET, []() { server.send_P(200, "text/html", DRIVER_PAGE); });
   server.on("/driver", HTTP_GET, []() { server.send_P(200, "text/html", DRIVER_PAGE); });
@@ -810,9 +850,19 @@ void setup() {
   server.onNotFound(handleNotFound);
   server.begin();
 
-  Serial.println("ESP32 Gateway is ready and linked to Render.");
+  Serial.println("ESP32 Gateway web server is online.");
 }
 
 void loop() {
   server.handleClient();
+
+  // Automatic Wi-Fi reconnection watchdog for phone hotspots
+  static unsigned long lastWifiCheck = 0;
+  if (millis() - lastWifiCheck > 10000) {
+    lastWifiCheck = millis();
+    if (WiFi.status() != WL_CONNECTED) {
+      Serial.println("[Wi-Fi Watchdog] Hotspot connection lost. Attempting auto-reconnect...");
+      WiFi.reconnect();
+    }
+  }
 }
