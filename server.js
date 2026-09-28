@@ -2052,7 +2052,8 @@ const server = http.createServer(async (req, res) => {
                                || (busState._blockedRouteIds || []).includes(assignedRouteId)
                                || (condition === "Not Good")
                                || (soc < 25)
-                               || (dist > 0 && range < dist);
+                               || (dist > 0 && range < dist)
+                               || (state.driver && state.driver.toLowerCase().includes("no"));
 
                 return {
                     unique_id: uniqueId,

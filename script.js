@@ -1,3 +1,4 @@
+let allRawBuses = [];
 let buses = [];
 let gtfsBundle = null;
 
@@ -154,8 +155,8 @@ function renderBusList(list) {
     const hiddenCount = list.length - listToRender.length;
 
     const summaryHtml = hiddenCount > 0
-        ? `<p class="meta"><strong>Showing:</strong> ${listToRender.length} of ${list.length} matching routes. Refine search to narrow down.</p>`
-        : `<p class="meta"><strong>Total routes:</strong> ${list.length}</p>`;
+        ? `<p class="meta"><strong>Showing:</strong> ${listToRender.length} of ${list.length} allocated buses. Refine search to narrow down.</p>`
+        : `<p class="meta"><strong>Total allocated buses:</strong> ${list.length}</p>`;
 
     busListEl.innerHTML = summaryHtml + listToRender
         .map((bus) => {
@@ -217,6 +218,91 @@ async function fetchSharedBusState() {
         console.warn("Could not load shared bus state", error);
         return {};
     }
+}
+
+async function fetchBusAssignments() {
+    try {
+        const response = await fetch("/api/bus-assignments");
+        if (!response.ok) {
+            return {};
+        }
+        const payload = await response.json();
+        return payload && payload.ok ? payload : {};
+    } catch (error) {
+        console.warn("Could not load bus assignments", error);
+        return {};
+    }
+}
+
+function isBusAllocated(bus, sharedState = {}, assignmentData = {}) {
+    const routeId = String(bus.routeId || "").trim();
+    const busNumber = String(bus.busNumber || "").trim();
+    const uniqueId = String(bus.uniqueId || "").trim();
+
+    // 1. Blocked route check from assignments & state
+    const blockedRouteIds = new Set([
+        ...(assignmentData.blockedRouteIds || []),
+        ...(sharedState._blockedRouteIds || [])
+    ].map(String));
+
+    if (blockedRouteIds.has(routeId)) {
+        return false;
+    }
+
+    // 2. Blocked bus check
+    const blockedBuses = new Set([
+        ...(assignmentData.blockedBuses || []),
+        ...(sharedState._blockedBuses || [])
+    ].map(String));
+
+    if (uniqueId && blockedBuses.has(uniqueId)) {
+        return false;
+    }
+
+    // 3. State lookup by routeId, busNumber, or uniqueId
+    const state = sharedState[routeId] || sharedState[busNumber] || (uniqueId ? sharedState[uniqueId] : {}) || {};
+
+    if (state.blocked === true) {
+        return false;
+    }
+
+    if (state.uniqueId && blockedBuses.has(String(state.uniqueId))) {
+        return false;
+    }
+
+    // 4. Driver allocation gate: If no driver is assigned, bus is NOT allocated
+    const driverStatus = String(state.driver || bus.driver || "Driver Assigned");
+    if (driverStatus.toLowerCase().includes("no")) {
+        return false;
+    }
+
+    // 5. Condition: must not be "Not Good"
+    const condition = state.condition || bus.condition || "Good";
+    if (condition === "Not Good") {
+        return false;
+    }
+
+    // 6. Battery floor: must not be below 25%
+    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : (Number.isFinite(Number(bus.soc)) ? Number(bus.soc) : 100);
+    if (soc < 25) {
+        return false;
+    }
+
+    // 7. Range shortfall: estimated range must cover route distance if distance > 0
+    const ranges = assignmentData.ranges || {};
+    const rangeInfo = ranges[routeId] || {};
+    const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm))
+        ? Number(rangeInfo.gtfsDistanceKm)
+        : (calculateRouteDistanceKm(routeId) || 0);
+    const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm))
+        ? Number(rangeInfo.estimatedRangeKm)
+        : Math.round(Math.max(0, soc - 10) * 1.42);
+
+    if (dist > 0 && estRange < dist) {
+        return false;
+    }
+
+    return true;
 }
 
 async function saveBusOverride(bus) {
@@ -961,6 +1047,7 @@ async function drawRoutePathForBus(bus) {
 function toBusModel(route, index, sharedState = {}) {
     const routeId = String(route.routeId || `route-${index + 1}`);
     const busNumber = (route.busNumber || "N/A").trim();
+    const uniqueId = route.uniqueId || `EV-${String(index + 1).padStart(2, "0")}`;
     const origin = (route.origin || "Unknown Origin").trim();
     const destination = (route.destination || "Unknown Destination").trim();
     const routeStops = buildRouteStopNames(routeId);
@@ -970,6 +1057,7 @@ function toBusModel(route, index, sharedState = {}) {
     const model = {
         routeId,
         busNumber,
+        uniqueId,
         routeName: route.routeName || `${origin} ⇔ ${destination}`,
         origin,
         destination,
@@ -982,13 +1070,14 @@ function toBusModel(route, index, sharedState = {}) {
         },
         soc: 100,
         condition: "Good",
+        driver: "Driver Assigned",
         location: getPseudoLocation(routeId),
         tripId: primaryTrip ? primaryTrip.tripId : "",
         shapeId: primaryTrip ? primaryTrip.shapeId : "",
         stops: routeStops.length ? routeStops : [origin, "Midway Stop", destination]
     };
 
-    const saved = sharedState[routeId] || sharedState[busNumber];
+    const saved = sharedState[routeId] || sharedState[busNumber] || sharedState[uniqueId];
     if (saved) {
         if (saved.status) {
             model.status = saved.status;
@@ -1007,6 +1096,10 @@ function toBusModel(route, index, sharedState = {}) {
 
         if (saved.condition) {
             model.condition = saved.condition;
+        }
+
+        if (saved.driver) {
+            model.driver = saved.driver;
         }
     }
 
@@ -1035,14 +1128,23 @@ async function loadBusesFromBackend() {
         stopsById: new Map(stops.map((stop) => [String(stop.stopId), stop]))
     };
 
-    const sharedState = await fetchSharedBusState();
-    buses = routes.map((route, index) => toBusModel(route, index, sharedState));
+    const [sharedState, assignmentData] = await Promise.all([
+        fetchSharedBusState(),
+        fetchBusAssignments()
+    ]);
+
+    allRawBuses = routes.map((route, index) => toBusModel(route, index, sharedState));
+    buses = allRawBuses.filter((bus) => isBusAllocated(bus, sharedState, assignmentData));
 }
 
 async function refreshSharedBusState() {
-    const sharedState = await fetchSharedBusState();
-    buses = buses.map((bus) => {
-        const saved = sharedState[bus.routeId] || sharedState[bus.busNumber];
+    const [sharedState, assignmentData] = await Promise.all([
+        fetchSharedBusState(),
+        fetchBusAssignments()
+    ]);
+
+    allRawBuses = allRawBuses.map((bus) => {
+        const saved = sharedState[bus.routeId] || sharedState[bus.busNumber] || sharedState[bus.uniqueId];
 
         if (!saved) {
             return bus;
@@ -1053,20 +1155,27 @@ async function refreshSharedBusState() {
             status: saved.status || bus.status,
             soc: Number.isFinite(Number(saved.soc)) ? Number(saved.soc) : (bus.soc ?? 100),
             condition: saved.condition || bus.condition || "Good",
+            driver: saved.driver || bus.driver || "Driver Assigned",
             statusTimings: {
                 ...bus.statusTimings,
-                ...saved.statusTimings
+                ...(saved.statusTimings || {})
             }
         };
 
         return updatedBus;
     });
 
+    buses = allRawBuses.filter((bus) => isBusAllocated(bus, sharedState, assignmentData));
+
     if (selectedBus) {
         const refreshedSelectedBus = buses.find((bus) => bus.routeId === selectedBus.routeId);
         if (refreshedSelectedBus) {
             selectedBus = refreshedSelectedBus;
             renderBusDetails(selectedBus);
+        } else {
+            selectedBus = null;
+            busDetailsEl.style.display = "none";
+            routeDetailsEl.style.display = "none";
         }
     }
 
@@ -1143,16 +1252,6 @@ function filterBuses() {
     const originQuery = normalize(originEl.value);
     const destinationQuery = normalize(destinationEl.value);
 
-    if (matchesSpecialSearch()) {
-        let specialResults = filterForSpecialSearch();
-
-        if (busNumberQuery) {
-            specialResults = specialResults.filter((bus) => normalize(bus.busNumber).includes(busNumberQuery));
-        }
-
-        return specialResults;
-    }
-
     return buses.filter((bus) => {
         const busMatch = !busNumberQuery || normalize(bus.busNumber).includes(busNumberQuery);
         const originMatch = !originQuery || normalize(bus.origin).includes(originQuery);
@@ -1168,13 +1267,6 @@ function runSearch() {
 
     if (filtered.length === 1) {
         void selectBus(filtered[0]);
-    } else if (matchesSpecialSearch() && filtered.length > 0) {
-        const preferredOrder = ["406"];
-        const selected = preferredOrder
-            .map((busNumber) => filtered.find((bus) => normalize(bus.busNumber) === busNumber))
-            .find(Boolean) || filtered[0];
-
-        void selectBus(selected);
     }
 }
 
@@ -1190,7 +1282,7 @@ function resetFiltersAndShowAll() {
         mapEl.innerHTML = "";
     }
 
-    renderBusList(filterForSpecialShowAll());
+    renderBusList(buses);
 }
 
 function setupEvents() {
@@ -1286,7 +1378,7 @@ async function initApp() {
         return;
     }
 
-    renderEmptyState("Use the search fields, then press Show All Buses to view the filtered Dibbur Cross to Rajanukunte service set.");
+    renderEmptyState("Search by Bus Number (e.g. 401-A), Origin, Destination, or click 'Show All Buses' to view all allocated buses.");
 
     if (!canEditTimings) {
         sharedStateRefreshIntervalId = window.setInterval(() => {
