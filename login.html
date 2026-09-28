@@ -777,6 +777,9 @@
     function friendlyError(err) {
         const code = err?.code || "";
         const map = {
+            "auth/configuration-not-found":     "Authentication is not enabled in your Firebase project. In Firebase Console, go to Build > Authentication, click 'Get started', and enable Google and Email/Password.",
+            "auth/unauthorized-domain":         "Domain not authorized. In Firebase Console > Authentication > Settings > Authorized domains, add ashok-leyland-bus-tracking.onrender.com",
+            "auth/operation-not-allowed":       "This sign-in method is not enabled. Go to Firebase Console > Authentication > Sign-in method to enable it.",
             "auth/invalid-email":               "Invalid email address.",
             "auth/user-disabled":               "This account has been disabled.",
             "auth/user-not-found":              "No account found with this email. Please sign up.",
