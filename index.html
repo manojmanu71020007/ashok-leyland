@@ -7,54 +7,107 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- ── Top Navbar ── -->
+    <nav class="topnav" aria-label="Main navigation">
+        <div class="topnav-inner">
+            <a class="topnav-brand" href="/index.html">
+                <span class="topnav-icon">🚍</span>
+                <span>Ashok Leyland BTS</span>
+            </a>
+            <div class="topnav-links">
+                <a href="/smart-bus-scheduling.html" class="topnav-link">📅 Smart Scheduling</a>
+                <a href="/login.html" class="topnav-link topnav-link--cta">🔐 Login</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <header>
-            <h1>📍 Bus Tracking System</h1>
-            <p>Find and Track Buses in Real-Time</p>
+            <div class="header-icon">📍</div>
+            <h1>Bus Tracking System</h1>
+            <p>Find and Track Buses in Real-Time across Bangalore</p>
         </header>
 
-        <section class="search-section">
+        <section class="search-section" aria-label="Search buses">
             <div class="input-group">
-                <label for="bus-number">Bus Number</label>
-                <input type="text" id="bus-number" placeholder="Enter bus number">
+                <label for="bus-number">🔢 Bus Number</label>
+                <input type="text" id="bus-number" placeholder="e.g. 406">
             </div>
-            <div>
-                <h4>(Optional)</h4>
-                <div class="input-group">
-                    <label for="origin">Origin</label>
-                    <input type="text" id="origin" placeholder="Enter starting point">
-                </div>
-                <div class="input-group">
-                    <label for="destination">Destination</label>
-                    <input type="text" id="destination" placeholder="Enter destination">
+            <div class="optional-fields">
+                <span class="optional-badge">Optional</span>
+                <div class="optional-inputs">
+                    <div class="input-group">
+                        <label for="origin">📍 Origin</label>
+                        <input type="text" id="origin" placeholder="Enter starting point">
+                    </div>
+                    <div class="input-group">
+                        <label for="destination">🏁 Destination</label>
+                        <input type="text" id="destination" placeholder="Enter destination">
+                    </div>
                 </div>
             </div>
-            <button id="search-btn" class="btn-search">Search Buses</button>
-            <button id="show-all-btn" class="btn-secondary">Show All Buses</button>
+            <div class="search-actions">
+                <button id="search-btn" class="btn-search">🔍 Search Buses</button>
+                <button id="show-all-btn" class="btn-secondary">🚌 Show All Buses</button>
+            </div>
         </section>
 
-        <h3>🚌 Available Buses</h3>
+        <!-- Available Buses -->
+        <div class="section-heading">
+            <h3>🚌 Available Buses</h3>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live</span>
+            </div>
+        </div>
         <div id="buses-list" class="bus-list">
-            <!-- Buses will be loaded dynamically -->
+            <!-- Loading skeletons shown until JS populates -->
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
         </div>
 
+        <!-- Bus & Route Details -->
         <div class="details-container">
             <section id="bus-details" class="details-section">
                 <h3>📋 Bus Details</h3>
-                <div id="selected-bus-info">Select a bus to view details</div>
+                <div id="selected-bus-info" class="empty-state">
+                    <span class="empty-icon">🚌</span>
+                    <p>Select a bus card above to view its details</p>
+                </div>
             </section>
 
             <section id="route-details" class="details-section">
                 <h3>🚏 Route Details</h3>
-                <div id="route-stops-list">Select a bus to view route details</div>
+                <div id="route-stops-list" class="empty-state">
+                    <span class="empty-icon">🗺️</span>
+                    <p>Route stops will appear here once you select a bus</p>
+                </div>
             </section>
         </div>
 
-        <section class="map-section">
-            <h3>🗺️ Route Map</h3>
+        <!-- Map -->
+        <section class="map-section" aria-label="Route map">
+            <div class="section-heading">
+                <h3>🗺️ Route Map</h3>
+                <span class="map-hint">Click a bus card to plot its route</span>
+            </div>
             <div id="map"></div>
         </section>
     </div>
+
+    <!-- ── Footer ── -->
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <span>🚍 <strong>Ashok Leyland Bus Tracking System</strong></span>
+            <span class="footer-sep">·</span>
+            <span>Real-time fleet tracking for Bangalore</span>
+            <span class="footer-sep">·</span>
+            <a href="/login.html" class="footer-link">Login / Admin</a>
+        </div>
+    </footer>
 
     <script src="script.js?v=20260921-route-map-endpoints"></script>
     <script>
