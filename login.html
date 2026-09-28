@@ -42,10 +42,9 @@
         /* ── Layout ── */
         .page-wrapper {
             width: 100%;
-            max-width: 1100px;
-            display: grid;
-            grid-template-columns: 1.1fr 0.9fr;
-            gap: 28px;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
             align-items: center;
         }
 
@@ -348,10 +347,7 @@
 
         /* ── Responsive ── */
         @media (max-width: 920px) {
-            .page-wrapper { grid-template-columns: 1fr; }
-            .hero { text-align: center; padding-bottom: 0; }
-            .hero p { margin: 0 auto; }
-            .hero-stats { justify-content: center; }
+            .page-wrapper { max-width: 100%; }
         }
 
         @media (max-width: 560px) {
@@ -364,21 +360,6 @@
 </head>
 <body>
 <main class="page-wrapper">
-
-    <!-- ── Hero ── -->
-    <section class="hero" aria-label="Website intro">
-        <div class="hero-badge">🚍 Bus Tracking System</div>
-        <h1>Welcome to your Dashboard</h1>
-        <p>
-            Sign in securely to access live bus tracking, route details, and real-time updates.
-            New here? Create an account with your Google profile in seconds.
-        </p>
-        <div class="hero-stats">
-            <div class="stat"><strong>Secure Access</strong><span>Google-backed authentication</span></div>
-            <div class="stat"><strong>Fast UI</strong><span>Simple and responsive layout</span></div>
-            <div class="stat"><strong>Modern Design</strong><span>Clean cards and gradients</span></div>
-        </div>
-    </section>
 
     <!-- ── Auth Card ── -->
     <section class="card" aria-label="Authentication">
