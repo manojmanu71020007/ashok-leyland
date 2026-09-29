@@ -311,20 +311,26 @@ function calculateRouteDistanceByRouteId(routeId) {
     return dist;
 }
 
-function calculateRouteDistance(busIdentifier) {
+function calculateRouteDistance(busIdentifier, routeIdParam) {
     const raw = String(busIdentifier || "").trim();
+    const rawRouteId = String(routeIdParam || "").trim();
     const allRoutes = loadRoutes();
-    const busState = loadBusState();
-    const assignments = busState._assignments || {};
 
-    let route = allRoutes.find((candidate) => candidate.uniqueId && candidate.uniqueId.toLowerCase() === raw.toLowerCase());
-    if (!route) {
-        route = allRoutes.find((candidate) => candidate.busNumber === raw);
+    let route = null;
+    if (rawRouteId) {
+        route = allRoutes.find((candidate) => String(candidate.routeId) === rawRouteId);
     }
-    if (!route) {
+    // Match by busNumber (bus_short_name) FIRST so it matches the specific route line
+    if (!route && raw) {
+        route = allRoutes.find((candidate) => candidate.busNumber && candidate.busNumber.toLowerCase() === raw.toLowerCase());
+    }
+    if (!route && raw) {
+        route = allRoutes.find((candidate) => candidate.uniqueId && candidate.uniqueId.toLowerCase() === raw.toLowerCase());
+    }
+    if (!route && raw) {
         route = allRoutes.find((candidate) => String(candidate.routeId) === raw);
     }
-    if (!route) {
+    if (!route && raw) {
         const rawLower = raw.toLowerCase();
         const rawCompact = raw.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
         route = allRoutes.find((candidate) => {
@@ -334,20 +340,19 @@ function calculateRouteDistance(busIdentifier) {
     }
 
     if (!route) {
-        return { ok: false, statusCode: 404, error: `Bus or Route ${busIdentifier} was not found in routes.txt.` };
+        return { ok: false, statusCode: 404, error: `Bus or Route ${busIdentifier || routeIdParam} was not found in routes.txt.` };
     }
 
-    const busName = route.busNumber;
+    const busName = route.busNumber; // This is the bus_short_name (e.g. 401-A)
     const uniqueId = route.uniqueId;
-    const assignedRouteId = (assignments && (assignments[uniqueId] || assignments[busName] || assignments[String(route.routeId)])) || route.routeId;
-    const assignedRouteObj = allRoutes.find(r => String(r.routeId) === String(assignedRouteId)) || route;
 
-    const distanceKm = calculateRouteDistanceByRouteId(assignedRouteObj.routeId) ?? calculateRouteDistanceByRouteId(route.routeId);
+    // Calculate the FIXED GTFS route distance of this bus_short_name / route
+    const distanceKm = calculateRouteDistanceByRouteId(route.routeId);
     if (distanceKm === null) {
-        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busIdentifier}.` };
+        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busIdentifier || routeIdParam}.` };
     }
 
-    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(assignedRouteObj.routeId));
+    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.routeId));
     const selectedTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
 
     return {
@@ -355,8 +360,8 @@ function calculateRouteDistance(busIdentifier) {
         uniqueId,
         unique_id: uniqueId,
         busNumber: busName,
-        routeId: assignedRouteObj.routeId,
-        assignedRouteId: assignedRouteObj.routeId,
+        routeShortName: busName,
+        routeId: route.routeId,
         originalRouteId: route.routeId,
         tripId: selectedTrip ? selectedTrip.tripId : "",
         shapeId: selectedTrip ? selectedTrip.shapeId : "",
@@ -1670,13 +1675,14 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/api/route-distance") {
         const busNumber = (requestUrl.searchParams.get("bus") || "").trim();
-        if (!busNumber) {
-            sendJson(res, { ok: false, error: "bus is required" }, 400);
+        const routeId = (requestUrl.searchParams.get("route_id") || requestUrl.searchParams.get("routeId") || "").trim();
+        if (!busNumber && !routeId) {
+            sendJson(res, { ok: false, error: "bus or route_id is required" }, 400);
             return;
         }
 
         try {
-            const result = calculateRouteDistance(busNumber);
+            const result = calculateRouteDistance(busNumber, routeId);
             sendJson(res, result, result.statusCode || 200);
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to calculate route distance", details: error.message }, 500);

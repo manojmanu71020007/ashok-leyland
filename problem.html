@@ -118,6 +118,16 @@
             outline: 3px solid rgba(17,168,137,.16);
             border-color: var(--teal);
         }
+        input[readonly] {
+            background-color: #f1f5f9;
+            color: #475569;
+            cursor: not-allowed;
+            border-color: #cbd5e1;
+        }
+        input[readonly]:focus {
+            outline: none;
+            border-color: #cbd5e1;
+        }
         .route-search { margin-bottom: 10px; }
         .wide { grid-column: 1 / -1; }
         .checks {
@@ -987,7 +997,7 @@
                             <span id="banner-charge-info" style="font-size:.76rem; color:#0369a1; font-weight:700; background:#e0f2fe; padding:2px 8px; border-radius:6px;">⚡ Est. Charge: ~20.2% SoC</span>
                         </div>
                     </div>
-                    <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7"></label>
+                    <label>Schedule distance (km)<input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data"></label>
                     <label>Departure time<input id="departure" type="time" value="07:30"></label>
                     <label>Route category<select id="complexity"><option value="simple">Simple</option><option value="moderate" selected>Moderate</option><option value="complex">Complex</option></select></label>
                     <label>Driver availability<select id="driver"><option value="ready" selected>Driver assigned</option><option value="unavailable">No driver assigned</option></select></label>
@@ -1290,25 +1300,33 @@
             const totalDistanceEl = document.getElementById("route-distance-rule");
             selectedRouteDistance = null;
             if (!selectedRoute) {
-                totalDistanceEl.textContent = "Select a bus";
+                if (totalDistanceEl) totalDistanceEl.textContent = "Select a bus";
                 return;
             }
 
-            totalDistanceEl.textContent = "Calculating...";
+            // Directly calculate route distance of this bus_short_name from GTFS shapes
+            const directKm = calculateRouteDistanceKm(selectedRoute.routeId) || Number(selectedRoute.distanceKm);
+            if (directKm && Number.isFinite(directKm)) {
+                selectedRouteDistance = directKm;
+                if (distanceInput) distanceInput.value = directKm.toFixed(1);
+                if (totalDistanceEl) totalDistanceEl.textContent = `${directKm.toFixed(2)} km`;
+            } else {
+                if (totalDistanceEl) totalDistanceEl.textContent = "Calculating...";
+            }
+
             try {
-                const response = await fetch(`/api/route-distance?bus=${encodeURIComponent(selectedRoute.busNumber)}`);
+                const response = await fetch(`/api/route-distance?bus=${encodeURIComponent(selectedRoute.busNumber)}&route_id=${encodeURIComponent(selectedRoute.routeId)}`);
                 const payload = await response.json();
-                if (!response.ok || !payload.ok || !Number.isFinite(payload.distanceKm)) {
-                    throw new Error(payload.error || "Distance unavailable");
+                if (response.ok && payload.ok && Number.isFinite(payload.distanceKm)) {
+                    selectedRouteDistance = payload.distanceKm;
+                    if (distanceInput) distanceInput.value = payload.distanceKm.toFixed(1);
+                    if (totalDistanceEl) totalDistanceEl.textContent = `${payload.distanceKm.toFixed(2)} km`;
                 }
-                selectedRouteDistance = payload.distanceKm;
-                distanceInput.value = payload.distanceKm;
-                totalDistanceEl.textContent = `${payload.distanceKm.toFixed(2)} km`;
             } catch (error) {
-                const fallbackKm = calculateRouteDistanceKm(selectedRoute.routeId) || Number(selectedRoute.distanceKm) || 28.7;
+                const fallbackKm = directKm || 28.7;
                 selectedRouteDistance = fallbackKm;
-                distanceInput.value = fallbackKm;
-                totalDistanceEl.textContent = `${fallbackKm.toFixed(2)} km`;
+                if (distanceInput) distanceInput.value = fallbackKm.toFixed(1);
+                if (totalDistanceEl) totalDistanceEl.textContent = `${fallbackKm.toFixed(2)} km`;
             }
             recommend();
         }
@@ -2722,14 +2740,12 @@
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
             const isMatrixCompliant = allowedCategories.includes(busCategory);
 
-            // Calculate precise route distance
-            const rangeInfo = assignmentRanges[String(selectedRoute.routeId)] || {};
+            // Calculate precise route distance of this bus_short_name
             const routeDistance = Number(
-                distance || 
                 selectedRouteDistance || 
-                rangeInfo.gtfsDistanceKm || 
-                selectedRoute.distanceKm || 
                 calculateRouteDistanceKm(selectedRoute.routeId) || 
+                selectedRoute.distanceKm || 
+                distance || 
                 28.7
             );
 
@@ -2743,6 +2759,11 @@
             if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
             if (rangeRule) rangeRule.textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
             if (timeRule) timeRule.textContent = timeCategoryLabel;
+
+            const totalDistanceRuleEl = document.getElementById("route-distance-rule");
+            if (totalDistanceRuleEl) {
+                totalDistanceRuleEl.textContent = `${routeDistance.toFixed(2)} km`;
+            }
 
             const tripCount = selectedRoute.tripCount || gtfsScheduleMap.get(String(selectedRoute.routeId))?.tripCount || 0;
             const distKm = routeDistance;
@@ -2776,7 +2797,7 @@
                 else if (condition === "Not Good") fleetReason = "Maintenance Required";
                 else if (liveSoc <= 25) fleetReason = "Depot Charge Required (SoC <= 25%)";
                 else if (isBlockedByRange || rangeValue < routeDistance) fleetReason = `Range insufficient (${rangeValue}km < ${routeDistance.toFixed(2)}km)`;
-                else if (!isMatrixCompliant) fleetReason = `Page 4 Rule: ${complexity.toUpperCase()} route in ${timeCategoryKey} requires Category ${allowedCategories.join('/')} bus (bus is Cat ${busCategory})`;
+                else if (!isMatrixCompliant) fleetReason = `${complexity.toUpperCase()} route in ${timeCategoryKey} requires Category ${allowedCategories.join('/')} bus (bus is Cat ${busCategory})`;
                 else if (!clean) fleetReason = "Cleaning Required (Interior/Exterior)";
                 else fleetReason = "Needs review";
             } else if (!clean && isManualCleanOverride) {
