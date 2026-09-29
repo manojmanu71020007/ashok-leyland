@@ -1809,9 +1809,22 @@
                 })
                 : [...sourceList];
 
-            // ── Sort by Driver availability ──
-            const allocSortDriver = (document.getElementById("alloc-sort-driver") || {}).value || "all";
-            const allocSortCat = (document.getElementById("alloc-sort-category") || {}).value || "all";
+            // ── Sort: merge Sort-strip + Schedule Requirement dropdowns ──
+            // Sort-strip values take priority; fall back to Schedule Requirement dropdowns
+            const allocSortDriverEl = document.getElementById("alloc-sort-driver");
+            const allocSortCatEl    = document.getElementById("alloc-sort-category");
+            const schedDriverEl     = document.getElementById("driver");     // "ready" | "unavailable"
+            const schedCatEl        = document.getElementById("complexity"); // "simple" | "moderate" | "complex"
+
+            // Map Schedule Requirement driver value → sort key
+            const schedDriverMap = { ready: "assigned", unavailable: "no-driver" };
+            const allocSortDriver = (allocSortDriverEl?.value && allocSortDriverEl.value !== "all")
+                ? allocSortDriverEl.value
+                : (schedDriverEl ? (schedDriverMap[schedDriverEl.value] || "all") : "all");
+            const allocSortCat = (allocSortCatEl?.value && allocSortCatEl.value !== "all")
+                ? allocSortCatEl.value
+                : (schedCatEl?.value || "all");
+
             const routeCatOrder = { simple: 0, moderate: 1, complex: 2 };
 
             filtered.sort((a, b) => {
@@ -1835,9 +1848,8 @@
 
                 // Route category sort
                 if (allocSortCat !== "all") {
-                    const priorityCat = allocSortCat;
-                    const aMatch = catA === priorityCat ? 0 : 1;
-                    const bMatch = catB === priorityCat ? 0 : 1;
+                    const aMatch = catA === allocSortCat ? 0 : 1;
+                    const bMatch = catB === allocSortCat ? 0 : 1;
                     if (aMatch !== bMatch) return aMatch - bMatch;
                     return (routeCatOrder[catA] || 0) - (routeCatOrder[catB] || 0);
                 }
@@ -1966,9 +1978,21 @@
                 })
                 : [...sourceList];
 
-            // ── Sort by Driver availability and Route category ──
-            const notAllocSortDriver = (document.getElementById("not-alloc-sort-driver") || {}).value || "all";
-            const notAllocSortCat = (document.getElementById("not-alloc-sort-category") || {}).value || "all";
+            // ── Sort: merge Sort-strip + Schedule Requirement dropdowns ──
+            // Sort-strip values take priority; fall back to Schedule Requirement dropdowns
+            const notAllocSortDriverEl = document.getElementById("not-alloc-sort-driver");
+            const notAllocSortCatEl    = document.getElementById("not-alloc-sort-category");
+            const naSchedDriverEl      = document.getElementById("driver");     // "ready" | "unavailable"
+            const naSchedCatEl         = document.getElementById("complexity"); // "simple" | "moderate" | "complex"
+
+            const naDriverMap = { ready: "assigned", unavailable: "no-driver" };
+            const notAllocSortDriver = (notAllocSortDriverEl?.value && notAllocSortDriverEl.value !== "all")
+                ? notAllocSortDriverEl.value
+                : (naSchedDriverEl ? (naDriverMap[naSchedDriverEl.value] || "all") : "all");
+            const notAllocSortCat = (notAllocSortCatEl?.value && notAllocSortCatEl.value !== "all")
+                ? notAllocSortCatEl.value
+                : (naSchedCatEl?.value || "all");
+
             const catOrderNA = { simple: 0, moderate: 1, complex: 2 };
 
             filtered.sort((a, b) => {
@@ -1992,9 +2016,8 @@
 
                 // Route category sort
                 if (notAllocSortCat !== "all") {
-                    const priorityCat = notAllocSortCat;
-                    const aMatch = catA === priorityCat ? 0 : 1;
-                    const bMatch = catB === priorityCat ? 0 : 1;
+                    const aMatch = catA === notAllocSortCat ? 0 : 1;
+                    const bMatch = catB === notAllocSortCat ? 0 : 1;
                     if (aMatch !== bMatch) return aMatch - bMatch;
                     return (catOrderNA[catA] || 0) - (catOrderNA[catB] || 0);
                 }
@@ -2859,6 +2882,9 @@
                         updateAssignedDriverCount();
                         renderRoutes();
                         await recommend();
+                        // Also re-sort the allocation panels based on the new driver selection
+                        renderAllocatedList(lastAllocatedRoutes);
+                        renderNotAllocatedList(lastNotAllocatedRoutes);
                     });
                 }
 
@@ -2866,6 +2892,9 @@
                 if (complexityEl) {
                     complexityEl.addEventListener("change", async () => {
                         await recommend();
+                        // Also re-sort the allocation panels based on the new route category
+                        renderAllocatedList(lastAllocatedRoutes);
+                        renderNotAllocatedList(lastNotAllocatedRoutes);
                     });
                 }
 
@@ -3005,11 +3034,13 @@
                 const logoutBtn = document.getElementById("logout-btn");
                 if (logoutBtn) {
                     logoutBtn.addEventListener("click", () => {
+                        // Set a persistent flag so login.html knows to sign out of Firebase
+                        localStorage.setItem("smartbus_loggedout", "1");
+                        localStorage.removeItem("accessMode");
                         sessionStorage.removeItem("isLoggedIn");
                         sessionStorage.removeItem("userEmail");
                         sessionStorage.removeItem("userName");
-                        localStorage.removeItem("accessMode");
-                        window.location.href = "/login.html?logout=1";
+                        window.location.href = "/login.html";
                     });
                 }
 

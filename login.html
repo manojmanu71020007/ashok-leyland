@@ -548,31 +548,29 @@
     }
 
     // ── Persist auth state ─────────────────────────────────────────────────────
-    // Check if the user just clicked Sign Out (redirected with ?logout=1)
-    const _urlParams = new URLSearchParams(window.location.search);
-    const _isLogoutAction = _urlParams.get("logout") === "1";
+    // If the user explicitly signed out, a flag was set in localStorage.
+    // We sign them out of Firebase first before doing anything else.
+    onAuthStateChanged(auth, async (user) => {
+        if (!user) return; // Already signed out — stay on login page
 
-    if (_isLogoutAction) {
-        // Sign out of Firebase so onAuthStateChanged fires with null
-        signOut(auth).catch(() => {});
-        // Clean the URL so the param disappears after refresh
-        history.replaceState(null, "", window.location.pathname);
-    }
-
-    let _logoutHandled = _isLogoutAction;
-
-    onAuthStateChanged(auth, (user) => {
-        if (user && !_logoutHandled) {
-            // User is signed in — redirect away from login page
-            localStorage.setItem("accessMode", "login");
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", user.email || "");
-            sessionStorage.setItem("userName",  user.displayName || "");
-            window.location.href = "/problem.html";
+        const pendingLogout = localStorage.getItem("smartbus_loggedout");
+        if (pendingLogout === "1") {
+            // User clicked Sign Out — kill the Firebase session and stay here
+            localStorage.removeItem("smartbus_loggedout");
+            localStorage.removeItem("accessMode");
+            sessionStorage.removeItem("isLoggedIn");
+            sessionStorage.removeItem("userEmail");
+            sessionStorage.removeItem("userName");
+            await signOut(auth);
+            return; // onAuthStateChanged will fire again with user=null — no redirect
         }
-        // After the first onAuthStateChanged fires during logout, reset the guard
-        // so that a fresh sign-in on this same page works normally
-        _logoutHandled = false;
+
+        // ── Normal sign-in: redirect to the scheduling app ──
+        localStorage.setItem("accessMode", "login");
+        sessionStorage.setItem("isLoggedIn", "true");
+        sessionStorage.setItem("userEmail", user.email || "");
+        sessionStorage.setItem("userName",  user.displayName || "");
+        window.location.href = "/problem.html";
     });
 
     // ── Expose to global scope (onclick attributes) ────────────────────────────
