@@ -356,6 +356,80 @@
             .card-header h2 { font-size: 1.5rem; }
             .hero h1 { font-size: 2rem; }
         }
+
+        /* ── Password Reset Modal ── */
+        .modal-backdrop {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 15, 30, 0.72);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .modal-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-card {
+            background: #ffffff;
+            border-radius: var(--radius);
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            position: relative;
+            transform: translateY(16px) scale(0.97);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-backdrop.show .modal-card {
+            transform: translateY(0) scale(1);
+        }
+        .modal-close-btn {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        .modal-close-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+            transform: scale(1.05);
+        }
+        .secondary-btn-outline {
+            width: 100%;
+            border: 1.5px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .secondary-btn-outline:hover {
+            background: #f9fafb;
+            border-color: #9ca3af;
+        }
     </style>
 </head>
 <body>
@@ -505,6 +579,72 @@
     </section>
 </main>
 
+<!-- ══════════════════════════════════════════ FORGOT PASSWORD MODAL ══════════════════════════════════════════ -->
+<div class="modal-backdrop" id="reset-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reset-modal-heading" style="display:none;">
+    <div class="modal-card">
+        <button type="button" class="modal-close-btn" id="modal-close-btn" title="Close" aria-label="Close">✕</button>
+
+        <!-- Step 1: Request Password Reset Link -->
+        <div id="reset-view-request">
+            <div class="card-header" style="padding:0 0 16px 0; text-align:center;">
+                <div class="logo">🔑</div>
+                <h2 id="reset-modal-heading" style="font-size:1.5rem; margin-top:6px;">Reset Password</h2>
+                <p style="font-size:0.9rem; color:var(--text-muted); margin-top:6px;">
+                    Enter your account email and we'll send you a password reset link to create a new password.
+                </p>
+            </div>
+
+            <div class="alert" id="reset-alert" role="alert"></div>
+
+            <form id="form-reset-request" novalidate>
+                <div class="form-group" style="margin-bottom:16px;">
+                    <label for="reset-email">Your Account Email</label>
+                    <div class="input-wrap">
+                        <input type="email" id="reset-email" name="email" placeholder="e.g. driver@example.com" autocomplete="email" required />
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn" id="btn-send-reset" style="margin-bottom:12px;">Send Password Reset Link</button>
+                <button type="button" class="secondary-btn-outline" id="btn-cancel-reset">Cancel</button>
+            </form>
+        </div>
+
+        <!-- Step 2: Set New Password (Triggered when user opens link with ?mode=resetPassword&oobCode=...) -->
+        <div id="reset-view-confirm" style="display:none;">
+            <div class="card-header" style="padding:0 0 16px 0; text-align:center;">
+                <div class="logo">🔒</div>
+                <h2 style="font-size:1.5rem; margin-top:6px;">Set New Password</h2>
+                <p style="font-size:0.9rem; color:var(--text-muted); margin-top:6px;" id="reset-user-email-target">
+                    Enter your new password below.
+                </p>
+            </div>
+
+            <div class="alert" id="confirm-reset-alert" role="alert"></div>
+
+            <form id="form-confirm-reset" novalidate>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="reset-new-password">New Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="reset-new-password" placeholder="At least 8 characters" autocomplete="new-password" required />
+                        <button class="toggle-password" type="button" data-target="reset-new-password" aria-label="Show password">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label for="reset-confirm-password">Confirm New Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="reset-confirm-password" placeholder="Re-enter new password" autocomplete="new-password" required />
+                        <button class="toggle-password" type="button" data-target="reset-confirm-password" aria-label="Show password">👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn" id="btn-save-new-password" style="margin-bottom:12px;">Save New Password</button>
+                <button type="button" class="secondary-btn-outline" id="btn-cancel-confirm">Back to Sign In</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <!-- ─────────────────────────── Firebase SDK ─────────────────────────── -->
 <script type="module">
     // ─── Firebase configuration ────────────────────────────────────────────────
@@ -529,6 +669,8 @@
         updateProfile,
         fetchSignInMethodsForEmail,
         sendPasswordResetEmail,
+        confirmPasswordReset,
+        verifyPasswordResetCode,
         linkWithCredential,
         EmailAuthProvider,
         onAuthStateChanged,
@@ -736,24 +878,156 @@
     });
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  FORGOT PASSWORD
+    //  FORGOT PASSWORD / PASSWORD RESET MODAL & WORKFLOW
     // ══════════════════════════════════════════════════════════════════════════
-    document.getElementById("forgot-link").addEventListener("click", async (e) => {
+    const resetModalBackdrop  = document.getElementById("reset-modal-backdrop");
+    const resetEmailInput     = document.getElementById("reset-email");
+    const formResetRequest    = document.getElementById("form-reset-request");
+    const formConfirmReset    = document.getElementById("form-confirm-reset");
+    const btnSendReset        = document.getElementById("btn-send-reset");
+    const btnSaveNewPassword  = document.getElementById("btn-save-new-password");
+
+    function openResetModal() {
+        if (!resetModalBackdrop) return;
+        // Pre-fill with login email if user typed one
+        const loginEmail = document.getElementById("login-email")?.value.trim() || "";
+        if (loginEmail && resetEmailInput && !resetEmailInput.value) {
+            resetEmailInput.value = loginEmail;
+        }
+        document.getElementById("reset-view-request").style.display = "block";
+        document.getElementById("reset-view-confirm").style.display = "none";
+        clearAlert("reset-alert");
+        resetModalBackdrop.style.display = "flex";
+        setTimeout(() => resetModalBackdrop.classList.add("show"), 10);
+        setTimeout(() => resetEmailInput?.focus(), 100);
+    }
+
+    function closeResetModal() {
+        if (!resetModalBackdrop) return;
+        resetModalBackdrop.classList.remove("show");
+        setTimeout(() => {
+            resetModalBackdrop.style.display = "none";
+            clearAlert("reset-alert");
+            clearAlert("confirm-reset-alert");
+        }, 250);
+    }
+
+    // Trigger on "Forgot Password?" click
+    document.getElementById("forgot-link").addEventListener("click", (e) => {
+        e.preventDefault();
+        openResetModal();
+    });
+
+    // Close buttons
+    document.getElementById("modal-close-btn")?.addEventListener("click", closeResetModal);
+    document.getElementById("btn-cancel-reset")?.addEventListener("click", closeResetModal);
+    document.getElementById("btn-cancel-confirm")?.addEventListener("click", closeResetModal);
+
+    // Close on click outside modal
+    resetModalBackdrop?.addEventListener("click", (e) => {
+        if (e.target === resetModalBackdrop) closeResetModal();
+    });
+
+    // Close on Escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && resetModalBackdrop?.classList.contains("show")) {
+            closeResetModal();
+        }
+    });
+
+    // Step 1: Send Password Reset Link
+    formResetRequest?.addEventListener("submit", async (e) => {
         e.preventDefault();
         if (!isConfigured) { showSetupBanner(); return; }
 
-        const email = document.getElementById("login-email").value.trim();
+        const email = resetEmailInput.value.trim();
+        clearAlert("reset-alert");
+
         if (!email) {
-            showAlert("login-alert", "error", "Enter your email address above, then click Forgot Password.");
+            showAlert("reset-alert", "error", "Please enter your email address.");
+            resetEmailInput.focus();
             return;
         }
+
+        setLoading(btnSendReset, true, "Sending Link…");
+
         try {
             await sendPasswordResetEmail(auth, email);
-            showAlert("login-alert", "success", `✅ Password reset email sent to ${email}. Check your inbox.`);
+            showAlert(
+                "reset-alert",
+                "success",
+                `Password reset link sent to <strong>${email}</strong>.<br><br>Please check your email inbox (and spam folder) and click the link to reset your password.`
+            );
+            setLoading(btnSendReset, false, "Resend Reset Link");
         } catch (err) {
-            showAlert("login-alert", "error", friendlyError(err));
+            showAlert("reset-alert", "error", friendlyError(err));
+            setLoading(btnSendReset, false, "Send Password Reset Link");
         }
     });
+
+    // Step 2: Handle incoming password reset action code from email link
+    const _resetMode = _urlParams.get("mode");
+    const _resetOobCode = _urlParams.get("oobCode");
+
+    if (_resetMode === "resetPassword" && _resetOobCode) {
+        // Open modal directly in password reset confirmation mode
+        if (resetModalBackdrop) {
+            document.getElementById("reset-view-request").style.display = "none";
+            document.getElementById("reset-view-confirm").style.display = "block";
+            resetModalBackdrop.style.display = "flex";
+            setTimeout(() => resetModalBackdrop.classList.add("show"), 10);
+        }
+
+        // Verify the reset code with Firebase
+        verifyPasswordResetCode(auth, _resetOobCode)
+            .then((email) => {
+                const targetLabel = document.getElementById("reset-user-email-target");
+                if (targetLabel) {
+                    targetLabel.innerHTML = `Enter a new password for <strong>${email}</strong>`;
+                }
+            })
+            .catch((err) => {
+                showAlert(
+                    "confirm-reset-alert",
+                    "error",
+                    "This password reset link is invalid, expired, or has already been used. Please request a new link."
+                );
+                if (btnSaveNewPassword) btnSaveNewPassword.disabled = true;
+            });
+
+        // Handle saving new password
+        formConfirmReset?.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const newPassword = document.getElementById("reset-new-password")?.value || "";
+            const confirmPassword = document.getElementById("reset-confirm-password")?.value || "";
+            clearAlert("confirm-reset-alert");
+
+            if (newPassword.length < 8) {
+                showAlert("confirm-reset-alert", "error", "Password must be at least 8 characters long.");
+                return;
+            }
+            if (newPassword !== confirmPassword) {
+                showAlert("confirm-reset-alert", "error", "Passwords do not match. Please re-enter.");
+                return;
+            }
+
+            setLoading(btnSaveNewPassword, true, "Updating Password…");
+
+            try {
+                await confirmPasswordReset(auth, _resetOobCode, newPassword);
+                showAlert("confirm-reset-alert", "success", "Password updated successfully! You can now sign in.");
+                setLoading(btnSaveNewPassword, false, "Password Updated ✓");
+                setTimeout(() => {
+                    closeResetModal();
+                    switchTab("login");
+                    showAlert("login-alert", "success", "Password successfully changed. Please sign in with your new password.");
+                }, 1600);
+            } catch (err) {
+                showAlert("confirm-reset-alert", "error", friendlyError(err));
+                setLoading(btnSaveNewPassword, false, "Save New Password");
+            }
+        });
+    }
 
     // ══════════════════════════════════════════════════════════════════════════
     //  IGNORE BUTTON
@@ -777,8 +1051,8 @@
             "auth/operation-not-allowed":       "This sign-in method is not enabled. Go to Firebase Console > Authentication > Sign-in method to enable it.",
             "auth/invalid-email":               "Invalid email address.",
             "auth/user-disabled":               "This account has been disabled.",
-            "auth/user-not-found":              "No account found with this email. Please sign up.",
-            "auth/wrong-password":              "Incorrect password. Please try again.",
+            "auth/user-not-found":              "No account found with this email. Please check the spelling or sign up.",
+            "auth/wrong-password":              "Incorrect password. Please try again or click Forgot Password.",
             "auth/email-already-in-use":        "An account with this email already exists. Please sign in.",
             "auth/weak-password":               "Password is too weak. Use at least 8 characters.",
             "auth/popup-closed-by-user":        "Google sign-in was cancelled. Please try again.",
@@ -786,6 +1060,8 @@
             "auth/network-request-failed":      "Network error. Check your internet connection.",
             "auth/too-many-requests":           "Too many attempts. Please wait a moment and try again.",
             "auth/invalid-credential":          "Invalid credentials. Please check your email or password.",
+            "auth/expired-action-code":         "The password reset link has expired. Please request a new one.",
+            "auth/invalid-action-code":         "This reset link is invalid or has already been used. Please request a new one.",
             "auth/account-exists-with-different-credential":
                                                 "An account already exists with the same email but a different sign-in method.",
         };
