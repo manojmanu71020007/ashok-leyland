@@ -881,18 +881,83 @@
             align-items: center;
             gap: 4px;
         }
+        /* ── Logout button ── */
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff;
+            border: none;
+            border-radius: 999px;
+            padding: 7px 16px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28);
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
+        }
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.38);
+        }
+        .logout-btn:active { transform: translateY(0); }
+        /* ── Sort controls strip ── */
+        .sort-strip {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .sort-strip label {
+            font-size: .75rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sort-strip select {
+            font-size: .78rem;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 4px 8px;
+            background: #fff;
+            color: var(--ink);
+            cursor: pointer;
+        }
     </style>
 </head>
+<script>
+    // ── Auth guard: redirect to login if not authenticated ──
+    (function() {
+        const loggedIn = sessionStorage.getItem("isLoggedIn");
+        const accessMode = localStorage.getItem("accessMode");
+        if (loggedIn !== "true" && accessMode !== "ignore") {
+            window.location.href = "/login.html";
+        }
+    })();
+</script>
 <body>
     <main class="shell">
         <header class="topbar">
             <div>
-                <div class="eyebrow">Problem 01 / Depot Operations</div>
+                <div class="eyebrow">Depot Operations</div>
                 <h1>Smart Bus Scheduling</h1>
                 <p class="subtitle">Allocate the right available bus to the right schedule using battery state, expected range, route distance, cleaning, charging, maintenance, and driver readiness.</p>
             </div>
             <div class="topbar-actions">
-                <div class="live-chip">AI recommendation workspace</div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+                    <div class="live-chip">Recommendation workspace</div>
+                    <button id="logout-btn" class="logout-btn" type="button" title="Sign out and return to login">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        Sign Out
+                    </button>
+                </div>
                 <button id="open-swapped-btn" class="swapped-buses-top-btn" type="button" title="View swapped buses, assignments and reasons">
                     <span>Swapped Buses</span>
                     <span id="swapped-badge-count" class="swapped-badge-count">0</span>
@@ -967,6 +1032,28 @@
                     <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
                 </div>
                 <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
+                <!-- Sort strip for Allocated -->
+                <div class="sort-strip">
+                    <label>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                        Sort by:
+                    </label>
+                    <label>Driver
+                        <select id="alloc-sort-driver">
+                            <option value="all">All drivers</option>
+                            <option value="assigned">Driver assigned first</option>
+                            <option value="no-driver">No driver first</option>
+                        </select>
+                    </label>
+                    <label>Route category
+                        <select id="alloc-sort-category">
+                            <option value="all">All categories</option>
+                            <option value="simple">Simple first</option>
+                            <option value="moderate">Moderate first</option>
+                            <option value="complex">Complex first</option>
+                        </select>
+                    </label>
+                </div>
                 <div class="region-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
                     <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
@@ -982,6 +1069,28 @@
                     <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
                 </div>
                 <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
+                <!-- Sort strip for Not Allocated -->
+                <div class="sort-strip">
+                    <label>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                        Sort by:
+                    </label>
+                    <label>Driver
+                        <select id="not-alloc-sort-driver">
+                            <option value="all">All drivers</option>
+                            <option value="no-driver">No driver first</option>
+                            <option value="assigned">Driver assigned first</option>
+                        </select>
+                    </label>
+                    <label>Route category
+                        <select id="not-alloc-sort-category">
+                            <option value="all">All categories</option>
+                            <option value="complex">Complex first</option>
+                            <option value="moderate">Moderate first</option>
+                            <option value="simple">Simple first</option>
+                        </select>
+                    </label>
+                </div>
                 <div class="region-search-wrap not-allocated-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
                     <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses (bus, route, reason...)" autocomplete="off" spellcheck="false" />
@@ -1685,7 +1794,7 @@
             const manuallySelectedId = routeSelect ? routeSelect.value : null;
             const isManualOverride = recommendClicked && !interiorChecked && manuallySelectedId;
 
-            const filtered = query
+            let filtered = query
                 ? sourceList.filter((route) => {
                     const assignedName = String(getAssignedBusName(route) || "");
                     const busNum = String(route.busNumber || "");
@@ -1698,7 +1807,42 @@
                     const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc}`.toLowerCase();
                     return text.includes(query);
                 })
-                : sourceList;
+                : [...sourceList];
+
+            // ── Sort by Driver availability ──
+            const allocSortDriver = (document.getElementById("alloc-sort-driver") || {}).value || "all";
+            const allocSortCat = (document.getElementById("alloc-sort-category") || {}).value || "all";
+            const routeCatOrder = { simple: 0, moderate: 1, complex: 2 };
+
+            filtered.sort((a, b) => {
+                const stA = busStates[a.routeId] || busStates[a.busNumber] || {};
+                const stB = busStates[b.routeId] || busStates[b.busNumber] || {};
+                const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
+                const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
+                const rangeA = assignmentRanges[String(a.routeId)] || {};
+                const rangeB = assignmentRanges[String(b.routeId)] || {};
+                const distA = Number(rangeA.gtfsDistanceKm || a.distanceKm || 0);
+                const distB = Number(rangeB.gtfsDistanceKm || b.distanceKm || 0);
+                const catA = distA >= 20 ? "complex" : (distA >= 10 ? "moderate" : "simple");
+                const catB = distB >= 20 ? "complex" : (distB >= 10 ? "moderate" : "simple");
+
+                // Driver sort
+                if (allocSortDriver === "assigned") {
+                    if (noDriverA !== noDriverB) return noDriverA ? 1 : -1;
+                } else if (allocSortDriver === "no-driver") {
+                    if (noDriverA !== noDriverB) return noDriverA ? -1 : 1;
+                }
+
+                // Route category sort
+                if (allocSortCat !== "all") {
+                    const priorityCat = allocSortCat;
+                    const aMatch = catA === priorityCat ? 0 : 1;
+                    const bMatch = catB === priorityCat ? 0 : 1;
+                    if (aMatch !== bMatch) return aMatch - bMatch;
+                    return (routeCatOrder[catA] || 0) - (routeCatOrder[catB] || 0);
+                }
+                return 0;
+            });
 
             if (allocatedCountEl) {
                 allocatedCountEl.textContent = query
@@ -1805,7 +1949,7 @@
                 clearNotAllocatedBtn.style.display = query ? "inline-flex" : "none";
             }
 
-            const filtered = query
+            let filtered = query
                 ? sourceList.filter((route) => {
                     const assignedName = String(getAssignedBusName(route) || "");
                     const busNum = String(route.busNumber || "");
@@ -1820,7 +1964,42 @@
                     const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
                     return text.includes(query);
                 })
-                : sourceList;
+                : [...sourceList];
+
+            // ── Sort by Driver availability and Route category ──
+            const notAllocSortDriver = (document.getElementById("not-alloc-sort-driver") || {}).value || "all";
+            const notAllocSortCat = (document.getElementById("not-alloc-sort-category") || {}).value || "all";
+            const catOrderNA = { simple: 0, moderate: 1, complex: 2 };
+
+            filtered.sort((a, b) => {
+                const stA = busStates[a.routeId] || busStates[a.busNumber] || {};
+                const stB = busStates[b.routeId] || busStates[b.busNumber] || {};
+                const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
+                const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
+                const rangeA = assignmentRanges[String(a.routeId)] || {};
+                const rangeB = assignmentRanges[String(b.routeId)] || {};
+                const distA = Number(rangeA.gtfsDistanceKm || a.distanceKm || 0);
+                const distB = Number(rangeB.gtfsDistanceKm || b.distanceKm || 0);
+                const catA = distA >= 20 ? "complex" : (distA >= 10 ? "moderate" : "simple");
+                const catB = distB >= 20 ? "complex" : (distB >= 10 ? "moderate" : "simple");
+
+                // Driver sort
+                if (notAllocSortDriver === "no-driver") {
+                    if (noDriverA !== noDriverB) return noDriverA ? -1 : 1;
+                } else if (notAllocSortDriver === "assigned") {
+                    if (noDriverA !== noDriverB) return noDriverA ? 1 : -1;
+                }
+
+                // Route category sort
+                if (notAllocSortCat !== "all") {
+                    const priorityCat = notAllocSortCat;
+                    const aMatch = catA === priorityCat ? 0 : 1;
+                    const bMatch = catB === priorityCat ? 0 : 1;
+                    if (aMatch !== bMatch) return aMatch - bMatch;
+                    return (catOrderNA[catA] || 0) - (catOrderNA[catB] || 0);
+                }
+                return 0;
+            });
 
             if (notAllocatedCountEl) {
                 notAllocatedCountEl.textContent = query
@@ -2811,6 +2990,28 @@
 
                 await updateSelectedRouteDistance();
                 await recommend();
+
+                // ── Sort strip event listeners ──
+                ["alloc-sort-driver", "alloc-sort-category"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener("change", () => renderAllocatedList(lastAllocatedRoutes));
+                });
+                ["not-alloc-sort-driver", "not-alloc-sort-category"].forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
+                });
+
+                // ── Logout button ──
+                const logoutBtn = document.getElementById("logout-btn");
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", () => {
+                        sessionStorage.removeItem("isLoggedIn");
+                        sessionStorage.removeItem("userEmail");
+                        sessionStorage.removeItem("userName");
+                        localStorage.removeItem("accessMode");
+                        window.location.href = "/login.html";
+                    });
+                }
 
                 // Live polling every 10 seconds — refresh telemetry AND swap assignments
                 setInterval(async () => {
