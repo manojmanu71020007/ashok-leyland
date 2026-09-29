@@ -548,8 +548,21 @@
     }
 
     // ── Persist auth state ─────────────────────────────────────────────────────
+    // Check if the user just clicked Sign Out (redirected with ?logout=1)
+    const _urlParams = new URLSearchParams(window.location.search);
+    const _isLogoutAction = _urlParams.get("logout") === "1";
+
+    if (_isLogoutAction) {
+        // Sign out of Firebase so onAuthStateChanged fires with null
+        signOut(auth).catch(() => {});
+        // Clean the URL so the param disappears after refresh
+        history.replaceState(null, "", window.location.pathname);
+    }
+
+    let _logoutHandled = _isLogoutAction;
+
     onAuthStateChanged(auth, (user) => {
-        if (user) {
+        if (user && !_logoutHandled) {
             // User is signed in — redirect away from login page
             localStorage.setItem("accessMode", "login");
             sessionStorage.setItem("isLoggedIn", "true");
@@ -557,6 +570,9 @@
             sessionStorage.setItem("userName",  user.displayName || "");
             window.location.href = "/problem.html";
         }
+        // After the first onAuthStateChanged fires during logout, reset the guard
+        // so that a fresh sign-in on this same page works normally
+        _logoutHandled = false;
     });
 
     // ── Expose to global scope (onclick attributes) ────────────────────────────
