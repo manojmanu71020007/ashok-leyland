@@ -511,32 +511,33 @@
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "updatedAt": "2026-09-26T16:36:29.882Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-29T01:06:49.832Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "07:35",
+        "departure": "07:30"
       }
     },
     "history": [
       {
-        "timestamp": "2026-09-26T16:36:29.882Z",
-        "soc": 62,
-        "condition": "Not Good",
+        "timestamp": "2026-09-29T01:06:49.832Z",
+        "soc": 100,
+        "condition": "Good",
         "status": "On Time"
       }
     ],
+    "uniqueId": "EV-04",
     "busNumber": "250-SB PSS-SVG",
-    "blocked": false,
-    "uniqueId": "EV-04"
+    "blocked": false
   },
   "2787": {
     "status": "Active",
@@ -1710,7 +1711,7 @@
   ],
   "_swapLog": [
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -1728,11 +1729,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -1750,11 +1751,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -1772,11 +1773,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -1794,11 +1795,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -1816,11 +1817,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -1838,11 +1839,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.834Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -1860,11 +1861,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -1882,11 +1883,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -1904,11 +1905,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -1926,11 +1927,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -1948,11 +1949,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -1970,11 +1971,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -1992,11 +1993,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2014,11 +2015,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2036,11 +2037,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2058,11 +2059,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2080,11 +2081,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2102,11 +2103,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2124,11 +2125,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2146,11 +2147,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2168,11 +2169,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2190,11 +2191,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2212,11 +2213,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2234,11 +2235,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2256,11 +2257,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2278,11 +2279,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2300,11 +2301,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2322,11 +2323,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2344,11 +2345,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2366,11 +2367,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2388,11 +2389,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2410,11 +2411,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2432,11 +2433,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2454,11 +2455,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2476,11 +2477,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2498,11 +2499,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2520,11 +2521,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2542,11 +2543,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2564,11 +2565,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2586,11 +2587,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2608,11 +2609,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2630,11 +2631,11 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2652,11 +2653,11 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2674,11 +2675,11 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2696,11 +2697,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2718,11 +2719,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.829Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2740,11 +2741,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.830Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2762,11 +2763,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.830Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2784,11 +2785,11 @@
       "socB": 23,
       "busCategoryB": "C",
       "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-28T16:46:15.830Z",
+      "timestamp": "2026-09-29T01:06:49.835Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2806,7 +2807,7 @@
       "socB": 16,
       "busCategoryB": "C",
       "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     }
   ],
@@ -3741,13 +3742,36 @@
     "blocked": false
   },
   "250-SB PSS-SVG": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
-    "assignedRouteId": "3920",
-    "assignedRouteDisplay": "Route 3920 (18.6 km)",
-    "blocked": false,
-    "uniqueId": "EV-04"
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-29T01:06:49.832Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-29T01:06:49.832Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-04",
+    "blocked": false
   },
   "273 SDN-PSS": {
     "soc": 84,
@@ -3943,10 +3967,11 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -3968,7 +3993,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -3993,7 +4018,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4018,11 +4043,12 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 95,
@@ -4044,11 +4070,12 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 95,
@@ -4070,11 +4097,12 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4096,11 +4124,12 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4122,10 +4151,11 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4147,10 +4177,11 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4172,10 +4203,11 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4197,10 +4229,11 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4222,10 +4255,11 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4247,10 +4281,11 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4272,11 +4307,12 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -4298,11 +4334,12 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -4324,10 +4361,11 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4349,10 +4387,11 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4374,10 +4413,11 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4399,10 +4439,11 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4424,11 +4465,12 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 83,
@@ -4450,11 +4492,12 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 83,
@@ -4476,13 +4519,14 @@
       "assignedRouteDistanceKm": 7.07,
       "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 78,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4502,13 +4546,14 @@
       "assignedRouteDistanceKm": 7.07,
       "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 78,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4528,13 +4573,14 @@
       "assignedRouteDistanceKm": 7.38,
       "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4554,13 +4600,14 @@
       "assignedRouteDistanceKm": 7.38,
       "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4580,13 +4627,14 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 8,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4606,13 +4654,14 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 8,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4632,7 +4681,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4657,7 +4706,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4682,11 +4731,12 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -4708,11 +4758,12 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -4734,7 +4785,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4759,7 +4810,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4784,7 +4835,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4809,7 +4860,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -4834,10 +4885,11 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4859,10 +4911,11 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4884,13 +4937,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 65,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4910,13 +4964,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 65,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -4936,10 +4991,11 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4961,10 +5017,11 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -4986,7 +5043,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5011,7 +5068,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5036,13 +5093,14 @@
       "assignedRouteDistanceKm": 4.57,
       "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 26,
       "condition": "Not Good",
       "driver": "No Driver",
@@ -5062,13 +5120,14 @@
       "assignedRouteDistanceKm": 4.57,
       "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 26,
       "condition": "Not Good",
       "driver": "No Driver",
@@ -5088,10 +5147,11 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5113,10 +5173,11 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5138,11 +5199,12 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -5164,11 +5226,12 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -5190,11 +5253,12 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -5216,11 +5280,12 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -5242,7 +5307,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5267,7 +5332,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5292,7 +5357,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5317,7 +5382,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5342,13 +5407,14 @@
       "assignedRouteDistanceKm": 2.48,
       "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 16,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5368,13 +5434,14 @@
       "assignedRouteDistanceKm": 2.48,
       "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 16,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5394,16 +5461,17 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "252-L": {
@@ -5419,16 +5487,17 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "EV-29": {
@@ -5444,13 +5513,14 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5470,13 +5540,14 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5496,13 +5567,14 @@
       "assignedRouteDistanceKm": 1.63,
       "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 18,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5522,13 +5594,14 @@
       "assignedRouteDistanceKm": 1.63,
       "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 18,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5548,10 +5621,11 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5573,10 +5647,11 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5598,7 +5673,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5623,10 +5698,11 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5648,10 +5724,11 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5673,10 +5750,11 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5698,7 +5776,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5723,10 +5801,11 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5748,10 +5827,11 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5773,13 +5853,14 @@
       "assignedRouteDistanceKm": 6.94,
       "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5799,13 +5880,14 @@
       "assignedRouteDistanceKm": 6.94,
       "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5825,11 +5907,12 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -5851,11 +5934,12 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -5877,13 +5961,14 @@
       "assignedRouteDistanceKm": 5.19,
       "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5903,13 +5988,14 @@
       "assignedRouteDistanceKm": 5.19,
       "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -5929,10 +6015,11 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5954,10 +6041,11 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -5979,10 +6067,11 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6004,10 +6093,11 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6029,17 +6119,18 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "timeSlot": "NORMAL",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 104.48,
+      "estimatedRangeKm": 99,
       "blocked": false
     },
     "401-A": {
@@ -6055,17 +6146,18 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "timeSlot": "NORMAL",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 104.48,
+      "estimatedRangeKm": 99,
       "blocked": false
     },
     "EV-43": {
@@ -6081,13 +6173,14 @@
       "assignedRouteDistanceKm": 5.29,
       "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 33,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6107,13 +6200,14 @@
       "assignedRouteDistanceKm": 5.29,
       "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 33,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6133,7 +6227,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6158,7 +6252,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6183,11 +6277,12 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -6209,11 +6304,12 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -6235,10 +6331,11 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6260,10 +6357,11 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6285,10 +6383,11 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6310,10 +6409,11 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6335,10 +6435,11 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6360,10 +6461,11 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6385,10 +6487,11 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6410,10 +6513,11 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6435,13 +6539,14 @@
       "assignedRouteDistanceKm": 3.17,
       "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 23,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6461,13 +6566,14 @@
       "assignedRouteDistanceKm": 3.17,
       "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 23,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6487,7 +6593,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6512,7 +6618,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6537,7 +6643,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6562,7 +6668,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6587,13 +6693,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 39,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6613,13 +6720,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 39,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6639,7 +6747,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6664,7 +6772,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6688,23 +6796,24 @@
     "1367": {
       "assignedVehicle": "EV-28",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "gtfsDistanceKm": 19.13,
       "blocked": false
     },
     "1427": {
       "assignedVehicle": "EV-25",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6720,10 +6829,11 @@
     "1428": {
       "assignedVehicle": "EV-36",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6736,13 +6846,14 @@
     "1548": {
       "assignedVehicle": "EV-12",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 8,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6753,13 +6864,14 @@
     "1549": {
       "assignedVehicle": "EV-30",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 18,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6770,10 +6882,11 @@
     "1553": {
       "assignedVehicle": "EV-49",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6786,13 +6899,14 @@
     "1610": {
       "assignedVehicle": "EV-53",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 39,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6803,10 +6917,11 @@
     "1612": {
       "assignedVehicle": "EV-34",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6819,10 +6934,11 @@
     "1621": {
       "assignedVehicle": "EV-07",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6835,11 +6951,12 @@
     "1626": {
       "assignedVehicle": "EV-24",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -6852,10 +6969,11 @@
     "2559": {
       "assignedVehicle": "EV-19",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6868,7 +6986,7 @@
     "2644": {
       "assignedVehicle": "EV-20",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6884,10 +7002,11 @@
     "2764": {
       "assignedVehicle": "EV-46",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6900,10 +7019,11 @@
     "2767": {
       "assignedVehicle": "EV-17",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6916,10 +7036,11 @@
     "2770": {
       "assignedVehicle": "EV-03",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6932,11 +7053,12 @@
     "2780": {
       "assignedVehicle": "EV-23",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -6949,10 +7071,11 @@
     "2786": {
       "assignedVehicle": "EV-04",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6965,13 +7088,14 @@
     "2787": {
       "assignedVehicle": "EV-29",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -6982,10 +7106,11 @@
     "2826": {
       "assignedVehicle": "EV-08",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -6998,7 +7123,7 @@
     "2861": {
       "assignedVehicle": "EV-26",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7014,10 +7139,11 @@
     "3158": {
       "assignedVehicle": "EV-05",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7030,7 +7156,7 @@
     "3430": {
       "assignedVehicle": "EV-44",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7046,13 +7172,14 @@
     "3629": {
       "assignedVehicle": "EV-27",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 16,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7063,13 +7190,14 @@
     "3831": {
       "assignedVehicle": "EV-10",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 78,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7080,10 +7208,11 @@
     "3864": {
       "assignedVehicle": "EV-31",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7096,11 +7225,12 @@
     "3878": {
       "assignedVehicle": "EV-45",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -7113,11 +7243,12 @@
     "3907": {
       "assignedVehicle": "EV-02",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7130,13 +7261,14 @@
     "3916": {
       "assignedVehicle": "EV-18",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 65,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7147,10 +7279,11 @@
     "3920": {
       "assignedVehicle": "EV-33",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7163,13 +7296,14 @@
     "3935": {
       "assignedVehicle": "EV-21",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 26,
       "condition": "Not Good",
       "driver": "No Driver",
@@ -7180,13 +7314,14 @@
     "3951": {
       "assignedVehicle": "EV-50",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 23,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7197,11 +7332,12 @@
     "4759": {
       "assignedVehicle": "EV-09",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 83,
@@ -7214,10 +7350,11 @@
     "4798": {
       "assignedVehicle": "EV-40",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7230,11 +7367,12 @@
     "6080": {
       "assignedVehicle": "EV-01",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 95,
@@ -7247,7 +7385,7 @@
     "6551": {
       "assignedVehicle": "EV-54",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7263,10 +7401,11 @@
     "6979": {
       "assignedVehicle": "EV-22",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7279,10 +7418,11 @@
     "7143": {
       "assignedVehicle": "EV-47",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7295,13 +7435,14 @@
     "7296": {
       "assignedVehicle": "EV-39",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7312,13 +7453,14 @@
     "7403": {
       "assignedVehicle": "EV-37",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7329,7 +7471,7 @@
     "7632": {
       "assignedVehicle": "EV-32",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7345,10 +7487,11 @@
     "7834": {
       "assignedVehicle": "EV-41",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7361,27 +7504,29 @@
     "7888": {
       "assignedVehicle": "EV-42",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "timeSlot": "NORMAL",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 104.48,
+      "estimatedRangeKm": 99,
       "gtfsDistanceKm": 7.64,
       "blocked": false
     },
     "8178": {
       "assignedVehicle": "EV-48",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -7394,13 +7539,14 @@
     "8276": {
       "assignedVehicle": "EV-43",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 33,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7411,7 +7557,7 @@
     "8543": {
       "assignedVehicle": "EV-52",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7427,11 +7573,12 @@
     "8592": {
       "assignedVehicle": "EV-38",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -7444,7 +7591,7 @@
     "8781": {
       "assignedVehicle": "EV-15",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7460,7 +7607,7 @@
     "8842": {
       "assignedVehicle": "EV-13",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7476,11 +7623,12 @@
     "9108": {
       "assignedVehicle": "EV-06",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -7493,7 +7641,7 @@
     "9132": {
       "assignedVehicle": "EV-35",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7509,13 +7657,14 @@
     "9534": {
       "assignedVehicle": "EV-11",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -7526,11 +7675,12 @@
     "9535": {
       "assignedVehicle": "EV-14",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -7543,7 +7693,7 @@
     "9581": {
       "assignedVehicle": "EV-51",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7559,7 +7709,7 @@
     "9636": {
       "assignedVehicle": "EV-16",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8663,10 +8813,35 @@
     "blocked": false
   },
   "EV-46": {
-    "uniqueId": "EV-46",
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-29T01:06:49.832Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-29T01:06:49.832Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-46",
     "assignedRouteId": "2764",
     "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
     "assignedRouteShortName": "252 PSS-KMT",
@@ -8882,11 +9057,12 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 95,
@@ -8908,11 +9084,12 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -8934,10 +9111,11 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -8959,10 +9137,11 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -8984,10 +9163,11 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9009,11 +9189,12 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -9035,10 +9216,11 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9060,10 +9242,11 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9085,11 +9268,12 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 83,
@@ -9111,13 +9295,14 @@
       "assignedRouteDistanceKm": 7.07,
       "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 78,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9137,13 +9322,14 @@
       "assignedRouteDistanceKm": 7.38,
       "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9163,13 +9349,14 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 8,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9189,7 +9376,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9214,11 +9401,12 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -9240,7 +9428,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9265,7 +9453,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9290,10 +9478,11 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9315,13 +9504,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 65,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9341,10 +9531,11 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9366,7 +9557,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9391,13 +9582,14 @@
       "assignedRouteDistanceKm": 4.57,
       "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 26,
       "condition": "Not Good",
       "driver": "No Driver",
@@ -9417,10 +9609,11 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9442,11 +9635,12 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -9468,11 +9662,12 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 81,
@@ -9494,7 +9689,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9519,7 +9714,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9544,13 +9739,14 @@
       "assignedRouteDistanceKm": 2.48,
       "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 16,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9570,16 +9766,17 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
+      "estimatedRangeKm": 128,
       "blocked": false
     },
     "EV-29": {
@@ -9595,13 +9792,14 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9621,13 +9819,14 @@
       "assignedRouteDistanceKm": 1.63,
       "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 18,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9647,10 +9846,11 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9672,7 +9872,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9697,10 +9897,11 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9722,10 +9923,11 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9747,7 +9949,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9772,10 +9974,11 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9797,13 +10000,14 @@
       "assignedRouteDistanceKm": 6.94,
       "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 70,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9823,11 +10027,12 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 84,
@@ -9849,13 +10054,14 @@
       "assignedRouteDistanceKm": 5.19,
       "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9875,10 +10081,11 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9900,10 +10107,11 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -9925,17 +10133,18 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "timeSlot": "NORMAL",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 104.48,
+      "estimatedRangeKm": 99,
       "blocked": false
     },
     "EV-43": {
@@ -9951,13 +10160,14 @@
       "assignedRouteDistanceKm": 5.29,
       "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 33,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -9977,7 +10187,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -10002,11 +10212,12 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "B",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
       "matrixCompliant": true,
       "soc": 85,
@@ -10028,10 +10239,11 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -10053,10 +10265,11 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -10078,10 +10291,11 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -10103,10 +10317,11 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
-        "A"
+        "A",
+        "B"
       ],
       "matrixCompliant": true,
       "soc": 100,
@@ -10128,13 +10343,14 @@
       "assignedRouteDistanceKm": 3.17,
       "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 23,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -10154,7 +10370,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -10179,7 +10395,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -10204,13 +10420,14 @@
       "assignedRouteDistanceKm": 5.69,
       "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "C",
       "allowedCategories": [
         "A",
-        "B"
+        "B",
+        "C"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 39,
       "condition": "Good",
       "driver": "Driver Assigned",
@@ -10230,7 +10447,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "NORMAL",
       "busCategory": "A",
       "allowedCategories": [
         "A"
