@@ -1047,7 +1047,7 @@ async function drawRoutePathForBus(bus) {
 function toBusModel(route, index, sharedState = {}) {
     const routeId = String(route.routeId || `route-${index + 1}`);
     const busNumber = (route.busNumber || "N/A").trim();
-    const uniqueId = route.uniqueId || `BUS-${String(index + 1).padStart(2, "0")}`;
+    const uniqueId = route.uniqueId || route.bmNumber || "BM238";
     const origin = (route.origin || "Unknown Origin").trim();
     const destination = (route.destination || "Unknown Destination").trim();
     const routeStops = buildRouteStopNames(routeId);

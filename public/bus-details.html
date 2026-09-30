@@ -170,16 +170,16 @@
   <script>
     // -----------------------------------------------------------------------
     // Vehicle-Centric Analytics
-    //   unique_id = Physical Bus Asset ID (e.g. "BUS-01".."BUS-54")
-    //   bus_id    = Physical Bus or Route Short Name (e.g. "401-A")
-    //   route_id  = Assigned/Default GTFS Route ID (e.g. "1367")
+    //   unique_id = Physical Vehicle BM Number (e.g. "BM238", "BM291")
+    //   bus_id    = Vehicle BM Number or Route Short Name (e.g. "356Z")
+    //   route_id  = Assigned/Default GTFS Route ID (e.g. "1")
     // -----------------------------------------------------------------------
     const urlParams  = new URLSearchParams(window.location.search);
     const busParam   = (urlParams.get("unique_id") || urlParams.get("uniqueId") || urlParams.get("bus_id") || urlParams.get("bus") || "").trim();
     const routeParam = (urlParams.get("route_id") || "").trim();
 
     // Primary vehicle identity
-    let searchKey            = busParam || routeParam || "BUS-01";
+    let searchKey            = busParam || routeParam || "BM238";
     let physicalBusName      = busParam || "";
     let assignedRouteId      = routeParam || "";
     let assignedRouteDisplay = "";

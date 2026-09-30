@@ -13,6 +13,8 @@ const TRIPS_FILE = path.join(BASE_DIR, "trips", "trips.txt");
 const STOP_TIMES_FILE = path.join(BASE_DIR, "stop_times", "stop_times.txt");
 const SHAPES_FILE = path.join(BASE_DIR, "shapes", "shapes.txt");
 const BUS_STATE_FILE = path.join(BASE_DIR, "bus_state.json");
+const VEHICLE_ASSIGNMENTS_FILE = path.join(BASE_DIR, "vehicles", "vehicle_assignments.csv");
+const VEHICLES_FILE = path.join(BASE_DIR, "vehicles", "vehicles.txt");
 const ADAFRUIT_USERNAME = process.env.ADAFRUIT_USERNAME || "Manu123456789";
 const ADAFRUIT_FEED_NAME = process.env.ADAFRUIT_FEED_NAME || "gpslocation";
 const ADAFRUIT_AIO_KEY = process.env.ADAFRUIT_AIO_KEY || "";
@@ -69,6 +71,49 @@ let cachedGtfsScheduleSummary = null;
 let cachedGtfsBundleJson = null;
 const cachedRouteDistances = new Map();
 let cachedRouteTripCounts = null;
+let cachedRouteBmMap = null;
+
+function getRouteBmMap() {
+    if (cachedRouteBmMap) return cachedRouteBmMap;
+    const map = new Map();
+    // Default fixed mapping from vehicles/vehicle_assignments.csv and vehicles/vehicles.txt
+    const fallbackMap = {
+        "1": "BM238", "356Z": "BM238",
+        "2": "BM291", "360K": "BM291",
+        "3": "BM001", "600F": "BM001",
+        "4": "BM086", "KBS3A": "BM086",
+        "5": "BM293", "KBS3F": "BM293",
+        "6": "BM153", "328H": "BM153",
+        "7": "BM299", "361C": "BM299",
+        "8": "BM216", "399C": "BM216",
+        "9": "BM002", "500DC": "BM002"
+    };
+    for (const [k, v] of Object.entries(fallbackMap)) {
+        map.set(k, v);
+    }
+
+    try {
+        if (fs.existsSync(VEHICLE_ASSIGNMENTS_FILE)) {
+            const raw = fs.readFileSync(VEHICLE_ASSIGNMENTS_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).filter(Boolean);
+            if (lines.length > 1) {
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = parseCsvLine(lines[i]);
+                    const route = (parts[1] || "").trim();
+                    const fixBm = (parts[3] || "").trim();
+                    if (route && fixBm && !map.has(route)) {
+                        map.set(route, fixBm);
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not load vehicle_assignments.csv:", e.message);
+    }
+
+    cachedRouteBmMap = map;
+    return cachedRouteBmMap;
+}
 
 function getRouteTripCounts() {
     if (cachedRouteTripCounts) return cachedRouteTripCounts;
@@ -92,20 +137,23 @@ function loadRoutes() {
     }
 
     const tripCounts = getRouteTripCounts();
+    const bmMap = getRouteBmMap();
 
     cachedRoutes = lines.slice(1).map((line, idx) => {
         const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
         const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
-        const padIndex = String(idx + 1).padStart(2, "0");
-        const uniqueId = `BUS-${padIndex}`;
         const cleanRouteId = String(routeId || "").trim();
+        const routeName = (routeShortName || "").trim();
+        const bmNumber = bmMap.get(cleanRouteId) || bmMap.get(routeName) || `BM${String(idx + 1).padStart(3, "0")}`;
+        const uniqueId = bmNumber;
         const tripCount = tripCounts.get(cleanRouteId) || 0;
 
         return {
             uniqueId,
             vehicleId: uniqueId,
-            busNumber: (routeShortName || "").trim() || "N/A",
-            routeShortName: (routeShortName || "").trim() || "N/A",
+            bmNumber,
+            busNumber: routeName || "N/A",
+            routeShortName: routeName || "N/A",
             routeName: (routeLongName || "").trim() || "Unknown Route",
             origin,
             destination,
@@ -369,11 +417,10 @@ function calculateRouteDistance(busIdentifier, routeIdParam) {
     };
 }
 
-// ── Bus Swap Engine (Unique ID Physical Vehicle Model) ───────────────────────
-// uniqueId (BUS-01..BUS-54) is the physical bus asset holding battery SoC, condition, and telemetry.
+// ── Fixed Vehicle Assignment Engine (BM Number Model) ─────────────────────────
+// uniqueId / bmNumber (e.g. BM238, BM291) is the physical vehicle holding battery SoC, condition, and telemetry.
 // GTFS Route (route_id + bus_short_name + Origin ➔ Destination + distance) is the FIXED public line.
-// Greedily swaps physical vehicle assignments so higher-SoC operational vehicles are assigned
-// to longer routes, honoring 5% SoC hysteresis and maintenance safety rules.
+// Routes are permanently bound 1:1 to their fixed designated BM number. No dynamic swapping.
 // Persists mapping in bus_state.json under "_assignments" and "_vehicleAssignments".
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -458,7 +505,7 @@ const PYTHON_RANGE_TTL_MS = 60_000; // 60 s — discard stale Python estimates
  * otherwise falls back to the flat 1.42 km/% formula.
  *
  * @param {number} soc      - current SoC %
- * @param {string} [uniqueId] - BUS-01…BUS-54 key for the Python cache lookup
+ * @param {string} [uniqueId] - BM number key (e.g. BM238) for the Python cache lookup
  */
 function estimatedRangeKm(soc, uniqueId) {
     if (uniqueId) {
@@ -476,7 +523,7 @@ function estimatedRangeKm(soc, uniqueId) {
  * Fire-and-forget: fetch blended range from Python and update the cache.
  * Never awaited from the hot path — does not block telemetry responses.
  *
- * @param {string} uniqueId - BUS-01…BUS-54
+ * @param {string} uniqueId - BM number (e.g. BM238)
  * @param {number} soc      - current SoC (used as cache fallback if Python fails)
  */
 function fetchAndCachePythonRange(uniqueId, soc) {
@@ -496,9 +543,10 @@ function fetchAndCachePythonRange(uniqueId, soc) {
 
 
 /**
- * Runs the physical vehicle (unique_id: BUS-01..BUS-54) bus-swap algorithm and updates state._assignments in-place.
+ * Assigns each route to its fixed designated BM Number with NO swapping.
+ * Evaluates feasibility and updates state._assignments in-place.
  */
-function swapBusAssignments(state) {
+function ensureFixedAssignments(state) {
     const allRoutes = loadRoutes();
     const currentSlot = getTimeSlot();
 
@@ -506,6 +554,7 @@ function swapBusAssignments(state) {
         const dist = calculateRouteDistanceByRouteId(r.routeId);
         return {
             uniqueId: r.uniqueId,
+            bmNumber: r.bmNumber || r.uniqueId,
             routeId: String(r.routeId),
             busShortName: (r.busNumber || "N/A").trim(),
             routeName: (r.routeName || "").trim(),
@@ -518,7 +567,7 @@ function swapBusAssignments(state) {
 
     if (!routeInfos.length) return state;
 
-    // Read telemetry for each physical vehicle (uniqueId: BUS-01..BUS-54)
+    // Read telemetry for each physical vehicle (uniqueId / bmNumber)
     const vehicleTelemetry = {};
     for (const r of routeInfos) {
         const uId = r.uniqueId;
@@ -527,6 +576,7 @@ function swapBusAssignments(state) {
         const range = estimatedRangeKm(soc, uId);
         vehicleTelemetry[uId] = {
             uniqueId: uId,
+            bmNumber: uId,
             defaultRouteId: r.routeId,
             defaultBusShortName: r.busShortName,
             soc,
@@ -537,135 +587,12 @@ function swapBusAssignments(state) {
         };
     }
 
-    // Initialize route assignments: routeId -> uniqueId (physical vehicle)
+    // FIXED assignments: NO swapping! Each route is permanently bound to its designated BM Number
     const routeToVehicle = {};
     const vehicleToRoute = {};
-    const existingAssignments = state._assignments || {};
-
     for (const r of routeInfos) {
-        const uId = r.uniqueId;
-        const prevVehicle = existingAssignments[r.routeId];
-        if (prevVehicle && routeInfos.some((x) => x.uniqueId === prevVehicle)) {
-            routeToVehicle[r.routeId] = prevVehicle;
-        } else {
-            routeToVehicle[r.routeId] = uId;
-        }
-    }
-
-    // Ensure 1-to-1 bijection
-    const usedVehicles = new Set();
-    for (const r of routeInfos) {
-        let v = routeToVehicle[r.routeId];
-        if (!v || usedVehicles.has(v)) {
-            v = routeInfos.map((x) => x.uniqueId).find((id) => !usedVehicles.has(id)) || r.uniqueId;
-            routeToVehicle[r.routeId] = v;
-        }
-        usedVehicles.add(v);
-        vehicleToRoute[v] = r.routeId;
-    }
-
-    // Page 4 Operational Difficulty Priority:
-    // COMPLEX routes first, then MODERATE, then SIMPLE. Within same tier, longest distance first.
-    const catRanks = { COMPLEX: 0, MODERATE: 1, SIMPLE: 2 };
-    const sortedRoutes = [...routeInfos].sort((a, b) => {
-        const rDiff = (catRanks[a.routeCategory] ?? 2) - (catRanks[b.routeCategory] ?? 2);
-        if (rDiff !== 0) return rDiff;
-        return b.gtfsDistanceKm - a.gtfsDistanceKm;
-    });
-
-    // Greedy swap passes with Page 4 Priority Allocation Matrix and 5% hysteresis
-    let changed = true;
-    let guard = 50;
-    const currentSwapLog = [];
-
-    while (changed && guard-- > 0) {
-        changed = false;
-        for (let i = 0; i < sortedRoutes.length - 1; i++) {
-            const rHigh = sortedRoutes[i];      // Higher priority / difficulty route
-            const rLow = sortedRoutes[i + 1];   // Lower priority route
-
-            const vHigh = routeToVehicle[rHigh.routeId];
-            const vLow = routeToVehicle[rLow.routeId];
-
-            const tHigh = vehicleTelemetry[vHigh] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
-            const tLow = vehicleTelemetry[vLow] || { soc: 100, condition: "Good", estimatedRangeKm: 128, busCategory: "A" };
-
-            const allowedHigh = (ALLOWED_CATEGORIES[rHigh.routeCategory] || ALLOWED_CATEGORIES.SIMPLE)[currentSlot] || ["A"];
-            const isHighCompliant = allowedHigh.includes(tHigh.busCategory);
-            const isLowCompliantForHigh = allowedHigh.includes(tLow.busCategory);
-
-            let shouldSwap = false;
-            let reason = "";
-
-            // 1. Safety & Maintenance: vehicle on higher priority route is broken while lower route vehicle is Good
-            if (tHigh.condition === "Not Good" && tLow.condition === "Good") {
-                shouldSwap = true;
-                reason = `Safety & Maintenance Alert: Higher priority Route ${rHigh.routeId} (${rHigh.busShortName}, ${rHigh.routeCategory}) had vehicle '${vHigh}' in '${tHigh.condition}' condition. Reassigned operational vehicle '${vLow}' to Route ${rHigh.routeId} to prevent in-service breakdown.`;
-            }
-            // 2. Depot dispatch floor: vehicle on high priority route is below 25% floor
-            else if (tHigh.soc < DEPOT_MIN_SOC_FLOOR && tLow.soc >= DEPOT_MIN_SOC_FLOOR) {
-                shouldSwap = true;
-                reason = `Depot Dispatch Floor Alert: Route ${rHigh.routeId} (${rHigh.busShortName}) had vehicle '${vHigh}' with SoC ${tHigh.soc}% below 25% floor. Reassigned vehicle '${vLow}' (${tLow.soc}% SoC).`;
-            }
-            // 3. Physical distance shortfall: vehicle on rHigh cannot cover the route km, but vLow can
-            else if (tHigh.estimatedRangeKm < rHigh.gtfsDistanceKm && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm && tLow.condition === "Good") {
-                shouldSwap = true;
-                reason = `Range Shortfall Alert: Route ${rHigh.routeId} (${rHigh.gtfsDistanceKm.toFixed(1)} km) exceeded range of vehicle '${vHigh}' (${tHigh.estimatedRangeKm} km). Reassigned vehicle '${vLow}' (${tLow.estimatedRangeKm} km).`;
-            }
-            // 4. Page 4 Priority Allocation Matrix Violation & Upgrade:
-            // High priority route vehicle violates matrix (e.g. Cat B/C on Complex route in Extreme Peak) while vLow is compliant (Cat A)
-            else if (!isHighCompliant && isLowCompliantForHigh && tLow.condition === "Good" && tLow.soc >= DEPOT_MIN_SOC_FLOOR && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm) {
-                shouldSwap = true;
-                reason = `Page 4 Priority Allocation Matrix: Route ${rHigh.routeId} (${rHigh.routeCategory}, ${currentSlot}) requires Category ${allowedHigh.join('/')}, but vehicle '${vHigh}' is Category ${tHigh.busCategory} (${tHigh.estimatedRangeKm} km). Reassigned Category ${tLow.busCategory} vehicle '${vLow}' (${tLow.estimatedRangeKm} km).`;
-            }
-            // 5. Page 4 Simple Route Conservation during Normal hours:
-            // If rLow is Simple during Normal, and vLow is Category A while rHigh is Complex/Moderate and has Category B/C,
-            // promote vLow (Cat A) to rHigh and let rLow take vHigh (Cat B/C)
-            else if (currentSlot === "NORMAL" && rLow.routeCategory === "SIMPLE" && tLow.busCategory === "A" && tHigh.busCategory !== "A" && isLowCompliantForHigh && tLow.condition === "Good" && tLow.soc >= DEPOT_MIN_SOC_FLOOR && tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm) {
-                shouldSwap = true;
-                reason = `Page 4 Resource Balancing: Route ${rHigh.routeId} (${rHigh.routeCategory}) prioritized with Category A vehicle '${vLow}' (${tLow.soc}% SoC), while Simple Route ${rLow.routeId} (${rLow.busShortName}) allocated Category ${tHigh.busCategory} vehicle '${vHigh}'.`;
-            }
-            // 6. Range Optimization with 5% SoC Hysteresis (both Good, vLow can cover rHigh):
-            else if (tLow.condition === "Good" && tHigh.condition === "Good" && (tLow.soc - tHigh.soc > SWAP_THRESHOLD_PCT) && (tLow.estimatedRangeKm >= rHigh.gtfsDistanceKm)) {
-                if (!isHighCompliant || isLowCompliantForHigh) {
-                    shouldSwap = true;
-                    reason = `Range Optimization: Higher priority Route ${rHigh.routeId} (${rHigh.busShortName}, ${rHigh.routeCategory}, ${rHigh.gtfsDistanceKm.toFixed(1)} km) had vehicle '${vHigh}' with lower battery (${tHigh.soc}%). Reassigned vehicle '${vLow}' (${tLow.soc}% SoC, Category ${tLow.busCategory}) exceeding 5% hysteresis.`;
-                }
-            }
-
-            if (shouldSwap) {
-                currentSwapLog.push({
-                    timestamp: new Date().toISOString(),
-                    routeA: rHigh.routeId,
-                    routeShortNameA: rHigh.busShortName,
-                    routeLineA: `${rHigh.busShortName} (${rHigh.origin} ➔ ${rHigh.destination})`,
-                    distA: rHigh.gtfsDistanceKm,
-                    categoryA: rHigh.routeCategory,
-                    vehicleA: vHigh,
-                    socA: tHigh.soc,
-                    busCategoryA: tHigh.busCategory,
-                    routeB: rLow.routeId,
-                    routeShortNameB: rLow.busShortName,
-                    routeLineB: `${rLow.busShortName} (${rLow.origin} ➔ ${rLow.destination})`,
-                    distB: rLow.gtfsDistanceKm,
-                    categoryB: rLow.routeCategory,
-                    vehicleB: vLow,
-                    socB: tLow.soc,
-                    busCategoryB: tLow.busCategory,
-                    swappedVehicle: vLow,
-                    timeSlot: currentSlot,
-                    reason
-                });
-
-                // Swap route assignments between these two physical vehicles
-                routeToVehicle[rHigh.routeId] = vLow;
-                routeToVehicle[rLow.routeId] = vHigh;
-                vehicleToRoute[vLow] = rHigh.routeId;
-                vehicleToRoute[vHigh] = rLow.routeId;
-
-                changed = true;
-            }
-        }
+        routeToVehicle[r.routeId] = r.uniqueId;
+        vehicleToRoute[r.uniqueId] = r.routeId;
     }
 
     // Evaluate departure blockage and format details
@@ -677,8 +604,8 @@ function swapBusAssignments(state) {
 
     for (const r of routeInfos) {
         const uId = r.uniqueId;
-        const assignedRouteId = vehicleToRoute[uId] || r.routeId;
-        const assignedRouteObj = routeInfos.find((x) => x.routeId === assignedRouteId) || r;
+        const assignedRouteId = r.routeId;
+        const assignedRouteObj = r;
         const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good", driver: "Driver Assigned", estimatedRangeKm: 128, busCategory: "A" };
         const range = estimatedRangeKm(t.soc, uId);
         const dist = assignedRouteObj.gtfsDistanceKm;
@@ -699,6 +626,7 @@ function swapBusAssignments(state) {
             uniqueId: uId,
             unique_id: uId,
             vehicleId: uId,
+            bmNumber: uId,
             busName: uId,
             defaultBusShortName: r.busShortName,
             assignedRouteId,
@@ -725,6 +653,7 @@ function swapBusAssignments(state) {
 
         ranges[assignedRouteId] = {
             assignedVehicle: uId,
+            bmNumber: uId,
             routeCategory: assignedRouteObj.routeCategory,
             timeSlot: currentSlot,
             busCategory: busCat,
@@ -739,10 +668,6 @@ function swapBusAssignments(state) {
         };
     }
 
-    // Bidirectional assignments:
-    // assignments[uniqueId] = routeId
-    // assignments[routeId] = uniqueId
-    // Also include busShortName keys for legacy backward compatibility
     const mergedAssignments = {};
     for (const [rId, vId] of Object.entries(routeToVehicle)) {
         mergedAssignments[rId] = vId;
@@ -753,12 +678,12 @@ function swapBusAssignments(state) {
         }
     }
 
-    // Synchronize state entries so uniqueId, busShortName, and routeId hold identical telemetry
     for (const [uId, details] of Object.entries(vehicleAssignmentsDetails)) {
         if (!state[uId]) {
-            state[uId] = { uniqueId: uId, soc: details.soc, condition: details.condition, status: details.soc > 30 ? "Active" : "Blocked" };
+            state[uId] = { uniqueId: uId, bmNumber: uId, soc: details.soc, condition: details.condition, status: details.soc > 30 ? "Active" : "Blocked" };
         }
         state[uId].uniqueId = uId;
+        state[uId].bmNumber = uId;
         state[uId].soc = details.soc;
         state[uId].condition = details.condition;
         state[uId].status = details.soc > 30 ? "Active" : details.soc > 15 ? "Warning" : "Blocked";
@@ -775,6 +700,7 @@ function swapBusAssignments(state) {
         state[rId].condition = details.condition;
         state[rId].status = state[uId].status;
         state[rId].uniqueId = uId;
+        state[rId].bmNumber = uId;
         state[rId].busNumber = details.assignedRouteShortName;
         state[rId].blocked = details.blocked;
 
@@ -787,6 +713,7 @@ function swapBusAssignments(state) {
             state[bShort].condition = details.condition;
             state[bShort].status = state[uId].status;
             state[bShort].uniqueId = uId;
+            state[bShort].bmNumber = uId;
             state[bShort].blocked = details.blocked;
         }
     }
@@ -797,13 +724,13 @@ function swapBusAssignments(state) {
     state._blockedBuses = [...new Set(blockedVehicles)];
     state._blockedRouteIds = [...new Set(blockedRouteIds)];
     state.ranges = ranges;
+    state._swapLog = [];
 
-    if (currentSwapLog.length > 0) {
-        state._swapLog = currentSwapLog.concat(state._swapLog || []).slice(0, 50);
-    }
-
-    console.log(`[SwapEngine] Unique-ID Vehicle Assignments updated. Blocked vehicles: ${state._blockedBuses.join(", ") || "none"}`);
     return state;
+}
+
+function swapBusAssignments(state) {
+    return ensureFixedAssignments(state);
 }
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1241,7 +1168,7 @@ function resolveBusAndRoute(rawBusId) {
     const cleanLower = cleanId.toLowerCase();
     const cleanCompact = cleanId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 1. Match by uniqueId (BUS-01..BUS-54 / legacy EV-01..EV-54)
+    // 1. Match by uniqueId (BM number e.g. BM238 / legacy BUS-01..BUS-54)
     let matchingRoute = allRoutes.find((r) => {
         const uId = String(r.uniqueId || "").toLowerCase();
         return uId === cleanLower || uId.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
@@ -1424,7 +1351,7 @@ function getBusTasks(busIdentifier, routeIdParam) {
     const assignments = busState._assignments || {};
 
     let targetRoute = null;
-    let uniqueId = "BUS-01";
+    let uniqueId = (allRoutes.length > 0 && allRoutes[0].uniqueId) ? allRoutes[0].uniqueId : "BM238";
 
     if (routeIdParam) {
         targetRoute = allRoutes.find(r => String(r.routeId) === String(routeIdParam));
@@ -1774,9 +1701,9 @@ const server = http.createServer(async (req, res) => {
                         const upperRaw = rawId.toUpperCase();
                         const uniqueId = matchingRoute
                             ? matchingRoute.uniqueId
-                            : (upperRaw.startsWith("BUS-") || upperRaw.startsWith("BM")
+                            : (upperRaw.startsWith("BM") || upperRaw.startsWith("BUS-")
                                 ? upperRaw
-                                : (upperRaw.startsWith("EV-") ? upperRaw.replace(/^EV-/, "BUS-") : "BUS-01"));
+                                : "BM238");
                         const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                         const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 
@@ -1910,9 +1837,9 @@ const server = http.createServer(async (req, res) => {
                     const upperRaw = rawId.toUpperCase();
                     const uniqueId = matchingRoute
                         ? matchingRoute.uniqueId
-                        : (upperRaw.startsWith("BUS-") || upperRaw.startsWith("BM")
+                        : (upperRaw.startsWith("BM") || upperRaw.startsWith("BUS-")
                             ? upperRaw
-                            : (upperRaw.startsWith("EV-") ? upperRaw.replace(/^EV-/, "BUS-") : "BUS-01"));
+                            : "BM238");
                     const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                     const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 

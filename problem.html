@@ -556,62 +556,15 @@
         .status-pill.ahead { background: #e0f2fe; color: #0284c7; }
         .status-pill.standby { background: #f1f5f9; color: #64748b; }
 
-        /* Topbar actions & Swapped Buses button */
+        /* Topbar actions */
         .topbar-actions {
             display: flex;
             flex-direction: column;
             align-items: flex-end;
             gap: 10px;
         }
-        .swapped-buses-top-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: #ffffff;
-            border: 1px solid #0284c7;
-            border-radius: 999px;
-            padding: 8px 16px;
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 14px rgba(3, 105, 161, 0.25);
-            transition: all 0.2s ease;
-        }
-        .swapped-buses-top-btn:hover {
-            background: linear-gradient(135deg, #0369a1, #075985);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(3, 105, 161, 0.35);
-        }
-        .swapped-buses-top-btn:active {
-            transform: translateY(0);
-        }
-        .swapped-badge-count {
-            background: #ffffff;
-            color: #0369a1;
-            font-size: 0.72rem;
-            font-weight: 800;
-            padding: 2px 7px;
-            border-radius: 999px;
-            line-height: 1;
-            transition: all 0.2s ease;
-        }
-        .swapped-badge-count.has-swaps {
-            background: #f59e0b;
-            color: #ffffff;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.7);
-        }
-        .swapped-buses-top-btn .chevron {
-            font-size: 1.15rem;
-            line-height: 1;
-            margin-left: 2px;
-            transition: transform 0.2s ease;
-        }
-        .swapped-buses-top-btn:hover .chevron {
-            transform: translateX(2px);
-        }
 
-        /* Swapped Buses Modal */
+        /* Modal Base */
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -682,79 +635,6 @@
             flex-direction: column;
             gap: 14px;
         }
-        .swap-card {
-            background: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-left: 5px solid #0284c7;
-            border-radius: 12px;
-            padding: 16px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-        .swap-card:hover {
-            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.12);
-        }
-        .swap-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .swap-route-badge {
-            background: #e0f2fe;
-            color: #0369a1;
-            font-weight: 800;
-            font-size: 0.85rem;
-            padding: 4px 10px;
-            border-radius: 6px;
-        }
-        .swap-exchange-flow {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 10px 0;
-            background: #f8fafc;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            padding: 10px 14px;
-            flex-wrap: wrap;
-        }
-        .bus-pill-default {
-            background: #f1f5f9;
-            color: #475569;
-            font-weight: 700;
-            font-size: 0.82rem;
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-        }
-        .bus-pill-swapped {
-            background: #dbeafe;
-            color: #1e40af;
-            font-weight: 800;
-            font-size: 0.85rem;
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid #93c5fd;
-        }
-        .swap-arrow {
-            font-size: 1.1rem;
-            color: #0284c7;
-            font-weight: 900;
-        }
-        .swap-reason-box {
-            background: #fefce8;
-            border: 1px solid #fef08a;
-            border-radius: 8px;
-            padding: 10px 12px;
-            margin-top: 10px;
-            font-size: 0.84rem;
-            line-height: 1.45;
-            color: #854d0e;
-        }
-
         /* Selected route trips duty banner */
         .selected-route-trips-banner {
             margin-top: 10px;
@@ -968,11 +848,6 @@
                         Sign Out
                     </button>
                 </div>
-                <button id="open-swapped-btn" class="swapped-buses-top-btn" type="button" title="View swapped buses, assignments and reasons">
-                    <span>Swapped Buses</span>
-                    <span id="swapped-badge-count" class="swapped-badge-count">0</span>
-                    <span class="chevron">›</span>
-                </button>
             </div>
         </header>
 
@@ -990,7 +865,7 @@
                     </label>
                     <div id="selected-route-trips-banner" class="selected-route-trips-banner" style="display:none;">
                         <div>
-                            <strong>🎯 Assigned Duty:</strong> <span id="banner-bus-id" style="font-weight:700;">BUS-01</span> on Route <span id="banner-route-name" style="font-weight:700;">401-A</span> (<span id="banner-stops-name">Peenya ➔ KBS</span>)
+                            <strong>🎯 Assigned Duty:</strong> BM Number: <span id="banner-bus-id" style="font-weight:700;">BM238</span> on Route <span id="banner-route-name" style="font-weight:700;">356Z</span> (<span id="banner-stops-name">Peenya ➔ KBS</span>)
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
                             <span class="trip-count-badge" id="banner-trip-count" style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:.75rem;">211 Trips</span>
@@ -1133,7 +1008,7 @@
                         <tr>
                             <th>Route Line</th>
                             <th>Origin ➔ Destination</th>
-                            <th>Assigned Bus (Vehicle)</th>
+                            <th>Assigned Vehicle (BM Number)</th>
                             <th>Departure Time</th>
                             <th>Arrival Time</th>
                             <th>Status</th>
@@ -1150,31 +1025,6 @@
             </div>
         </section>
 
-        <!-- Swapped Buses Modal Dialog -->
-        <div id="swapped-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
-            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="swapped-modal-title">
-                <div class="modal-header">
-                    <div>
-                        <div class="eyebrow" style="margin-bottom:4px; color:#0369a1;">Depot Allocation System</div>
-                        <h2 id="swapped-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
-                            <span>🔄 Swapped Buses Overview</span>
-                            <span id="modal-swapped-count" class="swapped-badge-count" style="background:#0284c7; color:#fff; font-size:.8rem; padding:3px 9px;">0</span>
-                        </h2>
-                        <p style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">Track which buses exchanged routes, the finally assigned vehicle, and the operational dispatch reason.</p>
-                    </div>
-                    <button type="button" id="close-swapped-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
-                </div>
-
-                <div class="modal-search-wrap">
-                    <input type="text" id="swapped-modal-search" class="region-search-input" placeholder="🔍 Filter swapped routes by route ID, bus name, stop..." autocomplete="off">
-                </div>
-
-                <div id="swapped-cards-container" class="modal-body">
-                    <!-- Cards populated by JavaScript -->
-                </div>
-            </div>
-        </div>
-
         <!-- Bus Tasks & Route Duty Schedule Modal Dialog -->
         <div id="bus-tasks-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
             <div class="modal-dialog" style="max-width:920px;" role="dialog" aria-modal="true" aria-labelledby="bus-tasks-modal-title">
@@ -1183,7 +1033,7 @@
                         <div class="eyebrow" style="margin-bottom:4px; color:#0369a1;">GTFS Route &amp; Energy Feasibility Schedule</div>
                         <h2 id="bus-tasks-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
                             <span>📋 Bus Assigned Tasks</span>
-                            <span id="tasks-modal-bus-badge" class="bus-pill-swapped" style="font-size:.85rem; padding:3px 10px;">BUS-01</span>
+                            <span id="tasks-modal-bus-badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:.85rem; padding:3px 10px; border-radius:6px; border:1px solid #93c5fd;">BM238</span>
                         </h2>
                         <p id="tasks-modal-subtitle" style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
                             Schedule of duty tasks for this vehicle based on GTFS route distance and battery charge estimation.
@@ -1235,8 +1085,8 @@
         let lastNotAllocatedRoutes = [];
         let lastFilteredRoutes = [];
 
-        // Swap-engine results (fetched from /api/bus-assignments)
-        // assignments: { routeId → assignedBusShortName }
+        // Vehicle assignments (fetched from /api/bus-assignments)
+        // assignments: { routeId → assigned BM Number }
         // blockedRouteIds: [routeId, ...]
         let busAssignments = {};
         let blockedRouteIds = new Set();
@@ -1347,7 +1197,7 @@
             });
         }
 
-        // ── Logic 1 + 2 result: fetch assignments from swap engine ────────────
+        // ── Fetch vehicle assignments from server ────────────────────────────
         async function fetchBusAssignments() {
             try {
                 const res = await fetch("/api/bus-assignments");
@@ -1357,7 +1207,6 @@
                     blockedRouteIds = new Set(payload.blockedRouteIds || []);
                     assignmentRanges = payload.ranges || {};
                     serverSwapLog = Array.isArray(payload.swapLog) ? payload.swapLog : [];
-                    updateSwappedBusesButtonAndModal();
                 }
             } catch (e) {
                 console.warn("Could not fetch bus assignments", e);
@@ -1365,236 +1214,8 @@
         }
 
         function getAssignedBusName(route) {
-            // Return whatever the swap engine has assigned for this routeId,
-            // falling back to the GTFS short name if no assignment exists yet.
-            return busAssignments[String(route.routeId)] || route.busNumber || route.routeId;
-        }
-
-        // ── Swapped Buses Modal & Logic ──────────────────────────────────────
-        const openSwappedBtn = document.getElementById("open-swapped-btn");
-        const swappedBadgeCount = document.getElementById("swapped-badge-count");
-        const swappedModalBackdrop = document.getElementById("swapped-modal-backdrop");
-        const closeSwappedModalBtn = document.getElementById("close-swapped-modal-btn");
-        const swappedModalSearch = document.getElementById("swapped-modal-search");
-        const swappedCardsContainer = document.getElementById("swapped-cards-container");
-        const modalSwappedCount = document.getElementById("modal-swapped-count");
-
-        function computeSwappedBusesList() {
-            if (!routes || !routes.length) return [];
-            const list = [];
-            routes.forEach((route) => {
-                const assignedVehicle = busAssignments[String(route.routeId)] || route.uniqueId;
-                const defaultVehicle = route.uniqueId || "";
-                if (assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle) {
-                    const donorRoute = routes.find((r) => r.uniqueId === assignedVehicle);
-                    const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                    const liveState = busStates[assignedVehicle] || busStates[String(route.routeId)] || {};
-
-                    let reason = "";
-                    if (Array.isArray(serverSwapLog)) {
-                        const logMatch = serverSwapLog.find((log) =>
-                            String(log.routeA) === String(route.routeId) ||
-                            String(log.routeB) === String(route.routeId) ||
-                            String(log.vehicleA) === String(assignedVehicle) ||
-                            String(log.vehicleB) === String(assignedVehicle)
-                        );
-                        if (logMatch && logMatch.reason) {
-                            reason = logMatch.reason;
-                        }
-                    }
-
-                    if (!reason) {
-                        const distA = rangeInfo.gtfsDistanceKm || (donorRoute ? calculateRouteDistanceKm(route.routeId) : null) || 0;
-                        const distB = donorRoute ? (assignmentRanges[String(donorRoute.routeId)]?.gtfsDistanceKm || calculateRouteDistanceKm(donorRoute.routeId) || 0) : 0;
-                        const soc = rangeInfo.soc !== undefined ? rangeInfo.soc : (liveState.soc !== undefined ? liveState.soc : 100);
-                        const cond = rangeInfo.condition || liveState.condition || "Good";
-
-                        if (cond === "Not Good") {
-                            reason = `Safety & Maintenance Alert: Original vehicle (${defaultVehicle}) required depot inspection/maintenance. Swapped vehicle '${assignedVehicle}' assigned to Route ${route.routeId} (${route.busNumber}) to ensure safe passenger service.`;
-                        } else if (distA > distB && distB > 0) {
-                            reason = `Range & Battery Optimization: Longer Route ${route.routeId} (${route.busNumber}, ${distA.toFixed(1)} km) prioritized with vehicle '${assignedVehicle}' (SoC: ${soc}%) over shorter Route ${donorRoute?.routeId || "N/A"} (${donorRoute?.busNumber || "N/A"}, ${distB.toFixed(1)} km) to prevent in-service battery depletion.`;
-                        } else {
-                            reason = `Fleet Energy Balancing: Vehicle '${assignedVehicle}' (SoC: ${soc}%) assigned to Route ${route.routeId} (${route.busNumber}) for optimal depot turnaround and schedule reliability.`;
-                        }
-                    }
-
-                    list.push({
-                        routeId: route.routeId,
-                        busNumber: route.busNumber,
-                        defaultVehicle,
-                        assignedVehicle,
-                        origin: route.origin || "Origin",
-                        destination: route.destination || "Destination",
-                        donorRouteId: donorRoute ? donorRoute.routeId : null,
-                        donorBusNumber: donorRoute ? donorRoute.busNumber : null,
-                        rangeInfo,
-                        liveState,
-                        reason
-                    });
-                }
-            });
-            return list;
-        }
-
-        function renderSwappedModalCards(filterQuery = "") {
-            if (!swappedCardsContainer) return;
-            const swappedList = computeSwappedBusesList();
-            const query = String(filterQuery || "").trim().toLowerCase();
-
-            const filtered = swappedList.filter((item) => {
-                if (!query) return true;
-                const text = `${item.routeId} ${item.busNumber} ${item.defaultVehicle} ${item.assignedVehicle} ${item.origin} ${item.destination} ${item.donorRouteId || ""} ${item.reason}`.toLowerCase();
-                return text.includes(query);
-            });
-
-            if (swappedBadgeCount) {
-                swappedBadgeCount.textContent = swappedList.length;
-                if (swappedList.length > 0) {
-                    swappedBadgeCount.classList.add("has-swaps");
-                } else {
-                    swappedBadgeCount.classList.remove("has-swaps");
-                }
-            }
-            if (modalSwappedCount) {
-                modalSwappedCount.textContent = `${filtered.length} of ${swappedList.length}`;
-            }
-
-            if (swappedList.length === 0) {
-                swappedCardsContainer.innerHTML = `
-                    <div style="text-align:center; padding: 44px 20px; color: var(--muted);">
-                        <div style="font-size: 2.6rem; margin-bottom: 12px;">🚍✨</div>
-                        <h3 style="margin: 0 0 8px; color: var(--ink); font-size: 1.15rem;">All Vehicles Operating on Default Route Allocations</h3>
-                        <p style="max-width: 480px; margin: 0 auto; font-size: 0.88rem; line-height: 1.5;">
-                            No route swaps are currently in effect. Every route schedule line is running with its assigned default vehicle.
-                            When battery levels, route distance, or maintenance status require preemption, the Swap Engine will reassign vehicles automatically.
-                        </p>
-                    </div>
-                `;
-                return;
-            }
-
-            if (filtered.length === 0) {
-                swappedCardsContainer.innerHTML = `
-                    <div style="text-align:center; padding: 36px 20px; color: var(--muted);">
-                        <p style="font-size: 0.95rem;">No swapped routes match "<strong>${escapeHtml(query)}</strong>".</p>
-                    </div>
-                `;
-                return;
-            }
-
-            swappedCardsContainer.innerHTML = filtered.map((item) => {
-                const soc = item.rangeInfo.soc !== undefined ? item.rangeInfo.soc : (item.liveState.soc !== undefined ? item.liveState.soc : "--");
-                const estRange = item.rangeInfo.estimatedRangeKm !== undefined ? `${item.rangeInfo.estimatedRangeKm} km` : "--";
-                const dist = item.rangeInfo.gtfsDistanceKm ? `${item.rangeInfo.gtfsDistanceKm.toFixed(1)} km` : "--";
-                const condition = item.rangeInfo.condition || item.liveState.condition || "Good";
-                const isBlocked = blockedRouteIds.has(String(item.routeId));
-
-                const donorInfo = item.donorRouteId 
-                    ? `<span style="font-size:0.78rem; color:var(--muted); margin-left:6px;">(Exchanged from Route ${escapeHtml(item.donorRouteId)} • ${escapeHtml(item.donorBusNumber || "")})</span>` 
-                    : "";
-
-                return `
-                    <div class="swap-card">
-                        <div class="swap-card-header">
-                            <div>
-                                <span class="swap-route-badge">Route ${escapeHtml(item.routeId)} — ${escapeHtml(item.busNumber)}</span>
-                                <strong style="margin-left: 8px; font-size: 0.95rem; color: var(--ink);">
-                                    ${escapeHtml(item.origin)} ➔ ${escapeHtml(item.destination)}
-                                </strong>
-                            </div>
-                            <div>
-                                ${isBlocked ? '<span class="status-pill status-delayed" style="background:#fee2e2; color:#b91c1c;">BLOCKED BY SWAP ENGINE</span>' : '<span class="status-pill status-ahead" style="background:#dcfce7; color:#15803d;">ACTIVE ALLOCATION</span>'}
-                            </div>
-                        </div>
-
-                        <div class="swap-exchange-flow">
-                            <div>
-                                <span style="font-size: 0.72rem; text-transform: uppercase; color: var(--muted); display: block; font-weight: 700; margin-bottom: 2px;">Default Scheduled Vehicle</span>
-                                <span class="bus-pill-default">🚌 ${escapeHtml(item.defaultVehicle)}</span>
-                            </div>
-
-                            <div class="swap-arrow">⇄</div>
-
-                            <div>
-                                <span style="font-size: 0.72rem; text-transform: uppercase; color: #0284c7; display: block; font-weight: 700; margin-bottom: 2px;">Finally Swapped Assigned Vehicle</span>
-                                <span class="bus-pill-swapped">✅ 🚌 ${escapeHtml(item.assignedVehicle)}</span>
-                                ${donorInfo}
-                            </div>
-                        </div>
-
-                        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin: 10px 0; font-size: 0.82rem; color: var(--muted); background: #fdfdfd; padding: 6px 10px; border-radius: 6px; border: 1px solid #f1f5f9;">
-                            <div>⚡ <strong>Battery SoC:</strong> <span style="color:var(--ink);">${soc}%</span></div>
-                            <div>📏 <strong>Route Distance:</strong> <span style="color:var(--ink);">${dist}</span></div>
-                            <div>🔋 <strong>Est. Range:</strong> <span style="color:var(--ink);">${estRange}</span></div>
-                            <div>🔧 <strong>Condition:</strong> <span style="color:${condition === 'Good' ? '#16a34a' : '#dc2626'}; font-weight:700;">${escapeHtml(condition)}</span></div>
-                        </div>
-
-                        <div class="swap-reason-box">
-                            <strong>💡 Operational Reason for Swap:</strong><br>
-                            ${escapeHtml(item.reason)}
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        function openSwappedModal() {
-            if (!swappedModalBackdrop) return;
-            swappedModalBackdrop.style.display = "flex";
-            swappedModalBackdrop.setAttribute("aria-hidden", "false");
-            document.body.style.overflow = "hidden";
-            if (swappedModalSearch) {
-                swappedModalSearch.value = "";
-                swappedModalSearch.focus();
-            }
-            renderSwappedModalCards("");
-        }
-
-        function closeSwappedModal() {
-            if (!swappedModalBackdrop) return;
-            swappedModalBackdrop.style.display = "none";
-            swappedModalBackdrop.setAttribute("aria-hidden", "true");
-            document.body.style.overflow = "";
-        }
-
-        function updateSwappedBusesButtonAndModal() {
-            const list = computeSwappedBusesList();
-            if (swappedBadgeCount) {
-                swappedBadgeCount.textContent = list.length;
-                if (list.length > 0) {
-                    swappedBadgeCount.classList.add("has-swaps");
-                } else {
-                    swappedBadgeCount.classList.remove("has-swaps");
-                }
-            }
-            if (swappedModalBackdrop && swappedModalBackdrop.style.display === "flex") {
-                const query = swappedModalSearch ? swappedModalSearch.value : "";
-                renderSwappedModalCards(query);
-            }
-        }
-
-        if (openSwappedBtn) {
-            openSwappedBtn.addEventListener("click", openSwappedModal);
-        }
-        if (closeSwappedModalBtn) {
-            closeSwappedModalBtn.addEventListener("click", closeSwappedModal);
-        }
-        if (swappedModalBackdrop) {
-            swappedModalBackdrop.addEventListener("click", (e) => {
-                if (e.target === swappedModalBackdrop) {
-                    closeSwappedModal();
-                }
-            });
-        }
-        window.addEventListener("keydown", (e) => {
-            if (e.key === "Escape" && swappedModalBackdrop && swappedModalBackdrop.style.display === "flex") {
-                closeSwappedModal();
-            }
-        });
-        if (swappedModalSearch) {
-            swappedModalSearch.addEventListener("input", (e) => {
-                renderSwappedModalCards(e.target.value);
-            });
+            // Return designated BM number for this route, falling back to uniqueId or busNumber
+            return (busAssignments && (busAssignments[String(route.routeId)] || busAssignments[route.uniqueId])) || route.bmNumber || route.uniqueId || route.busNumber || route.routeId;
         }
 
         function updateSelectedBusDutyBanner() {
@@ -1658,7 +1279,7 @@
                 // Manual override forces this specific bus into allocated
                 if (isManualOverride && String(route.routeId) === String(manuallySelectedId)) return true;
 
-                // If swap engine says blocked → not allocated
+                // If blocked by server allocation rules → not allocated
                 if (blockedRouteIds.has(String(route.routeId))) return false;
 
                 const assignedName = getAssignedBusName(route);
@@ -1719,10 +1340,8 @@
 
                 routeSelect.innerHTML = `<option value="">${defaultPlaceholder}</option>` + displayRoutes.map((route) => {
                     const assignedVehicle = getAssignedBusName(route);
-                    const defaultVehicle = route.uniqueId || "";
-                    const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                     const isBlocked = blockedRouteIds.has(String(route.routeId));
-                    const vehiclePart = `[Assigned: ${assignedVehicle}${isSwapped ? ' 🔄 Swapped' : ''}]`;
+                    const vehiclePart = `[BM Number: ${assignedVehicle}]`;
                     const blockedPart = isBlocked ? " ⛔ Blocked" : "";
                     const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
                     const tripsPart = tripCount ? ` • 🎯 ${tripCount} Trips assigned` : "";
@@ -1762,7 +1381,7 @@
                 if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
                 // If the bus is in allocatedRoutes, it does not belong in notAllocated
                 if (allocatedIds.has(String(r.routeId))) return false;
-                // Include routes blocked by swap engine even without telemetry
+                // Include routes blocked by server allocation rules even without telemetry
                 if (blockedRouteIds.has(String(r.routeId))) return true;
                 const assignedName = getAssignedBusName(r);
                 const state = busStates[r.routeId] || busStates[r.uniqueId] || busStates[assignedName] || busStates[r.busNumber] || {};
@@ -1790,7 +1409,6 @@
             updateAssignedDriverCount();
 
             renderScheduledTime();
-            updateSwappedBusesButtonAndModal();
         }
 
         function renderAllocatedList(allocatedList) {
@@ -1917,14 +1535,8 @@
                 const tripsBadge = `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #bfdbfe;">🎯 ${tripCount} Trips</span>`;
 
                 const assignedVehicle = getAssignedBusName(route);
-                const defaultVehicle = route.uniqueId || "";
-                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
-                const titleHtml = isSwapped
-                    ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped Vehicle: ${assignedVehicle}</span></strong>`
-                    : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#f0fdf4;color:#166534;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
-                const subtitleHtml = isSwapped
-                    ? `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId} • Scheduled Default: ${defaultVehicle}</span>`
-                    : `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>`;
+                const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#f0fdf4;color:#166534;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
+                const subtitleHtml = `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
                 return `
                     <div class="route-row" data-route-id="${route.routeId}">
@@ -2071,8 +1683,6 @@
                     (!badCondition && !isBlockedByRange && !noDriver && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
                 const assignedVehicle = getAssignedBusName(route);
-                const defaultVehicle = route.uniqueId || "";
-                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const routeDist = Number(route.gtfsDistanceKm) || 0;
                 const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
                 const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
@@ -2080,12 +1690,8 @@
                 const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
                 const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
                 const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
-                const titleHtml = isSwapped
-                    ? `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🔄 Swapped: ${assignedVehicle}</span></strong>`
-                    : `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 Vehicle: ${assignedVehicle}</span></strong>`;
-                const subtitleHtml = isSwapped
-                    ? `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId} • Scheduled Default: ${defaultVehicle}</span>`
-                    : `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
+                const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
+                const subtitleHtml = `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
                 return `
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
@@ -2241,8 +1847,6 @@
 
             scheduledTimeTbody.innerHTML = filteredScheduledRoutes.map((route) => {
                 const assignedVehicle = getAssignedBusName(route);
-                const defaultVehicle = route.uniqueId || "";
-                const isSwapped = Boolean(assignedVehicle && defaultVehicle && assignedVehicle !== defaultVehicle);
                 const isAllocated = allocatedSet.has(String(route.routeId));
                 const isSelected = String(route.routeId) === currentlySelectedId;
                 const timings = getRouteScheduleTimings(route, isSelected);
@@ -2266,8 +1870,7 @@
                         </td>
                         <td>
                             <div style="display:flex;align-items:center;gap:6px;">
-                                <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 ${assignedVehicle}</span>
-                                ${isSwapped ? '<span style="font-size:.68rem;background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;">🔄 Swapped</span>' : ''}
+                                <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${assignedVehicle}</span>
                             </div>
                             <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% • ${condition}</div>
                         </td>
@@ -2335,7 +1938,7 @@
             document.body.style.overflow = "hidden";
 
             const targetRoute = routes.find((r) => String(r.routeId) === String(routeId)) || routes[0] || {};
-            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.uniqueId || "BUS-01";
+            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.bmNumber || targetRoute.uniqueId || "BM238";
 
             if (tasksModalBusBadge) {
                 tasksModalBusBadge.textContent = assignedVehicle;
@@ -2455,7 +2058,7 @@
             const estRange = data.estimatedRangeKm ?? 106;
             const totalTrips = data.totalAssignedTrips || 0;
             const maxFeasible = data.maxFeasibleTrips || 0;
-            const vehicle = data.assignedVehicle || data.uniqueId || "BUS-01";
+            const vehicle = data.assignedVehicle || data.bmNumber || data.uniqueId || "BM238";
             const busNum = data.busNumber || "N/A";
             const origin = data.origin || "Origin";
             const dest = data.destination || "Destination";
@@ -3076,7 +2679,6 @@
                         }
                         renderRoutes();
                         recommend();
-                        updateSwappedBusesButtonAndModal();
                     } catch {}
                 }, 10000);
             } catch (error) {
