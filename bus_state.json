@@ -344,10 +344,10 @@
     "blocked": true
   },
   "1549": {
-    "status": "Warning",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 26,
-    "condition": "Not Good",
+    "soc": 8,
+    "condition": "Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
       "Delayed": {
@@ -389,7 +389,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-21",
+    "uniqueId": "EV-12",
     "busNumber": "D9-PSS",
     "blocked": true
   },
@@ -403,11 +403,11 @@
   },
   "1610": {
     "status": "Warning",
-    "condition": "Good",
-    "soc": 16,
+    "condition": "Not Good",
+    "soc": 26,
     "busNumber": "252 LGR-PSS",
     "blocked": true,
-    "uniqueId": "EV-27"
+    "uniqueId": "EV-21"
   },
   "1612": {
     "status": "Active",
@@ -540,11 +540,36 @@
   },
   "2764": {
     "status": "Active",
-    "condition": "Good",
+    "rawStatus": "On Time",
     "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:42:32.984Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:42:32.984Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-05",
     "busNumber": "252 PSS-KMT",
-    "blocked": false,
-    "uniqueId": "EV-05"
+    "blocked": false
   },
   "2767": {
     "status": "Active",
@@ -805,10 +830,10 @@
     "blocked": false
   },
   "3629": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
-    "condition": "Not Good",
+    "soc": 10,
+    "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:21.525Z",
     "statusTimings": {
@@ -845,7 +870,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-16",
+    "uniqueId": "EV-49",
     "busNumber": "265-D PSS-VGN",
     "blocked": true
   },
@@ -878,7 +903,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-04",
+    "uniqueId": "EV-07",
     "busNumber": "MBS-12 PSS-ANP",
     "blocked": true
   },
@@ -1048,12 +1073,12 @@
     "blocked": false
   },
   "3916": {
-    "status": "Warning",
-    "condition": "Good",
-    "soc": 23,
+    "status": "Active",
+    "condition": "Not Good",
+    "soc": 100,
     "busNumber": "PSS-NTTF-LGRNBS",
     "blocked": true,
-    "uniqueId": "EV-50"
+    "uniqueId": "EV-16"
   },
   "3920": {
     "status": "Active",
@@ -1064,9 +1089,9 @@
     "uniqueId": "EV-34"
   },
   "3935": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 10,
+    "soc": 18,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T14:52:03.990Z",
@@ -1104,14 +1129,14 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-49",
+    "uniqueId": "EV-30",
     "busNumber": "MF-26 PSS-JHMS",
     "blocked": true
   },
   "3951": {
     "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 8,
+    "soc": 13,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T07:08:30.981Z",
@@ -1155,7 +1180,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-22",
     "busNumber": "265-A PSS-TEPL",
     "blocked": true
   },
@@ -1475,9 +1500,9 @@
     }
   },
   "7296": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 13,
+    "soc": 16,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:53:33.939Z",
@@ -1521,17 +1546,17 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-22",
+    "uniqueId": "EV-27",
     "busNumber": "JHMS-PSS",
     "blocked": true
   },
   "7403": {
-    "status": "Active",
-    "condition": "Not Good",
-    "soc": 85,
+    "status": "Warning",
+    "condition": "Good",
+    "soc": 18,
     "busNumber": "PSS-TGPL-GGH",
     "blocked": true,
-    "uniqueId": "EV-07"
+    "uniqueId": "EV-48"
   },
   "7632": {
     "status": "Active",
@@ -1633,7 +1658,7 @@
   "8276": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 18,
+    "soc": 23,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:42.529Z",
@@ -1665,7 +1690,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-50",
     "busNumber": "BC-7B BDYH-PSS",
     "blocked": true
   },
@@ -1894,10 +1919,10 @@
     "blocked": false
   },
   "9534": {
-    "status": "Warning",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 18,
-    "condition": "Good",
+    "soc": 85,
+    "condition": "Not Good",
     "updatedAt": "2026-09-26T16:35:54.975Z",
     "statusTimings": {
       "Delayed": {
@@ -1941,7 +1966,7 @@
     ],
     "busNumber": "CHAKRA-7",
     "blocked": true,
-    "uniqueId": "EV-48"
+    "uniqueId": "EV-04"
   },
   "9535": {
     "status": "Active",
@@ -2133,10 +2158,10 @@
     "blocked": false
   },
   "CHAKRA-7": {
-    "status": "Warning",
+    "status": "Active",
     "rawStatus": "Active",
-    "soc": 18,
-    "condition": "Good",
+    "soc": 85,
+    "condition": "Not Good",
     "updatedAt": "2026-09-23T21:15:18.319Z",
     "statusTimings": {
       "Delayed": {
@@ -2155,7 +2180,7 @@
     "assignedRouteId": "9534",
     "assignedRouteDisplay": "Route 9534 (7.4 km)",
     "blocked": true,
-    "uniqueId": "EV-48"
+    "uniqueId": "EV-04"
   },
   "_assignments": {
     "252": "EV-40",
@@ -2165,9 +2190,9 @@
     "1427": "EV-25",
     "1428": "EV-33",
     "1548": "EV-08",
-    "1549": "EV-21",
+    "1549": "EV-12",
     "1553": "EV-40",
-    "1610": "EV-27",
+    "1610": "EV-21",
     "1612": "EV-03",
     "1621": "EV-01",
     "1626": "EV-39",
@@ -2183,35 +2208,35 @@
     "2861": "EV-15",
     "3158": "EV-45",
     "3430": "EV-44",
-    "3629": "EV-16",
-    "3831": "EV-04",
+    "3629": "EV-49",
+    "3831": "EV-07",
     "3864": "EV-24",
     "3878": "EV-10",
     "3907": "EV-42",
-    "3916": "EV-50",
+    "3916": "EV-16",
     "3920": "EV-34",
-    "3935": "EV-49",
-    "3951": "EV-12",
+    "3935": "EV-30",
+    "3951": "EV-22",
     "4759": "EV-37",
     "4798": "EV-23",
     "6080": "EV-11",
     "6551": "EV-35",
     "6979": "EV-47",
     "7143": "EV-14",
-    "7296": "EV-22",
-    "7403": "EV-07",
+    "7296": "EV-27",
+    "7403": "EV-48",
     "7632": "EV-32",
     "7834": "EV-06",
     "7888": "EV-31",
     "8178": "EV-17",
-    "8276": "EV-30",
+    "8276": "EV-50",
     "8543": "EV-26",
     "8592": "EV-18",
     "8781": "EV-19",
     "8842": "EV-13",
     "9108": "EV-53",
     "9132": "EV-20",
-    "9534": "EV-48",
+    "9534": "EV-04",
     "9535": "EV-29",
     "9581": "EV-52",
     "9636": "EV-51",
@@ -2223,11 +2248,11 @@
     "401-AM PTH-PSS": "EV-33",
     "EV-08": "1548",
     "D22-PSS": "EV-08",
-    "EV-21": "1549",
-    "D9-PSS": "EV-21",
+    "EV-12": "1549",
+    "D9-PSS": "EV-12",
     "EV-40": "1553",
-    "EV-27": "1610",
-    "252 LGR-PSS": "EV-27",
+    "EV-21": "1610",
+    "252 LGR-PSS": "EV-21",
     "EV-03": "1612",
     "252-A": "EV-03",
     "EV-01": "1621",
@@ -2257,24 +2282,24 @@
     "254-E PSS-KMP": "EV-45",
     "EV-44": "3430",
     "507-B": "EV-44",
-    "EV-16": "3629",
-    "265-D PSS-VGN": "EV-16",
-    "EV-04": "3831",
-    "MBS-12 PSS-ANP": "EV-04",
+    "EV-49": "3629",
+    "265-D PSS-VGN": "EV-49",
+    "EV-07": "3831",
+    "MBS-12 PSS-ANP": "EV-07",
     "EV-24": "3864",
     "248-AB": "EV-24",
     "EV-10": "3878",
     "401-AK PSS-ABG": "EV-10",
     "EV-42": "3907",
     "401-AK ABG-PSS": "EV-42",
-    "EV-50": "3916",
-    "PSS-NTTF-LGRNBS": "EV-50",
+    "EV-16": "3916",
+    "PSS-NTTF-LGRNBS": "EV-16",
     "EV-34": "3920",
     "253-J PSS-HGV": "EV-34",
-    "EV-49": "3935",
-    "MF-26 PSS-JHMS": "EV-49",
-    "EV-12": "3951",
-    "265-A PSS-TEPL": "EV-12",
+    "EV-30": "3935",
+    "MF-26 PSS-JHMS": "EV-30",
+    "EV-22": "3951",
+    "265-A PSS-TEPL": "EV-22",
     "EV-37": "4759",
     "270-D PSS-ABG": "EV-37",
     "EV-23": "4798",
@@ -2287,10 +2312,10 @@
     "251E PSS-KMT": "EV-47",
     "EV-14": "7143",
     "MF-32 PSS-CKB": "EV-14",
-    "EV-22": "7296",
-    "JHMS-PSS": "EV-22",
-    "EV-07": "7403",
-    "PSS-TGPL-GGH": "EV-07",
+    "EV-27": "7296",
+    "JHMS-PSS": "EV-27",
+    "EV-48": "7403",
+    "PSS-TGPL-GGH": "EV-48",
     "EV-32": "7632",
     "500-D MRHB-HBL-PSS": "EV-32",
     "EV-06": "7834",
@@ -2299,8 +2324,8 @@
     "BC-7B PSS-ANDRH-HRHC": "EV-31",
     "EV-17": "8178",
     "G-252 KBS D9 D22-PSS": "EV-17",
-    "EV-30": "8276",
-    "BC-7B BDYH-PSS": "EV-30",
+    "EV-50": "8276",
+    "BC-7B BDYH-PSS": "EV-50",
     "EV-26": "8543",
     "EV-18": "8592",
     "273 SDN-PSS": "EV-18",
@@ -2312,8 +2337,8 @@
     "PSS-RGPS-SMH": "EV-53",
     "EV-20": "9132",
     "273 VSD-RJB-PSS": "EV-20",
-    "EV-48": "9534",
-    "CHAKRA-7": "EV-48",
+    "EV-04": "9534",
+    "CHAKRA-7": "EV-04",
     "EV-29": "9535",
     "CHAKRA-7A": "EV-29",
     "EV-52": "9581",
@@ -2322,332 +2347,24 @@
     "252-A PSS-HAL ARDC": "EV-51"
   },
   "_blockedRouteIds": [
-    "3831",
-    "7403",
-    "1548",
-    "3951",
-    "3629",
-    "1549",
-    "7296",
-    "1610",
-    "8276",
-    "7888",
     "9534",
-    "3935",
+    "3831",
+    "1548",
+    "1549",
     "3916",
+    "1610",
+    "3951",
+    "7296",
+    "3935",
+    "7888",
+    "7403",
+    "3629",
+    "8276",
     "2787"
   ],
   "_swapLog": [
     {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "3831",
-      "routeShortNameA": "MBS-12 PSS-ANP",
-      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distA": 7.07,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "7403",
-      "routeShortNameB": "PSS-TGPL-GGH",
-      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distB": 6.94,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-48",
-      "socB": 18,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-48",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 3831 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "7403",
-      "routeShortNameA": "PSS-TGPL-GGH",
-      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distA": 6.94,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "2787",
-      "routeShortNameB": "251-C PSS-RPS-LGR",
-      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.72,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-50",
-      "socB": 23,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 7403 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "2787",
-      "routeShortNameA": "251-C PSS-RPS-LGR",
-      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.72,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "3916",
-      "routeShortNameB": "PSS-NTTF-LGRNBS",
-      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-27",
-      "socB": 16,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 2787 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "3916",
-      "routeShortNameA": "PSS-NTTF-LGRNBS",
-      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "1610",
-      "routeShortNameB": "252 LGR-PSS",
-      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-30",
-      "socB": 18,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3916 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "1610",
-      "routeShortNameA": "252 LGR-PSS",
-      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "8276",
-      "routeShortNameB": "BC-7B BDYH-PSS",
-      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distB": 5.29,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-22",
-      "socB": 13,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-22",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 1610 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "8276",
-      "routeShortNameA": "BC-7B BDYH-PSS",
-      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distA": 5.29,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-07",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "7296",
-      "routeShortNameB": "JHMS-PSS",
-      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distB": 5.19,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-49",
-      "socB": 10,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-49",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 8276 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.601Z",
-      "routeA": "3629",
-      "routeShortNameA": "265-D PSS-VGN",
-      "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
-      "distA": 2.48,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-21",
-      "socA": 26,
-      "busCategoryA": "C",
-      "routeB": "1549",
-      "routeShortNameB": "D9-PSS",
-      "routeLineB": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
-      "distB": 1.63,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-12",
-      "socB": 8,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3629 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "9534",
-      "routeShortNameA": "CHAKRA-7",
-      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
-      "distA": 7.38,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "3831",
-      "routeShortNameB": "MBS-12 PSS-ANP",
-      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distB": 7.07,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-48",
-      "socB": 18,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-48",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 9534 (CHAKRA-7, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 9534 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3831",
-      "routeShortNameA": "MBS-12 PSS-ANP",
-      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distA": 7.07,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "7403",
-      "routeShortNameB": "PSS-TGPL-GGH",
-      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distB": 6.94,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-50",
-      "socB": 23,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3831 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7403",
-      "routeShortNameA": "PSS-TGPL-GGH",
-      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distA": 6.94,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "2787",
-      "routeShortNameB": "251-C PSS-RPS-LGR",
-      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.72,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-27",
-      "socB": 16,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 7403 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "2787",
-      "routeShortNameA": "251-C PSS-RPS-LGR",
-      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.72,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "3916",
-      "routeShortNameB": "PSS-NTTF-LGRNBS",
-      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-30",
-      "socB": 18,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 2787 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3916",
-      "routeShortNameA": "PSS-NTTF-LGRNBS",
-      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "1610",
-      "routeShortNameB": "252 LGR-PSS",
-      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-22",
-      "socB": 13,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-22",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 3916 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "1610",
-      "routeShortNameA": "252 LGR-PSS",
-      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-04",
-      "socA": 85,
-      "busCategoryA": "B",
-      "routeB": "8276",
-      "routeShortNameB": "BC-7B BDYH-PSS",
-      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distB": 5.29,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-49",
-      "socB": 10,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-49",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 1610 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3951",
-      "routeShortNameA": "265-A PSS-TEPL",
-      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
-      "distA": 3.17,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-16",
-      "socA": 100,
-      "busCategoryA": "A",
-      "routeB": "3629",
-      "routeShortNameB": "265-D PSS-VGN",
-      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
-      "distB": 2.48,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-12",
-      "socB": 8,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3951 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "7888",
       "routeShortNameA": "BC-7B PSS-ANDRH-HRHC",
       "routeLineA": "BC-7B PSS-ANDRH-HRHC (Herohalli Cross ➔ Peenya 2nd Stage)",
@@ -2665,83 +2382,17 @@
       "socB": 18,
       "busCategoryB": "C",
       "swappedVehicle": "EV-48",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Safety & Maintenance Alert: Higher priority Route 7888 (BC-7B PSS-ANDRH-HRHC, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 7888 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "9534",
-      "routeShortNameA": "CHAKRA-7",
-      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
-      "distA": 7.38,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-31",
-      "socA": 100,
-      "busCategoryA": "A",
-      "routeB": "3831",
-      "routeShortNameB": "MBS-12 PSS-ANP",
-      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distB": 7.07,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-50",
-      "socB": 23,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-50",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 9534 (CHAKRA-7, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 9534 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3831",
-      "routeShortNameA": "MBS-12 PSS-ANP",
-      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distA": 7.07,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-31",
-      "socA": 100,
-      "busCategoryA": "A",
-      "routeB": "7403",
-      "routeShortNameB": "PSS-TGPL-GGH",
-      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distB": 6.94,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-27",
-      "socB": 16,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-27",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3831 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7403",
-      "routeShortNameA": "PSS-TGPL-GGH",
-      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distA": 6.94,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-31",
-      "socA": 100,
-      "busCategoryA": "A",
-      "routeB": "2787",
-      "routeShortNameB": "251-C PSS-RPS-LGR",
-      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.72,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-30",
-      "socB": 18,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-30",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 7403 to prevent in-service breakdown."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "2787",
       "routeShortNameA": "251-C PSS-RPS-LGR",
       "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
       "distA": 5.72,
       "categoryA": "SIMPLE",
-      "vehicleA": "EV-31",
+      "vehicleA": "EV-54",
       "socA": 100,
       "busCategoryA": "A",
       "routeB": "3916",
@@ -2749,21 +2400,21 @@
       "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
       "distB": 5.69,
       "categoryB": "SIMPLE",
-      "vehicleB": "EV-22",
-      "socB": 13,
+      "vehicleB": "EV-50",
+      "socB": 23,
       "busCategoryB": "C",
-      "swappedVehicle": "EV-22",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 2787 to prevent in-service breakdown."
+      "swappedVehicle": "EV-50",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 2787 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3916",
       "routeShortNameA": "PSS-NTTF-LGRNBS",
       "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
       "distA": 5.69,
       "categoryA": "SIMPLE",
-      "vehicleA": "EV-31",
+      "vehicleA": "EV-54",
       "socA": 100,
       "busCategoryA": "A",
       "routeB": "1610",
@@ -2771,15 +2422,81 @@
       "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
       "distB": 5.69,
       "categoryB": "SIMPLE",
+      "vehicleB": "EV-27",
+      "socB": 16,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-27",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3916 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "1610",
+      "routeShortNameA": "252 LGR-PSS",
+      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-54",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "8276",
+      "routeShortNameB": "BC-7B BDYH-PSS",
+      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distB": 5.29,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-30",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-30",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 1610 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "8276",
+      "routeShortNameA": "BC-7B BDYH-PSS",
+      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distA": 5.29,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-54",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "7296",
+      "routeShortNameB": "JHMS-PSS",
+      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distB": 5.19,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-22",
+      "socB": 13,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-22",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 8276 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7296",
+      "routeShortNameA": "JHMS-PSS",
+      "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distA": 5.19,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-54",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "3935",
+      "routeShortNameB": "MF-26 PSS-JHMS",
+      "routeLineB": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
+      "distB": 4.57,
+      "categoryB": "SIMPLE",
       "vehicleB": "EV-49",
       "socB": 10,
       "busCategoryB": "C",
       "swappedVehicle": "EV-49",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 3916 to prevent in-service breakdown."
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 7296 (JHMS-PSS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 7296 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2797,77 +2514,77 @@
       "socB": 8,
       "busCategoryB": "C",
       "swappedVehicle": "EV-12",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3916",
-      "routeShortNameA": "PSS-NTTF-LGRNBS",
-      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.69,
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7888",
+      "routeShortNameA": "BC-7B PSS-ANDRH-HRHC",
+      "routeLineA": "BC-7B PSS-ANDRH-HRHC (Herohalli Cross ➔ Peenya 2nd Stage)",
+      "distA": 7.64,
       "categoryA": "SIMPLE",
-      "vehicleA": "EV-49",
-      "socA": 10,
+      "vehicleA": "EV-48",
+      "socA": 18,
       "busCategoryA": "C",
-      "routeB": "1610",
-      "routeShortNameB": "252 LGR-PSS",
-      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distB": 5.69,
+      "routeB": "9534",
+      "routeShortNameB": "CHAKRA-7",
+      "routeLineB": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
+      "distB": 7.38,
       "categoryB": "SIMPLE",
       "vehicleB": "EV-31",
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-31",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 7888 (BC-7B PSS-ANDRH-HRHC) had vehicle 'EV-48' with SoC 18% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "1610",
-      "routeShortNameA": "252 LGR-PSS",
-      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distA": 5.69,
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "9534",
+      "routeShortNameA": "CHAKRA-7",
+      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
+      "distA": 7.38,
       "categoryA": "SIMPLE",
-      "vehicleA": "EV-49",
-      "socA": 10,
+      "vehicleA": "EV-48",
+      "socA": 18,
       "busCategoryA": "C",
-      "routeB": "8276",
-      "routeShortNameB": "BC-7B BDYH-PSS",
-      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distB": 5.29,
+      "routeB": "3831",
+      "routeShortNameB": "MBS-12 PSS-ANP",
+      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distB": 7.07,
       "categoryB": "SIMPLE",
       "vehicleB": "EV-04",
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-04",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 9534 (CHAKRA-7) had vehicle 'EV-48' with SoC 18% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "8276",
-      "routeShortNameA": "BC-7B BDYH-PSS",
-      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distA": 5.29,
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3831",
+      "routeShortNameA": "MBS-12 PSS-ANP",
+      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distA": 7.07,
       "categoryA": "SIMPLE",
-      "vehicleA": "EV-49",
-      "socA": 10,
+      "vehicleA": "EV-48",
+      "socA": 18,
       "busCategoryA": "C",
-      "routeB": "7296",
-      "routeShortNameB": "JHMS-PSS",
-      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distB": 5.19,
+      "routeB": "7403",
+      "routeShortNameB": "PSS-TGPL-GGH",
+      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distB": 6.94,
       "categoryB": "SIMPLE",
       "vehicleB": "EV-07",
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-07",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 3831 (MBS-12 PSS-ANP) had vehicle 'EV-48' with SoC 18% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2885,11 +2602,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-54",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2907,11 +2624,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-16",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2929,11 +2646,605 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3831",
+      "routeShortNameA": "MBS-12 PSS-ANP",
+      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distA": 7.07,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "7403",
+      "routeShortNameB": "PSS-TGPL-GGH",
+      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distB": 6.94,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-48",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-48",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 3831 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7403",
+      "routeShortNameA": "PSS-TGPL-GGH",
+      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distA": 6.94,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "2787",
+      "routeShortNameB": "251-C PSS-RPS-LGR",
+      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.72,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-50",
+      "socB": 23,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-50",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 7403 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "2787",
+      "routeShortNameA": "251-C PSS-RPS-LGR",
+      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.72,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "3916",
+      "routeShortNameB": "PSS-NTTF-LGRNBS",
+      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-27",
+      "socB": 16,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-27",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 2787 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3916",
+      "routeShortNameA": "PSS-NTTF-LGRNBS",
+      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "1610",
+      "routeShortNameB": "252 LGR-PSS",
+      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-30",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-30",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3916 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "1610",
+      "routeShortNameA": "252 LGR-PSS",
+      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "8276",
+      "routeShortNameB": "BC-7B BDYH-PSS",
+      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distB": 5.29,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-22",
+      "socB": 13,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-22",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 1610 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "8276",
+      "routeShortNameA": "BC-7B BDYH-PSS",
+      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distA": 5.29,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-07",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "7296",
+      "routeShortNameB": "JHMS-PSS",
+      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distB": 5.19,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-49",
+      "socB": 10,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-49",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 8276 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3629",
+      "routeShortNameA": "265-D PSS-VGN",
+      "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
+      "distA": 2.48,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-21",
+      "socA": 26,
+      "busCategoryA": "C",
+      "routeB": "1549",
+      "routeShortNameB": "D9-PSS",
+      "routeLineB": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
+      "distB": 1.63,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-12",
+      "socB": 8,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-12",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3629 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "9534",
+      "routeShortNameA": "CHAKRA-7",
+      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
+      "distA": 7.38,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "3831",
+      "routeShortNameB": "MBS-12 PSS-ANP",
+      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distB": 7.07,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-48",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-48",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 9534 (CHAKRA-7, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 9534 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3831",
+      "routeShortNameA": "MBS-12 PSS-ANP",
+      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distA": 7.07,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "7403",
+      "routeShortNameB": "PSS-TGPL-GGH",
+      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distB": 6.94,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-50",
+      "socB": 23,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-50",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3831 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7403",
+      "routeShortNameA": "PSS-TGPL-GGH",
+      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distA": 6.94,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "2787",
+      "routeShortNameB": "251-C PSS-RPS-LGR",
+      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.72,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-27",
+      "socB": 16,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-27",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 7403 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "2787",
+      "routeShortNameA": "251-C PSS-RPS-LGR",
+      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.72,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "3916",
+      "routeShortNameB": "PSS-NTTF-LGRNBS",
+      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-30",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-30",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 2787 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3916",
+      "routeShortNameA": "PSS-NTTF-LGRNBS",
+      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "1610",
+      "routeShortNameB": "252 LGR-PSS",
+      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-22",
+      "socB": 13,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-22",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 3916 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "1610",
+      "routeShortNameA": "252 LGR-PSS",
+      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-04",
+      "socA": 85,
+      "busCategoryA": "B",
+      "routeB": "8276",
+      "routeShortNameB": "BC-7B BDYH-PSS",
+      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distB": 5.29,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-49",
+      "socB": 10,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-49",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 1610 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3951",
+      "routeShortNameA": "265-A PSS-TEPL",
+      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distA": 3.17,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-16",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "3629",
+      "routeShortNameB": "265-D PSS-VGN",
+      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
+      "distB": 2.48,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-12",
+      "socB": 8,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-12",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3951 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7888",
+      "routeShortNameA": "BC-7B PSS-ANDRH-HRHC",
+      "routeLineA": "BC-7B PSS-ANDRH-HRHC (Herohalli Cross ➔ Peenya 2nd Stage)",
+      "distA": 7.64,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "9534",
+      "routeShortNameB": "CHAKRA-7",
+      "routeLineB": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
+      "distB": 7.38,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-48",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-48",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 7888 (BC-7B PSS-ANDRH-HRHC, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-48' to Route 7888 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "9534",
+      "routeShortNameA": "CHAKRA-7",
+      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
+      "distA": 7.38,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "3831",
+      "routeShortNameB": "MBS-12 PSS-ANP",
+      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distB": 7.07,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-50",
+      "socB": 23,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-50",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 9534 (CHAKRA-7, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 9534 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3831",
+      "routeShortNameA": "MBS-12 PSS-ANP",
+      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
+      "distA": 7.07,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "7403",
+      "routeShortNameB": "PSS-TGPL-GGH",
+      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distB": 6.94,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-27",
+      "socB": 16,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-27",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3831 (MBS-12 PSS-ANP, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3831 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "7403",
+      "routeShortNameA": "PSS-TGPL-GGH",
+      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
+      "distA": 6.94,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "2787",
+      "routeShortNameB": "251-C PSS-RPS-LGR",
+      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.72,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-30",
+      "socB": 18,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-30",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 7403 (PSS-TGPL-GGH, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 7403 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "2787",
+      "routeShortNameA": "251-C PSS-RPS-LGR",
+      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.72,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "3916",
+      "routeShortNameB": "PSS-NTTF-LGRNBS",
+      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-22",
+      "socB": 13,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-22",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 2787 (251-C PSS-RPS-LGR, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-22' to Route 2787 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3916",
+      "routeShortNameA": "PSS-NTTF-LGRNBS",
+      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-31",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "1610",
+      "routeShortNameB": "252 LGR-PSS",
+      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-49",
+      "socB": 10,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-49",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-31' in 'Not Good' condition. Reassigned operational vehicle 'EV-49' to Route 3916 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3935",
+      "routeShortNameA": "MF-26 PSS-JHMS",
+      "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
+      "distA": 4.57,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-54",
+      "socA": 100,
+      "busCategoryA": "A",
+      "routeB": "3951",
+      "routeShortNameB": "265-A PSS-TEPL",
+      "routeLineB": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distB": 3.17,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-12",
+      "socB": 8,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-12",
+      "timeSlot": "PEAK",
+      "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3935 to prevent in-service breakdown."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3916",
+      "routeShortNameA": "PSS-NTTF-LGRNBS",
+      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-49",
+      "socA": 10,
+      "busCategoryA": "C",
+      "routeB": "1610",
+      "routeShortNameB": "252 LGR-PSS",
+      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distB": 5.69,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-31",
+      "socB": 100,
+      "busCategoryB": "A",
+      "swappedVehicle": "EV-31",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "1610",
+      "routeShortNameA": "252 LGR-PSS",
+      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-49",
+      "socA": 10,
+      "busCategoryA": "C",
+      "routeB": "8276",
+      "routeShortNameB": "BC-7B BDYH-PSS",
+      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distB": 5.29,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-04",
+      "socB": 85,
+      "busCategoryB": "B",
+      "swappedVehicle": "EV-04",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "8276",
+      "routeShortNameA": "BC-7B BDYH-PSS",
+      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distA": 5.29,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-49",
+      "socA": 10,
+      "busCategoryA": "C",
+      "routeB": "7296",
+      "routeShortNameB": "JHMS-PSS",
+      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distB": 5.19,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-07",
+      "socB": 85,
+      "busCategoryB": "B",
+      "swappedVehicle": "EV-07",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3935",
+      "routeShortNameA": "MF-26 PSS-JHMS",
+      "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
+      "distA": 4.57,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-12",
+      "socA": 8,
+      "busCategoryA": "C",
+      "routeB": "3951",
+      "routeShortNameB": "265-A PSS-TEPL",
+      "routeLineB": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distB": 3.17,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-54",
+      "socB": 100,
+      "busCategoryB": "A",
+      "swappedVehicle": "EV-54",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3951",
+      "routeShortNameA": "265-A PSS-TEPL",
+      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distA": 3.17,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-12",
+      "socA": 8,
+      "busCategoryA": "C",
+      "routeB": "3629",
+      "routeShortNameB": "265-D PSS-VGN",
+      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
+      "distB": 2.48,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-16",
+      "socB": 100,
+      "busCategoryB": "A",
+      "swappedVehicle": "EV-16",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
+      "routeA": "3629",
+      "routeShortNameA": "265-D PSS-VGN",
+      "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
+      "distA": 2.48,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-12",
+      "socA": 8,
+      "busCategoryA": "C",
+      "routeB": "1549",
+      "routeShortNameB": "D9-PSS",
+      "routeLineB": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
+      "distB": 1.63,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-21",
+      "socB": 26,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-21",
+      "timeSlot": "PEAK",
+      "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "2787",
       "routeShortNameA": "251-C PSS-RPS-LGR",
       "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -2951,11 +3262,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-31",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 2787 (251-C PSS-RPS-LGR) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3916",
       "routeShortNameA": "PSS-NTTF-LGRNBS",
       "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -2973,11 +3284,11 @@
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-04",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "1610",
       "routeShortNameA": "252 LGR-PSS",
       "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
@@ -2995,11 +3306,11 @@
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-07",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -3017,11 +3328,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-54",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -3039,11 +3350,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-16",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -3061,11 +3372,11 @@
       "socB": 26,
       "busCategoryB": "C",
       "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-49' with SoC 10% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "7403",
       "routeShortNameA": "PSS-TGPL-GGH",
       "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
@@ -3083,11 +3394,11 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-31",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 7403 (PSS-TGPL-GGH) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "2787",
       "routeShortNameA": "251-C PSS-RPS-LGR",
       "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -3105,11 +3416,11 @@
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-04",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 2787 (251-C PSS-RPS-LGR) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "3916",
       "routeShortNameA": "PSS-NTTF-LGRNBS",
       "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -3127,11 +3438,11 @@
       "socB": 85,
       "busCategoryB": "B",
       "swappedVehicle": "EV-07",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T09:46:06.602Z",
+      "timestamp": "2026-09-30T12:42:32.986Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -3149,294 +3460,8 @@
       "socB": 100,
       "busCategoryB": "A",
       "swappedVehicle": "EV-54",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7296",
-      "routeShortNameA": "JHMS-PSS",
-      "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distA": 5.19,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-22",
-      "socA": 13,
-      "busCategoryA": "C",
-      "routeB": "3935",
-      "routeShortNameB": "MF-26 PSS-JHMS",
-      "routeLineB": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
-      "distB": 4.57,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-16",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-16",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3935",
-      "routeShortNameA": "MF-26 PSS-JHMS",
-      "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
-      "distA": 4.57,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-22",
-      "socA": 13,
-      "busCategoryA": "C",
-      "routeB": "3951",
-      "routeShortNameB": "265-A PSS-TEPL",
-      "routeLineB": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
-      "distB": 3.17,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-21",
-      "socB": 26,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-22' with SoC 13% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3831",
-      "routeShortNameA": "MBS-12 PSS-ANP",
-      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distA": 7.07,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-27",
-      "socA": 16,
-      "busCategoryA": "C",
-      "routeB": "7403",
-      "routeShortNameB": "PSS-TGPL-GGH",
-      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distB": 6.94,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-31",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-31",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 3831 (MBS-12 PSS-ANP) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7403",
-      "routeShortNameA": "PSS-TGPL-GGH",
-      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distA": 6.94,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-27",
-      "socA": 16,
-      "busCategoryA": "C",
-      "routeB": "2787",
-      "routeShortNameB": "251-C PSS-RPS-LGR",
-      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.72,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-04",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-04",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 7403 (PSS-TGPL-GGH) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "2787",
-      "routeShortNameA": "251-C PSS-RPS-LGR",
-      "routeLineA": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.72,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-27",
-      "socA": 16,
-      "busCategoryA": "C",
-      "routeB": "3916",
-      "routeShortNameB": "PSS-NTTF-LGRNBS",
-      "routeLineB": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-07",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-07",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 2787 (251-C PSS-RPS-LGR) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "1610",
-      "routeShortNameA": "252 LGR-PSS",
-      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-30",
-      "socA": 18,
-      "busCategoryA": "C",
-      "routeB": "8276",
-      "routeShortNameB": "BC-7B BDYH-PSS",
-      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distB": 5.29,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-54",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-54",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "8276",
-      "routeShortNameA": "BC-7B BDYH-PSS",
-      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distA": 5.29,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-30",
-      "socA": 18,
-      "busCategoryA": "C",
-      "routeB": "7296",
-      "routeShortNameB": "JHMS-PSS",
-      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distB": 5.19,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-16",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-16",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7296",
-      "routeShortNameA": "JHMS-PSS",
-      "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distA": 5.19,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-30",
-      "socA": 18,
-      "busCategoryA": "C",
-      "routeB": "3935",
-      "routeShortNameB": "MF-26 PSS-JHMS",
-      "routeLineB": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
-      "distB": 4.57,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-21",
-      "socB": 26,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-21",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "9534",
-      "routeShortNameA": "CHAKRA-7",
-      "routeLineA": "CHAKRA-7 (Peenya 2nd Stage ➔ Peenya 2nd stage)",
-      "distA": 7.38,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-50",
-      "socA": 23,
-      "busCategoryA": "C",
-      "routeB": "3831",
-      "routeShortNameB": "MBS-12 PSS-ANP",
-      "routeLineB": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distB": 7.07,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-31",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-31",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 9534 (CHAKRA-7) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-31' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3831",
-      "routeShortNameA": "MBS-12 PSS-ANP",
-      "routeLineA": "MBS-12 PSS-ANP (Annapoorneshwarinagara ➔ Peenya 2nd Stage)",
-      "distA": 7.07,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-50",
-      "socA": 23,
-      "busCategoryA": "C",
-      "routeB": "7403",
-      "routeShortNameB": "PSS-TGPL-GGH",
-      "routeLineB": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distB": 6.94,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-04",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-04",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 3831 (MBS-12 PSS-ANP) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "7403",
-      "routeShortNameA": "PSS-TGPL-GGH",
-      "routeLineA": "PSS-TGPL-GGH (Gangondanahalli ➔ Peenya 2nd stage)",
-      "distA": 6.94,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-50",
-      "socA": 23,
-      "busCategoryA": "C",
-      "routeB": "2787",
-      "routeShortNameB": "251-C PSS-RPS-LGR",
-      "routeLineB": "251-C PSS-RPS-LGR (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distB": 5.72,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-07",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-07",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 7403 (PSS-TGPL-GGH) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "3916",
-      "routeShortNameA": "PSS-NTTF-LGRNBS",
-      "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-27",
-      "socA": 16,
-      "busCategoryA": "C",
-      "routeB": "1610",
-      "routeShortNameB": "252 LGR-PSS",
-      "routeLineB": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distB": 5.69,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-54",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-54",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T09:46:06.602Z",
-      "routeA": "1610",
-      "routeShortNameA": "252 LGR-PSS",
-      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
-      "distA": 5.69,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-27",
-      "socA": 16,
-      "busCategoryA": "C",
-      "routeB": "8276",
-      "routeShortNameB": "BC-7B BDYH-PSS",
-      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
-      "distB": 5.29,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-16",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-16",
-      "timeSlot": "EXTREME_PEAK",
-      "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     }
   ],
   "PSS-NLGDH-8THM": {
@@ -3661,7 +3686,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-04",
+    "uniqueId": "EV-07",
     "blocked": true
   },
   "248-AB": {
@@ -3780,13 +3805,13 @@
     "uniqueId": "EV-39"
   },
   "PSS-TGPL-GGH": {
-    "soc": 85,
-    "condition": "Not Good",
-    "status": "Active",
+    "soc": 18,
+    "condition": "Good",
+    "status": "Warning",
     "assignedRouteId": "2780",
     "assignedRouteDisplay": "Route 2780 (8.9 km)",
     "blocked": true,
-    "uniqueId": "EV-07"
+    "uniqueId": "EV-48"
   },
   "250-S PSS-GLB": {
     "soc": 33,
@@ -3908,9 +3933,9 @@
     "blocked": false
   },
   "JHMS-PSS": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 13,
+    "soc": 16,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:53:33.939Z",
@@ -3954,13 +3979,13 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-22",
+    "uniqueId": "EV-27",
     "blocked": true
   },
   "MF-26 PSS-JHMS": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 10,
+    "soc": 18,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T14:52:03.990Z",
@@ -3998,7 +4023,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-49",
+    "uniqueId": "EV-30",
     "blocked": true
   },
   "251E PSS-KMT": {
@@ -4011,13 +4036,36 @@
     "uniqueId": "EV-47"
   },
   "252 PSS-KMT": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
-    "assignedRouteId": "2644",
-    "assignedRouteDisplay": "Route 2644 (20.4 km)",
-    "blocked": false,
-    "uniqueId": "EV-05"
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:42:32.984Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:42:32.984Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-05",
+    "blocked": false
   },
   "507-B": {
     "status": "Active",
@@ -4105,13 +4153,13 @@
     "uniqueId": "EV-54"
   },
   "PSS-NTTF-LGRNBS": {
-    "soc": 23,
-    "condition": "Good",
-    "status": "Warning",
+    "soc": 100,
+    "condition": "Not Good",
+    "status": "Active",
     "assignedRouteId": "7888",
     "assignedRouteDisplay": "Route 7888 (7.6 km)",
     "blocked": true,
-    "uniqueId": "EV-50"
+    "uniqueId": "EV-16"
   },
   "MBS-17 MHB-HBL-JHV-PSS": {
     "soc": 100,
@@ -4216,7 +4264,7 @@
   "BC-7B BDYH-PSS": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 18,
+    "soc": 23,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:42.529Z",
@@ -4248,7 +4296,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-50",
     "blocked": true
   },
   "D22-PSS": {
@@ -4465,13 +4513,13 @@
     "uniqueId": "EV-17"
   },
   "252 LGR-PSS": {
-    "soc": 16,
-    "condition": "Good",
+    "soc": 26,
+    "condition": "Not Good",
     "status": "Warning",
     "assignedRouteId": "2787",
     "assignedRouteDisplay": "Route 2787 (5.7 km)",
     "blocked": true,
-    "uniqueId": "EV-27"
+    "uniqueId": "EV-21"
   },
   "401-AM PTH-PSS": {
     "status": "Active",
@@ -4685,10 +4733,10 @@
     "blocked": false
   },
   "D9-PSS": {
-    "status": "Warning",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 26,
-    "condition": "Not Good",
+    "soc": 8,
+    "condition": "Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
       "Delayed": {
@@ -4730,7 +4778,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-21",
+    "uniqueId": "EV-12",
     "blocked": true
   },
   "500-D MRHB-HBL-PSS": {
@@ -4947,7 +4995,7 @@
   "265-A PSS-TEPL": {
     "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 8,
+    "soc": 13,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T07:08:30.981Z",
@@ -4991,7 +5039,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-22",
     "blocked": true
   },
   "253-D PSS-TRN": {
@@ -5035,10 +5083,10 @@
     "blocked": false
   },
   "265-D PSS-VGN": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
-    "condition": "Not Good",
+    "soc": 10,
+    "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:21.525Z",
     "statusTimings": {
@@ -5075,7 +5123,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-16",
+    "uniqueId": "EV-49",
     "blocked": true
   },
   "401-A PSS-SGP-YHK": {
@@ -5148,7 +5196,7 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5173,7 +5221,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5198,7 +5246,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5223,7 +5271,7 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5248,7 +5296,7 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5273,7 +5321,7 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5298,7 +5346,7 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5323,7 +5371,7 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5348,7 +5396,7 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5366,14 +5414,14 @@
       "vehicleId": "EV-04",
       "busName": "EV-04",
       "defaultBusShortName": "273-B PSS-ABG",
-      "assignedRouteId": "3831",
-      "assignedRouteShortName": "MBS-12 PSS-ANP",
-      "origin": "Annapoorneshwarinagara",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 7.07,
-      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
+      "assignedRouteId": "9534",
+      "assignedRouteShortName": "CHAKRA-7",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Peenya 2nd stage",
+      "assignedRouteDistanceKm": 7.38,
+      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -5392,14 +5440,14 @@
       "vehicleId": "EV-04",
       "busName": "EV-04",
       "defaultBusShortName": "273-B PSS-ABG",
-      "assignedRouteId": "3831",
-      "assignedRouteShortName": "MBS-12 PSS-ANP",
-      "origin": "Annapoorneshwarinagara",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 7.07,
-      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
+      "assignedRouteId": "9534",
+      "assignedRouteShortName": "CHAKRA-7",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Peenya 2nd stage",
+      "assignedRouteDistanceKm": 7.38,
+      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -5425,7 +5473,7 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5450,7 +5498,7 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5475,7 +5523,7 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5500,7 +5548,7 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5518,14 +5566,14 @@
       "vehicleId": "EV-07",
       "busName": "EV-07",
       "defaultBusShortName": "248-AB",
-      "assignedRouteId": "7403",
-      "assignedRouteShortName": "PSS-TGPL-GGH",
-      "origin": "Gangondanahalli",
-      "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 6.94,
-      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
+      "assignedRouteId": "3831",
+      "assignedRouteShortName": "MBS-12 PSS-ANP",
+      "origin": "Annapoorneshwarinagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 7.07,
+      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -5544,14 +5592,14 @@
       "vehicleId": "EV-07",
       "busName": "EV-07",
       "defaultBusShortName": "248-AB",
-      "assignedRouteId": "7403",
-      "assignedRouteShortName": "PSS-TGPL-GGH",
-      "origin": "Gangondanahalli",
-      "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 6.94,
-      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
+      "assignedRouteId": "3831",
+      "assignedRouteShortName": "MBS-12 PSS-ANP",
+      "origin": "Annapoorneshwarinagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 7.07,
+      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -5577,7 +5625,7 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5603,7 +5651,7 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5629,7 +5677,7 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5654,7 +5702,7 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5679,7 +5727,7 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5705,7 +5753,7 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5731,7 +5779,7 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5757,7 +5805,7 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5776,14 +5824,14 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5802,14 +5850,14 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -5835,7 +5883,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5860,7 +5908,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5885,7 +5933,7 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5910,7 +5958,7 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -5935,7 +5983,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5960,7 +6008,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -5978,14 +6026,14 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3916",
+      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
+      "origin": "Laggere New Bus Stand",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -6004,14 +6052,14 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3916",
+      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
+      "origin": "Laggere New Bus Stand",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -6037,7 +6085,7 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6062,7 +6110,7 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6087,7 +6135,7 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6113,7 +6161,7 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6139,7 +6187,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6164,7 +6212,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6189,7 +6237,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6214,7 +6262,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6232,14 +6280,14 @@
       "vehicleId": "EV-21",
       "busName": "EV-21",
       "defaultBusShortName": "507-B",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1610",
+      "assignedRouteShortName": "252 LGR-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Laggere New Bus Stand",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6258,14 +6306,14 @@
       "vehicleId": "EV-21",
       "busName": "EV-21",
       "defaultBusShortName": "507-B",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1610",
+      "assignedRouteShortName": "252 LGR-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Laggere New Bus Stand",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6284,14 +6332,14 @@
       "vehicleId": "EV-22",
       "busName": "EV-22",
       "defaultBusShortName": "254-E PSS-KMP",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6310,14 +6358,14 @@
       "vehicleId": "EV-22",
       "busName": "EV-22",
       "defaultBusShortName": "254-E PSS-KMP",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6343,7 +6391,7 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -6368,7 +6416,7 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -6393,7 +6441,7 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -6418,7 +6466,7 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -6443,7 +6491,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6468,7 +6516,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6493,7 +6541,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6518,7 +6566,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6536,14 +6584,14 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "1610",
-      "assignedRouteShortName": "252 LGR-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Laggere New Bus Stand",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6562,14 +6610,14 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "1610",
-      "assignedRouteShortName": "252 LGR-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Laggere New Bus Stand",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6595,7 +6643,7 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6620,7 +6668,7 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6645,7 +6693,7 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6671,7 +6719,7 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6690,14 +6738,14 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "8276",
-      "assignedRouteShortName": "BC-7B BDYH-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Byadarahalli",
-      "assignedRouteDistanceKm": 5.29,
-      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6716,14 +6764,14 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "8276",
-      "assignedRouteShortName": "BC-7B BDYH-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Byadarahalli",
-      "assignedRouteDistanceKm": 5.29,
-      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -6749,7 +6797,7 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -6775,7 +6823,7 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -6801,7 +6849,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6826,7 +6874,7 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6851,7 +6899,7 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6876,7 +6924,7 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6901,7 +6949,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6926,7 +6974,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6951,7 +6999,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -6976,7 +7024,7 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7002,7 +7050,7 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7028,7 +7076,7 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -7053,7 +7101,7 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -7078,7 +7126,7 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7104,7 +7152,7 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7130,7 +7178,7 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7155,7 +7203,7 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7180,7 +7228,7 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7205,7 +7253,7 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7230,7 +7278,7 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7256,7 +7304,7 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7282,7 +7330,7 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7308,7 +7356,7 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7334,7 +7382,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7359,7 +7407,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7384,7 +7432,7 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -7409,7 +7457,7 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -7434,7 +7482,7 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7459,7 +7507,7 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7484,7 +7532,7 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7509,7 +7557,7 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7527,14 +7575,14 @@
       "vehicleId": "EV-48",
       "busName": "EV-48",
       "defaultBusShortName": "250-F PSS-SSHL",
-      "assignedRouteId": "9534",
-      "assignedRouteShortName": "CHAKRA-7",
-      "origin": "Peenya 2nd Stage",
+      "assignedRouteId": "7403",
+      "assignedRouteShortName": "PSS-TGPL-GGH",
+      "origin": "Gangondanahalli",
       "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 7.38,
-      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
+      "assignedRouteDistanceKm": 6.94,
+      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7553,14 +7601,14 @@
       "vehicleId": "EV-48",
       "busName": "EV-48",
       "defaultBusShortName": "250-F PSS-SSHL",
-      "assignedRouteId": "9534",
-      "assignedRouteShortName": "CHAKRA-7",
-      "origin": "Peenya 2nd Stage",
+      "assignedRouteId": "7403",
+      "assignedRouteShortName": "PSS-TGPL-GGH",
+      "origin": "Gangondanahalli",
       "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 7.38,
-      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
+      "assignedRouteDistanceKm": 6.94,
+      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7579,14 +7627,14 @@
       "vehicleId": "EV-49",
       "busName": "EV-49",
       "defaultBusShortName": "250-E PSS-TMH",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7605,14 +7653,14 @@
       "vehicleId": "EV-49",
       "busName": "EV-49",
       "defaultBusShortName": "250-E PSS-TMH",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7631,14 +7679,14 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3916",
-      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
-      "origin": "Laggere New Bus Stand",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
+      "assignedRouteId": "8276",
+      "assignedRouteShortName": "BC-7B BDYH-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Byadarahalli",
+      "assignedRouteDistanceKm": 5.29,
+      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7657,14 +7705,14 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3916",
-      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
-      "origin": "Laggere New Bus Stand",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
+      "assignedRouteId": "8276",
+      "assignedRouteShortName": "BC-7B BDYH-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Byadarahalli",
+      "assignedRouteDistanceKm": 5.29,
+      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7690,7 +7738,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7715,7 +7763,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7740,7 +7788,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7765,7 +7813,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7790,7 +7838,7 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7816,7 +7864,7 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7842,7 +7890,7 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -7868,7 +7916,7 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -7902,7 +7950,7 @@
     "1367": {
       "assignedVehicle": "EV-46",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7918,7 +7966,7 @@
     "1427": {
       "assignedVehicle": "EV-25",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7934,7 +7982,7 @@
     "1428": {
       "assignedVehicle": "EV-33",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7950,7 +7998,7 @@
     "1548": {
       "assignedVehicle": "EV-08",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -7965,26 +8013,26 @@
       "blocked": true
     },
     "1549": {
-      "assignedVehicle": "EV-21",
+      "assignedVehicle": "EV-12",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 26,
-      "condition": "Not Good",
-      "driver": "No Driver",
-      "estimatedRangeKm": 23,
+      "soc": 8,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 0,
       "gtfsDistanceKm": 1.63,
       "blocked": true
     },
     "1553": {
       "assignedVehicle": "EV-40",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -7998,26 +8046,26 @@
       "blocked": false
     },
     "1610": {
-      "assignedVehicle": "EV-27",
+      "assignedVehicle": "EV-21",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 16,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 9,
+      "soc": 26,
+      "condition": "Not Good",
+      "driver": "No Driver",
+      "estimatedRangeKm": 23,
       "gtfsDistanceKm": 5.69,
       "blocked": true
     },
     "1612": {
       "assignedVehicle": "EV-03",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8033,7 +8081,7 @@
     "1621": {
       "assignedVehicle": "EV-01",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8049,7 +8097,7 @@
     "1626": {
       "assignedVehicle": "EV-39",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8066,7 +8114,7 @@
     "2559": {
       "assignedVehicle": "EV-28",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8082,7 +8130,7 @@
     "2644": {
       "assignedVehicle": "EV-36",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8098,7 +8146,7 @@
     "2764": {
       "assignedVehicle": "EV-05",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8114,7 +8162,7 @@
     "2767": {
       "assignedVehicle": "EV-38",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8130,7 +8178,7 @@
     "2770": {
       "assignedVehicle": "EV-09",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8146,7 +8194,7 @@
     "2780": {
       "assignedVehicle": "EV-43",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8163,7 +8211,7 @@
     "2786": {
       "assignedVehicle": "EV-02",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8179,7 +8227,7 @@
     "2787": {
       "assignedVehicle": "EV-54",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -8196,7 +8244,7 @@
     "2826": {
       "assignedVehicle": "EV-41",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8212,7 +8260,7 @@
     "2861": {
       "assignedVehicle": "EV-15",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8228,7 +8276,7 @@
     "3158": {
       "assignedVehicle": "EV-45",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8244,7 +8292,7 @@
     "3430": {
       "assignedVehicle": "EV-44",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8258,26 +8306,26 @@
       "blocked": false
     },
     "3629": {
-      "assignedVehicle": "EV-16",
+      "assignedVehicle": "EV-49",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "A",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": true,
-      "soc": 100,
-      "condition": "Not Good",
+      "matrixCompliant": false,
+      "soc": 10,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 0,
       "gtfsDistanceKm": 2.48,
       "blocked": true
     },
     "3831": {
-      "assignedVehicle": "EV-04",
+      "assignedVehicle": "EV-07",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -8286,7 +8334,7 @@
       "matrixCompliant": true,
       "soc": 85,
       "condition": "Not Good",
-      "driver": "No Driver",
+      "driver": "Driver Assigned",
       "estimatedRangeKm": 107,
       "gtfsDistanceKm": 7.07,
       "blocked": true
@@ -8294,7 +8342,7 @@
     "3864": {
       "assignedVehicle": "EV-24",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8310,7 +8358,7 @@
     "3878": {
       "assignedVehicle": "EV-10",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8327,7 +8375,7 @@
     "3907": {
       "assignedVehicle": "EV-42",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8342,26 +8390,26 @@
       "blocked": false
     },
     "3916": {
-      "assignedVehicle": "EV-50",
+      "assignedVehicle": "EV-16",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": false,
-      "soc": 23,
-      "condition": "Good",
+      "matrixCompliant": true,
+      "soc": 100,
+      "condition": "Not Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 18,
+      "estimatedRangeKm": 128,
       "gtfsDistanceKm": 5.69,
       "blocked": true
     },
     "3920": {
       "assignedVehicle": "EV-34",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8375,43 +8423,43 @@
       "blocked": false
     },
     "3935": {
-      "assignedVehicle": "EV-49",
+      "assignedVehicle": "EV-30",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 10,
+      "soc": 18,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
+      "estimatedRangeKm": 11,
       "gtfsDistanceKm": 4.57,
       "blocked": true
     },
     "3951": {
-      "assignedVehicle": "EV-12",
+      "assignedVehicle": "EV-22",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 8,
+      "soc": 13,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
+      "estimatedRangeKm": 4,
       "gtfsDistanceKm": 3.17,
       "blocked": true
     },
     "4759": {
       "assignedVehicle": "EV-37",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8428,7 +8476,7 @@
     "4798": {
       "assignedVehicle": "EV-23",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8444,7 +8492,7 @@
     "6080": {
       "assignedVehicle": "EV-11",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8461,7 +8509,7 @@
     "6551": {
       "assignedVehicle": "EV-35",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8477,7 +8525,7 @@
     "6979": {
       "assignedVehicle": "EV-47",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8493,7 +8541,7 @@
     "7143": {
       "assignedVehicle": "EV-14",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8507,43 +8555,43 @@
       "blocked": false
     },
     "7296": {
-      "assignedVehicle": "EV-22",
+      "assignedVehicle": "EV-27",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 13,
+      "soc": 16,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 4,
+      "estimatedRangeKm": 9,
       "gtfsDistanceKm": 5.19,
       "blocked": true
     },
     "7403": {
-      "assignedVehicle": "EV-07",
+      "assignedVehicle": "EV-48",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": true,
-      "soc": 85,
-      "condition": "Not Good",
+      "matrixCompliant": false,
+      "soc": 18,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 107,
+      "estimatedRangeKm": 11,
       "gtfsDistanceKm": 6.94,
       "blocked": true
     },
     "7632": {
       "assignedVehicle": "EV-32",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8559,7 +8607,7 @@
     "7834": {
       "assignedVehicle": "EV-06",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -8575,7 +8623,7 @@
     "7888": {
       "assignedVehicle": "EV-31",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -8592,7 +8640,7 @@
     "8178": {
       "assignedVehicle": "EV-17",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8606,26 +8654,26 @@
       "blocked": false
     },
     "8276": {
-      "assignedVehicle": "EV-30",
+      "assignedVehicle": "EV-50",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
         "B"
       ],
       "matrixCompliant": false,
-      "soc": 18,
+      "soc": 23,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 11,
+      "estimatedRangeKm": 18,
       "gtfsDistanceKm": 5.29,
       "blocked": true
     },
     "8543": {
       "assignedVehicle": "EV-26",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8641,7 +8689,7 @@
     "8592": {
       "assignedVehicle": "EV-18",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8658,7 +8706,7 @@
     "8781": {
       "assignedVehicle": "EV-19",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8674,7 +8722,7 @@
     "8842": {
       "assignedVehicle": "EV-13",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8690,7 +8738,7 @@
     "9108": {
       "assignedVehicle": "EV-53",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8707,7 +8755,7 @@
     "9132": {
       "assignedVehicle": "EV-20",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8721,26 +8769,26 @@
       "blocked": false
     },
     "9534": {
-      "assignedVehicle": "EV-48",
+      "assignedVehicle": "EV-04",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "timeSlot": "PEAK",
+      "busCategory": "B",
       "allowedCategories": [
         "A",
         "B"
       ],
-      "matrixCompliant": false,
-      "soc": 18,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 11,
+      "matrixCompliant": true,
+      "soc": 85,
+      "condition": "Not Good",
+      "driver": "No Driver",
+      "estimatedRangeKm": 107,
       "gtfsDistanceKm": 7.38,
       "blocked": true
     },
     "9535": {
       "assignedVehicle": "EV-29",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -8757,7 +8805,7 @@
     "9581": {
       "assignedVehicle": "EV-52",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -8773,7 +8821,7 @@
     "9636": {
       "assignedVehicle": "EV-51",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -9041,9 +9089,9 @@
       }
     ],
     "uniqueId": "EV-04",
-    "assignedRouteId": "3831",
-    "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
-    "assignedRouteShortName": "MBS-12 PSS-ANP",
+    "assignedRouteId": "9534",
+    "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
+    "assignedRouteShortName": "CHAKRA-7",
     "blocked": true
   },
   "EV-05": {
@@ -9194,9 +9242,9 @@
       }
     ],
     "uniqueId": "EV-07",
-    "assignedRouteId": "7403",
-    "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
-    "assignedRouteShortName": "PSS-TGPL-GGH",
+    "assignedRouteId": "3831",
+    "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
+    "assignedRouteShortName": "MBS-12 PSS-ANP",
     "blocked": true
   },
   "EV-08": {
@@ -9281,9 +9329,9 @@
     "soc": 8,
     "condition": "Good",
     "status": "Blocked",
-    "assignedRouteId": "3951",
-    "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
-    "assignedRouteShortName": "265-A PSS-TEPL",
+    "assignedRouteId": "1549",
+    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+    "assignedRouteShortName": "D9-PSS",
     "blocked": true
   },
   "EV-13": {
@@ -9364,9 +9412,9 @@
       }
     ],
     "uniqueId": "EV-16",
-    "assignedRouteId": "3629",
-    "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
-    "assignedRouteShortName": "265-D PSS-VGN",
+    "assignedRouteId": "3916",
+    "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
+    "assignedRouteShortName": "PSS-NTTF-LGRNBS",
     "blocked": true
   },
   "EV-17": {
@@ -9480,10 +9528,35 @@
     "blocked": false
   },
   "EV-20": {
-    "uniqueId": "EV-20",
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:42:32.984Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:42:32.984Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-20",
     "assignedRouteId": "9132",
     "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
     "assignedRouteShortName": "273 VSD-RJB-PSS",
@@ -9531,9 +9604,9 @@
       }
     ],
     "uniqueId": "EV-21",
-    "assignedRouteId": "1549",
-    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
-    "assignedRouteShortName": "D9-PSS",
+    "assignedRouteId": "1610",
+    "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
+    "assignedRouteShortName": "252 LGR-PSS",
     "blocked": true
   },
   "EV-22": {
@@ -9566,9 +9639,9 @@
       }
     ],
     "uniqueId": "EV-22",
-    "assignedRouteId": "7296",
-    "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
-    "assignedRouteShortName": "JHMS-PSS",
+    "assignedRouteId": "3951",
+    "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+    "assignedRouteShortName": "265-A PSS-TEPL",
     "blocked": true
   },
   "EV-23": {
@@ -9659,9 +9732,9 @@
       }
     ],
     "uniqueId": "EV-27",
-    "assignedRouteId": "1610",
-    "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
-    "assignedRouteShortName": "252 LGR-PSS",
+    "assignedRouteId": "7296",
+    "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+    "assignedRouteShortName": "JHMS-PSS",
     "blocked": true
   },
   "EV-28": {
@@ -9800,9 +9873,9 @@
       }
     ],
     "uniqueId": "EV-30",
-    "assignedRouteId": "8276",
-    "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
-    "assignedRouteShortName": "BC-7B BDYH-PSS",
+    "assignedRouteId": "3935",
+    "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+    "assignedRouteShortName": "MF-26 PSS-JHMS",
     "blocked": true
   },
   "EV-31": {
@@ -10494,9 +10567,9 @@
       }
     ],
     "uniqueId": "EV-48",
-    "assignedRouteId": "9534",
-    "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
-    "assignedRouteShortName": "CHAKRA-7",
+    "assignedRouteId": "7403",
+    "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
+    "assignedRouteShortName": "PSS-TGPL-GGH",
     "blocked": true
   },
   "EV-49": {
@@ -10535,9 +10608,9 @@
       }
     ],
     "uniqueId": "EV-49",
-    "assignedRouteId": "3935",
-    "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
-    "assignedRouteShortName": "MF-26 PSS-JHMS",
+    "assignedRouteId": "3629",
+    "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+    "assignedRouteShortName": "265-D PSS-VGN",
     "blocked": true
   },
   "EV-50": {
@@ -10588,9 +10661,9 @@
       }
     ],
     "uniqueId": "EV-50",
-    "assignedRouteId": "3916",
-    "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
-    "assignedRouteShortName": "PSS-NTTF-LGRNBS",
+    "assignedRouteId": "8276",
+    "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
+    "assignedRouteShortName": "BC-7B BDYH-PSS",
     "blocked": true
   },
   "EV-51": {
@@ -10757,7 +10830,7 @@
       "assignedRouteDistanceKm": 13.62,
       "assignedRouteDisplay": "Route 1621 - 252-F (13.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -10782,7 +10855,7 @@
       "assignedRouteDistanceKm": 13.66,
       "assignedRouteDisplay": "Route 2786 - 250-SB PSS-SVG (13.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -10807,7 +10880,7 @@
       "assignedRouteDistanceKm": 17.82,
       "assignedRouteDisplay": "Route 1612 - 252-A (17.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -10825,14 +10898,14 @@
       "vehicleId": "EV-04",
       "busName": "EV-04",
       "defaultBusShortName": "273-B PSS-ABG",
-      "assignedRouteId": "3831",
-      "assignedRouteShortName": "MBS-12 PSS-ANP",
-      "origin": "Annapoorneshwarinagara",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 7.07,
-      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
+      "assignedRouteId": "9534",
+      "assignedRouteShortName": "CHAKRA-7",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Peenya 2nd stage",
+      "assignedRouteDistanceKm": 7.38,
+      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -10858,7 +10931,7 @@
       "assignedRouteDistanceKm": 18.56,
       "assignedRouteDisplay": "Route 2764 - 252 PSS-KMT (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -10883,7 +10956,7 @@
       "assignedRouteDistanceKm": 11.31,
       "assignedRouteDisplay": "Route 7834 - PSS-NLGDH-8THM (11.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -10901,14 +10974,14 @@
       "vehicleId": "EV-07",
       "busName": "EV-07",
       "defaultBusShortName": "248-AB",
-      "assignedRouteId": "7403",
-      "assignedRouteShortName": "PSS-TGPL-GGH",
-      "origin": "Gangondanahalli",
-      "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 6.94,
-      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
+      "assignedRouteId": "3831",
+      "assignedRouteShortName": "MBS-12 PSS-ANP",
+      "origin": "Annapoorneshwarinagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 7.07,
+      "assignedRouteDisplay": "Route 3831 - MBS-12 PSS-ANP (7.1 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A",
@@ -10934,7 +11007,7 @@
       "assignedRouteDistanceKm": 1.52,
       "assignedRouteDisplay": "Route 1548 - D22-PSS (1.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -10960,7 +11033,7 @@
       "assignedRouteDistanceKm": 12.71,
       "assignedRouteDisplay": "Route 2770 - 250-F PSS-SSHL (12.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -10985,7 +11058,7 @@
       "assignedRouteDistanceKm": 9.92,
       "assignedRouteDisplay": "Route 3878 - 401-AK PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11011,7 +11084,7 @@
       "assignedRouteDistanceKm": 9.93,
       "assignedRouteDisplay": "Route 6080 - BC-7B PSS-NLGH-8thM (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11030,14 +11103,14 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11063,7 +11136,7 @@
       "assignedRouteDistanceKm": 32.99,
       "assignedRouteDisplay": "Route 8842 - MBS-17 MHB-HBL-JHV-PSS (33.0 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11088,7 +11161,7 @@
       "assignedRouteDistanceKm": 12.25,
       "assignedRouteDisplay": "Route 7143 - MF-32 PSS-CKB (12.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -11113,7 +11186,7 @@
       "assignedRouteDistanceKm": 25.28,
       "assignedRouteDisplay": "Route 2861 - 253-D PSS-TRN (25.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11131,14 +11204,14 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3916",
+      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
+      "origin": "Laggere New Bus Stand",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -11164,7 +11237,7 @@
       "assignedRouteDistanceKm": 17.4,
       "assignedRouteDisplay": "Route 8178 - G-252 KBS D9 D22-PSS (17.4 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11189,7 +11262,7 @@
       "assignedRouteDistanceKm": 9.36,
       "assignedRouteDisplay": "Route 8592 - 273 SDN-PSS (9.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11215,7 +11288,7 @@
       "assignedRouteDistanceKm": 20.46,
       "assignedRouteDisplay": "Route 8781 - 401-A PSS-SGP-YHK (20.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11240,7 +11313,7 @@
       "assignedRouteDistanceKm": 21.6,
       "assignedRouteDisplay": "Route 9132 - 273 VSD-RJB-PSS (21.6 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11258,14 +11331,14 @@
       "vehicleId": "EV-21",
       "busName": "EV-21",
       "defaultBusShortName": "507-B",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "1610",
+      "assignedRouteShortName": "252 LGR-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Laggere New Bus Stand",
+      "assignedRouteDistanceKm": 5.69,
+      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11284,14 +11357,14 @@
       "vehicleId": "EV-22",
       "busName": "EV-22",
       "defaultBusShortName": "254-E PSS-KMP",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11317,7 +11390,7 @@
       "assignedRouteDistanceKm": 10.21,
       "assignedRouteDisplay": "Route 4798 - 273-B PSS-ABG (10.2 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -11342,7 +11415,7 @@
       "assignedRouteDistanceKm": 10.05,
       "assignedRouteDisplay": "Route 3864 - 248-AB (10.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -11367,7 +11440,7 @@
       "assignedRouteDistanceKm": 40.53,
       "assignedRouteDisplay": "Route 1427 - 401-AM (40.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11392,7 +11465,7 @@
       "assignedRouteDistanceKm": 28.94,
       "assignedRouteDisplay": "Route 8543 - 507 (28.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11410,14 +11483,14 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "1610",
-      "assignedRouteShortName": "252 LGR-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Laggere New Bus Stand",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 1610 - 252 LGR-PSS (5.7 km)",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11443,7 +11516,7 @@
       "assignedRouteDistanceKm": 19.95,
       "assignedRouteDisplay": "Route 2559 - 273 (19.9 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11468,7 +11541,7 @@
       "assignedRouteDistanceKm": 9.47,
       "assignedRouteDisplay": "Route 9535 - CHAKRA-7A (9.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11487,14 +11560,14 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "8276",
-      "assignedRouteShortName": "BC-7B BDYH-PSS",
-      "origin": "Peenya 2nd Stage",
-      "destination": "Byadarahalli",
-      "assignedRouteDistanceKm": 5.29,
-      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11520,7 +11593,7 @@
       "assignedRouteDistanceKm": 7.64,
       "assignedRouteDisplay": "Route 7888 - BC-7B PSS-ANDRH-HRHC (7.6 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
@@ -11546,7 +11619,7 @@
       "assignedRouteDistanceKm": 32.74,
       "assignedRouteDisplay": "Route 7632 - 500-D MRHB-HBL-PSS (32.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11571,7 +11644,7 @@
       "assignedRouteDistanceKm": 19.84,
       "assignedRouteDisplay": "Route 1428 - 401-AM PTH-PSS (19.8 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11596,7 +11669,7 @@
       "assignedRouteDistanceKm": 18.64,
       "assignedRouteDisplay": "Route 3920 - 253-J PSS-HGV (18.6 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11621,7 +11694,7 @@
       "assignedRouteDistanceKm": 26.46,
       "assignedRouteDisplay": "Route 6551 - 252-A PSS-ISROM (26.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11646,7 +11719,7 @@
       "assignedRouteDistanceKm": 20.35,
       "assignedRouteDisplay": "Route 2644 - 256-F (20.4 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11671,7 +11744,7 @@
       "assignedRouteDistanceKm": 9.91,
       "assignedRouteDisplay": "Route 4759 - 270-D PSS-ABG (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11697,7 +11770,7 @@
       "assignedRouteDistanceKm": 11.66,
       "assignedRouteDisplay": "Route 2767 - 250-E PSS-TMH (11.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -11722,7 +11795,7 @@
       "assignedRouteDistanceKm": 8.38,
       "assignedRouteDisplay": "Route 1626 - 401-M PSS-KTS-D31G (8.4 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11748,7 +11821,7 @@
       "assignedRouteDistanceKm": 15.72,
       "assignedRouteDisplay": "Route 1553 - 252 (15.7 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11773,7 +11846,7 @@
       "assignedRouteDistanceKm": 16.15,
       "assignedRouteDisplay": "Route 2826 - 252-L (16.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11798,7 +11871,7 @@
       "assignedRouteDistanceKm": 9.94,
       "assignedRouteDisplay": "Route 3907 - 401-AK ABG-PSS (9.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11824,7 +11897,7 @@
       "assignedRouteDistanceKm": 8.94,
       "assignedRouteDisplay": "Route 2780 - 250-S PSS-GLB (8.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11850,7 +11923,7 @@
       "assignedRouteDistanceKm": 36.89,
       "assignedRouteDisplay": "Route 3430 - 507-B (36.9 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11875,7 +11948,7 @@
       "assignedRouteDistanceKm": 13.34,
       "assignedRouteDisplay": "Route 3158 - 254-E PSS-KMP (13.3 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
@@ -11900,7 +11973,7 @@
       "assignedRouteDistanceKm": 19.13,
       "assignedRouteDisplay": "Route 1367 - 401-A (19.1 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11925,7 +11998,7 @@
       "assignedRouteDistanceKm": 17.54,
       "assignedRouteDisplay": "Route 6979 - 251E PSS-KMT (17.5 km)",
       "routeCategory": "MODERATE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -11943,14 +12016,14 @@
       "vehicleId": "EV-48",
       "busName": "EV-48",
       "defaultBusShortName": "250-F PSS-SSHL",
-      "assignedRouteId": "9534",
-      "assignedRouteShortName": "CHAKRA-7",
-      "origin": "Peenya 2nd Stage",
+      "assignedRouteId": "7403",
+      "assignedRouteShortName": "PSS-TGPL-GGH",
+      "origin": "Gangondanahalli",
       "destination": "Peenya 2nd stage",
-      "assignedRouteDistanceKm": 7.38,
-      "assignedRouteDisplay": "Route 9534 - CHAKRA-7 (7.4 km)",
+      "assignedRouteDistanceKm": 6.94,
+      "assignedRouteDisplay": "Route 7403 - PSS-TGPL-GGH (6.9 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11969,14 +12042,14 @@
       "vehicleId": "EV-49",
       "busName": "EV-49",
       "defaultBusShortName": "250-E PSS-TMH",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -11995,14 +12068,14 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3916",
-      "assignedRouteShortName": "PSS-NTTF-LGRNBS",
-      "origin": "Laggere New Bus Stand",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.69,
-      "assignedRouteDisplay": "Route 3916 - PSS-NTTF-LGRNBS (5.7 km)",
+      "assignedRouteId": "8276",
+      "assignedRouteShortName": "BC-7B BDYH-PSS",
+      "origin": "Peenya 2nd Stage",
+      "destination": "Byadarahalli",
+      "assignedRouteDistanceKm": 5.29,
+      "assignedRouteDisplay": "Route 8276 - BC-7B BDYH-PSS (5.3 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -12028,7 +12101,7 @@
       "assignedRouteDistanceKm": 30.75,
       "assignedRouteDisplay": "Route 9636 - 252-A PSS-HAL ARDC (30.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -12053,7 +12126,7 @@
       "assignedRouteDistanceKm": 29.17,
       "assignedRouteDisplay": "Route 9581 - 252-F PSS-HAL ARDC (29.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A"
@@ -12078,7 +12151,7 @@
       "assignedRouteDistanceKm": 9.17,
       "assignedRouteDisplay": "Route 9108 - PSS-RGPS-SMH (9.2 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A",
@@ -12104,7 +12177,7 @@
       "assignedRouteDistanceKm": 5.72,
       "assignedRouteDisplay": "Route 2787 - 251-C PSS-RPS-LGR (5.7 km)",
       "routeCategory": "SIMPLE",
-      "timeSlot": "EXTREME_PEAK",
+      "timeSlot": "PEAK",
       "busCategory": "A",
       "allowedCategories": [
         "A",
