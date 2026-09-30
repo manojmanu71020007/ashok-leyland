@@ -45,7 +45,7 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "updatedAt": "2026-09-30T14:59:28.011Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -66,12 +66,18 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-30T14:59:28.011Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM291",
     "busNumber": "360K",
-    "blocked": false,
-    "bmNumber": "BM291"
+    "bmNumber": "BM291",
+    "blocked": false
   },
   "3": {
     "status": "Active",
@@ -193,7 +199,10 @@
     "uniqueId": "BM001",
     "busNumber": "600F",
     "blocked": false,
-    "bmNumber": "BM001"
+    "bmNumber": "BM001",
+    "assignedRouteId": "3",
+    "assignedRouteDisplay": "Route 3 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F"
   },
   "BUS-01": {
     "status": "Active",
@@ -243,7 +252,10 @@
     "uniqueId": "BM002",
     "busNumber": "500DC",
     "blocked": true,
-    "bmNumber": "BM002"
+    "bmNumber": "BM002",
+    "assignedRouteId": "9",
+    "assignedRouteDisplay": "Route 9 - 500DC (149.8 km)",
+    "assignedRouteShortName": "500DC"
   },
   "BUS-02": {
     "status": "Active",
@@ -1089,7 +1101,10 @@
     "uniqueId": "BM086",
     "busNumber": "KBS3A",
     "blocked": false,
-    "bmNumber": "BM086"
+    "bmNumber": "BM086",
+    "assignedRouteId": "4",
+    "assignedRouteDisplay": "Route 4 - KBS3A (125.5 km)",
+    "assignedRouteShortName": "KBS3A"
   },
   "BUS-25": {
     "uniqueId": "BUS-25",
@@ -1353,7 +1368,10 @@
     "uniqueId": "BM153",
     "busNumber": "328H",
     "blocked": true,
-    "bmNumber": "BM153"
+    "bmNumber": "BM153",
+    "assignedRouteId": "6",
+    "assignedRouteDisplay": "Route 6 - 328H (187.2 km)",
+    "assignedRouteShortName": "328H"
   },
   "BUS-33": {
     "uniqueId": "BUS-33",
@@ -2229,7 +2247,10 @@
     "uniqueId": "BM216",
     "busNumber": "399C",
     "blocked": false,
-    "bmNumber": "BM216"
+    "bmNumber": "BM216",
+    "assignedRouteId": "8",
+    "assignedRouteDisplay": "Route 8 - 399C (106.1 km)",
+    "assignedRouteShortName": "399C"
   },
   "BUS-59": {
     "uniqueId": "BUS-59",
@@ -2626,7 +2647,10 @@
     "uniqueId": "BM238",
     "busNumber": "356Z",
     "blocked": true,
-    "bmNumber": "BM238"
+    "bmNumber": "BM238",
+    "assignedRouteId": "1",
+    "assignedRouteDisplay": "Route 1 - 356Z (228.5 km)",
+    "assignedRouteShortName": "356Z"
   },
   "BUS-70": {
     "uniqueId": "BUS-70",
@@ -4011,7 +4035,7 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "updatedAt": "2026-09-30T14:59:28.011Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -4032,12 +4056,20 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-30T14:59:28.011Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM291",
-    "busNumber": "360K",
-    "blocked": false,
-    "bmNumber": "BM291"
+    "bmNumber": "BM291",
+    "assignedRouteId": "2",
+    "assignedRouteDisplay": "Route 2 - 360K (99.1 km)",
+    "assignedRouteShortName": "360K",
+    "blocked": false
   },
   "BUS-111": {
     "uniqueId": "BUS-111",
@@ -4097,7 +4129,10 @@
     "uniqueId": "BM293",
     "busNumber": "KBS3F",
     "blocked": true,
-    "bmNumber": "BM293"
+    "bmNumber": "BM293",
+    "assignedRouteId": "5",
+    "assignedRouteDisplay": "Route 5 - KBS3F (129.7 km)",
+    "assignedRouteShortName": "KBS3F"
   },
   "BUS-113": {
     "uniqueId": "BUS-113",
@@ -4293,7 +4328,10 @@
     "uniqueId": "BM299",
     "busNumber": "361C",
     "blocked": true,
-    "bmNumber": "BM299"
+    "bmNumber": "BM299",
+    "assignedRouteId": "7",
+    "assignedRouteDisplay": "Route 7 - 361C (178.3 km)",
+    "assignedRouteShortName": "361C"
   },
   "BUS-119": {
     "uniqueId": "BUS-119",
@@ -4444,11 +4482,11 @@
     "500DC": "BM002"
   },
   "_blockedBuses": [
-    "BUS-01",
-    "BUS-05",
-    "BUS-06",
-    "BUS-07",
-    "BUS-09"
+    "BM238",
+    "BM293",
+    "BM153",
+    "BM299",
+    "BM002"
   ],
   "356Z": {
     "status": "Active",
@@ -4485,8 +4523,9 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "BUS-01",
-    "blocked": true
+    "uniqueId": "BM238",
+    "blocked": true,
+    "bmNumber": "BM238"
   },
   "360K": {
     "status": "Active",
@@ -4494,7 +4533,7 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "updatedAt": "2026-09-30T14:59:28.011Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -4515,9 +4554,16 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-30T14:59:28.011Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
-    "uniqueId": "BUS-02",
+    "uniqueId": "BM291",
+    "bmNumber": "BM291",
     "blocked": false
   },
   "600F": {
@@ -4549,203 +4595,301 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "BUS-03",
-    "blocked": false
+    "uniqueId": "BM001",
+    "blocked": false,
+    "bmNumber": "BM001"
   },
   "KBS3A": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-04",
-    "blocked": false
+    "uniqueId": "BM086",
+    "blocked": false,
+    "bmNumber": "BM086"
   },
   "KBS3F": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-05",
-    "blocked": true
+    "uniqueId": "BM293",
+    "blocked": true,
+    "bmNumber": "BM293"
   },
   "328H": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-06",
-    "blocked": true
+    "uniqueId": "BM153",
+    "blocked": true,
+    "bmNumber": "BM153"
   },
   "361C": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-07",
-    "blocked": true
+    "uniqueId": "BM299",
+    "blocked": true,
+    "bmNumber": "BM299"
   },
   "399C": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-08",
-    "blocked": false
+    "uniqueId": "BM216",
+    "blocked": false,
+    "bmNumber": "BM216"
   },
   "500DC": {
     "soc": 100,
     "condition": "Good",
     "status": "Active",
-    "uniqueId": "BUS-09",
-    "blocked": true
+    "uniqueId": "BM002",
+    "blocked": true,
+    "bmNumber": "BM002"
   },
   "_vehicleAssignments": {
     "BM238": {
       "uniqueId": "BM238",
-      "bmNumber": "BM238",
+      "unique_id": "BM238",
       "vehicleId": "BM238",
-      "defaultRouteId": "1",
+      "bmNumber": "BM238",
+      "busName": "BM238",
       "defaultBusShortName": "356Z",
       "assignedRouteId": "1",
       "assignedRouteShortName": "356Z",
+      "origin": "Chandapura",
+      "destination": "Anekal (356Z)",
+      "assignedRouteDistanceKm": 228.48,
+      "assignedRouteDisplay": "Route 1 - 356Z (228.5 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
-      "blocked": false
+      "blocked": true
     },
     "BM291": {
       "uniqueId": "BM291",
-      "bmNumber": "BM291",
+      "unique_id": "BM291",
       "vehicleId": "BM291",
-      "defaultRouteId": "2",
+      "bmNumber": "BM291",
+      "busName": "BM291",
       "defaultBusShortName": "360K",
       "assignedRouteId": "2",
       "assignedRouteShortName": "360K",
+      "origin": "Chandapura",
+      "destination": "Kempegowda Bus Station (360K)",
+      "assignedRouteDistanceKm": 99.12,
+      "assignedRouteDisplay": "Route 2 - 360K (99.1 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
       "blocked": false
     },
     "BM001": {
       "uniqueId": "BM001",
-      "bmNumber": "BM001",
+      "unique_id": "BM001",
       "vehicleId": "BM001",
-      "defaultRouteId": "3",
+      "bmNumber": "BM001",
+      "busName": "BM001",
       "defaultBusShortName": "600F",
       "assignedRouteId": "3",
       "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route 3 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
       "blocked": false
     },
     "BM086": {
       "uniqueId": "BM086",
-      "bmNumber": "BM086",
+      "unique_id": "BM086",
       "vehicleId": "BM086",
-      "defaultRouteId": "4",
+      "bmNumber": "BM086",
+      "busName": "BM086",
       "defaultBusShortName": "KBS3A",
       "assignedRouteId": "4",
       "assignedRouteShortName": "KBS3A",
+      "origin": "Kempegowda Bus Station",
+      "destination": "Anekal Town Bus Stand (KBS3A)",
+      "assignedRouteDistanceKm": 125.55,
+      "assignedRouteDisplay": "Route 4 - KBS3A (125.5 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
       "blocked": false
     },
     "BM293": {
       "uniqueId": "BM293",
-      "bmNumber": "BM293",
+      "unique_id": "BM293",
       "vehicleId": "BM293",
-      "defaultRouteId": "5",
+      "bmNumber": "BM293",
+      "busName": "BM293",
       "defaultBusShortName": "KBS3F",
       "assignedRouteId": "5",
       "assignedRouteShortName": "KBS3F",
+      "origin": "Kempegowda Bus Station",
+      "destination": "Basavanagudi (KBS3F)",
+      "assignedRouteDistanceKm": 129.72,
+      "assignedRouteDisplay": "Route 5 - KBS3F (129.7 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
-      "blocked": false
+      "blocked": true
     },
     "BM153": {
       "uniqueId": "BM153",
-      "bmNumber": "BM153",
+      "unique_id": "BM153",
       "vehicleId": "BM153",
-      "defaultRouteId": "6",
+      "bmNumber": "BM153",
+      "busName": "BM153",
       "defaultBusShortName": "328H",
       "assignedRouteId": "6",
       "assignedRouteShortName": "328H",
+      "origin": "Hoskote",
+      "destination": "Kempegowda Bus Station (328H)",
+      "assignedRouteDistanceKm": 187.17,
+      "assignedRouteDisplay": "Route 6 - 328H (187.2 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
-      "blocked": false
+      "blocked": true
     },
     "BM299": {
       "uniqueId": "BM299",
-      "bmNumber": "BM299",
+      "unique_id": "BM299",
       "vehicleId": "BM299",
-      "defaultRouteId": "7",
+      "bmNumber": "BM299",
+      "busName": "BM299",
       "defaultBusShortName": "361C",
       "assignedRouteId": "7",
       "assignedRouteShortName": "361C",
+      "origin": "Chandapura",
+      "destination": "Kengeri (361C)",
+      "assignedRouteDistanceKm": 178.27,
+      "assignedRouteDisplay": "Route 7 - 361C (178.3 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
-      "blocked": false
+      "blocked": true
     },
     "BM216": {
       "uniqueId": "BM216",
-      "bmNumber": "BM216",
+      "unique_id": "BM216",
       "vehicleId": "BM216",
-      "defaultRouteId": "8",
+      "bmNumber": "BM216",
+      "busName": "BM216",
       "defaultBusShortName": "399C",
       "assignedRouteId": "8",
       "assignedRouteShortName": "399C",
+      "origin": "Chandapura",
+      "destination": "Kanakapura (399C)",
+      "assignedRouteDistanceKm": 106.11,
+      "assignedRouteDisplay": "Route 8 - 399C (106.1 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
       "blocked": false
     },
     "BM002": {
       "uniqueId": "BM002",
-      "bmNumber": "BM002",
+      "unique_id": "BM002",
       "vehicleId": "BM002",
-      "defaultRouteId": "9",
+      "bmNumber": "BM002",
+      "busName": "BM002",
       "defaultBusShortName": "500DC",
       "assignedRouteId": "9",
       "assignedRouteShortName": "500DC",
+      "origin": "Anekal",
+      "destination": "Tin Factory via Dommasandra (500DC)",
+      "assignedRouteDistanceKm": 149.8,
+      "assignedRouteDisplay": "Route 9 - 500DC (149.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
-      "busCategory": "A",
-      "matrixCompliant": true,
-      "blocked": false
+      "blocked": true
     }
   },
   "_busAssignments": {
-    "BUS-01": {
-      "uniqueId": "BUS-01",
-      "unique_id": "BUS-01",
-      "vehicleId": "BUS-01",
-      "busName": "BUS-01",
+    "BM238": {
+      "uniqueId": "BM238",
+      "unique_id": "BM238",
+      "vehicleId": "BM238",
+      "bmNumber": "BM238",
+      "busName": "BM238",
       "defaultBusShortName": "356Z",
       "assignedRouteId": "1",
       "assignedRouteShortName": "356Z",
@@ -4767,10 +4911,11 @@
       "blocked": true
     },
     "356Z": {
-      "uniqueId": "BUS-01",
-      "unique_id": "BUS-01",
-      "vehicleId": "BUS-01",
-      "busName": "BUS-01",
+      "uniqueId": "BM238",
+      "unique_id": "BM238",
+      "vehicleId": "BM238",
+      "bmNumber": "BM238",
+      "busName": "BM238",
       "defaultBusShortName": "356Z",
       "assignedRouteId": "1",
       "assignedRouteShortName": "356Z",
@@ -4791,11 +4936,12 @@
       "estimatedRangeKm": 128,
       "blocked": true
     },
-    "BUS-02": {
-      "uniqueId": "BUS-02",
-      "unique_id": "BUS-02",
-      "vehicleId": "BUS-02",
-      "busName": "BUS-02",
+    "BM291": {
+      "uniqueId": "BM291",
+      "unique_id": "BM291",
+      "vehicleId": "BM291",
+      "bmNumber": "BM291",
+      "busName": "BM291",
       "defaultBusShortName": "360K",
       "assignedRouteId": "2",
       "assignedRouteShortName": "360K",
@@ -4817,10 +4963,11 @@
       "blocked": false
     },
     "360K": {
-      "uniqueId": "BUS-02",
-      "unique_id": "BUS-02",
-      "vehicleId": "BUS-02",
-      "busName": "BUS-02",
+      "uniqueId": "BM291",
+      "unique_id": "BM291",
+      "vehicleId": "BM291",
+      "bmNumber": "BM291",
+      "busName": "BM291",
       "defaultBusShortName": "360K",
       "assignedRouteId": "2",
       "assignedRouteShortName": "360K",
@@ -4841,11 +4988,12 @@
       "estimatedRangeKm": 128,
       "blocked": false
     },
-    "BUS-03": {
-      "uniqueId": "BUS-03",
-      "unique_id": "BUS-03",
-      "vehicleId": "BUS-03",
-      "busName": "BUS-03",
+    "BM001": {
+      "uniqueId": "BM001",
+      "unique_id": "BM001",
+      "vehicleId": "BM001",
+      "bmNumber": "BM001",
+      "busName": "BM001",
       "defaultBusShortName": "600F",
       "assignedRouteId": "3",
       "assignedRouteShortName": "600F",
@@ -4867,10 +5015,11 @@
       "blocked": false
     },
     "600F": {
-      "uniqueId": "BUS-03",
-      "unique_id": "BUS-03",
-      "vehicleId": "BUS-03",
-      "busName": "BUS-03",
+      "uniqueId": "BM001",
+      "unique_id": "BM001",
+      "vehicleId": "BM001",
+      "bmNumber": "BM001",
+      "busName": "BM001",
       "defaultBusShortName": "600F",
       "assignedRouteId": "3",
       "assignedRouteShortName": "600F",
@@ -4891,11 +5040,12 @@
       "estimatedRangeKm": 128,
       "blocked": false
     },
-    "BUS-04": {
-      "uniqueId": "BUS-04",
-      "unique_id": "BUS-04",
-      "vehicleId": "BUS-04",
-      "busName": "BUS-04",
+    "BM086": {
+      "uniqueId": "BM086",
+      "unique_id": "BM086",
+      "vehicleId": "BM086",
+      "bmNumber": "BM086",
+      "busName": "BM086",
       "defaultBusShortName": "KBS3A",
       "assignedRouteId": "4",
       "assignedRouteShortName": "KBS3A",
@@ -4917,10 +5067,11 @@
       "blocked": false
     },
     "KBS3A": {
-      "uniqueId": "BUS-04",
-      "unique_id": "BUS-04",
-      "vehicleId": "BUS-04",
-      "busName": "BUS-04",
+      "uniqueId": "BM086",
+      "unique_id": "BM086",
+      "vehicleId": "BM086",
+      "bmNumber": "BM086",
+      "busName": "BM086",
       "defaultBusShortName": "KBS3A",
       "assignedRouteId": "4",
       "assignedRouteShortName": "KBS3A",
@@ -4941,11 +5092,12 @@
       "estimatedRangeKm": 128,
       "blocked": false
     },
-    "BUS-05": {
-      "uniqueId": "BUS-05",
-      "unique_id": "BUS-05",
-      "vehicleId": "BUS-05",
-      "busName": "BUS-05",
+    "BM293": {
+      "uniqueId": "BM293",
+      "unique_id": "BM293",
+      "vehicleId": "BM293",
+      "bmNumber": "BM293",
+      "busName": "BM293",
       "defaultBusShortName": "KBS3F",
       "assignedRouteId": "5",
       "assignedRouteShortName": "KBS3F",
@@ -4967,10 +5119,11 @@
       "blocked": true
     },
     "KBS3F": {
-      "uniqueId": "BUS-05",
-      "unique_id": "BUS-05",
-      "vehicleId": "BUS-05",
-      "busName": "BUS-05",
+      "uniqueId": "BM293",
+      "unique_id": "BM293",
+      "vehicleId": "BM293",
+      "bmNumber": "BM293",
+      "busName": "BM293",
       "defaultBusShortName": "KBS3F",
       "assignedRouteId": "5",
       "assignedRouteShortName": "KBS3F",
@@ -4991,11 +5144,12 @@
       "estimatedRangeKm": 128,
       "blocked": true
     },
-    "BUS-06": {
-      "uniqueId": "BUS-06",
-      "unique_id": "BUS-06",
-      "vehicleId": "BUS-06",
-      "busName": "BUS-06",
+    "BM153": {
+      "uniqueId": "BM153",
+      "unique_id": "BM153",
+      "vehicleId": "BM153",
+      "bmNumber": "BM153",
+      "busName": "BM153",
       "defaultBusShortName": "328H",
       "assignedRouteId": "6",
       "assignedRouteShortName": "328H",
@@ -5017,10 +5171,11 @@
       "blocked": true
     },
     "328H": {
-      "uniqueId": "BUS-06",
-      "unique_id": "BUS-06",
-      "vehicleId": "BUS-06",
-      "busName": "BUS-06",
+      "uniqueId": "BM153",
+      "unique_id": "BM153",
+      "vehicleId": "BM153",
+      "bmNumber": "BM153",
+      "busName": "BM153",
       "defaultBusShortName": "328H",
       "assignedRouteId": "6",
       "assignedRouteShortName": "328H",
@@ -5041,11 +5196,12 @@
       "estimatedRangeKm": 128,
       "blocked": true
     },
-    "BUS-07": {
-      "uniqueId": "BUS-07",
-      "unique_id": "BUS-07",
-      "vehicleId": "BUS-07",
-      "busName": "BUS-07",
+    "BM299": {
+      "uniqueId": "BM299",
+      "unique_id": "BM299",
+      "vehicleId": "BM299",
+      "bmNumber": "BM299",
+      "busName": "BM299",
       "defaultBusShortName": "361C",
       "assignedRouteId": "7",
       "assignedRouteShortName": "361C",
@@ -5067,10 +5223,11 @@
       "blocked": true
     },
     "361C": {
-      "uniqueId": "BUS-07",
-      "unique_id": "BUS-07",
-      "vehicleId": "BUS-07",
-      "busName": "BUS-07",
+      "uniqueId": "BM299",
+      "unique_id": "BM299",
+      "vehicleId": "BM299",
+      "bmNumber": "BM299",
+      "busName": "BM299",
       "defaultBusShortName": "361C",
       "assignedRouteId": "7",
       "assignedRouteShortName": "361C",
@@ -5091,11 +5248,12 @@
       "estimatedRangeKm": 128,
       "blocked": true
     },
-    "BUS-08": {
-      "uniqueId": "BUS-08",
-      "unique_id": "BUS-08",
-      "vehicleId": "BUS-08",
-      "busName": "BUS-08",
+    "BM216": {
+      "uniqueId": "BM216",
+      "unique_id": "BM216",
+      "vehicleId": "BM216",
+      "bmNumber": "BM216",
+      "busName": "BM216",
       "defaultBusShortName": "399C",
       "assignedRouteId": "8",
       "assignedRouteShortName": "399C",
@@ -5117,10 +5275,11 @@
       "blocked": false
     },
     "399C": {
-      "uniqueId": "BUS-08",
-      "unique_id": "BUS-08",
-      "vehicleId": "BUS-08",
-      "busName": "BUS-08",
+      "uniqueId": "BM216",
+      "unique_id": "BM216",
+      "vehicleId": "BM216",
+      "bmNumber": "BM216",
+      "busName": "BM216",
       "defaultBusShortName": "399C",
       "assignedRouteId": "8",
       "assignedRouteShortName": "399C",
@@ -5141,11 +5300,12 @@
       "estimatedRangeKm": 128,
       "blocked": false
     },
-    "BUS-09": {
-      "uniqueId": "BUS-09",
-      "unique_id": "BUS-09",
-      "vehicleId": "BUS-09",
-      "busName": "BUS-09",
+    "BM002": {
+      "uniqueId": "BM002",
+      "unique_id": "BM002",
+      "vehicleId": "BM002",
+      "bmNumber": "BM002",
+      "busName": "BM002",
       "defaultBusShortName": "500DC",
       "assignedRouteId": "9",
       "assignedRouteShortName": "500DC",
@@ -5167,10 +5327,11 @@
       "blocked": true
     },
     "500DC": {
-      "uniqueId": "BUS-09",
-      "unique_id": "BUS-09",
-      "vehicleId": "BUS-09",
-      "busName": "BUS-09",
+      "uniqueId": "BM002",
+      "unique_id": "BM002",
+      "vehicleId": "BM002",
+      "bmNumber": "BM002",
+      "busName": "BM002",
       "defaultBusShortName": "500DC",
       "assignedRouteId": "9",
       "assignedRouteShortName": "500DC",
@@ -5202,6 +5363,7 @@
   "ranges": {
     "1": {
       "assignedVehicle": "BM238",
+      "bmNumber": "BM238",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5214,11 +5376,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 228.48,
-      "blocked": true,
-      "bmNumber": "BM238"
+      "blocked": true
     },
     "2": {
       "assignedVehicle": "BM291",
+      "bmNumber": "BM291",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5231,11 +5393,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 99.12,
-      "blocked": false,
-      "bmNumber": "BM291"
+      "blocked": false
     },
     "3": {
       "assignedVehicle": "BM001",
+      "bmNumber": "BM001",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5248,11 +5410,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 114.75,
-      "blocked": false,
-      "bmNumber": "BM001"
+      "blocked": false
     },
     "4": {
       "assignedVehicle": "BM086",
+      "bmNumber": "BM086",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5265,11 +5427,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 125.55,
-      "blocked": false,
-      "bmNumber": "BM086"
+      "blocked": false
     },
     "5": {
       "assignedVehicle": "BM293",
+      "bmNumber": "BM293",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5282,11 +5444,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 129.72,
-      "blocked": true,
-      "bmNumber": "BM293"
+      "blocked": true
     },
     "6": {
       "assignedVehicle": "BM153",
+      "bmNumber": "BM153",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5299,11 +5461,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 187.17,
-      "blocked": true,
-      "bmNumber": "BM153"
+      "blocked": true
     },
     "7": {
       "assignedVehicle": "BM299",
+      "bmNumber": "BM299",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5316,11 +5478,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 178.27,
-      "blocked": true,
-      "bmNumber": "BM299"
+      "blocked": true
     },
     "8": {
       "assignedVehicle": "BM216",
+      "bmNumber": "BM216",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5333,11 +5495,11 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 106.11,
-      "blocked": false,
-      "bmNumber": "BM216"
+      "blocked": false
     },
     "9": {
       "assignedVehicle": "BM002",
+      "bmNumber": "BM002",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
       "busCategory": "A",
@@ -5350,8 +5512,7 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 128,
       "gtfsDistanceKm": 149.8,
-      "blocked": true,
-      "bmNumber": "BM002"
+      "blocked": true
     }
   },
   "_swapLog": []
