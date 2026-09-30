@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Charging Log – Depot 32</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0fdf4;
+      --card: #ffffff;
+      --accent: #16a34a;
+      --accent-dark: #15803d;
+      --accent-light: #dcfce7;
+      --blue: #0ea5e9;
+      --red: #dc2626;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: Inter, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .header-icon {
+      width: 48px; height: 48px;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      border-radius: 14px;
+      display: grid; place-items: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .header h1 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .header p  { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Card ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border);
+    }
+    .card-title {
+      font-size: 1rem; font-weight: 700; margin-bottom: 16px;
+      color: var(--text); display: flex; align-items: center; gap: 8px;
+    }
+
+    /* ── Search ── */
+    .search-wrap { position: relative; margin-bottom: 14px; }
+    .search-wrap input {
+      width: 100%; padding: 12px 16px 12px 42px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.95rem; color: var(--text); outline: none;
+      transition: border-color 0.2s;
+    }
+    .search-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+    .search-icon {
+      position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+      font-size: 1rem; color: var(--muted); pointer-events: none;
+    }
+
+    /* ── Select ── */
+    select {
+      width: 100%; padding: 12px 36px 12px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.95rem; color: var(--text);
+      background: #fff; outline: none; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      transition: border-color 0.2s;
+    }
+    select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+
+    /* ── Bus Info ── */
+    .bus-info-box {
+      display: none;
+      background: #f0fdf4;
+      border: 1.5px solid #bbf7d0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+    .bus-info-box.show { display: block; }
+    .bus-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .info-item label { font-size: 0.76rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 3px; }
+    .info-item span  { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 0.78rem; font-weight: 700;
+    }
+    .badge-active  { background: #dcfce7; color: #166534; }
+    .badge-charging{ background: #fef9c3; color: #854d0e; }
+
+    /* ── SOC Slider ── */
+    .soc-row {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 4px;
+    }
+    .soc-row input[type="range"] {
+      flex: 1; accent-color: var(--accent); height: 6px; cursor: pointer;
+    }
+    .soc-value {
+      min-width: 52px; text-align: right;
+      font-size: 1.1rem; font-weight: 800; color: var(--accent);
+    }
+    .soc-bar-bg {
+      width: 100%; height: 10px; border-radius: 999px;
+      background: #e2e8f0; overflow: hidden; margin-top: 6px;
+    }
+    .soc-bar-fill {
+      height: 100%; border-radius: 999px;
+      background: linear-gradient(90deg, #f59e0b, #16a34a);
+      transition: width 0.3s;
+    }
+
+    /* ── Form groups ── */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 0.88rem; font-weight: 700;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+    input[type="number"], input[type="time"] {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.95rem; color: var(--text); outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="number"]:focus,
+    input[type="time"]:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+
+    textarea {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border); border-radius: 10px;
+      font-size: 0.9rem; color: var(--text); font-family: inherit;
+      resize: vertical; min-height: 80px; outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(22,163,74,0.12); }
+
+    /* ── Status pills ── */
+    .pill-row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .pill {
+      padding: 8px 16px; border-radius: 999px;
+      border: 1.5px solid var(--border); font-size: 0.88rem;
+      font-weight: 600; cursor: pointer; transition: all 0.2s;
+      background: #fff;
+    }
+    .pill.selected { border-color: var(--accent); background: var(--accent-light); color: var(--accent-dark); }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 12px 22px; border-radius: 10px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      border: none; transition: all 0.2s;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+      color: #fff; width: 100%;
+      box-shadow: 0 4px 14px rgba(22,163,74,0.28);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(22,163,74,0.35); }
+    .btn-primary:active { transform: none; }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    /* ── Log ── */
+    .log-list { list-style: none; }
+    .log-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      margin-top: 5px; flex-shrink: 0;
+    }
+    .log-dot.charged { background: var(--accent); }
+    .log-dot.partial { background: #f59e0b; }
+    .log-text { font-size: 0.88rem; }
+    .log-time { font-size: 0.77rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #1e293b; color: #fff;
+      padding: 13px 20px; border-radius: 12px;
+      font-size: 0.9rem; font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+      transform: translateY(80px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      pointer-events: none; z-index: 9999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #15803d; }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--muted); font-size: 0.88rem; text-decoration: none;
+      margin-bottom: 20px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent-dark); }
+
+    @media (max-width: 480px) {
+      .bus-info-grid, .form-row { grid-template-columns: 1fr; }
+      body { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<a href="/login.html" class="back-link">← Back to Portal</a>
+
+<div class="header">
+  <div class="header-icon">⚡</div>
+  <div>
+    <h1>Charging Log</h1>
+    <p>Record bus charging sessions — Depot 32 / Chandapura</p>
+  </div>
+</div>
+
+<!-- ── Bus Selection ── -->
+<div class="card">
+  <div class="card-title">🚌 Select Bus</div>
+
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="Search by BM number or Registration No…" oninput="filterBuses()" autocomplete="off" />
+  </div>
+
+  <select id="busSelect" onchange="onBusSelected()">
+    <option value="">— Choose a bus —</option>
+  </select>
+
+  <div class="bus-info-box" id="busInfoBox">
+    <div class="bus-info-grid">
+      <div class="info-item">
+        <label>BM Number</label>
+        <span id="infoBM">—</span>
+      </div>
+      <div class="info-item">
+        <label>Registration No.</label>
+        <span id="infoReg">—</span>
+      </div>
+      <div class="info-item">
+        <label>Model</label>
+        <span id="infoModel">—</span>
+      </div>
+      <div class="info-item">
+        <label>Status</label>
+        <span><span class="badge badge-charging" id="infoStatus">Charging</span></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Charging Session Details ── -->
+<div class="card">
+  <div class="card-title">⚡ Session Details</div>
+
+  <!-- SOC Before -->
+  <div class="form-group">
+    <label>SOC Before Charging: <span id="socBeforeVal">20%</span></label>
+    <div class="soc-row">
+      <input type="range" id="socBefore" min="0" max="100" value="20" step="1"
+             oninput="updateSOC('Before', this.value)">
+      <span class="soc-value" id="socBeforeDisp">20%</span>
+    </div>
+    <div class="soc-bar-bg"><div class="soc-bar-fill" id="socBarBefore" style="width:20%"></div></div>
+  </div>
+
+  <!-- SOC After -->
+  <div class="form-group">
+    <label>SOC After Charging: <span id="socAfterVal">80%</span></label>
+    <div class="soc-row">
+      <input type="range" id="socAfter" min="0" max="100" value="80" step="1"
+             oninput="updateSOC('After', this.value)">
+      <span class="soc-value" id="socAfterDisp">80%</span>
+    </div>
+    <div class="soc-bar-bg"><div class="soc-bar-fill" id="socBarAfter" style="width:80%"></div></div>
+  </div>
+
+  <!-- Start / End Time -->
+  <div class="form-group">
+    <div class="form-row">
+      <div>
+        <label>Charging Start Time</label>
+        <input type="time" id="startTime" />
+      </div>
+      <div>
+        <label>Charging End Time</label>
+        <input type="time" id="endTime" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Charger ID -->
+  <div class="form-group">
+    <label>Charger / Bay</label>
+    <select id="chargerSelect">
+      <option value="">— Select charger bay —</option>
+      <option>Bay 01</option>
+      <option>Bay 02</option>
+      <option>Bay 03</option>
+      <option>Bay 04</option>
+      <option>Bay 05</option>
+      <option>Bay 06</option>
+      <option>Bay 07</option>
+      <option>Bay 08</option>
+    </select>
+  </div>
+
+  <!-- Charging Status -->
+  <div class="form-group">
+    <label>Charging Status</label>
+    <div class="pill-row" id="statusPills">
+      <div class="pill selected" onclick="selectPill(this, 'Completed')">✅ Completed</div>
+      <div class="pill" onclick="selectPill(this, 'Partial')">⚡ Partial</div>
+      <div class="pill" onclick="selectPill(this, 'Fault')">⚠️ Fault</div>
+    </div>
+    <input type="hidden" id="chargingStatus" value="Completed" />
+  </div>
+
+  <!-- Remarks -->
+  <div class="form-group" style="margin-bottom: 0;">
+    <label>Remarks (optional)</label>
+    <textarea id="remarks" placeholder="Charger fault, battery warning, unusual readings…"></textarea>
+  </div>
+</div>
+
+<!-- ── Submit ── -->
+<div class="card" style="padding: 18px 24px;">
+  <button class="btn btn-primary" id="submitBtn" onclick="submitCharging()" disabled>
+    Submit Charging Record
+  </button>
+</div>
+
+<!-- ── Recent Log ── -->
+<div class="card" id="logCard" style="display:none;">
+  <div class="card-title">📋 Today's Charging Records</div>
+  <ul class="log-list" id="logList"></ul>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allVehicles = [];
+  let filteredVehicles = [];
+  let sessionLogs = [];
+  let selectedPillValue = 'Completed';
+
+  // ── Load vehicles from server ──
+  async function loadVehicles() {
+    try {
+      const res = await fetch('/vehicles/vehicles.txt');
+      const text = await res.text();
+      const lines = text.trim().split('\n').filter(Boolean);
+      allVehicles = lines.slice(1).map(line => {
+        const parts = line.trim().split(',');
+        return { bm_no: parts[0] || '', reg_no: parts[2] || '', model: parts[4] || 'EiV12 AC', status: parts[6] || 'Active' };
+      });
+    } catch(e) {
+      allVehicles = [
+        {bm_no:'BM001',reg_no:'KA51AH4144',model:'EiV12 AC',status:'Active'},
+        {bm_no:'BM002',reg_no:'KA51AH2434',model:'EiV12 AC',status:'Active'},
+      ];
+    }
+    filteredVehicles = [...allVehicles];
+    renderDropdown(filteredVehicles);
+    // Set default times
+    const now = new Date();
+    const hhmm = t => `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
+    const oneHrAgo = new Date(now - 3600000);
+    document.getElementById('startTime').value = hhmm(oneHrAgo);
+    document.getElementById('endTime').value   = hhmm(now);
+  }
+
+  function renderDropdown(list) {
+    const sel = document.getElementById('busSelect');
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">— Choose a bus —</option>';
+    list.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.bm_no;
+      opt.textContent = `${v.bm_no}  —  ${v.reg_no}`;
+      if (v.bm_no === cur) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  }
+
+  function filterBuses() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    filteredVehicles = q
+      ? allVehicles.filter(v => v.bm_no.toLowerCase().includes(q) || v.reg_no.toLowerCase().includes(q))
+      : [...allVehicles];
+    renderDropdown(filteredVehicles);
+    if (filteredVehicles.length === 1) {
+      document.getElementById('busSelect').value = filteredVehicles[0].bm_no;
+      onBusSelected();
+    } else {
+      document.getElementById('busInfoBox').classList.remove('show');
+      updateSubmitBtn();
+    }
+  }
+
+  function onBusSelected() {
+    const bm = document.getElementById('busSelect').value;
+    const box = document.getElementById('busInfoBox');
+    if (!bm) { box.classList.remove('show'); updateSubmitBtn(); return; }
+    const v = allVehicles.find(x => x.bm_no === bm);
+    if (!v) { box.classList.remove('show'); return; }
+    document.getElementById('infoBM').textContent    = v.bm_no;
+    document.getElementById('infoReg').textContent   = v.reg_no;
+    document.getElementById('infoModel').textContent = v.model;
+    box.classList.add('show');
+    updateSubmitBtn();
+  }
+
+  function updateSubmitBtn() {
+    const bm = document.getElementById('busSelect').value;
+    document.getElementById('submitBtn').disabled = !bm;
+  }
+
+  function updateSOC(which, val) {
+    const pct = `${val}%`;
+    document.getElementById(`socDisp${which}`)   && (document.getElementById(`socDisp${which}`).textContent = pct);
+    document.getElementById(`socBar${which}`)     && (document.getElementById(`socBar${which}`).style.width = pct);
+    // Simpler approach:
+    if (which === 'Before') {
+      document.getElementById('socBeforeDisp').textContent = pct;
+      document.getElementById('socBarBefore').style.width  = pct;
+    } else {
+      document.getElementById('socAfterDisp').textContent  = pct;
+      document.getElementById('socBarAfter').style.width   = pct;
+    }
+  }
+
+  function selectPill(el, value) {
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPillValue = value;
+    document.getElementById('chargingStatus').value = value;
+  }
+
+  function submitCharging() {
+    const bm       = document.getElementById('busSelect').value;
+    const socBef   = document.getElementById('socBefore').value;
+    const socAft   = document.getElementById('socAfter').value;
+    const startT   = document.getElementById('startTime').value;
+    const endT     = document.getElementById('endTime').value;
+    const bay      = document.getElementById('chargerSelect').value || 'N/A';
+    const status   = selectedPillValue;
+    const remarks  = document.getElementById('remarks').value.trim();
+    if (!bm) return;
+
+    const now     = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const delta   = parseInt(socAft) - parseInt(socBef);
+
+    sessionLogs.unshift({ bm, socBef, socAft, delta, startT, endT, bay, status, remarks, timeStr });
+    renderLog();
+
+    // Reset
+    document.getElementById('busSelect').value = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('busInfoBox').classList.remove('show');
+    filteredVehicles = [...allVehicles];
+    renderDropdown(filteredVehicles);
+    document.getElementById('socBefore').value = '20';
+    document.getElementById('socAfter').value  = '80';
+    updateSOC('Before', '20');
+    updateSOC('After',  '80');
+    document.getElementById('remarks').value   = '';
+    document.getElementById('chargerSelect').value = '';
+    updateSubmitBtn();
+
+    showToast(`⚡ Charging record saved for ${bm} (${socBef}% → ${socAft}%)`, 'success');
+  }
+
+  function renderLog() {
+    const card = document.getElementById('logCard');
+    const list  = document.getElementById('logList');
+    if (!sessionLogs.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    list.innerHTML = sessionLogs.map(e => `
+      <li class="log-item">
+        <div class="log-dot ${e.status === 'Completed' ? 'charged' : 'partial'}"></div>
+        <div>
+          <div class="log-text">
+            <strong>${e.bm}</strong> — SOC: ${e.socBef}% → ${e.socAft}%
+            (+${e.delta}%) · Bay: ${e.bay} · ${e.status}
+            ${e.remarks ? `<em style="color:var(--muted)"> · "${e.remarks}"</em>` : ''}
+          </div>
+          <div class="log-time">${e.startT} – ${e.endT} &nbsp;|&nbsp; Logged at ${e.timeStr}</div>
+        </div>
+      </li>
+    `).join('');
+  }
+
+  function showToast(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.classList.remove('show'); }, 3200);
+  }
+
+  loadVehicles();
+</script>
+</body>
+</html>

@@ -2260,6 +2260,16 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // ── Vehicles fleet data ──
+    if (pathname === "/vehicles/vehicles.txt") {
+        sendFile(res, path.join(BASE_DIR, "vehicles", "vehicles.txt"), "text/plain; charset=utf-8");
+        return;
+    }
+    if (pathname === "/vehicles/vehicle_assignments.csv") {
+        sendFile(res, path.join(BASE_DIR, "vehicles", "vehicle_assignments.csv"), "text/plain; charset=utf-8");
+        return;
+    }
+
     sendJson(res, { error: "Not found" }, 404);
 });
 
