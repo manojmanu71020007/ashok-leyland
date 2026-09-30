@@ -1,4 +1,4 @@
-"""Feasibility and allocation logic for EV depot operations."""
+"""Feasibility and allocation logic for depot bus operations."""
 
 from __future__ import annotations
 

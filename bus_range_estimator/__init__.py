@@ -1,4 +1,4 @@
-"""Electric bus depot scheduling range estimator package."""
+"""Bus depot scheduling range estimator package."""
 
 from .allocator import (
     SOC_HYSTERESIS_PERCENT,

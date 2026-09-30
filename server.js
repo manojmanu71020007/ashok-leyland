@@ -1771,7 +1771,12 @@ const server = http.createServer(async (req, res) => {
                             matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
                         }
 
-                        const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("BUS-") || rawId.toUpperCase().startsWith("BM") ? rawId.toUpperCase() : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase().replace(/^EV-/, "BUS-") : "BUS-01");
+                        const upperRaw = rawId.toUpperCase();
+                        const uniqueId = matchingRoute
+                            ? matchingRoute.uniqueId
+                            : (upperRaw.startsWith("BUS-") || upperRaw.startsWith("BM")
+                                ? upperRaw
+                                : (upperRaw.startsWith("EV-") ? upperRaw.replace(/^EV-/, "BUS-") : "BUS-01"));
                         const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                         const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 
@@ -1902,7 +1907,12 @@ const server = http.createServer(async (req, res) => {
                         matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
                     }
 
-                    const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("BUS-") || rawId.toUpperCase().startsWith("BM") ? rawId.toUpperCase() : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase().replace(/^EV-/, "BUS-") : "BUS-01");
+                    const upperRaw = rawId.toUpperCase();
+                    const uniqueId = matchingRoute
+                        ? matchingRoute.uniqueId
+                        : (upperRaw.startsWith("BUS-") || upperRaw.startsWith("BM")
+                            ? upperRaw
+                            : (upperRaw.startsWith("EV-") ? upperRaw.replace(/^EV-/, "BUS-") : "BUS-01"));
                     const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                     const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 

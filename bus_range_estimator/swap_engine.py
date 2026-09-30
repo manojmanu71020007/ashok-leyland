@@ -1,4 +1,4 @@
-"""Greedy global swap engine for the EV depot.
+"""Greedy global swap engine for the fleet depot.
 
 This module contains the Python-side implementation of Logic 2.  The Node.js
 ``swapBusAssignments()`` function in server.js is the authoritative real-time

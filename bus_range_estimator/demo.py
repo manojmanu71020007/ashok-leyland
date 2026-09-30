@@ -1,4 +1,4 @@
-"""Synthetic demo for the EV bus range estimator package."""
+"""Synthetic demo for the bus range estimator package."""
 
 from __future__ import annotations
 
