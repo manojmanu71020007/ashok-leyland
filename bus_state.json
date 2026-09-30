@@ -132,13 +132,38 @@
     "bmNumber": "BM293"
   },
   "6": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T15:36:53.110Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T15:36:53.110Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM153",
     "busNumber": "328H",
-    "blocked": true,
-    "bmNumber": "BM153"
+    "bmNumber": "BM153",
+    "blocked": true
   },
   "7": {
     "soc": 100,
@@ -1362,16 +1387,40 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "BM153": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T15:36:53.110Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T15:36:53.110Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM153",
-    "busNumber": "328H",
-    "blocked": true,
     "bmNumber": "BM153",
     "assignedRouteId": "6",
     "assignedRouteDisplay": "Route 6 - 328H (187.2 km)",
-    "assignedRouteShortName": "328H"
+    "assignedRouteShortName": "328H",
+    "blocked": true
   },
   "BUS-33": {
     "uniqueId": "BUS-33",
@@ -4616,12 +4665,37 @@
     "bmNumber": "BM293"
   },
   "328H": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T15:36:53.110Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T15:36:53.110Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM153",
-    "blocked": true,
-    "bmNumber": "BM153"
+    "bmNumber": "BM153",
+    "blocked": true
   },
   "361C": {
     "soc": 100,
