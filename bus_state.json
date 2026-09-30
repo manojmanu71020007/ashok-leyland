@@ -8,9 +8,34 @@
     "blocked": true
   },
   "2": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:55:40.941Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "EV-02",
     "busNumber": "360K",
     "blocked": false
@@ -123,21 +148,39 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "EV-02": {
-    "uniqueId": "EV-02",
-    "vehicleId": "BM002",
-    "regNo": "KA51AH2434",
-    "busNumber": "600F",
-    "scheduleId": "600F/32",
-    "soc": 100,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:55:40.941Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "EV-02",
     "assignedRouteId": "2",
-    "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 2 - 360K (99.1 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "assignedRouteShortName": "360K",
+    "blocked": false
   },
   "BM003": {
     "uniqueId": "EV-03",
@@ -4299,9 +4342,34 @@
     "blocked": true
   },
   "360K": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T12:55:40.941Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T12:55:40.941Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "EV-02",
     "blocked": false
   },
