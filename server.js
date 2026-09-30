@@ -97,7 +97,7 @@ function loadRoutes() {
         const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
         const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
         const padIndex = String(idx + 1).padStart(2, "0");
-        const uniqueId = `EV-${padIndex}`;
+        const uniqueId = `BUS-${padIndex}`;
         const cleanRouteId = String(routeId || "").trim();
         const tripCount = tripCounts.get(cleanRouteId) || 0;
 
@@ -370,7 +370,7 @@ function calculateRouteDistance(busIdentifier, routeIdParam) {
 }
 
 // ── Bus Swap Engine (Unique ID Physical Vehicle Model) ───────────────────────
-// uniqueId (EV-01..EV-54) is the physical bus asset holding battery SoC, condition, and telemetry.
+// uniqueId (BUS-01..BUS-54) is the physical bus asset holding battery SoC, condition, and telemetry.
 // GTFS Route (route_id + bus_short_name + Origin ➔ Destination + distance) is the FIXED public line.
 // Greedily swaps physical vehicle assignments so higher-SoC operational vehicles are assigned
 // to longer routes, honoring 5% SoC hysteresis and maintenance safety rules.
@@ -458,7 +458,7 @@ const PYTHON_RANGE_TTL_MS = 60_000; // 60 s — discard stale Python estimates
  * otherwise falls back to the flat 1.42 km/% formula.
  *
  * @param {number} soc      - current SoC %
- * @param {string} [uniqueId] - EV-01…EV-54 key for the Python cache lookup
+ * @param {string} [uniqueId] - BUS-01…BUS-54 key for the Python cache lookup
  */
 function estimatedRangeKm(soc, uniqueId) {
     if (uniqueId) {
@@ -476,7 +476,7 @@ function estimatedRangeKm(soc, uniqueId) {
  * Fire-and-forget: fetch blended range from Python and update the cache.
  * Never awaited from the hot path — does not block telemetry responses.
  *
- * @param {string} uniqueId - EV-01…EV-54
+ * @param {string} uniqueId - BUS-01…BUS-54
  * @param {number} soc      - current SoC (used as cache fallback if Python fails)
  */
 function fetchAndCachePythonRange(uniqueId, soc) {
@@ -496,7 +496,7 @@ function fetchAndCachePythonRange(uniqueId, soc) {
 
 
 /**
- * Runs the physical vehicle (unique_id: EV-01..EV-54) bus-swap algorithm and updates state._assignments in-place.
+ * Runs the physical vehicle (unique_id: BUS-01..BUS-54) bus-swap algorithm and updates state._assignments in-place.
  */
 function swapBusAssignments(state) {
     const allRoutes = loadRoutes();
@@ -518,7 +518,7 @@ function swapBusAssignments(state) {
 
     if (!routeInfos.length) return state;
 
-    // Read telemetry for each physical vehicle (uniqueId: EV-01..EV-54)
+    // Read telemetry for each physical vehicle (uniqueId: BUS-01..BUS-54)
     const vehicleTelemetry = {};
     for (const r of routeInfos) {
         const uId = r.uniqueId;
@@ -1241,7 +1241,7 @@ function resolveBusAndRoute(rawBusId) {
     const cleanLower = cleanId.toLowerCase();
     const cleanCompact = cleanId.replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
 
-    // 1. Match by uniqueId (EV-01..EV-54)
+    // 1. Match by uniqueId (BUS-01..BUS-54 / legacy EV-01..EV-54)
     let matchingRoute = allRoutes.find((r) => {
         const uId = String(r.uniqueId || "").toLowerCase();
         return uId === cleanLower || uId.replace(/[^a-zA-Z0-9]/g, "") === cleanCompact;
@@ -1265,8 +1265,10 @@ function resolveBusAndRoute(rawBusId) {
     let uniqueId = "";
     if (matchingRoute) {
         uniqueId = matchingRoute.uniqueId;
-    } else if (cleanId.toUpperCase().startsWith("EV-")) {
+    } else if (cleanId.toUpperCase().startsWith("BUS-") || cleanId.toUpperCase().startsWith("BM")) {
         uniqueId = cleanId.toUpperCase();
+    } else if (cleanId.toUpperCase().startsWith("EV-")) {
+        uniqueId = cleanId.toUpperCase().replace(/^EV-/, "BUS-");
     } else {
         uniqueId = assignments[cleanId] || cleanId;
     }
@@ -1422,7 +1424,7 @@ function getBusTasks(busIdentifier, routeIdParam) {
     const assignments = busState._assignments || {};
 
     let targetRoute = null;
-    let uniqueId = "EV-01";
+    let uniqueId = "BUS-01";
 
     if (routeIdParam) {
         targetRoute = allRoutes.find(r => String(r.routeId) === String(routeIdParam));
@@ -1769,7 +1771,7 @@ const server = http.createServer(async (req, res) => {
                             matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
                         }
 
-                        const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase() : "EV-01");
+                        const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("BUS-") || rawId.toUpperCase().startsWith("BM") ? rawId.toUpperCase() : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase().replace(/^EV-/, "BUS-") : "BUS-01");
                         const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                         const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 
@@ -1900,7 +1902,7 @@ const server = http.createServer(async (req, res) => {
                         matchingRoute = allRoutes.find((r) => String(r.routeId) === rawId);
                     }
 
-                    const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase() : "EV-01");
+                    const uniqueId = matchingRoute ? matchingRoute.uniqueId : (rawId.toUpperCase().startsWith("BUS-") || rawId.toUpperCase().startsWith("BM") ? rawId.toUpperCase() : (rawId.toUpperCase().startsWith("EV-") ? rawId.toUpperCase().replace(/^EV-/, "BUS-") : "BUS-01");
                     const busShortName = matchingRoute ? matchingRoute.busNumber : uniqueId;
                     const defaultRouteId = matchingRoute ? String(matchingRoute.routeId) : "";
 

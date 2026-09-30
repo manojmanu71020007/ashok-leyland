@@ -990,7 +990,7 @@
                     </label>
                     <div id="selected-route-trips-banner" class="selected-route-trips-banner" style="display:none;">
                         <div>
-                            <strong>🎯 Assigned Duty:</strong> <span id="banner-bus-id" style="font-weight:700;">EV-01</span> on Route <span id="banner-route-name" style="font-weight:700;">401-A</span> (<span id="banner-stops-name">Peenya ➔ KBS</span>)
+                            <strong>🎯 Assigned Duty:</strong> <span id="banner-bus-id" style="font-weight:700;">BUS-01</span> on Route <span id="banner-route-name" style="font-weight:700;">401-A</span> (<span id="banner-stops-name">Peenya ➔ KBS</span>)
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
                             <span class="trip-count-badge" id="banner-trip-count" style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:.75rem;">211 Trips</span>
@@ -1183,7 +1183,7 @@
                         <div class="eyebrow" style="margin-bottom:4px; color:#0369a1;">GTFS Route &amp; Energy Feasibility Schedule</div>
                         <h2 id="bus-tasks-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
                             <span>📋 Bus Assigned Tasks</span>
-                            <span id="tasks-modal-bus-badge" class="bus-pill-swapped" style="font-size:.85rem; padding:3px 10px;">EV-01</span>
+                            <span id="tasks-modal-bus-badge" class="bus-pill-swapped" style="font-size:.85rem; padding:3px 10px;">BUS-01</span>
                         </h2>
                         <p id="tasks-modal-subtitle" style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
                             Schedule of duty tasks for this vehicle based on GTFS route distance and battery charge estimation.
@@ -1664,7 +1664,7 @@
                 const assignedName = getAssignedBusName(route);
                 const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
 
-                // DRIVER ALLOCATION GATE: If there is no driver for that particular EV bus,
+                // DRIVER ALLOCATION GATE: If there is no driver for that particular bus,
                 // it MUST come under Not Allocated Buses list, no matter the SoC!
                 const driverStatus = state.driver || "Driver Assigned";
                 if (driverStatus.toLowerCase().includes("no")) return false;
@@ -2335,7 +2335,7 @@
             document.body.style.overflow = "hidden";
 
             const targetRoute = routes.find((r) => String(r.routeId) === String(routeId)) || routes[0] || {};
-            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.uniqueId || "EV-01";
+            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.uniqueId || "BUS-01";
 
             if (tasksModalBusBadge) {
                 tasksModalBusBadge.textContent = assignedVehicle;
@@ -2455,7 +2455,7 @@
             const estRange = data.estimatedRangeKm ?? 106;
             const totalTrips = data.totalAssignedTrips || 0;
             const maxFeasible = data.maxFeasibleTrips || 0;
-            const vehicle = data.assignedVehicle || data.uniqueId || "EV-01";
+            const vehicle = data.assignedVehicle || data.uniqueId || "BUS-01";
             const busNum = data.busNumber || "N/A";
             const origin = data.origin || "Origin";
             const dest = data.destination || "Destination";
