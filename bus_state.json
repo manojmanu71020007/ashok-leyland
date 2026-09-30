@@ -145,9 +145,34 @@
     "blocked": false
   },
   "9": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T13:48:25.175Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T13:48:25.175Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BUS-09",
     "busNumber": "500DC",
     "blocked": true
@@ -538,21 +563,39 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "BUS-09": {
-    "uniqueId": "BUS-09",
-    "vehicleId": "BM020",
-    "regNo": "KA51AH2556",
-    "busNumber": "361C",
-    "scheduleId": "361C/4",
-    "soc": 100,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T13:48:25.175Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T13:48:25.175Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BUS-09",
     "assignedRouteId": "9",
-    "assignedRouteShortName": "500DC",
     "assignedRouteDisplay": "Route 9 - 500DC (149.8 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "assignedRouteShortName": "500DC",
+    "blocked": true
   },
   "BM024": {
     "uniqueId": "BUS-10",
@@ -4570,9 +4613,34 @@
     "blocked": false
   },
   "500DC": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T13:48:25.175Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T13:48:25.175Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BUS-09",
     "blocked": true
   },
