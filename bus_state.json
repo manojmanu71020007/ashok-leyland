@@ -255,6 +255,46 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "EV-08": {
+    "status": "Blocked",
+    "rawStatus": "Active",
+    "soc": 15,
+    "condition": "Not Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-09-30T07:37:17.678Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-09-30T07:32:10.476Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-30T07:36:25.087Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-09-30T07:37:17.678Z",
+        "soc": 15,
+        "condition": "Not Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "EV-08",
     "vehicleId": "BM019",
     "regNo": "KA51AH2552",
