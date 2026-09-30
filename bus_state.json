@@ -338,10 +338,10 @@
     "blocked": true
   },
   "1549": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 8,
-    "condition": "Good",
+    "soc": 100,
+    "condition": "Not Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
       "Delayed": {
@@ -383,7 +383,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-16",
     "busNumber": "D9-PSS",
     "blocked": true
   },
@@ -750,9 +750,9 @@
     "blocked": false
   },
   "3629": {
-    "status": "Warning",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 18,
+    "soc": 8,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:21.525Z",
@@ -790,7 +790,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-12",
     "busNumber": "265-D PSS-VGN",
     "blocked": true
   },
@@ -986,7 +986,7 @@
   "3935": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 23,
+    "soc": 16,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T14:52:03.990Z",
@@ -1024,14 +1024,14 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-50",
+    "uniqueId": "EV-27",
     "busNumber": "MF-26 PSS-JHMS",
     "blocked": true
   },
   "3951": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 16,
+    "soc": 18,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T07:08:30.981Z",
@@ -1075,7 +1075,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-27",
+    "uniqueId": "EV-30",
     "busNumber": "265-A PSS-TEPL",
     "blocked": true
   },
@@ -1174,7 +1174,7 @@
     "soc": 84,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T03:13:32.034Z",
+    "updatedAt": "2026-09-30T03:13:34.630Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -1352,10 +1352,10 @@
     }
   },
   "7296": {
-    "status": "Active",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 100,
-    "condition": "Not Good",
+    "soc": 23,
+    "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:53:33.939Z",
     "statusTimings": {
@@ -1398,7 +1398,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-16",
+    "uniqueId": "EV-50",
     "busNumber": "JHMS-PSS",
     "blocked": true
   },
@@ -1887,7 +1887,7 @@
     "soc": 84,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T03:13:32.034Z",
+    "updatedAt": "2026-09-30T03:13:34.630Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -2012,7 +2012,7 @@
     "1427": "EV-25",
     "1428": "EV-33",
     "1548": "EV-21",
-    "1549": "EV-12",
+    "1549": "EV-16",
     "1553": "EV-03",
     "1610": "EV-07",
     "1612": "EV-48",
@@ -2030,22 +2030,22 @@
     "2861": "EV-15",
     "3158": "EV-41",
     "3430": "EV-44",
-    "3629": "EV-30",
+    "3629": "EV-12",
     "3831": "EV-53",
     "3864": "EV-09",
     "3878": "EV-06",
     "3907": "EV-14",
     "3916": "EV-04",
     "3920": "EV-34",
-    "3935": "EV-50",
-    "3951": "EV-27",
+    "3935": "EV-27",
+    "3951": "EV-30",
     "4759": "EV-23",
     "4798": "EV-45",
     "6080": "EV-38",
     "6551": "EV-35",
     "6979": "EV-08",
     "7143": "EV-31",
-    "7296": "EV-16",
+    "7296": "EV-50",
     "7403": "EV-43",
     "7632": "EV-32",
     "7834": "EV-01",
@@ -2070,8 +2070,8 @@
     "401-AM PTH-PSS": "EV-33",
     "EV-21": "1548",
     "D22-PSS": "EV-21",
-    "EV-12": "1549",
-    "D9-PSS": "EV-12",
+    "EV-16": "1549",
+    "D9-PSS": "EV-16",
     "EV-03": "1553",
     "EV-07": "1610",
     "252 LGR-PSS": "EV-07",
@@ -2104,8 +2104,8 @@
     "254-E PSS-KMP": "EV-41",
     "EV-44": "3430",
     "507-B": "EV-44",
-    "EV-30": "3629",
-    "265-D PSS-VGN": "EV-30",
+    "EV-12": "3629",
+    "265-D PSS-VGN": "EV-12",
     "EV-53": "3831",
     "MBS-12 PSS-ANP": "EV-53",
     "EV-09": "3864",
@@ -2118,10 +2118,10 @@
     "PSS-NTTF-LGRNBS": "EV-04",
     "EV-34": "3920",
     "253-J PSS-HGV": "EV-34",
-    "EV-50": "3935",
-    "MF-26 PSS-JHMS": "EV-50",
-    "EV-27": "3951",
-    "265-A PSS-TEPL": "EV-27",
+    "EV-27": "3935",
+    "MF-26 PSS-JHMS": "EV-27",
+    "EV-30": "3951",
+    "265-A PSS-TEPL": "EV-30",
     "EV-23": "4759",
     "270-D PSS-ABG": "EV-23",
     "EV-45": "4798",
@@ -2134,8 +2134,8 @@
     "251E PSS-KMT": "EV-08",
     "EV-31": "7143",
     "MF-32 PSS-CKB": "EV-31",
-    "EV-16": "7296",
-    "JHMS-PSS": "EV-16",
+    "EV-50": "7296",
+    "JHMS-PSS": "EV-50",
     "EV-43": "7403",
     "PSS-TGPL-GGH": "EV-43",
     "EV-32": "7632",
@@ -2171,127 +2171,17 @@
   "_blockedRouteIds": [
     "3916",
     "1610",
-    "1549",
-    "7296",
-    "1548",
-    "3951",
     "3629",
+    "1549",
+    "1548",
     "3935",
+    "3951",
+    "7296",
     "8276"
   ],
   "_swapLog": [
     {
-      "timestamp": "2026-09-30T03:13:32.034Z",
-      "routeA": "7296",
-      "routeShortNameA": "JHMS-PSS",
-      "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
-      "distA": 5.19,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-12",
-      "socA": 8,
-      "busCategoryA": "C",
-      "routeB": "3935",
-      "routeShortNameB": "MF-26 PSS-JHMS",
-      "routeLineB": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
-      "distB": 4.57,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-04",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-04",
-      "timeSlot": "NORMAL",
-      "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T03:13:32.034Z",
-      "routeA": "3935",
-      "routeShortNameA": "MF-26 PSS-JHMS",
-      "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
-      "distA": 4.57,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-12",
-      "socA": 8,
-      "busCategoryA": "C",
-      "routeB": "3951",
-      "routeShortNameB": "265-A PSS-TEPL",
-      "routeLineB": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
-      "distB": 3.17,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-07",
-      "socB": 85,
-      "busCategoryB": "B",
-      "swappedVehicle": "EV-07",
-      "timeSlot": "NORMAL",
-      "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T03:13:32.034Z",
-      "routeA": "3951",
-      "routeShortNameA": "265-A PSS-TEPL",
-      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
-      "distA": 3.17,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-12",
-      "socA": 8,
-      "busCategoryA": "C",
-      "routeB": "3629",
-      "routeShortNameB": "265-D PSS-VGN",
-      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
-      "distB": 2.48,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-54",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-54",
-      "timeSlot": "NORMAL",
-      "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T03:13:32.034Z",
-      "routeA": "3629",
-      "routeShortNameA": "265-D PSS-VGN",
-      "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
-      "distA": 2.48,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-12",
-      "socA": 8,
-      "busCategoryA": "C",
-      "routeB": "1549",
-      "routeShortNameB": "D9-PSS",
-      "routeLineB": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
-      "distB": 1.63,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-16",
-      "socB": 100,
-      "busCategoryB": "A",
-      "swappedVehicle": "EV-16",
-      "timeSlot": "NORMAL",
-      "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T03:13:32.034Z",
-      "routeA": "1549",
-      "routeShortNameA": "D9-PSS",
-      "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
-      "distA": 1.63,
-      "categoryA": "SIMPLE",
-      "vehicleA": "EV-12",
-      "socA": 8,
-      "busCategoryA": "C",
-      "routeB": "1548",
-      "routeShortNameB": "D22-PSS",
-      "routeLineB": "D22-PSS (Peenya 2nd Stage ➔ Depot-22 Peenya)",
-      "distB": 1.52,
-      "categoryB": "SIMPLE",
-      "vehicleB": "EV-21",
-      "socB": 26,
-      "busCategoryB": "C",
-      "swappedVehicle": "EV-21",
-      "timeSlot": "NORMAL",
-      "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
-    },
-    {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -2313,7 +2203,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2335,7 +2225,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2357,7 +2247,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2379,7 +2269,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2401,7 +2291,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "1610",
       "routeShortNameA": "252 LGR-PSS",
       "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
@@ -2423,7 +2313,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -2445,7 +2335,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2467,7 +2357,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2489,7 +2379,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2511,7 +2401,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3916",
       "routeShortNameA": "PSS-NTTF-LGRNBS",
       "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -2533,7 +2423,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3916 (PSS-NTTF-LGRNBS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "1610",
       "routeShortNameA": "252 LGR-PSS",
       "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
@@ -2555,7 +2445,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -2577,7 +2467,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2599,7 +2489,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2621,7 +2511,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-50' with SoC 23% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2643,7 +2533,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2665,7 +2555,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2687,7 +2577,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -2709,7 +2599,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 1549 (D9-PSS, SIMPLE) had vehicle 'EV-21' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 1549 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2731,7 +2621,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 7296 (JHMS-PSS, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 7296 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2753,7 +2643,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2775,7 +2665,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -2797,7 +2687,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3629 (265-D PSS-VGN, SIMPLE) had vehicle 'EV-16' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3629 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -2819,7 +2709,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 8276 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2841,7 +2731,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 7296 (JHMS-PSS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 7296 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2863,7 +2753,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -2885,7 +2775,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3951 (265-A PSS-TEPL, SIMPLE) had vehicle 'EV-54' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3951 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "1610",
       "routeShortNameA": "252 LGR-PSS",
       "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
@@ -2907,7 +2797,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 1610 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -2929,7 +2819,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 8276 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -2951,7 +2841,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 7296 (JHMS-PSS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 7296 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -2973,7 +2863,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3935 (MF-26 PSS-JHMS, SIMPLE) had vehicle 'EV-07' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 3935 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "3916",
       "routeShortNameA": "PSS-NTTF-LGRNBS",
       "routeLineA": "PSS-NTTF-LGRNBS (Laggere New Bus Stand ➔ Peenya 2nd Stage)",
@@ -2995,7 +2885,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 3916 (PSS-NTTF-LGRNBS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-50' to Route 3916 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "1610",
       "routeShortNameA": "252 LGR-PSS",
       "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
@@ -3017,7 +2907,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 1610 (252 LGR-PSS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-27' to Route 1610 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -3039,7 +2929,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 8276 (BC-7B BDYH-PSS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-30' to Route 8276 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.630Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -3061,7 +2951,7 @@
       "reason": "Safety & Maintenance Alert: Higher priority Route 7296 (JHMS-PSS, SIMPLE) had vehicle 'EV-04' in 'Not Good' condition. Reassigned operational vehicle 'EV-12' to Route 7296 to prevent in-service breakdown."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -3083,7 +2973,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -3105,7 +2995,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -3127,7 +3017,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -3149,7 +3039,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "1549",
       "routeShortNameA": "D9-PSS",
       "routeLineA": "D9-PSS (Peenya 2nd stage ➔ Depot-09 Peenya)",
@@ -3171,7 +3061,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 1549 (D9-PSS) had vehicle 'EV-12' with SoC 8% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "8276",
       "routeShortNameA": "BC-7B BDYH-PSS",
       "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
@@ -3193,7 +3083,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "7296",
       "routeShortNameA": "JHMS-PSS",
       "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
@@ -3215,7 +3105,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3935",
       "routeShortNameA": "MF-26 PSS-JHMS",
       "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
@@ -3237,7 +3127,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3951",
       "routeShortNameA": "265-A PSS-TEPL",
       "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
@@ -3259,7 +3149,7 @@
       "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
     },
     {
-      "timestamp": "2026-09-30T03:13:32.035Z",
+      "timestamp": "2026-09-30T03:13:34.631Z",
       "routeA": "3629",
       "routeShortNameA": "265-D PSS-VGN",
       "routeLineA": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
@@ -3279,6 +3169,116 @@
       "swappedVehicle": "EV-21",
       "timeSlot": "NORMAL",
       "reason": "Depot Dispatch Floor Alert: Route 3629 (265-D PSS-VGN) had vehicle 'EV-30' with SoC 18% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T03:13:34.631Z",
+      "routeA": "1610",
+      "routeShortNameA": "252 LGR-PSS",
+      "routeLineA": "252 LGR-PSS (Peenya 2nd Stage ➔ Laggere New Bus Stand)",
+      "distA": 5.69,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-27",
+      "socA": 16,
+      "busCategoryA": "C",
+      "routeB": "8276",
+      "routeShortNameB": "BC-7B BDYH-PSS",
+      "routeLineB": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distB": 5.29,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-04",
+      "socB": 85,
+      "busCategoryB": "B",
+      "swappedVehicle": "EV-04",
+      "timeSlot": "NORMAL",
+      "reason": "Depot Dispatch Floor Alert: Route 1610 (252 LGR-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-04' (85% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T03:13:34.631Z",
+      "routeA": "8276",
+      "routeShortNameA": "BC-7B BDYH-PSS",
+      "routeLineA": "BC-7B BDYH-PSS (Peenya 2nd Stage ➔ Byadarahalli)",
+      "distA": 5.29,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-27",
+      "socA": 16,
+      "busCategoryA": "C",
+      "routeB": "7296",
+      "routeShortNameB": "JHMS-PSS",
+      "routeLineB": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distB": 5.19,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-07",
+      "socB": 85,
+      "busCategoryB": "B",
+      "swappedVehicle": "EV-07",
+      "timeSlot": "NORMAL",
+      "reason": "Depot Dispatch Floor Alert: Route 8276 (BC-7B BDYH-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-07' (85% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T03:13:34.631Z",
+      "routeA": "7296",
+      "routeShortNameA": "JHMS-PSS",
+      "routeLineA": "JHMS-PSS (Jalahalli Cross Metro Station Departure ➔ Peenya 2nd Stage)",
+      "distA": 5.19,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-27",
+      "socA": 16,
+      "busCategoryA": "C",
+      "routeB": "3935",
+      "routeShortNameB": "MF-26 PSS-JHMS",
+      "routeLineB": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
+      "distB": 4.57,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-54",
+      "socB": 100,
+      "busCategoryB": "A",
+      "swappedVehicle": "EV-54",
+      "timeSlot": "NORMAL",
+      "reason": "Depot Dispatch Floor Alert: Route 7296 (JHMS-PSS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-54' (100% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T03:13:34.631Z",
+      "routeA": "3935",
+      "routeShortNameA": "MF-26 PSS-JHMS",
+      "routeLineA": "MF-26 PSS-JHMS (Jalahalli Cross ➔ Peenya 2nd Stage)",
+      "distA": 4.57,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-27",
+      "socA": 16,
+      "busCategoryA": "C",
+      "routeB": "3951",
+      "routeShortNameB": "265-A PSS-TEPL",
+      "routeLineB": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distB": 3.17,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-16",
+      "socB": 100,
+      "busCategoryB": "A",
+      "swappedVehicle": "EV-16",
+      "timeSlot": "NORMAL",
+      "reason": "Depot Dispatch Floor Alert: Route 3935 (MF-26 PSS-JHMS) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-16' (100% SoC)."
+    },
+    {
+      "timestamp": "2026-09-30T03:13:34.631Z",
+      "routeA": "3951",
+      "routeShortNameA": "265-A PSS-TEPL",
+      "routeLineA": "265-A PSS-TEPL (Therelek Engineers PVT LTD Peenya ➔ Peenya 2nd Stage)",
+      "distA": 3.17,
+      "categoryA": "SIMPLE",
+      "vehicleA": "EV-27",
+      "socA": 16,
+      "busCategoryA": "C",
+      "routeB": "3629",
+      "routeShortNameB": "265-D PSS-VGN",
+      "routeLineB": "265-D PSS-VGN (Vigneshwara Nagara ➔ Peenya 2nd Stage)",
+      "distB": 2.48,
+      "categoryB": "SIMPLE",
+      "vehicleB": "EV-21",
+      "socB": 26,
+      "busCategoryB": "C",
+      "swappedVehicle": "EV-21",
+      "timeSlot": "NORMAL",
+      "reason": "Depot Dispatch Floor Alert: Route 3951 (265-A PSS-TEPL) had vehicle 'EV-27' with SoC 16% below 25% floor. Reassigned vehicle 'EV-21' (26% SoC)."
     }
   ],
   "PSS-NLGDH-8THM": {
@@ -3674,10 +3674,10 @@
     "blocked": false
   },
   "JHMS-PSS": {
-    "status": "Active",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 100,
-    "condition": "Not Good",
+    "soc": 23,
+    "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:53:33.939Z",
     "statusTimings": {
@@ -3720,13 +3720,13 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-16",
+    "uniqueId": "EV-50",
     "blocked": true
   },
   "MF-26 PSS-JHMS": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 23,
+    "soc": 16,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T14:52:03.990Z",
@@ -3764,7 +3764,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-50",
+    "uniqueId": "EV-27",
     "blocked": true
   },
   "251E PSS-KMT": {
@@ -4410,10 +4410,10 @@
     "blocked": false
   },
   "D9-PSS": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 8,
-    "condition": "Good",
+    "soc": 100,
+    "condition": "Not Good",
     "updatedAt": "2026-09-27T10:21:50.239Z",
     "statusTimings": {
       "Delayed": {
@@ -4455,7 +4455,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-12",
+    "uniqueId": "EV-16",
     "blocked": true
   },
   "500-D MRHB-HBL-PSS": {
@@ -4654,7 +4654,7 @@
   "265-A PSS-TEPL": {
     "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 16,
+    "soc": 18,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T07:08:30.981Z",
@@ -4698,7 +4698,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-27",
+    "uniqueId": "EV-30",
     "blocked": true
   },
   "253-D PSS-TRN": {
@@ -4742,9 +4742,9 @@
     "blocked": false
   },
   "265-D PSS-VGN": {
-    "status": "Warning",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 18,
+    "soc": 8,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-29T15:54:21.525Z",
@@ -4782,7 +4782,7 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "EV-30",
+    "uniqueId": "EV-12",
     "blocked": true
   },
   "401-A PSS-SGP-YHK": {
@@ -4941,7 +4941,7 @@
       "soc": 85,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 107,
+      "estimatedRangeKm": 111.94,
       "blocked": false
     },
     "BC-7B PSS-NLGH-8thM": {
@@ -4967,7 +4967,7 @@
       "soc": 85,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 107,
+      "estimatedRangeKm": 111.94,
       "blocked": false
     },
     "EV-02": {
@@ -5506,12 +5506,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -5533,12 +5533,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -5714,12 +5714,12 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "A",
@@ -5741,12 +5741,12 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "A",
@@ -6288,12 +6288,12 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -6315,12 +6315,12 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -6448,12 +6448,12 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -6475,12 +6475,12 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -7416,12 +7416,12 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -7443,12 +7443,12 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -7754,20 +7754,20 @@
       "blocked": true
     },
     "1549": {
-      "assignedVehicle": "EV-12",
+      "assignedVehicle": "EV-16",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A",
         "B",
         "C"
       ],
       "matrixCompliant": true,
-      "soc": 8,
-      "condition": "Good",
+      "soc": 100,
+      "condition": "Not Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
+      "estimatedRangeKm": 128,
       "gtfsDistanceKm": 1.63,
       "blocked": true
     },
@@ -8062,7 +8062,7 @@
       "blocked": false
     },
     "3629": {
-      "assignedVehicle": "EV-30",
+      "assignedVehicle": "EV-12",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -8072,10 +8072,10 @@
         "C"
       ],
       "matrixCompliant": true,
-      "soc": 18,
+      "soc": 8,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 11,
+      "estimatedRangeKm": 0,
       "gtfsDistanceKm": 2.48,
       "blocked": true
     },
@@ -8186,24 +8186,6 @@
       "blocked": false
     },
     "3935": {
-      "assignedVehicle": "EV-50",
-      "routeCategory": "SIMPLE",
-      "timeSlot": "NORMAL",
-      "busCategory": "C",
-      "allowedCategories": [
-        "A",
-        "B",
-        "C"
-      ],
-      "matrixCompliant": true,
-      "soc": 23,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 18,
-      "gtfsDistanceKm": 4.57,
-      "blocked": true
-    },
-    "3951": {
       "assignedVehicle": "EV-27",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
@@ -8218,6 +8200,24 @@
       "condition": "Good",
       "driver": "Driver Assigned",
       "estimatedRangeKm": 9,
+      "gtfsDistanceKm": 4.57,
+      "blocked": true
+    },
+    "3951": {
+      "assignedVehicle": "EV-30",
+      "routeCategory": "SIMPLE",
+      "timeSlot": "NORMAL",
+      "busCategory": "C",
+      "allowedCategories": [
+        "A",
+        "B",
+        "C"
+      ],
+      "matrixCompliant": true,
+      "soc": 18,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 11,
       "gtfsDistanceKm": 3.17,
       "blocked": true
     },
@@ -8325,20 +8325,20 @@
       "blocked": false
     },
     "7296": {
-      "assignedVehicle": "EV-16",
+      "assignedVehicle": "EV-50",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "C",
       "allowedCategories": [
         "A",
         "B",
         "C"
       ],
       "matrixCompliant": true,
-      "soc": 100,
-      "condition": "Not Good",
+      "soc": 23,
+      "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
+      "estimatedRangeKm": 18,
       "gtfsDistanceKm": 5.19,
       "blocked": true
     },
@@ -8389,7 +8389,7 @@
       "soc": 85,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 107,
+      "estimatedRangeKm": 111.94,
       "gtfsDistanceKm": 11.31,
       "blocked": false
     },
@@ -8621,7 +8621,7 @@
     "soc": 85,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-09-30T03:13:32.034Z",
+    "updatedAt": "2026-09-30T03:13:34.630Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -9023,9 +9023,9 @@
     "soc": 8,
     "condition": "Good",
     "status": "Blocked",
-    "assignedRouteId": "1549",
-    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
-    "assignedRouteShortName": "D9-PSS",
+    "assignedRouteId": "3629",
+    "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+    "assignedRouteShortName": "265-D PSS-VGN",
     "blocked": true
   },
   "EV-13": {
@@ -9106,9 +9106,9 @@
       }
     ],
     "uniqueId": "EV-16",
-    "assignedRouteId": "7296",
-    "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
-    "assignedRouteShortName": "JHMS-PSS",
+    "assignedRouteId": "1549",
+    "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+    "assignedRouteShortName": "D9-PSS",
     "blocked": true
   },
   "EV-17": {
@@ -9376,9 +9376,9 @@
       }
     ],
     "uniqueId": "EV-27",
-    "assignedRouteId": "3951",
-    "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
-    "assignedRouteShortName": "265-A PSS-TEPL",
+    "assignedRouteId": "3935",
+    "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+    "assignedRouteShortName": "MF-26 PSS-JHMS",
     "blocked": true
   },
   "EV-28": {
@@ -9517,9 +9517,9 @@
       }
     ],
     "uniqueId": "EV-30",
-    "assignedRouteId": "3629",
-    "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
-    "assignedRouteShortName": "265-D PSS-VGN",
+    "assignedRouteId": "3951",
+    "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+    "assignedRouteShortName": "265-A PSS-TEPL",
     "blocked": true
   },
   "EV-31": {
@@ -10269,9 +10269,9 @@
       }
     ],
     "uniqueId": "EV-50",
-    "assignedRouteId": "3935",
-    "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
-    "assignedRouteShortName": "MF-26 PSS-JHMS",
+    "assignedRouteId": "7296",
+    "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+    "assignedRouteShortName": "JHMS-PSS",
     "blocked": true
   },
   "EV-51": {
@@ -10448,7 +10448,7 @@
       "soc": 85,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 107,
+      "estimatedRangeKm": 111.94,
       "blocked": false
     },
     "EV-02": {
@@ -10722,12 +10722,12 @@
       "vehicleId": "EV-12",
       "busName": "EV-12",
       "defaultBusShortName": "252-A PSS-HAL ARDC",
-      "assignedRouteId": "1549",
-      "assignedRouteShortName": "D9-PSS",
-      "origin": "Peenya 2nd stage",
-      "destination": "Depot-09 Peenya",
-      "assignedRouteDistanceKm": 1.63,
-      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
+      "assignedRouteId": "3629",
+      "assignedRouteShortName": "265-D PSS-VGN",
+      "origin": "Vigneshwara Nagara",
+      "destination": "Peenya 2nd Stage",
+      "assignedRouteDistanceKm": 2.48,
+      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -10826,12 +10826,12 @@
       "vehicleId": "EV-16",
       "busName": "EV-16",
       "defaultBusShortName": "252-A PSS-ISROM",
-      "assignedRouteId": "7296",
-      "assignedRouteShortName": "JHMS-PSS",
-      "origin": "Jalahalli Cross Metro Station Departure",
-      "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 5.19,
-      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
+      "assignedRouteId": "1549",
+      "assignedRouteShortName": "D9-PSS",
+      "origin": "Peenya 2nd stage",
+      "destination": "Depot-09 Peenya",
+      "assignedRouteDistanceKm": 1.63,
+      "assignedRouteDisplay": "Route 1549 - D9-PSS (1.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "A",
@@ -11113,12 +11113,12 @@
       "vehicleId": "EV-27",
       "busName": "EV-27",
       "defaultBusShortName": "401-AK PSS-ABG",
-      "assignedRouteId": "3951",
-      "assignedRouteShortName": "265-A PSS-TEPL",
-      "origin": "Therelek Engineers PVT LTD Peenya",
+      "assignedRouteId": "3935",
+      "assignedRouteShortName": "MF-26 PSS-JHMS",
+      "origin": "Jalahalli Cross",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 3.17,
-      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
+      "assignedRouteDistanceKm": 4.57,
+      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -11193,12 +11193,12 @@
       "vehicleId": "EV-30",
       "busName": "EV-30",
       "defaultBusShortName": "D22-PSS",
-      "assignedRouteId": "3629",
-      "assignedRouteShortName": "265-D PSS-VGN",
-      "origin": "Vigneshwara Nagara",
+      "assignedRouteId": "3951",
+      "assignedRouteShortName": "265-A PSS-TEPL",
+      "origin": "Therelek Engineers PVT LTD Peenya",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 2.48,
-      "assignedRouteDisplay": "Route 3629 - 265-D PSS-VGN (2.5 km)",
+      "assignedRouteDistanceKm": 3.17,
+      "assignedRouteDisplay": "Route 3951 - 265-A PSS-TEPL (3.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
@@ -11715,12 +11715,12 @@
       "vehicleId": "EV-50",
       "busName": "EV-50",
       "defaultBusShortName": "265-A PSS-TEPL",
-      "assignedRouteId": "3935",
-      "assignedRouteShortName": "MF-26 PSS-JHMS",
-      "origin": "Jalahalli Cross",
+      "assignedRouteId": "7296",
+      "assignedRouteShortName": "JHMS-PSS",
+      "origin": "Jalahalli Cross Metro Station Departure",
       "destination": "Peenya 2nd Stage",
-      "assignedRouteDistanceKm": 4.57,
-      "assignedRouteDisplay": "Route 3935 - MF-26 PSS-JHMS (4.6 km)",
+      "assignedRouteDistanceKm": 5.19,
+      "assignedRouteDisplay": "Route 7296 - JHMS-PSS (5.2 km)",
       "routeCategory": "SIMPLE",
       "timeSlot": "NORMAL",
       "busCategory": "C",
