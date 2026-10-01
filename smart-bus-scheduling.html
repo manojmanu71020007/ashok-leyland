@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -82,12 +82,35 @@
     .route-selector select { width: 100%; max-width: 520px; border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; color: var(--text); background: #ffffff; font: inherit; }
     @media (max-width: 760px) { .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr; } }
+
+    /* ── Locked Buses Banner ── */
+    .locked-banner {
+      background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 12px;
+      padding: 12px 16px; margin-bottom: 18px; display: none;
+      align-items: flex-start; gap: 12px; flex-wrap: wrap;
+    }
+    .locked-banner.show { display: flex; }
+    .locked-banner-title { font-weight: 800; color: #991b1b; font-size: 0.88rem; margin-bottom: 4px; }
+    .locked-banner-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+    .locked-chip-sm {
+      display: inline-block; background: #fee2e2; color: #7f1d1d;
+      border: 1px solid #fca5a5; border-radius: 999px;
+      padding: 2px 10px; font-size: 0.78rem; font-weight: 700;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Smart Scheduling Dashboard</h1>
     <div class="subtitle">Peenya 2nd Stage bus optimization and route monitoring</div>
+
+    <!-- Locked Buses Banner -->
+    <div class="locked-banner" id="lockedBanner">
+      <div>
+        <div class="locked-banner-title">🔒 Buses Locked (Under Cleaning / Charging) — Hidden from Scheduling</div>
+        <div class="locked-banner-chips" id="lockedChips"></div>
+      </div>
+    </div>
 
     <div class="kpi-grid" aria-label="Fleet allocation summary">
       <div class="kpi"><span class="kpi-label">Total buses</span><strong class="kpi-value" id="total-buses">Loading...</strong></div>
@@ -149,6 +172,27 @@
     const selectedDistanceEl = document.getElementById("selected-bus-distance");
     let gtfs = { routes: [], trips: [], shapes: [] };
 
+    // ── Locked Bus Filter ──
+    const LOCKED_KEY = 'depot_locked_buses';
+    function getLockedBuses() {
+      try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+    }
+    function isRouteLocked(route) {
+      const locked = getLockedBuses().map(x => x.bm.toLowerCase());
+      const busNum = String(route.busNumber || '').toLowerCase();
+      return locked.some(bm => busNum.includes(bm) || bm.includes(busNum));
+    }
+    function renderLockedBanner() {
+      const locked = getLockedBuses();
+      const banner = document.getElementById('lockedBanner');
+      const chips  = document.getElementById('lockedChips');
+      if (!locked.length) { banner.classList.remove('show'); return; }
+      banner.classList.add('show');
+      chips.innerHTML = locked.map(x =>
+        `<span class="locked-chip-sm">🔒 ${x.bm} (${x.page})</span>`
+      ).join('');
+    }
+
     function haversineKm(lat1, lon1, lat2, lon2) {
       const earthRadiusKm = 6371;
       const toRadians = (value) => value * Math.PI / 180;
@@ -188,15 +232,34 @@
       document.getElementById("allocated-bus").textContent = selectedBusEl.value || "Not allocated";
     }
 
+    function populateRouteDropdown(allRoutes) {
+      const locked = getLockedBuses().map(x => x.bm.toLowerCase());
+      // Filter out locked buses
+      const availableRoutes = allRoutes.filter(route => {
+        const busNum = String(route.busNumber || '').toLowerCase();
+        return !locked.some(bm => busNum === bm || busNum.includes(bm) || bm.includes(busNum));
+      });
+
+      const lockedRoutes = allRoutes.filter(route => {
+        const busNum = String(route.busNumber || '').toLowerCase();
+        return locked.some(bm => busNum === bm || busNum.includes(bm) || bm.includes(busNum));
+      });
+
+      document.getElementById("total-buses").textContent = String(availableRoutes.length);
+      document.getElementById("drivers-allocated").textContent = "0 / " + String(availableRoutes.length);
+      selectedBusEl.innerHTML = availableRoutes.map((route) =>
+        `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`
+      ).join("");
+      updateSelectedBusDistance();
+      renderLockedBanner();
+    }
+
     Promise.all([fetch("/api/routes").then((response) => response.json()), fetch("/api/gtfs").then((response) => response.json())])
       .then(([routePayload, gtfsPayload]) => {
         gtfs.routes = Array.isArray(routePayload.routes) ? routePayload.routes : [];
         gtfs.trips = Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : [];
         gtfs.shapes = Array.isArray(gtfsPayload.shapes?.shapes) ? gtfsPayload.shapes.shapes : [];
-        document.getElementById("total-buses").textContent = String(gtfs.routes.length);
-        document.getElementById("drivers-allocated").textContent = "0 / " + String(gtfs.routes.length);
-        selectedBusEl.innerHTML = gtfs.routes.map((route) => `<option value="${route.routeId}">${route.busNumber} - ${route.origin} to ${route.destination}</option>`).join("");
-        updateSelectedBusDistance();
+        populateRouteDropdown(gtfs.routes);
       })
       .catch(() => {
         document.getElementById("total-buses").textContent = "Unavailable";
@@ -205,6 +268,12 @@
       });
 
     selectedBusEl.addEventListener("change", updateSelectedBusDistance);
+
+    // Re-render if localStorage changes (e.g. another tab locks a bus)
+    window.addEventListener('storage', () => {
+      if (gtfs.routes.length) populateRouteDropdown(gtfs.routes);
+    });
   </script>
 </body>
 </html>
+

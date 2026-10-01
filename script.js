@@ -1247,12 +1247,60 @@ function selectBus(bus) {
     void renderMap(bus);
 }
 
+// ── Locked Buses Support (from Cleaning & Charging Pages) ──
+const LOCKED_KEY = "depot_locked_buses";
+
+function getLockedBuses() {
+    try {
+        return JSON.parse(localStorage.getItem(LOCKED_KEY) || "[]");
+    } catch {
+        return [];
+    }
+}
+
+function isBusLocked(bus) {
+    if (!bus) return false;
+    const locked = getLockedBuses().map((x) => String(x.bm || "").trim().toLowerCase()).filter(Boolean);
+    if (!locked.length) return false;
+
+    const busNum = String(bus.busNumber || "").trim().toLowerCase();
+    const uniqueId = String(bus.uniqueId || "").trim().toLowerCase();
+    const assigned = String(bus.assignedVehicle || bus.bmNumber || "").trim().toLowerCase();
+    const routeId = String(bus.routeId || "").trim().toLowerCase();
+
+    return locked.some((bm) =>
+        busNum === bm ||
+        uniqueId === bm ||
+        assigned === bm ||
+        routeId === bm ||
+        (busNum && (busNum.includes(bm) || bm.includes(busNum))) ||
+        (assigned && (assigned.includes(bm) || bm.includes(assigned)))
+    );
+}
+
+function renderLockedTrackingBanner() {
+    const banner = document.getElementById("locked-tracking-banner");
+    const chipsEl = document.getElementById("locked-tracking-chips");
+    if (!banner || !chipsEl) return;
+    const locked = getLockedBuses();
+    if (!locked.length) {
+        banner.style.display = "none";
+        return;
+    }
+    banner.style.display = "flex";
+    chipsEl.innerHTML = locked.map((x) =>
+        `<span style="background:#fee2e2;color:#7f1d1d;border:1px solid #fca5a5;border-radius:999px;padding:3px 10px;font-size:0.8rem;font-weight:700;">🔒 ${x.bm} (${x.page})</span>`
+    ).join("");
+}
+
 function filterBuses() {
+    renderLockedTrackingBanner();
     const busNumberQuery = normalize(busNumberEl.value);
     const originQuery = normalize(originEl.value);
     const destinationQuery = normalize(destinationEl.value);
 
     return buses.filter((bus) => {
+        if (isBusLocked(bus)) return false;
         const busMatch = !busNumberQuery || normalize(bus.busNumber).includes(busNumberQuery);
         const originMatch = !originQuery || normalize(bus.origin).includes(originQuery);
         const destinationMatch = !destinationQuery || normalize(bus.destination).includes(destinationQuery);
@@ -1282,12 +1330,24 @@ function resetFiltersAndShowAll() {
         mapEl.innerHTML = "";
     }
 
-    renderBusList(buses);
+    renderBusList(filterBuses());
 }
 
 function setupEvents() {
     searchBtnEl.addEventListener("click", runSearch);
     showAllBtnEl.addEventListener("click", resetFiltersAndShowAll);
+
+    // Auto-refresh when buses are locked or unlocked in cleaning/charging tabs
+    window.addEventListener("storage", (event) => {
+        if (event.key === LOCKED_KEY) {
+            renderBusList(filterBuses());
+            if (selectedBus && isBusLocked(selectedBus)) {
+                selectedBus = null;
+                busDetailsEl.style.display = "none";
+                routeDetailsEl.style.display = "none";
+            }
+        }
+    });
 
     [busNumberEl, originEl, destinationEl].forEach((input) => {
         input.addEventListener("keydown", (event) => {

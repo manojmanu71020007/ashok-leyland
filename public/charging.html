@@ -184,6 +184,54 @@
     .btn-primary:active { transform: none; }
     .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
+    /* ── Lock / Unlock Button ── */
+    .lock-row {
+      display: none; margin-top: 14px; gap: 10px; align-items: center; flex-wrap: wrap;
+    }
+    .lock-row.show { display: flex; }
+    .btn-lock {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px; border: none;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: #fff; box-shadow: 0 4px 12px rgba(220,38,38,0.28);
+    }
+    .btn-lock:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(220,38,38,0.38); }
+    .btn-unlock {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 20px; border-radius: 10px; border: none;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      background: linear-gradient(135deg, #16a34a, #15803d);
+      color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,0.28);
+    }
+    .btn-unlock:hover { transform: translateY(-1px); }
+
+    /* ── Lock Status Banner ── */
+    .lock-banner {
+      display: none; margin-top: 12px;
+      background: #fef2f2; border: 1.5px solid #fca5a5;
+      border-radius: 10px; padding: 12px 16px;
+      font-size: 0.88rem; color: #991b1b; font-weight: 600;
+      align-items: center; gap: 10px;
+    }
+    .lock-banner.show { display: flex; }
+
+    /* ── Locked Buses Overview ── */
+    .locked-list-wrap {
+      display: none; margin-top: 10px;
+      background: #fff7f7; border: 1px solid #fca5a5;
+      border-radius: 10px; padding: 10px 14px;
+    }
+    .locked-list-wrap.show { display: block; }
+    .locked-list-title { font-size: 0.78rem; font-weight: 700; color: #991b1b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .locked-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .locked-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #fee2e2; color: #7f1d1d;
+      border: 1px solid #fca5a5; border-radius: 999px;
+      padding: 3px 10px; font-size: 0.8rem; font-weight: 700;
+    }
+
     /* ── Log ── */
     .log-list { list-style: none; }
     .log-item {
@@ -271,6 +319,23 @@
         <span><span class="badge badge-charging" id="infoStatus">Charging</span></span>
       </div>
     </div>
+  </div>
+
+  <!-- Lock / Unlock Row -->
+  <div class="lock-row" id="lockRow">
+    <button class="btn-lock" id="lockBtn" onclick="lockBus()">🔒 Lock Bus for Charging</button>
+    <button class="btn-unlock" id="unlockBtn" onclick="unlockBus()" style="display:none;">🔓 Unlock Bus</button>
+  </div>
+
+  <!-- Lock Banner for currently selected bus -->
+  <div class="lock-banner" id="lockBanner">
+    🔒 This bus is currently <strong style="margin:0 4px;">locked for charging</strong> — hidden from Smart Tracking &amp; Scheduling.
+  </div>
+
+  <!-- All currently locked buses -->
+  <div class="locked-list-wrap" id="lockedListWrap">
+    <div class="locked-list-title">🔒 Buses Currently Locked (Cleaning/Charging)</div>
+    <div class="locked-chips" id="lockedChips"></div>
   </div>
 </div>
 
@@ -370,6 +435,72 @@
   let sessionLogs = [];
   let selectedPillValue = 'Completed';
 
+  // ── Locked Buses (shared via localStorage across all pages) ──
+  const LOCKED_KEY = 'depot_locked_buses';
+
+  function getLockedBuses() {
+    try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+  }
+
+  function setLockedBuses(arr) {
+    localStorage.setItem(LOCKED_KEY, JSON.stringify(arr));
+  }
+
+  function isBusLocked(bm) {
+    return getLockedBuses().some(x => x.bm === bm);
+  }
+
+  function lockBus() {
+    const bm = document.getElementById('busSelect').value;
+    if (!bm) return;
+    const locked = getLockedBuses();
+    if (!locked.some(x => x.bm === bm)) {
+      locked.push({ bm, page: 'charging', time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) });
+      setLockedBuses(locked);
+    }
+    updateLockUI(bm);
+    renderLockedList();
+    showToast(`🔒 ${bm} locked — hidden from Smart Tracking & Scheduling`, 'error');
+  }
+
+  function unlockBus() {
+    const bm = document.getElementById('busSelect').value;
+    if (!bm) return;
+    const locked = getLockedBuses().filter(x => x.bm !== bm);
+    setLockedBuses(locked);
+    updateLockUI(bm);
+    renderLockedList();
+    showToast(`🔓 ${bm} unlocked — visible in Smart Tracking & Scheduling`, 'success');
+  }
+
+  function updateLockUI(bm) {
+    const lockRow    = document.getElementById('lockRow');
+    const lockBtn    = document.getElementById('lockBtn');
+    const unlockBtn  = document.getElementById('unlockBtn');
+    const lockBanner = document.getElementById('lockBanner');
+    if (!bm) {
+      lockRow.classList.remove('show');
+      lockBanner.classList.remove('show');
+      return;
+    }
+    lockRow.classList.add('show');
+    const locked = isBusLocked(bm);
+    lockBtn.style.display   = locked ? 'none'        : 'inline-flex';
+    unlockBtn.style.display = locked ? 'inline-flex' : 'none';
+    locked ? lockBanner.classList.add('show') : lockBanner.classList.remove('show');
+  }
+
+  function renderLockedList() {
+    const wrap  = document.getElementById('lockedListWrap');
+    const chips = document.getElementById('lockedChips');
+    const locked = getLockedBuses();
+    if (!locked.length) { wrap.classList.remove('show'); return; }
+    wrap.classList.add('show');
+    chips.innerHTML = locked.map(x =>
+      `<span class="locked-chip">🔒 ${x.bm} <span style="font-weight:400;opacity:.7;">(${x.page}, ${x.time})</span></span>`
+    ).join('');
+  }
+
   // ── Load vehicles from server ──
   async function loadVehicles() {
     try {
@@ -427,13 +558,14 @@
   function onBusSelected() {
     const bm = document.getElementById('busSelect').value;
     const box = document.getElementById('busInfoBox');
-    if (!bm) { box.classList.remove('show'); updateSubmitBtn(); return; }
+    if (!bm) { box.classList.remove('show'); updateLockUI(''); updateSubmitBtn(); return; }
     const v = allVehicles.find(x => x.bm_no === bm);
     if (!v) { box.classList.remove('show'); return; }
     document.getElementById('infoBM').textContent    = v.bm_no;
     document.getElementById('infoReg').textContent   = v.reg_no;
     document.getElementById('infoModel').textContent = v.model;
     box.classList.add('show');
+    updateLockUI(bm);
     updateSubmitBtn();
   }
 
@@ -485,6 +617,7 @@
     document.getElementById('busSelect').value = '';
     document.getElementById('searchInput').value = '';
     document.getElementById('busInfoBox').classList.remove('show');
+    updateLockUI('');
     filteredVehicles = [...allVehicles];
     renderDropdown(filteredVehicles);
     document.getElementById('socBefore').value = '20';
@@ -526,7 +659,7 @@
     t._timer = setTimeout(() => { t.classList.remove('show'); }, 3200);
   }
 
-  loadVehicles();
+  loadVehicles().then(() => renderLockedList());
 </script>
 </body>
 </html>
