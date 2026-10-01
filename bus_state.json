@@ -196,13 +196,38 @@
     "bmNumber": "BM216"
   },
   "9": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-01T15:04:26.348Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-10-01T15:04:26.348Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM002",
     "busNumber": "500DC",
-    "blocked": true,
-    "bmNumber": "BM002"
+    "bmNumber": "BM002",
+    "blocked": true
   },
   "BM001": {
     "status": "Active",
@@ -283,16 +308,40 @@
     "blocked": true
   },
   "BM002": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-01T15:04:26.348Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-10-01T15:04:26.348Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM002",
-    "busNumber": "500DC",
-    "blocked": true,
     "bmNumber": "BM002",
     "assignedRouteId": "9",
     "assignedRouteDisplay": "Route 9 - 500DC (149.8 km)",
-    "assignedRouteShortName": "500DC"
+    "assignedRouteShortName": "500DC",
+    "blocked": true
   },
   "BUS-02": {
     "status": "Active",
@@ -4749,12 +4798,37 @@
     "bmNumber": "BM216"
   },
   "500DC": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-01T15:04:26.348Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "On Time": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      },
+      "Ahead": {
+        "arrival": "07:35",
+        "departure": "07:30"
+      }
+    },
+    "history": [
+      {
+        "timestamp": "2026-10-01T15:04:26.348Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM002",
-    "blocked": true,
-    "bmNumber": "BM002"
+    "bmNumber": "BM002",
+    "blocked": true
   },
   "_vehicleAssignments": {
     "BM238": {
