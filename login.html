@@ -473,9 +473,10 @@
     <section class="card" aria-label="Authentication">
 
         <!-- Tab switcher -->
-        <div class="tab-row" role="tablist">
+        <div class="tab-row" role="tablist" style="grid-template-columns: 1fr 1fr 1fr;">
             <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')">Sign In</button>
             <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')">Sign Up</button>
+            <button class="tab-btn" id="tab-recommending" type="button" onclick="window.location.href='/smart-bus-scheduling.html'" title="Go to Smart Bus Scheduling" style="color:#2563eb;font-weight:700;">Recommending 🚌</button>
         </div>
 
         <!-- ══════════════════════════════════════════ LOGIN PANEL ══════════════════════════════════════════ -->
@@ -528,6 +529,12 @@
                     </div>
 
                     <button type="submit" class="primary-btn" id="btn-login">Sign In</button>
+
+                    <div style="margin-top:12px;">
+                        <button type="button" class="google-btn" onclick="window.location.href='/smart-bus-scheduling.html'" style="background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;font-weight:700;">
+                            🚌 Recommending (Smart Bus Scheduling)
+                        </button>
+                    </div>
                 </form>
 
                 <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
@@ -746,7 +753,7 @@
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("userEmail", user.email || "");
         sessionStorage.setItem("userName",  user.displayName || "");
-        window.location.href = "/problem.html";
+        window.location.href = "/admin.html";
     });
 
     // ── Expose to global scope (onclick attributes) ────────────────────────────
@@ -903,7 +910,7 @@
             sessionStorage.setItem("userName",  name);
 
             // Redirect
-            window.location.href = "/problem.html";
+            window.location.href = "/admin.html";
 
         } catch (err) {
             showAlert("signup-alert", "error", friendlyError(err));
