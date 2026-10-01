@@ -2153,8 +2153,18 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/problem.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
+    if (pathname === "/problem.html") {
         sendFile(res, path.join(BASE_DIR, "problem.html"), "text/html");
+        return;
+    }
+
+    if (pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
+        sendFile(res, path.join(BASE_DIR, "smart-bus-scheduling.html"), "text/html");
+        return;
+    }
+
+    if (pathname === "/admin" || pathname === "/admin.html") {
+        sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
         return;
     }
 
