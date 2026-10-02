@@ -1578,22 +1578,98 @@
             return "";
         }
 
-        function isBusLockedByBm(bm) {
-            if (!bm) return false;
-            try {
-                const locked = JSON.parse(localStorage.getItem('depot_locked_buses') || '[]');
-                const lower = bm.toLowerCase();
-                return locked.some(x => String(x.bm || '').toLowerCase() === lower);
-            } catch {
-                return false;
+        // ── Locked Bus Helper (from Cleaning/Charging pages) ──
+        const LOCKED_KEY = 'depot_locked_buses';
+
+        function _getLockedBuses() {
+            try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+        }
+
+        function getBusLockInfo(routeOrBm) {
+            if (!routeOrBm) return null;
+            const lockedList = _getLockedBuses();
+            if (!lockedList || !lockedList.length) return null;
+
+            let cands = [];
+            if (typeof routeOrBm === 'string') {
+                cands = [routeOrBm.trim().toLowerCase()];
+            } else if (typeof routeOrBm === 'object') {
+                const busNum  = String(routeOrBm.busNumber  || '').trim().toLowerCase();
+                const uniqueId = String(routeOrBm.uniqueId   || '').trim().toLowerCase();
+                const bmNum    = String(routeOrBm.bmNumber   || '').trim().toLowerCase();
+                const assigned = String(getAssignedBusName(routeOrBm) || '').trim().toLowerCase();
+                cands = [assigned, bmNum, uniqueId, busNum].filter(Boolean);
             }
+            if (!cands.length) return null;
+
+            const matches = lockedList.filter(item => {
+                const lbm = String(item.bm || '').trim().toLowerCase();
+                if (!lbm) return false;
+                return cands.some(cand => cand === lbm || cand.includes(lbm) || lbm.includes(cand));
+            });
+
+            if (!matches.length) return null;
+
+            let isCleaning = false;
+            let isCharging = false;
+            matches.forEach(m => {
+                const p = String(m.page || '').trim().toLowerCase();
+                if (p.includes('clean')) isCleaning = true;
+                if (p.includes('charg')) isCharging = true;
+                if (p.includes('both')) {
+                    isCleaning = true;
+                    isCharging = true;
+                }
+            });
+
+            if (!isCleaning && !isCharging) {
+                isCleaning = true;
+            }
+
+            const isBoth = isCleaning && isCharging;
+            let reason = "Locked";
+            let label = "Locked";
+            let badgeText = "🔒 Locked";
+            if (isBoth) {
+                reason = "Locked: Cleaning & Charging";
+                label = "Cleaning & Charging";
+                badgeText = "🔒 Locked: Cleaning & Charging";
+            } else if (isCleaning) {
+                reason = "Locked: Cleaning";
+                label = "Cleaning";
+                badgeText = "🧼 Locked: Cleaning";
+            } else if (isCharging) {
+                reason = "Locked: Charging";
+                label = "Charging";
+                badgeText = "⚡ Locked: Charging";
+            }
+
+            return {
+                isLocked: true,
+                isCleaning,
+                isCharging,
+                isBoth,
+                reason,
+                label,
+                badgeText,
+                matches
+            };
+        }
+
+        function _isBusLocked(routeOrBm) {
+            return getBusLockInfo(routeOrBm) !== null;
+        }
+
+        function isBusLockedByBm(bm) {
+            return _isBusLocked(bm);
         }
 
         function evaluateBusFeasibility(bm, candidateRole, routeDist) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
-            if (isBusLockedByBm(bm)) {
-                return { feasible: false, bm, reason: `Bus ${bm} is locked under cleaning or charging.` };
+            const lockInfo = getBusLockInfo(bm);
+            if (lockInfo) {
+                return { feasible: false, bm, reason: `Bus ${bm} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
             const liveSoc = getBusSocByBm(bm);
@@ -1787,21 +1863,6 @@
         }
 
         function renderRoutes() {
-            // ── Locked Bus Filter (from Cleaning/Charging pages) ──────────────────
-            const LOCKED_KEY = 'depot_locked_buses';
-            function _getLockedBuses() {
-                try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
-            }
-            function _isBusLocked(route) {
-                const locked = _getLockedBuses().map(x => x.bm.toLowerCase());
-                const busNum  = String(route.busNumber  || '').toLowerCase();
-                const uniqueId = String(route.uniqueId   || '').toLowerCase();
-                const assigned = String(getAssignedBusName(route) || '').toLowerCase();
-                return locked.some(bm =>
-                    busNum === bm || uniqueId === bm || assigned === bm ||
-                    busNum.includes(bm) || assigned.includes(bm) || bm.includes(busNum)
-                );
-            }
             // Render locked banner
             (function renderLockedBusBanner() {
                 const locked = _getLockedBuses();
@@ -1810,9 +1871,24 @@
                 if (!banner) return;
                 if (!locked.length) { banner.classList.remove('show'); return; }
                 banner.classList.add('show');
-                chips.innerHTML = locked.map(x =>
-                    `<span class="locked-bus-chip">🔒 ${x.bm} <span style="font-weight:400;opacity:.7;">(${x.page})</span></span>`
-                ).join('');
+                // Group by BM number to display whether locked for cleaning, charging, or both
+                const byBm = new Map();
+                locked.forEach(x => {
+                    const bm = String(x.bm || '').trim();
+                    if (!bm) return;
+                    if (!byBm.has(bm)) byBm.set(bm, new Set());
+                    const p = String(x.page || '').toLowerCase();
+                    if (p.includes('clean')) byBm.get(bm).add('cleaning');
+                    if (p.includes('charg')) byBm.get(bm).add('charging');
+                    if (p.includes('both')) { byBm.get(bm).add('cleaning'); byBm.get(bm).add('charging'); }
+                    if (!byBm.get(bm).size) byBm.get(bm).add(p || 'locked');
+                });
+                chips.innerHTML = Array.from(byBm.entries()).map(([bm, pages]) => {
+                    const pageLabel = pages.has('cleaning') && pages.has('charging')
+                        ? 'cleaning & charging'
+                        : Array.from(pages).join(', ');
+                    return `<span class="locked-bus-chip">🔒 ${bm} <span style="font-weight:400;opacity:.85;">(${pageLabel})</span></span>`;
+                }).join('');
             })();
 
             // ── 1. Populate Route Search & Select Dropdown (Origin ➔ Destination ONLY) ──
@@ -1893,22 +1969,14 @@
             updateAllocationPanel();
 
             // ── Not Allocated Buses computation ──────────────────────────────────
+            // Every bus not in allocatedRoutes (including locked under cleaning, charging, or both) is displayed here
             const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
-            const notAllocatedRoutes = unlockedFleet.filter((r) => {
+            const notAllocatedRoutes = routes.filter((r) => {
                 if (allocatedIds.has(String(r.routeId))) return false;
-                if (blockedRouteIds.has(String(r.routeId))) return true;
-                const assignedName = getAssignedBusName(r);
-                const state = busStates[r.routeId] || busStates[r.uniqueId] || busStates[assignedName] || busStates[r.busNumber] || {};
-                const driverStatus = state.driver || "Driver Assigned";
-                if (driverStatus.toLowerCase().includes("no")) return true;
-                const soc = getBusSoc(r);
-                if (soc <= 25) return true;
-                const condition = state.condition || "Good";
-                if (condition === "Not Good") return true;
-                return false;
+                return true;
             });
 
-            lastFilteredRoutes = unlockedFleet;
+            lastFilteredRoutes = routes;
             lastAllocatedRoutes = allocatedRoutes;
             lastNotAllocatedRoutes = notAllocatedRoutes;
 
@@ -2189,13 +2257,15 @@
                     const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
                     const condition = String(state.condition || "");
                     const isBlocked = blockedRouteIds.has(String(route.routeId)) ? "blocked range" : "";
-                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
+                    const lockInfo = getBusLockInfo(route);
+                    const lockText = lockInfo ? `locked lock ${lockInfo.reason} ${lockInfo.label} ${lockInfo.isCleaning ? 'cleaning' : ''} ${lockInfo.isCharging ? 'charging' : ''} ${lockInfo.isBoth ? 'both' : ''}` : "";
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km ${condition} ${isBlocked} ${lockText} low soc maintenance`.toLowerCase();
                     return text.includes(query);
                 })
                 : [...sourceList];
 
             // ── Sort: merge Sort-strip + Schedule Requirement dropdowns ──
-            // Sort-strip values take priority; fall back to Schedule Requirement dropdowns
+            // Locked buses (cleaning, charging, both) are prioritized at top so operators see them immediately
             const notAllocSortDriverEl = document.getElementById("not-alloc-sort-driver");
             const notAllocSortCatEl    = document.getElementById("not-alloc-sort-category");
             const naSchedDriverEl      = document.getElementById("driver");     // "ready" | "unavailable"
@@ -2212,6 +2282,16 @@
             const catOrderNA = { simple: 0, moderate: 1, complex: 2 };
 
             filtered.sort((a, b) => {
+                const lockA = getBusLockInfo(a);
+                const lockB = getBusLockInfo(b);
+                // Locked buses are pinned to top of Not Allocated list
+                if (lockA && !lockB) return -1;
+                if (!lockA && lockB) return 1;
+                if (lockA && lockB) {
+                    if (lockA.isBoth && !lockB.isBoth) return -1;
+                    if (!lockA.isBoth && lockB.isBoth) return 1;
+                }
+
                 const assignedA = getAssignedBusName(a);
                 const assignedB = getAssignedBusName(b);
                 const stA = busStates[assignedA] || busStates[a.routeId] || busStates[a.busNumber] || {};
@@ -2307,56 +2387,84 @@
 
         function buildNotAllocatedRowHTML(route) {
             const assignedVehicle = getAssignedBusName(route);
-                const soc = getBusSoc(route);
-                const fullDutyDist = calculateFullDutyDistance(soc);
-                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
-                const condition = state.condition || "Good";
-                const driverStatus = state.driver || "Driver Assigned";
-                const noDriver = driverStatus.toLowerCase().includes("no");
-                const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : (Number(route.gtfsDistanceKm) || 0);
-                const estRange = fullDutyDist;
-                const isBlockedByRange = blockedRouteIds.has(String(route.routeId)) || (dist > 0 && estRange < dist);
-                const badCondition = condition === "Not Good";
-                const lowSocFloor = soc < 25;
-                const tags = [
-                    noDriver ? `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:700;">👤 No Driver Assigned</span>` : "",
-                    badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
-                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Duty ${estRange}km < ${dist}km</span>` : "",
-                    (!badCondition && !isBlockedByRange && !noDriver && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
-                ].filter(Boolean).join(" ");
-                const routeDist = Number(route.gtfsDistanceKm) || 0;
-                const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
-                const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
-                const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
-                const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
-                const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
-                const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
-                const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
-                const subtitleHtml = `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
-                return `
-                    <div class="route-row-rejected" data-route-id="${route.routeId}">
-                        <div class="route-meta">
+            const soc = getBusSoc(route);
+            const fullDutyDist = calculateFullDutyDistance(soc);
+            const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
+            const condition = state.condition || "Good";
+            const driverStatus = state.driver || "Driver Assigned";
+            const noDriver = driverStatus.toLowerCase().includes("no");
+            const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+            const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : (Number(route.gtfsDistanceKm) || 0);
+            const estRange = fullDutyDist;
+            const isBlockedByRange = blockedRouteIds.has(String(route.routeId)) || (dist > 0 && estRange < dist);
+            const badCondition = condition === "Not Good";
+            const lowSocFloor = soc < 25;
+
+            // Check lock status (cleaning, charging, or both)
+            const lockInfo = getBusLockInfo(route);
+            let lockTag = "";
+            let lockBadge = "";
+            let lockStyle = "";
+            if (lockInfo) {
+                if (lockInfo.isBoth) {
+                    lockTag = `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #f87171;padding:3px 9px;border-radius:6px;font-size:.74rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">🔒 Locked: Cleaning &amp; Charging</span>`;
+                    lockBadge = `<span style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;">🔒 Both: Cleaning &amp; Charging Locked</span>`;
+                } else if (lockInfo.isCleaning) {
+                    lockTag = `<span class="reject-tag" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;padding:3px 9px;border-radius:6px;font-size:.74rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">🧼 Locked: Cleaning</span>`;
+                    lockBadge = `<span style="background:#fef3c7;color:#92400e;border:1px solid #fde68a;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;">🧼 Cleaning Locked</span>`;
+                } else if (lockInfo.isCharging) {
+                    lockTag = `<span class="reject-tag" style="background:#e0f2fe;color:#0369a1;border:1px solid #7dd3fc;padding:3px 9px;border-radius:6px;font-size:.74rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">⚡ Locked: Charging</span>`;
+                    lockBadge = `<span style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;">⚡ Charging Locked</span>`;
+                } else {
+                    lockTag = `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;padding:3px 9px;border-radius:6px;font-size:.74rem;font-weight:800;display:inline-flex;align-items:center;gap:4px;">🔒 ${escapeHtml(lockInfo.reason)}</span>`;
+                    lockBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;">🔒 ${escapeHtml(lockInfo.reason)}</span>`;
+                }
+                lockStyle = "border-left: 4px solid #dc2626; background: #fff8f8;";
+            }
+
+            const tags = [
+                lockTag,
+                noDriver ? `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:700;">👤 No Driver Assigned</span>` : "",
+                badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
+                isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Duty ${estRange}km < ${dist}km</span>` : "",
+                (!badCondition && !isBlockedByRange && !noDriver && lowSocFloor && !lockInfo) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
+            ].filter(Boolean).join(" ");
+            const routeDist = Number(route.gtfsDistanceKm) || 0;
+            const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
+            const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
+            const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
+            const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
+            const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
+            const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
+            const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
+            const subtitleHtml = `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
+
+            return `
+                <div class="route-row-rejected" data-route-id="${route.routeId}" style="${lockStyle}">
+                    <div class="route-meta">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                             ${titleHtml}
-                            <div style="display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap;">
-                                ${catBadge}
-                                ${tierBadge}
-                                ${tripsBadge}
-                                ${subtitleHtml}
-                            </div>
-                            <span>${route.origin} to ${route.destination}</span>
-                            <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
-                                <span style="color:#a94b15;font-size:.78rem;font-weight:700;">⚡ ${soc}% SoC</span>
-                                <span style="color:#475569;font-size:.78rem;font-weight:700;background:#f1f5f9;padding:2px 7px;border-radius:5px;">📏 Full Duty: ${fullDutyDist} km (Single Charge)</span>
-                            </div>
+                            ${lockBadge}
                         </div>
-                        <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
-                            ${tags}
-                            <button class="route-arrow not-alloc-arrow" type="button"
-                                style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
-                                aria-label="View ${assignedVehicle} details">›</button>
+                        <div style="display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap;">
+                            ${catBadge}
+                            ${tierBadge}
+                            ${tripsBadge}
+                            ${subtitleHtml}
                         </div>
-                    </div>`;
+                        <span>${route.origin} to ${route.destination}</span>
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+                            <span style="color:#a94b15;font-size:.78rem;font-weight:700;">⚡ ${soc}% SoC</span>
+                            <span style="color:#475569;font-size:.78rem;font-weight:700;background:#f1f5f9;padding:2px 7px;border-radius:5px;">📏 Full Duty: ${fullDutyDist} km (Single Charge)</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
+                        ${tags}
+                        <button class="route-arrow not-alloc-arrow" type="button"
+                            style="background:#a94b15;box-shadow:0 8px 16px rgba(169,75,21,.22);"
+                            aria-label="View ${assignedVehicle} details">›</button>
+                    </div>
+                </div>`;
         }
 
         function attachNotAllocatedArrows(container) {

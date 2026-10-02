@@ -462,31 +462,66 @@
     localStorage.setItem(LOCKED_KEY, JSON.stringify(arr));
   }
 
+  function isBusLockedForCharging(bm) {
+    if (!bm) return false;
+    const lower = bm.toLowerCase();
+    return getLockedBuses().some(x => String(x.bm || '').toLowerCase() === lower && (x.page === 'charging' || x.page === 'both'));
+  }
+
+  function isBusLockedForCleaning(bm) {
+    if (!bm) return false;
+    const lower = bm.toLowerCase();
+    return getLockedBuses().some(x => String(x.bm || '').toLowerCase() === lower && (x.page === 'cleaning' || x.page === 'both'));
+  }
+
   function isBusLocked(bm) {
-    return getLockedBuses().some(x => x.bm === bm);
+    return isBusLockedForCharging(bm);
   }
 
   function lockBus() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) return;
-    const locked = getLockedBuses();
-    if (!locked.some(x => x.bm === bm)) {
-      locked.push({ bm, page: 'charging', time: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) });
-      setLockedBuses(locked);
+    let locked = getLockedBuses();
+    const timeStr = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const lower = bm.toLowerCase();
+
+    // Check if already locked under cleaning
+    const cleanIdx = locked.findIndex(x => String(x.bm || '').toLowerCase() === lower && (x.page === 'cleaning' || x.page === 'both'));
+    if (cleanIdx >= 0) {
+      locked[cleanIdx].page = 'both';
+      locked[cleanIdx].chargingTime = timeStr;
+    } else if (!locked.some(x => String(x.bm || '').toLowerCase() === lower && x.page === 'charging')) {
+      locked.push({ bm, page: 'charging', time: timeStr });
     }
+    setLockedBuses(locked);
     updateLockUI(bm);
     renderLockedList();
-    showToast(`🔒 ${bm} locked — hidden from Smart Tracking & Scheduling`, 'error');
+    showToast(`🔒 ${bm} locked for Charging — marked as Not Allocated`, 'error');
   }
 
   function unlockBus() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) return;
-    const locked = getLockedBuses().filter(x => x.bm !== bm);
+    let locked = getLockedBuses();
+    const lower = bm.toLowerCase();
+
+    // If it was locked for both, downgrade to cleaning only; otherwise remove charging
+    locked = locked.map(x => {
+      if (String(x.bm || '').toLowerCase() === lower) {
+        if (x.page === 'both') {
+          return { bm: x.bm, page: 'cleaning', time: x.time || x.cleaningTime || new Date().toLocaleTimeString() };
+        }
+        if (x.page === 'charging') {
+          return null;
+        }
+      }
+      return x;
+    }).filter(Boolean);
+
     setLockedBuses(locked);
     updateLockUI(bm);
     renderLockedList();
-    showToast(`🔓 ${bm} unlocked — visible in Smart Tracking & Scheduling`, 'success');
+    showToast(`🔓 ${bm} unlocked from Charging`, 'success');
   }
 
   function updateLockUI(bm) {
@@ -500,10 +535,24 @@
       return;
     }
     lockRow.classList.add('show');
-    const locked = isBusLocked(bm);
-    lockBtn.style.display   = locked ? 'none'        : 'inline-flex';
-    unlockBtn.style.display = locked ? 'inline-flex' : 'none';
-    locked ? lockBanner.classList.add('show') : lockBanner.classList.remove('show');
+    const chargLocked = isBusLockedForCharging(bm);
+    const cleanLocked = isBusLockedForCleaning(bm);
+
+    lockBtn.style.display   = chargLocked ? 'none'        : 'inline-flex';
+    unlockBtn.style.display = chargLocked ? 'inline-flex' : 'none';
+
+    if (chargLocked && cleanLocked) {
+      lockBanner.innerHTML = `⚠️ <strong>${bm}</strong> is locked for <strong>Both Charging &amp; Cleaning</strong>. Vehicle is held in depot and marked as Not Allocated.`;
+      lockBanner.classList.add('show');
+    } else if (chargLocked) {
+      lockBanner.innerHTML = `⚡ <strong>${bm}</strong> is locked for <strong>Charging</strong>. Vehicle is held in depot and marked as Not Allocated.`;
+      lockBanner.classList.add('show');
+    } else if (cleanLocked) {
+      lockBanner.innerHTML = `🧼 <strong>${bm}</strong> is currently locked for <strong>Cleaning</strong>. You can also lock it for Charging below.`;
+      lockBanner.classList.add('show');
+    } else {
+      lockBanner.classList.remove('show');
+    }
   }
 
   function renderLockedList() {
@@ -512,9 +561,10 @@
     const locked = getLockedBuses();
     if (!locked.length) { wrap.classList.remove('show'); return; }
     wrap.classList.add('show');
-    chips.innerHTML = locked.map(x =>
-      `<span class="locked-chip">🔒 ${x.bm} <span style="font-weight:400;opacity:.7;">(${x.page}, ${x.time})</span></span>`
-    ).join('');
+    chips.innerHTML = locked.map(x => {
+      const p = x.page === 'both' ? 'charging &amp; cleaning' : (x.page || 'charging');
+      return `<span class="locked-chip">🔒 ${x.bm} <span style="font-weight:400;opacity:.85;">(${p}, ${x.time || ''})</span></span>`;
+    }).join('');
   }
 
   // ── Load vehicles from server ──
