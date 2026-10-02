@@ -1109,19 +1109,19 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
                         Sort by:
                     </label>
-                    <label>Driver
-                        <select id="alloc-sort-driver">
-                            <option value="all">All drivers</option>
-                            <option value="assigned">Driver assigned first</option>
-                            <option value="no-driver">No driver first</option>
-                        </select>
-                    </label>
-                    <label>Route category
-                        <select id="alloc-sort-category">
-                            <option value="all">All categories</option>
-                            <option value="simple">Simple first</option>
-                            <option value="moderate">Moderate first</option>
-                            <option value="complex">Complex first</option>
+                    <label>Route
+                        <select id="alloc-sort-route">
+                            <option value="all">All Routes (A → Z)</option>
+                            <option value="route-desc">Route (Z → A)</option>
+                            <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
+                            <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
+                            <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
+                            <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
+                            <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
+                            <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
+                            <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
+                            <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                            <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
                         </select>
                     </label>
                 </div>
@@ -1146,19 +1146,19 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
                         Sort by:
                     </label>
-                    <label>Driver
-                        <select id="not-alloc-sort-driver">
-                            <option value="all">All drivers</option>
-                            <option value="no-driver">No driver first</option>
-                            <option value="assigned">Driver assigned first</option>
-                        </select>
-                    </label>
-                    <label>Route category
-                        <select id="not-alloc-sort-category">
-                            <option value="all">All categories</option>
-                            <option value="complex">Complex first</option>
-                            <option value="moderate">Moderate first</option>
-                            <option value="simple">Simple first</option>
+                    <label>Route
+                        <select id="not-alloc-sort-route">
+                            <option value="all">All Routes (A → Z)</option>
+                            <option value="route-desc">Route (Z → A)</option>
+                            <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
+                            <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
+                            <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
+                            <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
+                            <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
+                            <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
+                            <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
+                            <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                            <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
                         </select>
                     </label>
                 </div>
@@ -2011,53 +2011,32 @@
                 })
                 : [...sourceList];
 
-            // ── Sort: merge Sort-strip + Schedule Requirement dropdowns ──
-            // Sort-strip values take priority; fall back to Schedule Requirement dropdowns
-            const allocSortDriverEl = document.getElementById("alloc-sort-driver");
-            const allocSortCatEl    = document.getElementById("alloc-sort-category");
-            const schedDriverEl     = document.getElementById("driver");     // "ready" | "unavailable"
-            const schedCatEl        = document.getElementById("complexity"); // "simple" | "moderate" | "complex"
-
-            // Map Schedule Requirement driver value → sort key
-            const schedDriverMap = { ready: "assigned", unavailable: "no-driver" };
-            const allocSortDriver = (allocSortDriverEl?.value && allocSortDriverEl.value !== "all")
-                ? allocSortDriverEl.value
-                : (schedDriverEl ? (schedDriverMap[schedDriverEl.value] || "all") : "all");
-            const allocSortCat = (allocSortCatEl?.value && allocSortCatEl.value !== "all")
-                ? allocSortCatEl.value
-                : (schedCatEl?.value || "all");
-
-            const routeCatOrder = { simple: 0, moderate: 1, complex: 2 };
+            // ── Sort by Route ──
+            const allocSortRouteEl = document.getElementById("alloc-sort-route");
+            const allocSortRoute = allocSortRouteEl ? allocSortRouteEl.value : "all";
 
             filtered.sort((a, b) => {
+                const routeA = String(a.busNumber || a.routeShortName || "");
+                const routeB = String(b.busNumber || b.routeShortName || "");
                 const assignedA = getAssignedBusName(a);
                 const assignedB = getAssignedBusName(b);
-                const stA = busStates[assignedA] || busStates[a.routeId] || busStates[a.busNumber] || {};
-                const stB = busStates[assignedB] || busStates[b.routeId] || busStates[b.busNumber] || {};
-                const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
-                const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
-                const rangeA = assignmentRanges[String(a.routeId)] || {};
-                const rangeB = assignmentRanges[String(b.routeId)] || {};
-                const distA = Number(rangeA.gtfsDistanceKm || a.distanceKm || 0);
-                const distB = Number(rangeB.gtfsDistanceKm || b.distanceKm || 0);
-                const catA = distA >= 20 ? "complex" : (distA >= 10 ? "moderate" : "simple");
-                const catB = distB >= 20 ? "complex" : (distB >= 10 ? "moderate" : "simple");
 
-                // Driver sort
-                if (allocSortDriver === "assigned") {
-                    if (noDriverA !== noDriverB) return noDriverA ? 1 : -1;
-                } else if (allocSortDriver === "no-driver") {
-                    if (noDriverA !== noDriverB) return noDriverA ? -1 : 1;
+                if (allocSortRoute === "route-desc") {
+                    const cmp = routeB.localeCompare(routeA, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
+                } else if (allocSortRoute && allocSortRoute !== "all") {
+                    const matchA = routeA.toUpperCase() === allocSortRoute.toUpperCase() ? 0 : 1;
+                    const matchB = routeB.toUpperCase() === allocSortRoute.toUpperCase() ? 0 : 1;
+                    if (matchA !== matchB) return matchA - matchB;
+                    const cmp = routeA.localeCompare(routeB, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
+                } else {
+                    const cmp = routeA.localeCompare(routeB, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
                 }
-
-                // Route category sort
-                if (allocSortCat !== "all") {
-                    const aMatch = catA === allocSortCat ? 0 : 1;
-                    const bMatch = catB === allocSortCat ? 0 : 1;
-                    if (aMatch !== bMatch) return aMatch - bMatch;
-                    return (routeCatOrder[catA] || 0) - (routeCatOrder[catB] || 0);
-                }
-                return 0;
             });
 
             if (allocatedCountEl) {
@@ -2250,22 +2229,10 @@
                 })
                 : [...sourceList];
 
-            // ── Sort: merge Sort-strip + Schedule Requirement dropdowns ──
+            // ── Sort by Route ──
             // Locked buses (cleaning, charging, both) are prioritized at top so operators see them immediately
-            const notAllocSortDriverEl = document.getElementById("not-alloc-sort-driver");
-            const notAllocSortCatEl    = document.getElementById("not-alloc-sort-category");
-            const naSchedDriverEl      = document.getElementById("driver");     // "ready" | "unavailable"
-            const naSchedCatEl         = document.getElementById("complexity"); // "simple" | "moderate" | "complex"
-
-            const naDriverMap = { ready: "assigned", unavailable: "no-driver" };
-            const notAllocSortDriver = (notAllocSortDriverEl?.value && notAllocSortDriverEl.value !== "all")
-                ? notAllocSortDriverEl.value
-                : (naSchedDriverEl ? (naDriverMap[naSchedDriverEl.value] || "all") : "all");
-            const notAllocSortCat = (notAllocSortCatEl?.value && notAllocSortCatEl.value !== "all")
-                ? notAllocSortCatEl.value
-                : (naSchedCatEl?.value || "all");
-
-            const catOrderNA = { simple: 0, moderate: 1, complex: 2 };
+            const notAllocSortRouteEl = document.getElementById("not-alloc-sort-route");
+            const notAllocSortRoute = notAllocSortRouteEl ? notAllocSortRouteEl.value : "all";
 
             filtered.sort((a, b) => {
                 const lockA = getBusLockInfo(a);
@@ -2278,34 +2245,27 @@
                     if (!lockA.isBoth && lockB.isBoth) return 1;
                 }
 
+                const routeA = String(a.busNumber || a.routeShortName || "");
+                const routeB = String(b.busNumber || b.routeShortName || "");
                 const assignedA = getAssignedBusName(a);
                 const assignedB = getAssignedBusName(b);
-                const stA = busStates[assignedA] || busStates[a.routeId] || busStates[a.busNumber] || {};
-                const stB = busStates[assignedB] || busStates[b.routeId] || busStates[b.busNumber] || {};
-                const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
-                const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
-                const rangeA = assignmentRanges[String(a.routeId)] || {};
-                const rangeB = assignmentRanges[String(b.routeId)] || {};
-                const distA = Number(rangeA.gtfsDistanceKm || a.distanceKm || 0);
-                const distB = Number(rangeB.gtfsDistanceKm || b.distanceKm || 0);
-                const catA = distA >= 20 ? "complex" : (distA >= 10 ? "moderate" : "simple");
-                const catB = distB >= 20 ? "complex" : (distB >= 10 ? "moderate" : "simple");
 
-                // Driver sort
-                if (notAllocSortDriver === "no-driver") {
-                    if (noDriverA !== noDriverB) return noDriverA ? -1 : 1;
-                } else if (notAllocSortDriver === "assigned") {
-                    if (noDriverA !== noDriverB) return noDriverA ? 1 : -1;
+                if (notAllocSortRoute === "route-desc") {
+                    const cmp = routeB.localeCompare(routeA, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
+                } else if (notAllocSortRoute && notAllocSortRoute !== "all") {
+                    const matchA = routeA.toUpperCase() === notAllocSortRoute.toUpperCase() ? 0 : 1;
+                    const matchB = routeB.toUpperCase() === notAllocSortRoute.toUpperCase() ? 0 : 1;
+                    if (matchA !== matchB) return matchA - matchB;
+                    const cmp = routeA.localeCompare(routeB, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
+                } else {
+                    const cmp = routeA.localeCompare(routeB, undefined, { numeric: true, sensitivity: "base" });
+                    if (cmp !== 0) return cmp;
+                    return assignedA.localeCompare(assignedB, undefined, { numeric: true, sensitivity: "base" });
                 }
-
-                // Route category sort
-                if (notAllocSortCat !== "all") {
-                    const aMatch = catA === notAllocSortCat ? 0 : 1;
-                    const bMatch = catB === notAllocSortCat ? 0 : 1;
-                    if (aMatch !== bMatch) return aMatch - bMatch;
-                    return (catOrderNA[catA] || 0) - (catOrderNA[catB] || 0);
-                }
-                return 0;
             });
 
             if (notAllocatedCountEl) {
@@ -3420,14 +3380,14 @@
                 await recommend();
 
                 // ── Sort strip event listeners ──
-                ["alloc-sort-driver", "alloc-sort-category"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener("change", () => renderAllocatedList(lastAllocatedRoutes));
-                });
-                ["not-alloc-sort-driver", "not-alloc-sort-category"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
-                });
+                const allocSortRouteEl = document.getElementById("alloc-sort-route");
+                if (allocSortRouteEl) {
+                    allocSortRouteEl.addEventListener("change", () => renderAllocatedList(lastAllocatedRoutes));
+                }
+                const notAllocSortRouteEl = document.getElementById("not-alloc-sort-route");
+                if (notAllocSortRouteEl) {
+                    notAllocSortRouteEl.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
+                }
 
                 // ── Logout button ──
                 const logoutBtn = document.getElementById("logout-btn");
