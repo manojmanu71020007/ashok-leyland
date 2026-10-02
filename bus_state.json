@@ -2586,16 +2586,48 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "BM216": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:52.565Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      },
+      "On Time": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      },
+      "Ahead": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:52.565Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM216",
     "busNumber": "399C",
-    "blocked": false,
     "bmNumber": "BM216",
     "assignedRouteId": "BM216",
     "assignedRouteDisplay": "Route BM216 - 399C (106.1 km)",
-    "assignedRouteShortName": "399C"
+    "assignedRouteShortName": "399C",
+    "blocked": false
   },
   "BUS-59": {
     "uniqueId": "BUS-59",
@@ -5397,12 +5429,44 @@
     "blocked": true
   },
   "399C": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:52.565Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      },
+      "On Time": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      },
+      "Ahead": {
+        "arrival": "13:20",
+        "departure": "13:15"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:52.565Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM286",
-    "blocked": false,
-    "bmNumber": "BM286"
+    "bmNumber": "BM286",
+    "blocked": false
   },
   "500DC": {
     "status": "Active",
@@ -5685,8 +5749,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -9187,8 +9251,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -12705,8 +12769,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
