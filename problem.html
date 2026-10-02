@@ -1360,7 +1360,7 @@
             return Number(totalDistanceKm.toFixed(2));
         }
 
-        async function updateSelectedRouteDistance() {
+        function updateSelectedRouteDistance() {
             const selectedRouteId = routeSelect ? routeSelect.value : "";
             const routeObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
             const distanceInput = document.getElementById("distance");
@@ -1375,22 +1375,6 @@
             selectedRouteDistance = directKm;
             if (distanceInput) distanceInput.value = directKm.toFixed(1);
             if (totalDistanceEl) totalDistanceEl.textContent = `${directKm.toFixed(2)} km`;
-
-            const matchingRoute = routes.find((r) => String(r.routeId) === String(routeObj.routeId) || (routeObj.code && (r.busNumber === routeObj.code || r.routeCode === routeObj.code)));
-            if (matchingRoute) {
-                try {
-                    const response = await fetch(`/api/route-distance?bus=${encodeURIComponent(matchingRoute.busNumber)}&route_id=${encodeURIComponent(matchingRoute.routeId)}`);
-                    const payload = await response.json();
-                    if (response.ok && payload.ok && Number.isFinite(payload.distanceKm)) {
-                        selectedRouteDistance = payload.distanceKm;
-                        if (distanceInput) distanceInput.value = payload.distanceKm.toFixed(1);
-                        if (totalDistanceEl) totalDistanceEl.textContent = `${payload.distanceKm.toFixed(2)} km`;
-                    }
-                } catch (error) {
-                    // Fallback to directKm
-                }
-            }
-            recommend();
         }
 
         function fiveMinutesLater(value) {
@@ -1399,21 +1383,25 @@
             return `${String(Math.floor(totalMinutes / 60)).padStart(2, "0")}:${String(totalMinutes % 60).padStart(2, "0")}`;
         }
 
-        async function syncScheduleTiming() {
-            const routeId = routeSelect.value;
-            const departure = document.getElementById("departure").value;
-            if (!routeId || !departure) return;
-            const arrival = fiveMinutesLater(departure);
-            const statusTimings = {
-                Delayed: { arrival, departure },
-                "On Time": { arrival, departure },
-                Ahead: { arrival, departure }
-            };
-            await fetch("/api/bus-state", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ routeId, status: "On Time", statusTimings })
-            });
+        let syncTimeout = null;
+        function syncScheduleTiming() {
+            if (syncTimeout) clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(() => {
+                const routeId = routeSelect ? routeSelect.value : "";
+                const departure = document.getElementById("departure") ? document.getElementById("departure").value : "";
+                if (!routeId || !departure) return;
+                const arrival = fiveMinutesLater(departure);
+                const statusTimings = {
+                    Delayed: { arrival, departure },
+                    "On Time": { arrival, departure },
+                    Ahead: { arrival, departure }
+                };
+                fetch("/api/bus-state", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ routeId, status: "On Time", statusTimings })
+                }).catch(() => {});
+            }, 600);
         }
 
         // ── Fetch vehicle assignments from server ────────────────────────────
@@ -1900,26 +1888,21 @@
 
             // ── Not Allocated Buses computation ──────────────────────────────────
             const allocatedIds = new Set(allocatedRoutes.map((r) => String(r.routeId)));
-            const notAllocatedRoutes = filteredRoutes.filter((r) => {
-                if (isManualOverride && String(r.routeId) === String(manuallySelectedId)) return false;
-                // If the bus is in allocatedRoutes, it does not belong in notAllocated
+            const notAllocatedRoutes = unlockedFleet.filter((r) => {
                 if (allocatedIds.has(String(r.routeId))) return false;
-                // Include routes blocked by server allocation rules even without telemetry
                 if (blockedRouteIds.has(String(r.routeId))) return true;
                 const assignedName = getAssignedBusName(r);
                 const state = busStates[r.routeId] || busStates[r.uniqueId] || busStates[assignedName] || busStates[r.busNumber] || {};
                 const driverStatus = state.driver || "Driver Assigned";
-                // If no driver assigned, ALWAYS include in notAllocated
                 if (driverStatus.toLowerCase().includes("no")) return true;
-                if (String(r.routeId) === String(manuallySelectedId)) {
-                    const driverSelectEl = document.getElementById("driver");
-                    if (driverSelectEl && driverSelectEl.value === "unavailable") return true;
-                }
-                if (!state || Object.keys(state).length === 0) return false;
-                return true;
+                const soc = getBusSoc(r);
+                if (soc <= 25) return true;
+                const condition = state.condition || "Good";
+                if (condition === "Not Good") return true;
+                return false;
             });
 
-            lastFilteredRoutes = filteredRoutes;
+            lastFilteredRoutes = unlockedFleet;
             lastAllocatedRoutes = allocatedRoutes;
             lastNotAllocatedRoutes = notAllocatedRoutes;
 
@@ -1927,8 +1910,10 @@
             renderNotAllocatedList(notAllocatedRoutes);
 
             updateSelectedRouteDistance();
-            document.getElementById("bus-total").textContent = String(totalBuses);
-            document.getElementById("bus-departure").textContent = String(allocatedRoutes.length);
+            const busTotalEl = document.getElementById("bus-total");
+            if (busTotalEl) busTotalEl.textContent = String(routes.length || 122);
+            const busDepEl = document.getElementById("bus-departure");
+            if (busDepEl) busDepEl.textContent = String(allocatedRoutes.length);
             updateAssignedDriverCount();
 
             renderScheduledTime();
@@ -2762,8 +2747,6 @@
             el.textContent = String(assignedCount);
         }
 
-        let recommendClicked = false;
-
         function updateAllocationPanel() {
             recommend();
         }
@@ -2915,6 +2898,12 @@
         }
 
         async function loadData() {
+            // Render immediately from local state and corridor definitions so page loads in < 10ms
+            syncLocalStorageBusStates();
+            updateSelectedRouteDistance();
+            updateScheduledTimesForSelectedRoute();
+            renderRoutes();
+
             try {
                 const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse] = await Promise.all([
                     fetch("/api/routes"),
@@ -2993,57 +2982,52 @@
                     } catch {}
                 }
 
+                updateSelectedRouteDistance();
+                updateScheduledTimesForSelectedRoute();
                 renderRoutes();
 
-                routeSelect.addEventListener("change", async () => {
-                    recommendClicked = false;
-                    await updateSelectedRouteDistance();
+                routeSelect.addEventListener("change", () => {
+                    updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute();
-                    await syncScheduleTiming();
+                    syncScheduleTiming();
                     renderRoutes();
-                    await recommend();
                 });
-                routeSearch.addEventListener("input", async () => {
+                routeSearch.addEventListener("input", () => {
                     renderRoutes();
-                    await updateSelectedRouteDistance();
-                    await recommend();
                 });
                 if (scheduledTimeSelect) {
-                    scheduledTimeSelect.addEventListener("change", async () => {
+                    scheduledTimeSelect.addEventListener("change", () => {
                         const depInput = document.getElementById("departure");
                         if (depInput && scheduledTimeSelect.value) {
                             depInput.value = scheduledTimeSelect.value;
                         }
-                        await syncScheduleTiming();
-                        await recommend();
+                        syncScheduleTiming();
+                        renderRoutes();
                     });
                 }
                 const depInput = document.getElementById("departure");
                 if (depInput) {
-                    depInput.addEventListener("input", async () => {
+                    depInput.addEventListener("input", () => {
                         if (scheduledTimeSelect) {
                             const val = depInput.value;
                             if (val && scheduledTimeSelect.querySelector(`option[value="${val}"]`)) {
                                 scheduledTimeSelect.value = val;
                             }
                         }
-                        await syncScheduleTiming();
-                        await recommend();
+                        syncScheduleTiming();
+                        renderRoutes();
                     });
                 }
-                document.getElementById("recommend").addEventListener("click", async () => {
-                    recommendClicked = true;
-                    await updateSelectedRouteDistance();
-                    await syncScheduleTiming();
+                document.getElementById("recommend").addEventListener("click", () => {
+                    updateSelectedRouteDistance();
+                    syncScheduleTiming();
                     renderRoutes();
-                    await recommend();
                 });
                 const driverSelectInput = document.getElementById("driver");
                 if (driverSelectInput) {
-                    driverSelectInput.addEventListener("change", async () => {
+                    driverSelectInput.addEventListener("change", () => {
                         updateAssignedDriverCount();
                         renderRoutes();
-                        await recommend();
                         renderAllocatedList(lastAllocatedRoutes);
                         renderNotAllocatedList(lastNotAllocatedRoutes);
                     });
@@ -3225,9 +3209,8 @@
                             serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
                         }
                         renderRoutes();
-                        recommend();
                     } catch {}
-                }, 5000);
+                }, 12000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
                 if (notAllocatedSummary) {

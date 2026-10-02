@@ -2467,21 +2467,26 @@ const server = http.createServer(async (req, res) => {
     sendJson(res, { error: "Not found" }, 404);
 });
 
-restoreBusStateFromGitHub().then(() => {
-    // Pre-warm GTFS shapes index and distance cache so requests respond in < 1ms
-    try {
-        const routes = loadRoutes();
-        for (const r of routes) {
-            calculateRouteDistanceByRouteId(r.routeId);
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+    // Pre-warm GTFS shapes index and distance cache in background so initial server binding is instant
+    setImmediate(async () => {
+        try {
+            await restoreBusStateFromGitHub();
+        } catch (e) {
+            console.warn("[GitHub restore failed]", e.message);
         }
-        loadGtfsScheduleSummary();
-        console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes and schedule timetable.`);
-    } catch (e) {
-        console.warn("[Cache] Pre-warm failed:", e.message);
-    }
-
-    server.listen(PORT, () => {
-        console.log(`Server running on http://localhost:${PORT}`);
+        try {
+            const routes = loadRoutes();
+            for (const r of routes) {
+                calculateRouteDistanceByRouteId(r.routeId);
+            }
+            loadGtfsScheduleSummary();
+            loadCorridorSchedules();
+            console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes and schedule timetable.`);
+        } catch (e) {
+            console.warn("[Cache] Pre-warm failed:", e.message);
+        }
     });
 });
 
