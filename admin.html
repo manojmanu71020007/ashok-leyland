@@ -1278,6 +1278,12 @@
         let lastNotAllocatedRoutes = [];
         let lastFilteredRoutes = [];
 
+        // ── Pagination: only render PAGE_SIZE rows at a time → "Load more" appends next page ──
+        const PAGE_SIZE = 25;
+        let allocatedPage = 1;
+        let notAllocatedPage = 1;
+        let scheduledPage = 1;
+
         let busStates = {};
         // Vehicle assignments (fetched from /api/bus-assignments)
         // assignments: { routeId → assigned BM Number }
@@ -2011,14 +2017,85 @@
                 return;
             }
 
-            routeSummary.innerHTML = filtered.map((route) => {
-                const assignedVehicle = getAssignedBusName(route);
-                const soc = getBusSoc(route);
-                const fullDutyDist = calculateFullDutyDistance(soc);
-                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
-                const condition = state.condition || "Good";
-                const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
-                const rangeInfo = assignmentRanges[String(route.routeId)] || {};
+            routeSummary.innerHTML = buildAllocatedHTML(filtered, 1);
+            attachAllocatedArrows(routeSummary);
+            // "Load more" handler
+            const lmAlloc = routeSummary.querySelector('.load-more-btn[data-section="allocated"]');
+            if (lmAlloc) {
+                lmAlloc.addEventListener('click', () => {
+                    allocatedPage++;
+                    const existing = routeSummary.querySelectorAll('.route-row[data-route-id]');
+                    const alreadyShown = existing.length;
+                    const nextBatch = filtered.slice(alreadyShown, alreadyShown + PAGE_SIZE);
+                    // Remove the button first
+                    lmAlloc.parentElement?.removeChild(lmAlloc);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = nextBatch.map(buildAllocatedRowHTML).join('');
+                    while (tempDiv.firstChild) routeSummary.appendChild(tempDiv.firstChild);
+                    // Re-append new button if still more
+                    const remaining = filtered.length - (alreadyShown + nextBatch.length);
+                    if (remaining > 0) {
+                        const btn = buildLoadMoreBtn('allocated', remaining);
+                        routeSummary.appendChild(btn);
+                        btn.addEventListener('click', btn._handler = function handler() {
+                            btn._handler && btn.removeEventListener('click', btn._handler);
+                            btn._handler = null;
+                            // Recursively simulate click by bumping page and re-appending
+                            const cur = routeSummary.querySelectorAll('.route-row[data-route-id]').length;
+                            const nb = filtered.slice(cur, cur + PAGE_SIZE);
+                            btn.parentElement?.removeChild(btn);
+                            const td2 = document.createElement('div');
+                            td2.innerHTML = nb.map(buildAllocatedRowHTML).join('');
+                            while (td2.firstChild) routeSummary.appendChild(td2.firstChild);
+                            const r2 = filtered.length - (cur + nb.length);
+                            if (r2 > 0) {
+                                const b2 = buildLoadMoreBtn('allocated', r2);
+                                routeSummary.appendChild(b2);
+                                attachAllocatedArrows(routeSummary);
+                            } else { attachAllocatedArrows(routeSummary); }
+                        });
+                    }
+                    attachAllocatedArrows(routeSummary);
+                });
+            }
+        }
+
+        function buildLoadMoreBtn(section, remaining) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'load-more-btn';
+            btn.dataset.section = section;
+            btn.textContent = `Load ${Math.min(PAGE_SIZE, remaining)} more  (${remaining} remaining)`;
+            btn.style.cssText = 'display:block;width:100%;padding:10px;margin-top:6px;background:#f1f5f9;border:1px dashed #cbd5e1;border-radius:8px;font-size:.82rem;font-weight:600;color:#334155;cursor:pointer;';
+            return btn;
+        }
+
+        function buildLoadMoreBtn_notAlloc(remaining) {
+            const btn = buildLoadMoreBtn('not-allocated', remaining);
+            return btn;
+        }
+
+        function buildAllocatedHTML(filtered, page) {
+            const slice = filtered.slice(0, PAGE_SIZE * page);
+            let html = slice.map(buildAllocatedRowHTML).join('');
+            const remaining = filtered.length - slice.length;
+            if (remaining > 0) {
+                html += `<button type="button" class="load-more-btn" data-section="allocated" style="display:block;width:100%;padding:10px;margin-top:6px;background:#f1f5f9;border:1px dashed #cbd5e1;border-radius:8px;font-size:.82rem;font-weight:600;color:#334155;cursor:pointer;">Load ${Math.min(PAGE_SIZE, remaining)} more  (${remaining} remaining)</button>`;
+            }
+            return html;
+        }
+
+        function buildAllocatedRowHTML(route) {
+            const assignedVehicle = getAssignedBusName(route);
+            const soc = getBusSoc(route);
+            const fullDutyDist = calculateFullDutyDistance(soc);
+            const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
+            const condition = state.condition || "Good";
+            // Compute override state inline (these were local vars in renderAllocatedList)
+            const interiorChecked = document.getElementById("interior") ? document.getElementById("interior").checked : true;
+            const manuallySelectedId = routeSelect ? routeSelect.value : null;
+            const isOverridden = recommendClicked && !interiorChecked && manuallySelectedId && String(route.routeId) === String(manuallySelectedId);
+            const rangeInfo = assignmentRanges[String(route.routeId)] || {};
 
                 let fleetStatus, fleetColor;
                 if (isOverridden) {
@@ -2067,10 +2144,13 @@
                         </div>
                         <button class="route-arrow" type="button" aria-label="View ${assignedVehicle} details">›</button>
                     </div>`;
-            }).join("");
+        }
 
-            // Arrow → open Bus Details
-            routeSummary.querySelectorAll(".route-arrow").forEach((arrow) => {
+        function attachAllocatedArrows(container) {
+            container.querySelectorAll(".route-arrow").forEach((arrow) => {
+                // Avoid double-binding
+                if (arrow._bound) return;
+                arrow._bound = true;
                 arrow.addEventListener("click", () => {
                     const row = arrow.closest(".route-row");
                     if (!row) return;
@@ -2178,8 +2258,55 @@
                 return;
             }
 
-            notAllocatedSummary.innerHTML = filtered.map((route) => {
-                const assignedVehicle = getAssignedBusName(route);
+            notAllocatedSummary.innerHTML = buildNotAllocatedHTML(filtered, 1);
+            attachNotAllocatedArrows(notAllocatedSummary);
+            // "Load more" handler
+            const lmNotAlloc = notAllocatedSummary.querySelector('.load-more-btn[data-section="not-allocated"]');
+            if (lmNotAlloc) {
+                lmNotAlloc.addEventListener('click', () => {
+                    const existing = notAllocatedSummary.querySelectorAll('.route-row-rejected[data-route-id]').length;
+                    const nextBatch = filtered.slice(existing, existing + PAGE_SIZE);
+                    lmNotAlloc.parentElement?.removeChild(lmNotAlloc);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = nextBatch.map(buildNotAllocatedRowHTML).join('');
+                    while (tempDiv.firstChild) notAllocatedSummary.appendChild(tempDiv.firstChild);
+                    const remaining = filtered.length - (existing + nextBatch.length);
+                    if (remaining > 0) {
+                        const btn = buildLoadMoreBtn('not-allocated', remaining);
+                        notAllocatedSummary.appendChild(btn);
+                        btn.addEventListener('click', function self() {
+                            btn.removeEventListener('click', self);
+                            const cur = notAllocatedSummary.querySelectorAll('.route-row-rejected[data-route-id]').length;
+                            const nb = filtered.slice(cur, cur + PAGE_SIZE);
+                            btn.parentElement?.removeChild(btn);
+                            const td2 = document.createElement('div');
+                            td2.innerHTML = nb.map(buildNotAllocatedRowHTML).join('');
+                            while (td2.firstChild) notAllocatedSummary.appendChild(td2.firstChild);
+                            const r2 = filtered.length - (cur + nb.length);
+                            if (r2 > 0) {
+                                const b2 = buildLoadMoreBtn('not-allocated', r2);
+                                notAllocatedSummary.appendChild(b2);
+                            }
+                            attachNotAllocatedArrows(notAllocatedSummary);
+                        });
+                    }
+                    attachNotAllocatedArrows(notAllocatedSummary);
+                });
+            }
+        }
+
+        function buildNotAllocatedHTML(filtered, page) {
+            const slice = filtered.slice(0, PAGE_SIZE * page);
+            let html = slice.map(buildNotAllocatedRowHTML).join('');
+            const remaining = filtered.length - slice.length;
+            if (remaining > 0) {
+                html += `<button type="button" class="load-more-btn" data-section="not-allocated" style="display:block;width:100%;padding:10px;margin-top:6px;background:#fef2f2;border:1px dashed #fecaca;border-radius:8px;font-size:.82rem;font-weight:600;color:#991b1b;cursor:pointer;">Load ${Math.min(PAGE_SIZE, remaining)} more  (${remaining} remaining)</button>`;
+            }
+            return html;
+        }
+
+        function buildNotAllocatedRowHTML(route) {
+            const assignedVehicle = getAssignedBusName(route);
                 const soc = getBusSoc(route);
                 const fullDutyDist = calculateFullDutyDistance(soc);
                 const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
@@ -2207,7 +2334,6 @@
                 const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
                 const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
                 const subtitleHtml = `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
-
                 return `
                     <div class="route-row-rejected" data-route-id="${route.routeId}">
                         <div class="route-meta">
@@ -2231,10 +2357,12 @@
                                 aria-label="View ${assignedVehicle} details">›</button>
                         </div>
                     </div>`;
-            }).join("");
+        }
 
-            // Arrow on not-allocated rows → same-tab navigation to Bus Details
-            notAllocatedSummary.querySelectorAll(".not-alloc-arrow").forEach((arrow) => {
+        function attachNotAllocatedArrows(container) {
+            container.querySelectorAll(".not-alloc-arrow").forEach((arrow) => {
+                if (arrow._bound) return;
+                arrow._bound = true;
                 arrow.addEventListener("click", () => {
                     const row = arrow.closest(".route-row-rejected");
                     if (!row) return;
@@ -2364,64 +2492,99 @@
                 return;
             }
 
-            scheduledTimeTbody.innerHTML = filteredScheduledRoutes.map((route) => {
-                const assignedVehicle = getAssignedBusName(route);
-                const isAllocated = allocatedSet.has(String(route.routeId));
-                const isSelected = String(route.routeId) === currentlySelectedId;
-                const timings = getRouteScheduleTimings(route, isSelected);
-                const depFormatted = formatTimeForDisplay(timings.departure);
-                const arrFormatted = formatTimeForDisplay(timings.arrival);
-                const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
+            // Render first PAGE_SIZE rows + attach events
+            scheduledTimeTbody.innerHTML = buildScheduledRowsHTML(filteredScheduledRoutes, 1, allocatedSet, currentlySelectedId);
+            attachScheduledListeners(scheduledTimeTbody, filteredScheduledRoutes, allocatedSet, currentlySelectedId);
 
-                const soc = getBusSoc(route);
-                const fullDutyDist = calculateFullDutyDistance(soc);
-                const state = busStates[assignedVehicle] || busStates[route.routeId] || busStates[route.busNumber] || {};
-                const condition = state.condition || "Good";
+            // "Load more" row
+            const lmRow = scheduledTimeTbody.querySelector('tr.load-more-row');
+            if (lmRow) {
+                lmRow.querySelector('button')?.addEventListener('click', () => {
+                    const curRows = scheduledTimeTbody.querySelectorAll('tr.scheduled-row').length;
+                    const nextBatch = filteredScheduledRoutes.slice(curRows, curRows + PAGE_SIZE);
+                    lmRow.parentElement?.removeChild(lmRow);
+                    const tempTbody = document.createElement('tbody');
+                    tempTbody.innerHTML = nextBatch.map(r => buildScheduledRowHTML(r, allocatedSet, currentlySelectedId)).join('');
+                    while (tempTbody.firstChild) scheduledTimeTbody.appendChild(tempTbody.firstChild);
+                    const remaining2 = filteredScheduledRoutes.length - (curRows + nextBatch.length);
+                    if (remaining2 > 0) {
+                        scheduledTimeTbody.insertAdjacentHTML('beforeend', buildLoadMoreTableRow(remaining2));
+                        scheduledTimeTbody.querySelector('tr.load-more-row button')?.addEventListener('click', () => {
+                            // simple: just re-render full list remaining
+                            const shown = scheduledTimeTbody.querySelectorAll('tr.scheduled-row').length;
+                            const rest = filteredScheduledRoutes.slice(shown);
+                            scheduledTimeTbody.querySelectorAll('tr.load-more-row').forEach(r => r.remove());
+                            const tb2 = document.createElement('tbody');
+                            tb2.innerHTML = rest.map(r => buildScheduledRowHTML(r, allocatedSet, currentlySelectedId)).join('');
+                            while (tb2.firstChild) scheduledTimeTbody.appendChild(tb2.firstChild);
+                            attachScheduledListeners(scheduledTimeTbody, filteredScheduledRoutes, allocatedSet, currentlySelectedId);
+                        });
+                    }
+                    attachScheduledListeners(scheduledTimeTbody, filteredScheduledRoutes, allocatedSet, currentlySelectedId);
+                });
+            }
+        }
 
-                return `
-                    <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${route.routeId}" style="cursor:pointer;">
-                        <td>
-                            <strong>${route.busNumber}</strong>
-                            <div style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</div>
-                        </td>
-                        <td>
-                            <div style="font-weight:600;">${route.origin} ➔ ${route.destination}</div>
-                            <div style="color:var(--muted);font-size:.72rem;">${route.routeName}</div>
-                        </td>
-                        <td>
-                            <div style="display:flex;align-items:center;gap:6px;">
-                                <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${assignedVehicle}</span>
-                            </div>
-                            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% SoC • 📏 ${fullDutyDist} km Duty • ${condition}</div>
-                        </td>
-                        <td>
-                            <span class="time-badge departure">🕒 ${depFormatted}</span>
-                        </td>
-                        <td>
-                            <span class="time-badge arrival">🏁 ${arrFormatted}</span>
-                        </td>
-                        <td>
-                            <span class="status-pill ${statusClass}">● ${timings.status}</span>
-                        </td>
-                        <td>
-                            ${isAllocated
-                                ? '<span class="alloc-pill allocated">✅ Allocated</span>'
-                                : '<span class="alloc-pill not-allocated">⛔ Not Allocated</span>'
-                            }
-                        </td>
-                        <td>
-                            <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
-                                <button class="tasks-action-btn scheduled-tasks-btn" type="button" data-route-id="${route.routeId}" data-bus="${assignedVehicle}" title="Click to view assigned tasks and route schedule for ${assignedVehicle}">
-                                    <span class="tasks-count-pill">📋 ${route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0} Tasks</span>
-                                    <span class="route-arrow">›</span>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join("");
+        function buildLoadMoreTableRow(remaining) {
+            return `<tr class="load-more-row"><td colspan="8" style="padding:8px;text-align:center;"><button type="button" style="padding:8px 20px;background:#f1f5f9;border:1px dashed #cbd5e1;border-radius:8px;font-size:.82rem;font-weight:600;color:#334155;cursor:pointer;">Load ${Math.min(PAGE_SIZE, remaining)} more rows (${remaining} remaining)</button></td></tr>`;
+        }
 
-            scheduledTimeTbody.querySelectorAll(".scheduled-tasks-btn").forEach((btn) => {
+        function buildScheduledRowsHTML(rows, page, allocatedSet, currentlySelectedId) {
+            const slice = rows.slice(0, PAGE_SIZE * page);
+            let html = slice.map(r => buildScheduledRowHTML(r, allocatedSet, currentlySelectedId)).join('');
+            const remaining = rows.length - slice.length;
+            if (remaining > 0) html += buildLoadMoreTableRow(remaining);
+            return html;
+        }
+
+        function buildScheduledRowHTML(route, allocatedSet, currentlySelectedId) {
+            const assignedVehicle = getAssignedBusName(route);
+            const isAllocated = allocatedSet.has(String(route.routeId));
+            const isSelected = String(route.routeId) === currentlySelectedId;
+            const timings = getRouteScheduleTimings(route, isSelected);
+            const depFormatted = formatTimeForDisplay(timings.departure);
+            const arrFormatted = formatTimeForDisplay(timings.arrival);
+            const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
+            const soc = getBusSoc(route);
+            const fullDutyDist = calculateFullDutyDistance(soc);
+            const state = busStates[assignedVehicle] || busStates[route.routeId] || busStates[route.busNumber] || {};
+            const condition = state.condition || "Good";
+            return `
+                <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${route.routeId}" style="cursor:pointer;">
+                    <td>
+                        <strong>${route.busNumber}</strong>
+                        <div style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight:600;">${route.origin} ➔ ${route.destination}</div>
+                        <div style="color:var(--muted);font-size:.72rem;">${route.routeName}</div>
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${assignedVehicle}</span>
+                        </div>
+                        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% SoC • 📏 ${fullDutyDist} km Duty • ${condition}</div>
+                    </td>
+                    <td><span class="time-badge departure">🕒 ${depFormatted}</span></td>
+                    <td><span class="time-badge arrival">🏁 ${arrFormatted}</span></td>
+                    <td><span class="status-pill ${statusClass}">● ${timings.status}</span></td>
+                    <td>${isAllocated ? '<span class="alloc-pill allocated">✅ Allocated</span>' : '<span class="alloc-pill not-allocated">⛔ Not Allocated</span>'}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+                            <button class="tasks-action-btn scheduled-tasks-btn" type="button" data-route-id="${route.routeId}" data-bus="${assignedVehicle}" title="Click to view assigned tasks and route schedule for ${assignedVehicle}">
+                                <span class="tasks-count-pill">📋 ${route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0} Tasks</span>
+                                <span class="route-arrow">›</span>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        }
+
+        function attachScheduledListeners(tbody, allRoutes, allocatedSet, currentlySelectedId) {
+            tbody.querySelectorAll(".scheduled-tasks-btn").forEach((btn) => {
+                if (btn._bound) return;
+                btn._bound = true;
                 btn.addEventListener("click", (e) => {
                     e.stopPropagation();
                     const routeId = btn.dataset.routeId;
@@ -2430,7 +2593,9 @@
                 });
             });
 
-            scheduledTimeTbody.querySelectorAll(".scheduled-row").forEach((row) => {
+            tbody.querySelectorAll(".scheduled-row").forEach((row) => {
+                if (row._bound) return;
+                row._bound = true;
                 row.addEventListener("click", async () => {
                     const routeId = row.dataset.routeId;
                     if (!routeId) return;
@@ -2898,11 +3063,11 @@
         }
 
         async function loadData() {
-            // Render immediately from local state and corridor definitions so page loads in < 10ms
+            // Sync localStorage immediately so first render has accurate SoC data
             syncLocalStorageBusStates();
             updateSelectedRouteDistance();
             updateScheduledTimesForSelectedRoute();
-            renderRoutes();
+            // NOTE: renderRoutes() is called AFTER API data loads below, not here with empty data
 
             try {
                 const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse] = await Promise.all([
@@ -3162,7 +3327,6 @@
                     }
                 });
 
-                await updateSelectedRouteDistance();
                 await recommend();
 
                 // ── Sort strip event listeners ──
