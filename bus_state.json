@@ -1115,22 +1115,48 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "BM062": {
-    "uniqueId": "BM062",
-    "vehicleId": "BM062",
-    "regNo": "KA51AH3269",
-    "busNumber": "KBS3A",
-    "scheduleId": "KBS3A/77",
-    "soc": 100,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:18.881Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      },
+      "On Time": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      },
+      "Ahead": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:18.881Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM062",
+    "busNumber": "KBS3A",
+    "bmNumber": "BM062",
     "assignedRouteId": "BM062",
-    "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM062"
+    "assignedRouteShortName": "KBS3A",
+    "blocked": false
   },
   "BUS-19": {
     "uniqueId": "BUS-19",
@@ -5217,12 +5243,44 @@
     "blocked": false
   },
   "KBS3A": {
+    "status": "Active",
+    "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
-    "status": "Active",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:18.881Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      },
+      "On Time": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      },
+      "Ahead": {
+        "arrival": "13:40",
+        "departure": "13:35"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:18.881Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM297",
-    "blocked": false,
-    "bmNumber": "BM297"
+    "bmNumber": "BM297",
+    "blocked": false
   },
   "KBS3F": {
     "soc": 100,
