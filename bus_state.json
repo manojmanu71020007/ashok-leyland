@@ -612,19 +612,19 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:37.213Z",
+    "updatedAt": "2026-10-02T05:21:07.344Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       }
     },
     "operation": "Single Charge Operation",
@@ -637,12 +637,6 @@
     "history": [
       {
         "timestamp": "2026-10-02T05:21:03.785Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T05:22:37.213Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -745,22 +739,48 @@
     "blocked": false
   },
   "BM020": {
-    "uniqueId": "BM020",
-    "vehicleId": "BM020",
-    "regNo": "KA51AH2556",
-    "busNumber": "361C",
-    "scheduleId": "361C/4",
-    "soc": 100,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:46.033Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:55",
+        "departure": "13:50"
+      },
+      "On Time": {
+        "arrival": "13:55",
+        "departure": "13:50"
+      },
+      "Ahead": {
+        "arrival": "13:55",
+        "departure": "13:50"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:46.033Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM020",
+    "busNumber": "361C",
+    "bmNumber": "BM020",
     "assignedRouteId": "BM020",
-    "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM020 - 361C (178.3 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM020"
+    "assignedRouteShortName": "361C",
+    "blocked": true
   },
   "BUS-09": {
     "uniqueId": "BUS-09",
@@ -1337,7 +1357,7 @@
     "assignedRouteId": "BM082",
     "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
     "assignedRouteShortName": "KBS3F",
-    "blocked": false
+    "blocked": true
   },
   "BUS-24": {
     "uniqueId": "BUS-24",
@@ -5070,6 +5090,7 @@
     "BM057",
     "BM068",
     "BM075",
+    "BM082",
     "BM088",
     "BM119",
     "BM124",
@@ -5301,19 +5322,19 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:37.213Z",
+    "updatedAt": "2026-10-02T05:21:07.344Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:50",
+        "departure": "13:45"
       }
     },
     "operation": "Single Charge Operation",
@@ -5329,12 +5350,6 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T05:22:37.213Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
       }
     ],
     "uniqueId": "BM294",
@@ -5347,19 +5362,19 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T02:23:41.994Z",
+    "updatedAt": "2026-10-02T05:22:46.033Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       }
     },
     "operation": "Single Charge Operation",
@@ -5371,7 +5386,7 @@
     "lastChargedTime": null,
     "history": [
       {
-        "timestamp": "2026-10-02T02:23:41.994Z",
+        "timestamp": "2026-10-02T05:22:46.033Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -6090,10 +6105,10 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
-      "blocked": false
+      "blocked": true
     },
     "BM086": {
       "uniqueId": "BM086",
@@ -9648,10 +9663,10 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
-      "blocked": false
+      "blocked": true
     },
     "KBS3F": {
       "uniqueId": "BM293",
@@ -12490,6 +12505,7 @@
     "BM057",
     "BM068",
     "BM075",
+    "BM082",
     "BM088",
     "BM119",
     "BM124",
@@ -12974,11 +12990,11 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 129.72,
-      "blocked": false
+      "blocked": true
     },
     "BM086": {
       "assignedVehicle": "BM086",
