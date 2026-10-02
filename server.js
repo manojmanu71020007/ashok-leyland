@@ -276,6 +276,123 @@ function loadRoutes() {
     return cachedRoutes;
 }
 
+let cachedCorridorSchedules = null;
+function loadCorridorSchedules() {
+    if (cachedCorridorSchedules) return cachedCorridorSchedules;
+
+    const corridorMap = [
+        { code: "356Z", origin: "Chandapura", destination: "Anekal", distKm: 28.7, routeId: "1", trips: 8 },
+        { code: "360K", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, routeId: "2", trips: 8 },
+        { code: "600F", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, routeId: "3", trips: 12 },
+        { code: "KBS3A", origin: "Kempegowda Bus Station", destination: "Anekal Town Bus Stand", distKm: 41.5, routeId: "4", trips: 8 },
+        { code: "KBS3F", origin: "Kempegowda Bus Station", destination: "Basavanagudi", distKm: 12.4, routeId: "5", trips: 8 },
+        { code: "328H", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, routeId: "6", trips: 12 },
+        { code: "361C", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, routeId: "7", trips: 8 },
+        { code: "399C", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, routeId: "8", trips: 8 },
+        { code: "500DC", origin: "Anekal", destination: "Tin Factory via Dommasandra", distKm: 49.8, routeId: "9", trips: 8 }
+    ];
+
+    try {
+        if (fs.existsSync(ROUTES_FILE)) {
+            const raw = fs.readFileSync(ROUTES_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).filter(Boolean);
+            if (lines.length > 1) {
+                const distLookup = new Map(corridorMap.map(c => [c.code, c.distKm]));
+                for (let i = 1; i < lines.length; i++) {
+                    const [longName, shortName, agency, type, id] = parseCsvLine(lines[i]);
+                    const code = (shortName || "").trim();
+                    const existing = corridorMap.find(c => c.code === code);
+                    const [orig = "", dest = ""] = (longName || "").split("⇔").map(s => s.trim());
+                    if (existing) {
+                        if (orig) existing.origin = orig;
+                        if (dest) existing.destination = dest;
+                        if (id) existing.routeId = id.trim();
+                    } else if (code) {
+                        corridorMap.push({
+                            code,
+                            origin: orig || "Origin",
+                            destination: dest || "Destination",
+                            distKm: distLookup.get(code) || 28.7,
+                            routeId: (id || "").trim() || String(corridorMap.length + 1),
+                            trips: 8
+                        });
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not read routes.txt in loadCorridorSchedules:", e.message);
+    }
+
+    const directionalRoutes = [];
+    corridorMap.forEach(c => {
+        directionalRoutes.push({
+            id: `${c.code}_FWD`,
+            code: c.code,
+            routeCode: c.code,
+            routeId: c.routeId,
+            direction: "Forward",
+            origin: c.origin,
+            destination: c.destination,
+            distKm: c.distKm,
+            distanceKm: c.distKm,
+            trips: c.trips,
+            label: `${c.origin} ➔ ${c.destination} (Route ${c.code}) — ${c.distKm} km`
+        });
+        directionalRoutes.push({
+            id: `${c.code}_RET`,
+            code: c.code,
+            routeCode: c.code,
+            routeId: c.routeId,
+            direction: "Return",
+            origin: c.destination,
+            destination: c.origin,
+            distKm: c.distKm,
+            distanceKm: c.distKm,
+            trips: c.trips,
+            label: `${c.destination} ➔ ${c.origin} (Route ${c.code}) — ${c.distKm} km`
+        });
+    });
+
+    const schedules = [];
+    try {
+        if (fs.existsSync(VEHICLE_ASSIGNMENTS_FILE)) {
+            const raw = fs.readFileSync(VEHICLE_ASSIGNMENTS_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).filter(Boolean);
+            for (let i = 1; i < lines.length; i++) {
+                const p = parseCsvLine(lines[i]);
+                const scheduleId = (p[0] || "").trim();
+                const route = (p[1] || "").trim();
+                const shift = (p[2] || "").trim();
+                const fixBm = (p[3] || "").trim();
+                const fixReg = (p[4] || "").trim();
+                const swapBm = (p[5] || "").trim();
+                const swapReg = (p[6] || "").trim();
+                const outTime = (p[7] || "").trim();
+                const inTime = (p[8] || "").trim();
+                if (scheduleId && route) {
+                    schedules.push({
+                        scheduleId,
+                        route,
+                        shift,
+                        fixBm,
+                        fixReg,
+                        swapBm,
+                        swapReg,
+                        outTime,
+                        inTime
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not read vehicle_assignments.csv in loadCorridorSchedules:", e.message);
+    }
+
+    cachedCorridorSchedules = { corridors: corridorMap, directionalRoutes, schedules };
+    return cachedCorridorSchedules;
+}
+
 function loadStops() {
     if (cachedStops) return cachedStops;
     const raw = fs.readFileSync(STOPS_FILE, "utf8");
@@ -1637,6 +1754,16 @@ const server = http.createServer(async (req, res) => {
             sendJson(res, { count: routes.length, routes });
         } catch (error) {
             sendJson(res, { error: "Failed to load routes", details: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/corridor-schedules") {
+        try {
+            const data = loadCorridorSchedules();
+            sendJson(res, Object.assign({ ok: true }, data));
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load corridor schedules", details: error.message }, 500);
         }
         return;
     }
