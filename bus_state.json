@@ -2557,22 +2557,48 @@
     "updatedAt": "2026-09-30T11:37:02.312529Z"
   },
   "BM217": {
-    "uniqueId": "BM217",
-    "vehicleId": "BM217",
-    "regNo": "KA51AH8284",
-    "busNumber": "356Z",
-    "scheduleId": "356Z/6",
-    "soc": 100,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-02T05:22:02.377Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "13:50",
+        "departure": "13:45"
+      },
+      "On Time": {
+        "arrival": "13:50",
+        "departure": "13:45"
+      },
+      "Ahead": {
+        "arrival": "13:50",
+        "departure": "13:45"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-02T05:22:02.377Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM217",
+    "busNumber": "356Z",
+    "bmNumber": "BM217",
     "assignedRouteId": "BM217",
-    "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route BM217 - 356Z (228.5 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM217"
+    "assignedRouteShortName": "356Z",
+    "blocked": true
   },
   "BUS-60": {
     "uniqueId": "BUS-60",
@@ -5046,42 +5072,31 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-01T14:38:40.383Z",
+    "updatedAt": "2026-10-02T05:22:02.377Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:50",
+        "departure": "13:45"
       }
     },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
     "history": [
       {
-        "timestamp": "2026-09-30T13:00:27.541Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-09-30T13:04:14.630Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-01T14:37:33.841Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-01T14:38:40.383Z",
+        "timestamp": "2026-10-02T05:22:02.377Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -5462,8 +5477,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -8908,8 +8923,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -12518,8 +12533,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 99.12,
       "blocked": false
