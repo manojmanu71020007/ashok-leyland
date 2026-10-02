@@ -324,35 +324,18 @@ function loadCorridorSchedules() {
         console.warn("Could not read routes.txt in loadCorridorSchedules:", e.message);
     }
 
-    const directionalRoutes = [];
-    corridorMap.forEach(c => {
-        directionalRoutes.push({
-            id: `${c.code}_FWD`,
-            code: c.code,
-            routeCode: c.code,
-            routeId: c.routeId,
-            direction: "Forward",
-            origin: c.origin,
-            destination: c.destination,
-            distKm: c.distKm,
-            distanceKm: c.distKm,
-            trips: c.trips,
-            label: `${c.origin} ➔ ${c.destination} (Route ${c.code}) — ${c.distKm} km`
-        });
-        directionalRoutes.push({
-            id: `${c.code}_RET`,
-            code: c.code,
-            routeCode: c.code,
-            routeId: c.routeId,
-            direction: "Return",
-            origin: c.destination,
-            destination: c.origin,
-            distKm: c.distKm,
-            distanceKm: c.distKm,
-            trips: c.trips,
-            label: `${c.destination} ➔ ${c.origin} (Route ${c.code}) — ${c.distKm} km`
-        });
-    });
+    const directionalRoutes = corridorMap.map(c => ({
+        id: c.code,
+        code: c.code,
+        routeCode: c.code,
+        routeId: c.routeId,
+        origin: c.origin,
+        destination: c.destination,
+        distKm: c.distKm,
+        distanceKm: c.distKm,
+        trips: c.trips,
+        label: `${c.origin} ⇔ ${c.destination} (Route ${c.code}) — ${c.distKm} km`
+    }));
 
     const schedules = [];
     try {

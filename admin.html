@@ -1007,7 +1007,7 @@
                         Search Route (Origin ➔ Destination)
                         <input id="route-search" class="route-search" type="text" placeholder="Search route by origin or destination (e.g. Chandapura, Anekal, Hoskote, KBS...)" autocomplete="off" />
                     </label>
-                    <label class="wide">Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">18 Routes available</span></span>
+                    <label class="wide">Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">9 Routes available</span></span>
                         <select id="route-select"><option value="">Loading routes...</option></select>
                     </label>
                     <label>
@@ -1296,24 +1296,15 @@
         const scheduledTimeSelect = document.getElementById("scheduled-time-select");
 
         const CORRIDOR_ROUTES = [
-            { id: "356Z_FWD", code: "356Z", origin: "Chandapura", destination: "Anekal", distKm: 28.7, trips: 8, label: "Chandapura ➔ Anekal (Route 356Z) — 28.7 km" },
-            { id: "356Z_RET", code: "356Z", origin: "Anekal", destination: "Chandapura", distKm: 28.7, trips: 8, label: "Anekal ➔ Chandapura (Route 356Z) — 28.7 km" },
-            { id: "360K_FWD", code: "360K", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, trips: 8, label: "Chandapura ➔ Kempegowda Bus Station (Route 360K) — 36.2 km" },
-            { id: "360K_RET", code: "360K", origin: "Kempegowda Bus Station", destination: "Chandapura", distKm: 36.2, trips: 8, label: "Kempegowda Bus Station ➔ Chandapura (Route 360K) — 36.2 km" },
-            { id: "600F_FWD", code: "600F", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, trips: 12, label: "Bommasandra Depot 32 ➔ Basavanagudi (Route 600F) — 27.8 km" },
-            { id: "600F_RET", code: "600F", origin: "Basavanagudi", destination: "Bommasandra Depot 32", distKm: 27.8, trips: 12, label: "Basavanagudi ➔ Bommasandra Depot 32 (Route 600F) — 27.8 km" },
-            { id: "KBS3A_FWD", code: "KBS3A", origin: "Kempegowda Bus Station", destination: "Anekal Town Bus Stand", distKm: 41.5, trips: 8, label: "Kempegowda Bus Station ➔ Anekal Town Bus Stand (Route KBS3A) — 41.5 km" },
-            { id: "KBS3A_RET", code: "KBS3A", origin: "Anekal Town Bus Stand", destination: "Kempegowda Bus Station", distKm: 41.5, trips: 8, label: "Anekal Town Bus Stand ➔ Kempegowda Bus Station (Route KBS3A) — 41.5 km" },
-            { id: "KBS3F_FWD", code: "KBS3F", origin: "Kempegowda Bus Station", destination: "Basavanagudi", distKm: 12.4, trips: 8, label: "Kempegowda Bus Station ➔ Basavanagudi (Route KBS3F) — 12.4 km" },
-            { id: "KBS3F_RET", code: "KBS3F", origin: "Basavanagudi", destination: "Kempegowda Bus Station", distKm: 12.4, trips: 8, label: "Basavanagudi ➔ Kempegowda Bus Station (Route KBS3F) — 12.4 km" },
-            { id: "328H_FWD", code: "328H", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, trips: 12, label: "Hoskote ➔ Kempegowda Bus Station (Route 328H) — 32.5 km" },
-            { id: "328H_RET", code: "328H", origin: "Kempegowda Bus Station", destination: "Hoskote", distKm: 32.5, trips: 12, label: "Kempegowda Bus Station ➔ Hoskote (Route 328H) — 32.5 km" },
-            { id: "361C_FWD", code: "361C", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, trips: 8, label: "Chandapura ➔ Kengeri (Route 361C) — 38.0 km" },
-            { id: "361C_RET", code: "361C", origin: "Kengeri", destination: "Chandapura", distKm: 38.0, trips: 8, label: "Kengeri ➔ Chandapura (Route 361C) — 38.0 km" },
-            { id: "399C_FWD", code: "399C", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, trips: 8, label: "Chandapura ➔ Kanakapura (Route 399C) — 44.0 km" },
-            { id: "399C_RET", code: "399C", origin: "Kanakapura", destination: "Chandapura", distKm: 44.0, trips: 8, label: "Kanakapura ➔ Chandapura (Route 399C) — 44.0 km" },
-            { id: "500DC_FWD", code: "500DC", origin: "Anekal", destination: "Tin Factory via Dommasandra", distKm: 49.8, trips: 8, label: "Anekal ➔ Tin Factory via Dommasandra (Route 500DC) — 49.8 km" },
-            { id: "500DC_RET", code: "500DC", origin: "Tin Factory", destination: "Anekal via Dommasandra", distKm: 49.8, trips: 8, label: "Tin Factory ➔ Anekal via Dommasandra (Route 500DC) — 49.8 km" }
+            { id: "356Z", code: "356Z", routeId: "1", origin: "Chandapura", destination: "Anekal", distKm: 28.7, trips: 8, label: "Chandapura ⇔ Anekal (Route 356Z) — 28.7 km" },
+            { id: "360K", code: "360K", routeId: "2", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, trips: 8, label: "Chandapura ⇔ Kempegowda Bus Station (Route 360K) — 36.2 km" },
+            { id: "600F", code: "600F", routeId: "3", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, trips: 12, label: "Bommasandra Depot 32 ⇔ Basavanagudi (Route 600F) — 27.8 km" },
+            { id: "KBS3A", code: "KBS3A", routeId: "4", origin: "Kempegowda Bus Station", destination: "Anekal Town Bus Stand", distKm: 41.5, trips: 8, label: "Kempegowda Bus Station ⇔ Anekal Town Bus Stand (Route KBS3A) — 41.5 km" },
+            { id: "KBS3F", code: "KBS3F", routeId: "5", origin: "Kempegowda Bus Station", destination: "Basavanagudi", distKm: 12.4, trips: 8, label: "Kempegowda Bus Station ⇔ Basavanagudi (Route KBS3F) — 12.4 km" },
+            { id: "328H", code: "328H", routeId: "6", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, trips: 12, label: "Hoskote ⇔ Kempegowda Bus Station (Route 328H) — 32.5 km" },
+            { id: "361C", code: "361C", routeId: "7", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, trips: 8, label: "Chandapura ⇔ Kengeri (Route 361C) — 38.0 km" },
+            { id: "399C", code: "399C", routeId: "8", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, trips: 8, label: "Chandapura ⇔ Kanakapura (Route 399C) — 44.0 km" },
+            { id: "500DC", code: "500DC", routeId: "9", origin: "Anekal", destination: "Tin Factory via Dommasandra", distKm: 49.8, trips: 8, label: "Anekal ⇔ Tin Factory via Dommasandra (Route 500DC) — 49.8 km" }
         ];
 
         let directionalRoutes = [...CORRIDOR_ROUTES];
