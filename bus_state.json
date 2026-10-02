@@ -2860,21 +2860,28 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-01T14:38:40.383Z",
+    "updatedAt": "2026-10-02T04:34:08.573Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       }
     },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": null,
     "history": [
       {
         "timestamp": "2026-09-30T13:00:27.541Z",
@@ -2896,6 +2903,12 @@
       },
       {
         "timestamp": "2026-10-01T14:38:40.383Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T04:34:08.573Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
