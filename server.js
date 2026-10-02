@@ -129,40 +129,150 @@ function getRouteTripCounts() {
 
 function loadRoutes() {
     if (cachedRoutes) return cachedRoutes;
-    const raw = fs.readFileSync(ROUTES_FILE, "utf8");
-    const lines = raw.split(/\r?\n/).filter(Boolean);
 
-    if (lines.length <= 1) {
-        return [];
+    let corridors = [];
+    try {
+        const rawCorridors = fs.readFileSync(ROUTES_FILE, "utf8");
+        const corridorLines = rawCorridors.split(/\r?\n/).filter(Boolean);
+        const tripCounts = getRouteTripCounts();
+
+        corridors = corridorLines.slice(1).map((line) => {
+            const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
+            const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
+            const cleanRouteId = String(routeId || "").trim();
+            const routeName = (routeShortName || "").trim();
+            return {
+                routeLongName,
+                routeShortName: routeName,
+                agencyId: agencyId || "1",
+                routeType: routeType || "3",
+                routeId: cleanRouteId,
+                origin: origin || "Chandapura (Depot 32)",
+                destination: destination || "Bengaluru Corridor",
+                tripCount: tripCounts.get(cleanRouteId) || (cleanRouteId === "6" ? 12 : 8),
+                distanceKm: calculateRouteDistanceByRouteId(cleanRouteId) || 28.7
+            };
+        });
+    } catch (e) {
+        console.warn("Could not read routes.txt in loadRoutes:", e.message);
     }
 
-    const tripCounts = getRouteTripCounts();
-    const bmMap = getRouteBmMap();
+    const corridorByShort = new Map(corridors.map((c) => [c.routeShortName, c]));
+    const defaultCorridor = corridors[2] || corridors[0] || {
+        routeShortName: "600F",
+        routeLongName: "Bommasandra Depot 32 ⇔ Basavanagudi (600F)",
+        origin: "Bommasandra Depot 32",
+        destination: "Basavanagudi",
+        routeId: "3",
+        distanceKm: 27.8,
+        tripCount: 8
+    };
 
-    cachedRoutes = lines.slice(1).map((line, idx) => {
-        const [routeLongName, routeShortName, agencyId, routeType, routeId] = parseCsvLine(line);
-        const [origin = "", destination = ""] = (routeLongName || "").split("⇔").map((part) => part.trim());
-        const cleanRouteId = String(routeId || "").trim();
-        const routeName = (routeShortName || "").trim();
-        const bmNumber = bmMap.get(cleanRouteId) || bmMap.get(routeName) || `BM${String(idx + 1).padStart(3, "0")}`;
-        const uniqueId = bmNumber;
-        const tripCount = tripCounts.get(cleanRouteId) || 0;
+    // Load assignments from vehicle_assignments.csv
+    const assignByFixBm = new Map();
+    const assignBySwapBm = new Map();
+    try {
+        if (fs.existsSync(VEHICLE_ASSIGNMENTS_FILE)) {
+            const rawAssign = fs.readFileSync(VEHICLE_ASSIGNMENTS_FILE, "utf8");
+            const assignLines = rawAssign.split(/\r?\n/).filter(Boolean);
+            for (let i = 1; i < assignLines.length; i++) {
+                const p = parseCsvLine(assignLines[i]);
+                const scheduleId = (p[0] || "").trim();
+                const route = (p[1] || "").trim();
+                const shift = (p[2] || "").trim();
+                const fixBm = (p[3] || "").trim();
+                const fixReg = (p[4] || "").trim();
+                const swapBm = (p[5] || "").trim();
+                const swapReg = (p[6] || "").trim();
+                if (fixBm && !assignByFixBm.has(fixBm)) {
+                    assignByFixBm.set(fixBm, { scheduleId, route, shift, regNo: fixReg });
+                }
+                if (swapBm && !assignBySwapBm.has(swapBm)) {
+                    assignBySwapBm.set(swapBm, { scheduleId: `${scheduleId} (Swap)`, route, shift, regNo: swapReg });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn("Could not read vehicle_assignments.csv in loadRoutes:", e.message);
+    }
+
+    // Load all vehicles from vehicles.txt
+    let vehicles = [];
+    try {
+        if (fs.existsSync(VEHICLES_FILE)) {
+            const rawVehicles = fs.readFileSync(VEHICLES_FILE, "utf8");
+            const vehLines = rawVehicles.split(/\r?\n/).filter(Boolean);
+            vehicles = vehLines.slice(1).map((line) => {
+                const [vehicleId, bmNo, regNo, make, model, depot, status] = parseCsvLine(line);
+                return {
+                    vehicleId: (vehicleId || bmNo || "").trim(),
+                    bmNo: (bmNo || vehicleId || "").trim(),
+                    regNo: (regNo || "").trim(),
+                    make: (make || "Ashok Leyland").trim(),
+                    model: (model || "ELECTRIC BUS AC EiV12").trim(),
+                    depot: (depot || "Chandapura (BMT-32)").trim(),
+                    status: (status || "Active").trim()
+                };
+            });
+        }
+    } catch (e) {
+        console.warn("Could not read vehicles.txt in loadRoutes:", e.message);
+    }
+
+    if (!vehicles.length) {
+        cachedRoutes = corridors.map((c, idx) => ({
+            uniqueId: `BM${String(idx + 1).padStart(3, "0")}`,
+            vehicleId: `BM${String(idx + 1).padStart(3, "0")}`,
+            bmNumber: `BM${String(idx + 1).padStart(3, "0")}`,
+            busNumber: c.routeShortName,
+            routeShortName: c.routeShortName,
+            routeName: c.routeLongName,
+            origin: c.origin,
+            destination: c.destination,
+            agencyId: c.agencyId,
+            routeType: c.routeType,
+            routeId: c.routeId,
+            tripCount: c.tripCount
+        }));
+        return cachedRoutes;
+    }
+
+    cachedRoutes = vehicles.map((v) => {
+        const bm = v.bmNo;
+        const assign = assignByFixBm.get(bm) || assignBySwapBm.get(bm);
+        const routeShort = assign ? assign.route : "600F";
+        const scheduleId = assign ? assign.scheduleId : `RES-${bm}`;
+        const shift = assign ? assign.shift : "General Shift (Reserve)";
+        const corr = corridorByShort.get(routeShort) || defaultCorridor;
+        const distKm = corr.distanceKm || calculateRouteDistanceByRouteId(corr.routeId) || 28.7;
+        const tripCount = corr.tripCount || 8;
 
         return {
-            uniqueId,
-            vehicleId: uniqueId,
-            bmNumber,
-            busNumber: routeName || "N/A",
-            routeShortName: routeName || "N/A",
-            routeName: (routeLongName || "").trim() || "Unknown Route",
-            origin,
-            destination,
-            agencyId,
-            routeType,
-            routeId: cleanRouteId,
-            tripCount
+            uniqueId: bm,
+            vehicleId: bm,
+            bmNumber: bm,
+            regNo: v.regNo || (assign && assign.regNo) || "",
+            busNumber: routeShort,
+            scheduleId,
+            shift,
+            routeShortName: routeShort,
+            routeName: corr.routeLongName || `${corr.origin} ⇔ ${corr.destination} (${routeShort})`,
+            origin: corr.origin || "Chandapura (BMT-32)",
+            destination: corr.destination || "Depot 32 Service Corridor",
+            agencyId: "1",
+            routeType: "3",
+            routeId: bm,
+            corridorRouteId: corr.routeId,
+            tripCount,
+            gtfsDistanceKm: distKm,
+            distanceKm: distKm,
+            make: v.make,
+            model: v.model,
+            depot: v.depot,
+            status: v.status
         };
     });
+
     return cachedRoutes;
 }
 
@@ -395,12 +505,9 @@ function calculateRouteDistance(busIdentifier, routeIdParam) {
     const uniqueId = route.uniqueId;
 
     // Calculate the FIXED GTFS route distance of this bus_short_name / route
-    const distanceKm = calculateRouteDistanceByRouteId(route.routeId);
-    if (distanceKm === null) {
-        return { ok: false, statusCode: 404, error: `No shape data was found for bus ${busIdentifier || routeIdParam}.` };
-    }
+    const distanceKm = calculateRouteDistanceByRouteId(route.corridorRouteId || route.routeId) || route.gtfsDistanceKm || route.distanceKm || 28.7;
 
-    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.routeId));
+    const routeTrips = loadTrips().filter((trip) => String(trip.routeId) === String(route.corridorRouteId || route.routeId));
     const selectedTrip = routeTrips.find((trip) => Number(trip.directionId) === 0) || routeTrips[0];
 
     return {
@@ -551,11 +658,12 @@ function ensureFixedAssignments(state) {
     const currentSlot = getTimeSlot();
 
     const routeInfos = allRoutes.map((r) => {
-        const dist = calculateRouteDistanceByRouteId(r.routeId);
+        const dist = calculateRouteDistanceByRouteId(r.corridorRouteId || r.routeId) || r.gtfsDistanceKm || r.distanceKm || 28.7;
         return {
             uniqueId: r.uniqueId,
             bmNumber: r.bmNumber || r.uniqueId,
             routeId: String(r.routeId),
+            corridorRouteId: r.corridorRouteId,
             busShortName: (r.busNumber || "N/A").trim(),
             routeName: (r.routeName || "").trim(),
             origin: r.origin || "",
@@ -644,6 +752,8 @@ function ensureFixedAssignments(state) {
             condition: t.condition,
             driver: t.driver || "Driver Assigned",
             estimatedRangeKm: range,
+            fullDutyDistanceKm: range,
+            operationMode: "Single Charge Operation",
             blocked: isBlocked
         };
 
@@ -663,6 +773,8 @@ function ensureFixedAssignments(state) {
             condition: t.condition,
             driver: t.driver || "Driver Assigned",
             estimatedRangeKm: range,
+            fullDutyDistanceKm: range,
+            operationMode: "Single Charge Operation",
             gtfsDistanceKm: dist,
             blocked: isBlocked
         };
@@ -963,6 +1075,13 @@ function normalizeBusStateEntry(entry, existing = {}) {
                 departure: normalizeTimingValue(timings.Ahead?.departure, DEFAULT_BUS_TIMINGS.Ahead.departure)
             }
         },
+        operation: entry?.operation || existing?.operation || "Single Charge Operation",
+        chargingStatus: entry?.chargingStatus || existing?.chargingStatus || null,
+        chargerBay: entry?.chargerBay || existing?.chargerBay || null,
+        socBefore: Number.isFinite(Number(entry?.socBefore)) ? Number(entry.socBefore) : (existing?.socBefore ?? null),
+        socAfter: Number.isFinite(Number(entry?.socAfter)) ? Number(entry.socAfter) : (existing?.socAfter ?? soc),
+        fullDutyDistanceKm: Math.round(Math.max(0, soc - 10) * 1.42),
+        lastChargedTime: entry?.lastChargedTime || existing?.lastChargedTime || null,
         history: updatedHistory
     };
 }
@@ -1378,13 +1497,13 @@ function getBusTasks(busIdentifier, routeIdParam) {
     const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
     const condition = stateEntry.condition || "Good";
 
-    const distKm = calculateRouteDistanceByRouteId(targetRoute.routeId) || 28.7;
+    const distKm = calculateRouteDistanceByRouteId(targetRoute.corridorRouteId || targetRoute.routeId) || targetRoute.gtfsDistanceKm || targetRoute.distanceKm || 28.7;
     const estRangeKm = Math.round(Math.max(0, currentSoc - SOC_BUFFER_PCT) * RANGE_KM_PER_SOC_PCT);
     const estChargePctPerTrip = Number((distKm / RANGE_KM_PER_SOC_PCT).toFixed(1));
     const estChargeKwhPerTrip = Number((distKm * 0.85).toFixed(1));
 
     const allTrips = loadTrips();
-    const routeTrips = allTrips.filter(t => String(t.routeId) === String(targetRoute.routeId));
+    const routeTrips = allTrips.filter(t => String(t.routeId) === String(targetRoute.corridorRouteId || targetRoute.routeId));
     const totalTrips = routeTrips.length || targetRoute.tripCount || 1;
 
     const usableBatteryAboveDepotFloor = Math.max(0, currentSoc - DEPOT_MIN_SOC_FLOOR);
@@ -1490,6 +1609,8 @@ function getBusTasks(busIdentifier, routeIdParam) {
         estimatedChargePctPerTrip,
         estimatedChargeKwhPerTrip,
         estimatedRangeKm: estRangeKm,
+        fullDutyDistanceKm: estRangeKm,
+        operationMode: "Single Charge Operation",
         totalAssignedTrips: totalTrips,
         maxFeasibleTrips,
         tasks
@@ -1926,10 +2047,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/api/bus-assignments") {
         try {
             const currentState = loadBusState();
-            if (!currentState._assignments || !currentState._vehicleAssignments) {
-                swapBusAssignments(currentState);
-                saveBusState(currentState);
-            }
+            ensureFixedAssignments(currentState);
             sendJson(res, {
                 ok: true,
                 timeSlot: getTimeSlot(),

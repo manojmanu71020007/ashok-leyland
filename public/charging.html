@@ -343,6 +343,22 @@
 <div class="card">
   <div class="card-title">⚡ Session Details</div>
 
+  <!-- Single Charge Operation (Form 4 Transit Standard) -->
+  <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+      <div>
+        <span style="font-size:0.75rem; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:0.06em; display:block;">Dispatch Regulatory Standard</span>
+        <strong style="color:#14532d; font-size:1.02rem;">⚡ Single Charge Operation (Form 4 Standard)</strong>
+        <span style="font-size:0.78rem; color:#166534; display:block; margin-top:2px;">Runs full operational duty on single depot charge without en-route top-up</span>
+      </div>
+      <div style="text-align:right;">
+        <span style="font-size:0.75rem; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:0.06em; display:block;">Full Duty Distance</span>
+        <strong id="chargingFullDutyDist" style="color:#15803d; font-size:1.35rem; font-weight:900;">99 km</strong>
+        <span id="chargingFullDutySub" style="font-size:0.78rem; color:#166534; font-weight:600; display:block;">(usable @ 80% SoC • 10% reserve)</span>
+      </div>
+    </div>
+  </div>
+
   <!-- SOC Before -->
   <div class="form-group">
     <label>SOC Before Charging: <span id="socBeforeVal">20%</span></label>
@@ -567,6 +583,18 @@
     box.classList.add('show');
     updateLockUI(bm);
     updateSubmitBtn();
+
+    const existingSoc = localStorage.getItem('depot_bus_soc_' + bm);
+    if (existingSoc) {
+      const cur = parseInt(existingSoc);
+      document.getElementById('socBefore').value = cur;
+      updateSOC('Before', cur);
+      const nextSoc = Math.min(100, Math.max(cur, 85));
+      document.getElementById('socAfter').value = nextSoc;
+      updateSOC('After', nextSoc);
+    } else {
+      updateSOC('After', document.getElementById('socAfter').value);
+    }
   }
 
   function updateSubmitBtn() {
@@ -576,15 +604,29 @@
 
   function updateSOC(which, val) {
     const pct = `${val}%`;
-    document.getElementById(`socDisp${which}`)   && (document.getElementById(`socDisp${which}`).textContent = pct);
-    document.getElementById(`socBar${which}`)     && (document.getElementById(`socBar${which}`).style.width = pct);
-    // Simpler approach:
     if (which === 'Before') {
-      document.getElementById('socBeforeDisp').textContent = pct;
-      document.getElementById('socBarBefore').style.width  = pct;
+      const lbl = document.getElementById('socBeforeVal');
+      if (lbl) lbl.textContent = pct;
+      const disp = document.getElementById('socBeforeDisp');
+      if (disp) disp.textContent = pct;
+      const bar = document.getElementById('socBarBefore');
+      if (bar) bar.style.width = pct;
     } else {
-      document.getElementById('socAfterDisp').textContent  = pct;
-      document.getElementById('socBarAfter').style.width   = pct;
+      const lbl = document.getElementById('socAfterVal');
+      if (lbl) lbl.textContent = pct;
+      const disp = document.getElementById('socAfterDisp');
+      if (disp) disp.textContent = pct;
+      const bar = document.getElementById('socBarAfter');
+      if (bar) bar.style.width = pct;
+
+      // Calculate Single Charge Operation Full Duty Distance
+      const usableSoc = Math.max(0, parseInt(val) - 10);
+      const fullDutyKm = Math.round(usableSoc * 1.42);
+      const totalDutyKm = Math.round(parseInt(val) * 1.42);
+      const distEl = document.getElementById('chargingFullDutyDist');
+      const subEl = document.getElementById('chargingFullDutySub');
+      if (distEl) distEl.textContent = `${fullDutyKm} km`;
+      if (subEl) subEl.textContent = `(${fullDutyKm} km usable • ${totalDutyKm} km max @ ${val}% SoC)`;
     }
   }
 
@@ -595,7 +637,7 @@
     document.getElementById('chargingStatus').value = value;
   }
 
-  function submitCharging() {
+  async function submitCharging() {
     const bm       = document.getElementById('busSelect').value;
     const socBef   = document.getElementById('socBefore').value;
     const socAft   = document.getElementById('socAfter').value;
@@ -609,9 +651,45 @@
     const now     = new Date();
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
     const delta   = parseInt(socAft) - parseInt(socBef);
+    const usableSoc = Math.max(0, parseInt(socAft) - 10);
+    const fullDutyKm = Math.round(usableSoc * 1.42);
 
-    sessionLogs.unshift({ bm, socBef, socAft, delta, startT, endT, bay, status, remarks, timeStr });
+    sessionLogs.unshift({ bm, socBef, socAft, delta, startT, endT, bay, status, remarks, timeStr, fullDutyKm });
     renderLog();
+
+    // ── Persist to Backend API & localStorage ──
+    try {
+      await fetch('/api/bus-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unique_id: bm,
+          bus: bm,
+          soc: parseInt(socAft),
+          status: status === 'Completed' ? 'On Time' : (status === 'Partial' ? 'On Time' : 'Blocked'),
+          chargingStatus: status,
+          chargerBay: bay,
+          socBefore: parseInt(socBef),
+          socAfter: parseInt(socAft),
+          condition: status === 'Fault' ? 'Not Good' : 'Good',
+          operation: 'Single Charge Operation',
+          fullDutyDistanceKm: fullDutyKm,
+          remarks: remarks,
+          lastChargedTime: timeStr
+        })
+      });
+    } catch (e) {
+      console.warn('Could not post charging update to /api/bus-state:', e);
+    }
+
+    localStorage.setItem('depot_bus_soc_' + bm, socAft);
+    localStorage.setItem('depot_charging_event', JSON.stringify({
+      bm,
+      soc: parseInt(socAft),
+      fullDutyDistanceKm: fullDutyKm,
+      operation: 'Single Charge Operation',
+      time: Date.now()
+    }));
 
     // Reset
     document.getElementById('busSelect').value = '';
@@ -628,7 +706,7 @@
     document.getElementById('chargerSelect').value = '';
     updateSubmitBtn();
 
-    showToast(`⚡ Charging record saved for ${bm} (${socBef}% → ${socAft}%)`, 'success');
+    showToast(`⚡ Charging record saved for ${bm}: ${socAft}% SoC • Full Duty Distance: ${fullDutyKm} km (Single Charge Operation)`, 'success');
   }
 
   function renderLog() {

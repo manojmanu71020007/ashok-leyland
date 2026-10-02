@@ -890,7 +890,7 @@
                         Route search
                         <input id="route-search" class="route-search" type="text" placeholder="Search route by bus number, ID, or route name" />
                     </label>
-                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">All 54 buses available</span></span>
+                    <label class="wide">Route (Select Bus) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">All 122 buses available</span></span>
                         <select id="route-select"><option value="">Loading all buses...</option></select>
                     </label>
                     <div id="selected-route-trips-banner" class="selected-route-trips-banner" style="display:none;">
@@ -917,10 +917,12 @@
                     <div class="kpi"><strong id="driver-total">0</strong><span>Assigned drivers</span></div>
                     <div class="kpi" id="kpi-trips"><strong id="trips-result">—</strong><span>Assigned trips</span></div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
-                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Expected range</span></div>
+                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
+                    <div class="rule"><span>Full Duty Distance</span><strong id="full-duty-dist-rule">—</strong></div>
+                    <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
                     <div class="rule"><span>Assigned trips</span><strong id="trips-rule">—</strong></div>
                     <div class="rule"><span>Est. trip charge</span><strong id="est-charge-rule">—</strong></div>
@@ -1115,6 +1117,7 @@
         let lastNotAllocatedRoutes = [];
         let lastFilteredRoutes = [];
 
+        let busStates = {};
         // Vehicle assignments (fetched from /api/bus-assignments)
         // assignments: { routeId → assigned BM Number }
         // blockedRouteIds: [routeId, ...]
@@ -1248,6 +1251,48 @@
             return (busAssignments && (busAssignments[String(route.routeId)] || busAssignments[route.uniqueId])) || route.bmNumber || route.uniqueId || route.busNumber || route.routeId;
         }
 
+        function syncLocalStorageBusStates() {
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('depot_bus_soc_')) {
+                        const bm = key.replace('depot_bus_soc_', '');
+                        const val = Number(localStorage.getItem(key));
+                        if (Number.isFinite(val)) {
+                            if (!busStates[bm]) busStates[bm] = {};
+                            busStates[bm].soc = val;
+                            busStates[bm].fullDutyDistanceKm = Math.round(Math.max(0, val - 10) * 1.42);
+                            busStates[bm].operation = "Single Charge Operation";
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not sync localStorage bus states:", e);
+            }
+        }
+
+        function getBusSoc(route) {
+            if (!route) return 100;
+            const assignedVehicle = getAssignedBusName(route);
+            if (assignedVehicle) {
+                const localSoc = localStorage.getItem('depot_bus_soc_' + assignedVehicle);
+                if (localSoc !== null) {
+                    const val = Number(localSoc);
+                    if (Number.isFinite(val)) return val;
+                }
+            }
+            const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
+            if (Number.isFinite(Number(state.soc))) return Number(state.soc);
+            return 100;
+        }
+
+        function calculateFullDutyDistance(soc) {
+            // Single Charge Operation (Form 4 Transit Standard)
+            // Usable energy above 10% depot safety reserve floor:
+            const usableSoc = Math.max(0, Number(soc) - 10);
+            return Math.round(usableSoc * 1.42);
+        }
+
         function updateSelectedBusDutyBanner() {
             const banner = document.getElementById("selected-route-trips-banner");
             if (!banner) return;
@@ -1263,6 +1308,8 @@
             const distKm = Number(rangeInfo.gtfsDistanceKm || selectedRoute.distanceKm || calculateRouteDistanceKm(selectedRoute.routeId) || selectedRouteDistance || 28.7);
             const estChargePct = Number((distKm / 1.42).toFixed(1));
             const estChargeKwh = Number((distKm * 0.85).toFixed(1));
+            const soc = getBusSoc(selectedRoute);
+            const fullDutyKm = calculateFullDutyDistance(soc);
 
             banner.style.display = "flex";
             const busIdEl = document.getElementById("banner-bus-id");
@@ -1275,7 +1322,7 @@
             if (routeNameEl) routeNameEl.textContent = selectedRoute.busNumber;
             if (stopsNameEl) stopsNameEl.textContent = `${selectedRoute.origin} ➔ ${selectedRoute.destination}`;
             if (tripCountEl) tripCountEl.textContent = `🎯 ${tripCount} GTFS Trips`;
-            if (chargeInfoEl) chargeInfoEl.textContent = `⚡ Est. Charge: ~${estChargePct}% SoC (${estChargeKwh} kWh) • ${distKm.toFixed(1)} km`;
+            if (chargeInfoEl) chargeInfoEl.innerHTML = `⚡ <strong>${soc}% SoC</strong> • 📏 <strong>Full Duty Dist: ${fullDutyKm} km</strong> (Single Charge Operation) • Est. Charge: ~${estChargePct}% SoC (${estChargeKwh} kWh) / trip • Route: ${distKm.toFixed(1)} km`;
         }
 
         function renderRoutes() {
@@ -1355,16 +1402,15 @@
                     if (driverSelectEl && driverSelectEl.value === "unavailable") return false;
                 }
 
-                if (!state || Object.keys(state).length === 0) return true; // no telemetry → assume factory-fresh 100%
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const soc = getBusSoc(route);
                 const condition = state.condition || "Good";
 
                 if (condition === "Not Good") return false;
                 if (soc < 25) return false;
 
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
-                const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm)) ? Number(rangeInfo.estimatedRangeKm) : Math.round(Math.max(0, soc - 10) * 1.42);
+                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : (Number(route.gtfsDistanceKm) || 0);
+                const estRange = calculateFullDutyDistance(soc);
 
                 if (dist > 0 && estRange < dist) return false;
 
@@ -1399,12 +1445,13 @@
 
                 routeSelect.innerHTML = `<option value="">${defaultPlaceholder}</option>` + displayRoutes.map((route) => {
                     const assignedVehicle = getAssignedBusName(route);
+                    const soc = getBusSoc(route);
+                    const fullDutyDist = calculateFullDutyDistance(soc);
                     const isBlocked = blockedRouteIds.has(String(route.routeId));
-                    const vehiclePart = `[BM Number: ${assignedVehicle}]`;
                     const blockedPart = isBlocked ? " ⛔ Blocked" : "";
                     const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
-                    const tripsPart = tripCount ? ` • 🎯 ${tripCount} Trips assigned` : "";
-                    const label = `${route.busNumber} (${route.origin} ➔ ${route.destination})${tripsPart} — ${vehiclePart}${blockedPart}`;
+                    const tripsPart = tripCount ? ` • 🎯 ${tripCount} Trips` : "";
+                    const label = `${assignedVehicle} — Route ${route.busNumber} (${route.origin} ➔ ${route.destination}) • ⚡ ${soc}% SoC • 📏 Full Duty: ${fullDutyDist} km${tripsPart}${blockedPart}`;
                     return `<option value="${route.routeId}">${label}</option>`;
                 }).join("");
             }
@@ -1490,9 +1537,9 @@
                     const routeName = String(route.routeName || "");
                     const origin = String(route.origin || "");
                     const dest = String(route.destination || "");
-                    const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                    const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
-                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc}`.toLowerCase();
+                    const soc = getBusSoc(route);
+                    const fullDutyDist = calculateFullDutyDistance(soc);
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km`.toLowerCase();
                     return text.includes(query);
                 })
                 : [...sourceList];
@@ -1516,8 +1563,10 @@
             const routeCatOrder = { simple: 0, moderate: 1, complex: 2 };
 
             filtered.sort((a, b) => {
-                const stA = busStates[a.routeId] || busStates[a.busNumber] || {};
-                const stB = busStates[b.routeId] || busStates[b.busNumber] || {};
+                const assignedA = getAssignedBusName(a);
+                const assignedB = getAssignedBusName(b);
+                const stA = busStates[assignedA] || busStates[a.routeId] || busStates[a.busNumber] || {};
+                const stB = busStates[assignedB] || busStates[b.routeId] || busStates[b.busNumber] || {};
                 const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
                 const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
                 const rangeA = assignmentRanges[String(a.routeId)] || {};
@@ -1561,11 +1610,12 @@
             }
 
             routeSummary.innerHTML = filtered.map((route) => {
-                const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const assignedVehicle = getAssignedBusName(route);
+                const soc = getBusSoc(route);
+                const fullDutyDist = calculateFullDutyDistance(soc);
+                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
                 const condition = state.condition || "Good";
                 const isOverridden = isManualOverride && String(route.routeId) === String(manuallySelectedId);
-                const assignedName = getAssignedBusName(route);
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
 
                 let fleetStatus, fleetColor;
@@ -1583,17 +1633,16 @@
                     fleetColor = "#08755f";
                 }
 
-                const socLabel = soc !== null ? `⚡ ${soc}% SoC` : "⚡ Unknown SoC";
-                const rangeLabel = rangeInfo.estimatedRangeKm != null ? `🛣 Range: ${rangeInfo.estimatedRangeKm} km` : "";
+                const socLabel = `⚡ ${soc}% SoC`;
+                const fullDutyLabel = `📏 Full Duty: ${fullDutyDist} km (Single Charge)`;
                 const routeDist = Number(route.gtfsDistanceKm) || 0;
                 const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
-                const busCat = rangeInfo.busCategory || (rangeInfo.estimatedRangeKm > 120 ? "A" : (rangeInfo.estimatedRangeKm >= 100 ? "B" : "C"));
+                const busCat = rangeInfo.busCategory || (fullDutyDist > 120 ? "A" : (fullDutyDist >= 100 ? "B" : "C"));
                 const catBadge = `<span style="background:#e0f2fe;color:#0369a1;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
                 const tierBadge = `<span style="background:#fef3c7;color:#b45309;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
                 const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
                 const tripsBadge = `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #bfdbfe;">🎯 ${tripCount} Trips</span>`;
 
-                const assignedVehicle = getAssignedBusName(route);
                 const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#f0fdf4;color:#166534;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
                 const subtitleHtml = `<span style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
@@ -1608,9 +1657,11 @@
                                 ${subtitleHtml}
                             </div>
                             <span>${route.origin} to ${route.destination}</span>
-                            <span style="color:#11a889;font-size:.75rem;font-weight:700;">${socLabel}</span>
-                            ${rangeLabel ? `<span style="color:#087ea4;font-size:.75rem;font-weight:700;">${rangeLabel}</span>` : ""}
-                            <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
+                            <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+                                <span style="color:#11a889;font-size:.78rem;font-weight:700;">${socLabel}</span>
+                                <span style="color:#0369a1;font-size:.78rem;font-weight:700;background:#e0f2fe;padding:2px 7px;border-radius:5px;">${fullDutyLabel}</span>
+                                <span style="color:${fleetColor};font-size:.75rem;font-weight:700;">${fleetStatus}</span>
+                            </div>
                         </div>
                         <button class="route-arrow" type="button" aria-label="View ${assignedVehicle} details">›</button>
                     </div>`;
@@ -1651,11 +1702,12 @@
                     const routeName = String(route.routeName || "");
                     const origin = String(route.origin || "");
                     const dest = String(route.destination || "");
-                    const state = busStates[route.routeId] || busStates[route.busNumber] || {};
-                    const soc = Number.isFinite(Number(state.soc)) ? Math.round(Number(state.soc)) : 100;
+                    const soc = getBusSoc(route);
+                    const fullDutyDist = calculateFullDutyDistance(soc);
+                    const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
                     const condition = String(state.condition || "");
                     const isBlocked = blockedRouteIds.has(String(route.routeId)) ? "blocked range" : "";
-                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
+                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km ${condition} ${isBlocked} low soc maintenance`.toLowerCase();
                     return text.includes(query);
                 })
                 : [...sourceList];
@@ -1678,8 +1730,10 @@
             const catOrderNA = { simple: 0, moderate: 1, complex: 2 };
 
             filtered.sort((a, b) => {
-                const stA = busStates[a.routeId] || busStates[a.busNumber] || {};
-                const stB = busStates[b.routeId] || busStates[b.busNumber] || {};
+                const assignedA = getAssignedBusName(a);
+                const assignedB = getAssignedBusName(b);
+                const stA = busStates[assignedA] || busStates[a.routeId] || busStates[a.busNumber] || {};
+                const stB = busStates[assignedB] || busStates[b.routeId] || busStates[b.busNumber] || {};
                 const noDriverA = (stA.driver || "Driver Assigned").toLowerCase().includes("no");
                 const noDriverB = (stB.driver || "Driver Assigned").toLowerCase().includes("no");
                 const rangeA = assignmentRanges[String(a.routeId)] || {};
@@ -1723,25 +1777,25 @@
             }
 
             notAllocatedSummary.innerHTML = filtered.map((route) => {
-                const assignedName = getAssignedBusName(route);
-                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const assignedVehicle = getAssignedBusName(route);
+                const soc = getBusSoc(route);
+                const fullDutyDist = calculateFullDutyDistance(soc);
+                const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
                 const condition = state.condition || "Good";
                 const driverStatus = state.driver || "Driver Assigned";
                 const noDriver = driverStatus.toLowerCase().includes("no");
                 const rangeInfo = assignmentRanges[String(route.routeId)] || {};
-                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : 0;
-                const estRange = Number.isFinite(Number(rangeInfo.estimatedRangeKm)) ? Number(rangeInfo.estimatedRangeKm) : Math.round(Math.max(0, soc - 10) * 1.42);
+                const dist = Number.isFinite(Number(rangeInfo.gtfsDistanceKm)) ? Number(rangeInfo.gtfsDistanceKm) : (Number(route.gtfsDistanceKm) || 0);
+                const estRange = fullDutyDist;
                 const isBlockedByRange = blockedRouteIds.has(String(route.routeId)) || (dist > 0 && estRange < dist);
                 const badCondition = condition === "Not Good";
                 const lowSocFloor = soc < 25;
                 const tags = [
                     noDriver ? `<span class="reject-tag" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;padding:2px 8px;border-radius:4px;font-size:.72rem;font-weight:700;">👤 No Driver Assigned</span>` : "",
                     badCondition ? `<span class="reject-tag maintenance">🔧 Maintenance</span>` : "",
-                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Range ${estRange}km < ${dist}km</span>` : "",
+                    isBlockedByRange ? `<span class="reject-tag low-soc">🛣 Duty ${estRange}km < ${dist}km</span>` : "",
                     (!badCondition && !isBlockedByRange && !noDriver && lowSocFloor) ? `<span class="reject-tag low-soc">⚡ ${soc}% SoC (< 25% min)</span>` : ""
                 ].filter(Boolean).join(" ");
-                const assignedVehicle = getAssignedBusName(route);
                 const routeDist = Number(route.gtfsDistanceKm) || 0;
                 const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
                 const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
@@ -1763,6 +1817,10 @@
                                 ${subtitleHtml}
                             </div>
                             <span>${route.origin} to ${route.destination}</span>
+                            <div style="display:flex;gap:8px;align-items:center;margin-top:4px;flex-wrap:wrap;">
+                                <span style="color:#a94b15;font-size:.78rem;font-weight:700;">⚡ ${soc}% SoC</span>
+                                <span style="color:#475569;font-size:.78rem;font-weight:700;background:#f1f5f9;padding:2px 7px;border-radius:5px;">📏 Full Duty: ${fullDutyDist} km (Single Charge)</span>
+                            </div>
                         </div>
                         <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:flex-end;">
                             ${tags}
@@ -1913,8 +1971,9 @@
                 const arrFormatted = formatTimeForDisplay(timings.arrival);
                 const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
 
+                const soc = getBusSoc(route);
+                const fullDutyDist = calculateFullDutyDistance(soc);
                 const state = busStates[assignedVehicle] || busStates[route.routeId] || busStates[route.busNumber] || {};
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
 
                 return `
@@ -1931,7 +1990,7 @@
                             <div style="display:flex;align-items:center;gap:6px;">
                                 <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${assignedVehicle}</span>
                             </div>
-                            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% • ${condition}</div>
+                            <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% SoC • 📏 ${fullDutyDist} km Duty • ${condition}</div>
                         </td>
                         <td>
                             <span class="time-badge departure">🕒 ${depFormatted}</span>
@@ -2138,7 +2197,7 @@
             } else {
                 feasibilityAlert = `
                     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;color:#166534;font-size:0.85rem;line-height:1.45;">
-                        <strong>✅ Energy Feasible on GTFS Route:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> holds <strong>${soc}% SoC (~${estRange} km range)</strong>, sufficient for <strong>${maxFeasible} service trip(s)</strong> of ${dist} km (consuming ~${estChargePct}% SoC per trip) while strictly maintaining the 25% depot safety buffer.
+                        <strong>✅ Energy Feasible on GTFS Route:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> holds <strong>${soc}% SoC (~${estRange} km Full Duty Distance under Single Charge Operation)</strong>, sufficient for <strong>${maxFeasible} service trip(s)</strong> of ${dist} km (consuming ~${estChargePct}% SoC per trip) while strictly maintaining the 25% depot safety buffer.
                     </div>`;
             }
 
@@ -2200,9 +2259,9 @@
                         <div class="task-kpi-sub">${estChargeKwh} kWh at 0.85 kWh/km</div>
                     </div>
                     <div class="task-kpi-card">
-                        <div class="task-kpi-label">Assigned GTFS Trips</div>
+                        <div class="task-kpi-label">Single Charge Duty</div>
                         <div class="task-kpi-val">${totalTrips} Trips</div>
-                        <div class="task-kpi-sub">${maxFeasible} feasible before recharge</div>
+                        <div class="task-kpi-sub">${maxFeasible} feasible (Single Charge Operation)</div>
                     </div>
                 </div>
 
@@ -2280,7 +2339,6 @@
             el.textContent = String(assignedCount);
         }
 
-        let busStates = {};
         let recommendClicked = false;
 
         function updateAllocationPanel() {
@@ -2309,6 +2367,8 @@
             const socResult = document.getElementById("soc-result");
             const rangeResult = document.getElementById("range-result");
             const currentSocRule = document.getElementById("current-soc-rule");
+            const fullDutyDistRule = document.getElementById("full-duty-dist-rule");
+            const opStandardRule = document.getElementById("operation-standard-rule");
             const rangeRule = document.getElementById("range-rule");
             const timeRule = document.getElementById("time-rule");
             const fleetRule = document.getElementById("fleet-rule");
@@ -2326,6 +2386,8 @@
                 if (socKpi) socKpi.style.opacity = "0.4";
                 if (rangeKpi) rangeKpi.style.opacity = "0.4";
                 if (currentSocRule) currentSocRule.textContent = "—";
+                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
+                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
                 if (fleetRule) { fleetRule.textContent = "—"; fleetRule.style.color = ""; }
@@ -2344,7 +2406,7 @@
             if (rangeKpi) rangeKpi.style.opacity = "1";
 
             const busState = busStates[selectedRoute.routeId] || busStates[selectedRoute.uniqueId] || busStates[assignedVehicle] || busStates[selectedRoute.busNumber] || {};
-            const liveSoc = Number.isFinite(Number(busState.soc)) ? Number(busState.soc) : 98;
+            const liveSoc = getBusSoc(selectedRoute);
             const condition = busState.condition || "Good";
             const driverStatus = busState.driver || "Driver Assigned";
 
@@ -2372,8 +2434,10 @@
             const isManualCleanOverride = recommendClicked && !interiorChecked && selectedRoute;
             const effectiveClean = isManualCleanOverride || clean;
 
+            // Single Charge Operation: usable energy above 10% reserve buffer
             const usableSoc = Math.max(0, liveSoc - 10);
             const rangeValue = Math.min(150, Math.round(usableSoc * 1.42));
+            const grossDutyDist = Math.round(liveSoc * 1.42);
 
             // Page 4: Bus Range Category (Tier)
             const busCategory = rangeValue > 120 ? "A" : (rangeValue >= 100 ? "B" : "C");
@@ -2410,6 +2474,8 @@
             if (socResult) socResult.textContent = `${liveSoc}%`;
             if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
             if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
+            if (fullDutyDistRule) fullDutyDistRule.textContent = `${rangeValue} km usable (${grossDutyDist} km gross)`;
+            if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
             if (rangeRule) rangeRule.textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
             if (timeRule) timeRule.textContent = timeCategoryLabel;
 
@@ -2480,6 +2546,7 @@
                     const busStatePayload = await busStateResponse.json();
                     busStates = busStatePayload?.state || {};
                 }
+                syncLocalStorageBusStates();
 
                 if (assignResponse && assignResponse.ok) {
                     const assignPayload = await assignResponse.json();
@@ -2730,6 +2797,7 @@
                         if (statePayload && statePayload.ok && statePayload.state) {
                             busStates = statePayload.state;
                         }
+                        syncLocalStorageBusStates();
                         if (assignPayload && assignPayload.ok) {
                             busAssignments = assignPayload.assignments || {};
                             blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
@@ -2739,7 +2807,7 @@
                         renderRoutes();
                         recommend();
                     } catch {}
-                }, 10000);
+                }, 5000);
             } catch (error) {
                 routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
                 if (notAllocatedSummary) {
@@ -2754,10 +2822,15 @@
 
         loadData();
 
-        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab)
+        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated)
         window.addEventListener('storage', (e) => {
             if (e.key === 'depot_locked_buses') {
                 renderRoutes();
+            }
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_'))) {
+                syncLocalStorageBusStates();
+                renderRoutes();
+                recommend();
             }
         });
     </script>
