@@ -383,6 +383,57 @@ function loadCorridorSchedules() {
         );
     }
 
+    // Enrich with schedule_categories.json metadata (130 Form 4 operational schedules)
+    try {
+        const catPath = path.join(BASE_DIR, "vehicles", "schedule_categories.json");
+        if (fs.existsSync(catPath)) {
+            const catList = JSON.parse(fs.readFileSync(catPath, "utf8"));
+            const catMap = new Map();
+            catList.forEach(c => catMap.set(c.schedule_id.toLowerCase(), c));
+
+            // Attach to existing schedules
+            schedules.forEach(s => {
+                const meta = catMap.get(s.scheduleId.toLowerCase());
+                if (meta) {
+                    s.category = meta.category;
+                    s.singleChargeReqKm = meta.single_charge_req_km;
+                    s.actualKm = meta.actual_km;
+                    s.deadKm = meta.dead_km;
+                    s.remarks = meta.remarks;
+                    s.noOfRest = meta.no_of_rest;
+                    s.cumTime = meta.cum_time;
+                }
+            });
+
+            // Also add any missing schedules from catList
+            const existingSchedIds = new Set(schedules.map(s => s.scheduleId.toLowerCase()));
+            catList.forEach(c => {
+                if (!existingSchedIds.has(c.schedule_id.toLowerCase())) {
+                    schedules.push({
+                        scheduleId: c.schedule_id,
+                        route: c.route,
+                        shift: c.shift,
+                        fixBm: "",
+                        fixReg: "",
+                        swapBm: "",
+                        swapReg: "",
+                        outTime: c.cum_time || "08:00:00",
+                        inTime: "16:00:00",
+                        category: c.category,
+                        singleChargeReqKm: c.single_charge_req_km,
+                        actualKm: c.actual_km,
+                        deadKm: c.dead_km,
+                        remarks: c.remarks,
+                        noOfRest: c.no_of_rest,
+                        cumTime: c.cum_time
+                    });
+                }
+            });
+        }
+    } catch (e) {
+        console.warn("Could not enrich with schedule_categories.json:", e.message);
+    }
+
     cachedCorridorSchedules = { corridors: corridorMap, directionalRoutes, schedules };
     return cachedCorridorSchedules;
 }

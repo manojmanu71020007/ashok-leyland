@@ -1507,12 +1507,14 @@
         let lastFilteredRoutes = [];
 
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
-        function getRequiredSingleChargeSoc(distKm) {
-            // Energy needed for trip = distKm / 1.42
+        function getRequiredSingleChargeSoc(distKm, schedObj) {
+            // Energy needed for trip = distance / 1.42
             // Plus 25% minimum depot safety reserve floor
-            const dist = Number(distKm) || 28.7;
-            const tripConsumption = dist / 1.42;
-            return Math.round(25 + tripConsumption);
+            const targetKm = (schedObj && schedObj.singleChargeReqKm)
+                ? Number(schedObj.singleChargeReqKm)
+                : (Number(distKm) || 28.7);
+            const tripConsumption = targetKm / 1.42;
+            return Math.min(100, Math.round(25 + tripConsumption));
         }
 
         // ── Allocated Duties persistence & state ──
@@ -2019,7 +2021,7 @@
             return _isBusLocked(bm);
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null) {
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
             const lockInfo = getBusLockInfo(bm);
@@ -2064,7 +2066,9 @@
                 return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} pending interior/exterior cleaning clearance.` };
             }
 
-            const reqSoc = getRequiredSingleChargeSoc(routeDist);
+            const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
+                ? targetReqSoc
+                : getRequiredSingleChargeSoc(routeDist);
             const maxAllowedSoc = reqSoc + 3;
 
             // Strict Single Charge Operation Battery Requirement & 3% Tolerance Gate
@@ -2134,13 +2138,13 @@
             let allocated = null;
             let swapLog = [];
 
-            const reqSoc = getRequiredSingleChargeSoc(routeDist);
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
             const maxAllowedSoc = reqSoc + 3;
 
             // 1. Primary bus for this schedule / shift
             if (matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
 
                 if (primaryEval.feasible) {
                     allocated = Object.assign({}, primaryEval, {
@@ -2157,7 +2161,7 @@
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
                         if (swapEval.feasible) {
                             allocated = Object.assign({}, swapEval, {
                                 regNo: matchedSched.swapReg || getBusRegNo(swapBm),
@@ -2181,7 +2185,7 @@
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc))
                     .filter(e => e.feasible)
                     .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
 
@@ -2201,7 +2205,7 @@
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = routes
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc))
                     .filter(e => e.feasible)
                     .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
 
