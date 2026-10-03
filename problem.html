@@ -1506,6 +1506,15 @@
         let lastNotAllocatedRoutes = [];
         let lastFilteredRoutes = [];
 
+        // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
+        function getRequiredSingleChargeSoc(distKm) {
+            // Energy needed for trip = distKm / 1.42
+            // Plus 25% minimum depot safety reserve floor
+            const dist = Number(distKm) || 28.7;
+            const tripConsumption = dist / 1.42;
+            return Math.round(25 + tripConsumption);
+        }
+
         // ── Allocated Duties persistence & state ──
         const ALLOCATED_DUTIES_KEY = "smartbus_allocated_duties";
 
@@ -1514,7 +1523,13 @@
                 const raw = localStorage.getItem(ALLOCATED_DUTIES_KEY);
                 if (raw) {
                     const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) return parsed;
+                    if (Array.isArray(parsed)) {
+                        return parsed.filter(d => {
+                            const soc = getBusSocByBm(d.bm);
+                            const req = getRequiredSingleChargeSoc(d.routeDist || 28.7);
+                            return soc >= req && soc <= (req + 3);
+                        });
+                    }
                 }
             } catch (e) {
                 console.warn("Could not load allocated duties from localStorage:", e);
@@ -1724,6 +1739,19 @@
             return (busAssignments && (busAssignments[String(route.routeId)] || busAssignments[route.uniqueId])) || route.bmNumber || route.uniqueId || route.busNumber || route.routeId;
         }
 
+        // Reset old cached battery states so all depot vehicles initialize at 0%
+        try {
+            if (!localStorage.getItem('depot_battery_reset_zero_v1')) {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties')) {
+                        localStorage.removeItem(k);
+                    }
+                }
+                localStorage.setItem('depot_battery_reset_zero_v1', '1');
+            }
+        } catch (e) {}
+
         function syncLocalStorageBusStates() {
             try {
                 for (let i = 0; i < localStorage.length; i++) {
@@ -1745,7 +1773,7 @@
         }
 
         function getBusSoc(route) {
-            if (!route) return 100;
+            if (!route) return 0;
             const assignedVehicle = getAssignedBusName(route);
             const candidates = [assignedVehicle, route.bmNumber, route.uniqueId, route.busNumber].filter(Boolean);
             for (const cand of candidates) {
@@ -1757,7 +1785,7 @@
             }
             const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
             if (Number.isFinite(Number(state.soc))) return Number(state.soc);
-            return 100;
+            return 0;
         }
 
         function calculateFullDutyDistance(soc) {
@@ -1882,7 +1910,7 @@
         }
 
         function getBusSocByBm(bm) {
-            if (!bm) return 100;
+            if (!bm) return 0;
             const localSoc = localStorage.getItem("depot_bus_soc_" + bm);
             if (localSoc !== null) {
                 const val = Number(localSoc);
@@ -1890,7 +1918,7 @@
             }
             const state = busStates[bm] || {};
             if (Number.isFinite(Number(state.soc))) return Number(state.soc);
-            return 100;
+            return 0;
         }
 
         function getBusRegNo(bm) {
@@ -2036,12 +2064,32 @@
                 return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} pending interior/exterior cleaning clearance.` };
             }
 
-            if (liveSoc <= 25) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} battery at ${liveSoc}% SoC (<= 25% minimum depot safety floor).` };
+            const reqSoc = getRequiredSingleChargeSoc(routeDist);
+            const maxAllowedSoc = reqSoc + 3;
+
+            // Strict Single Charge Operation Battery Requirement & 3% Tolerance Gate
+            if (liveSoc < reqSoc) {
+                return {
+                    feasible: false,
+                    bm,
+                    liveSoc,
+                    fullDutyKm,
+                    reqSoc,
+                    maxAllowedSoc,
+                    reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                };
             }
 
-            if (fullDutyKm < routeDist) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} Full Duty Distance (${fullDutyKm} km) is less than route distance (${routeDist.toFixed(1)} km).` };
+            if (liveSoc > maxAllowedSoc) {
+                return {
+                    feasible: false,
+                    bm,
+                    liveSoc,
+                    fullDutyKm,
+                    reqSoc,
+                    maxAllowedSoc,
+                    reason: `Bus ${bm} battery at ${liveSoc}% SoC exceeds the Single Charge Operation requirement (${reqSoc}%) by more than 3% tolerance (allowed: ${reqSoc}%–${maxAllowedSoc}%).`
+                };
             }
 
             return {
@@ -2049,6 +2097,8 @@
                 bm,
                 liveSoc,
                 fullDutyKm,
+                reqSoc,
+                maxAllowedSoc,
                 condition,
                 driver,
                 role: candidateRole
@@ -2084,6 +2134,9 @@
             let allocated = null;
             let swapLog = [];
 
+            const reqSoc = getRequiredSingleChargeSoc(routeDist);
+            const maxAllowedSoc = reqSoc + 3;
+
             // 1. Primary bus for this schedule / shift
             if (matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
@@ -2096,7 +2149,7 @@
                         shift: targetShift,
                         departureTime: matchedSched.outTime || depTimeClean,
                         allocType: `Primary Bus (${targetShift})`,
-                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) delivers ${primaryEval.fullDutyKm} km Full Duty Distance, sufficient for ${routeDist.toFixed(1)} km route under Single Charge Operation.`
+                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) matches required Single Charge Operation level (${primaryEval.reqSoc}% required, ${primaryEval.reqSoc}%–${primaryEval.maxAllowedSoc}% window) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
                     });
                 } else {
                     swapLog.push(`Primary bus ${primaryBm} (${targetShift}) ineligible: ${primaryEval.reason}`);
@@ -2112,7 +2165,7 @@
                                 shift: targetShift,
                                 departureTime: matchedSched.outTime || depTimeClean,
                                 allocType: `Swapped Bus (${targetShift})`,
-                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC (${swapEval.fullDutyKm} km Full Duty Range).`
+                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC matching required Single Charge Operation level (${swapEval.reqSoc}% required, ${swapEval.reqSoc}%–${swapEval.maxAllowedSoc}% window).`
                             });
                         } else {
                             swapLog.push(`Designated swap bus ${swapBm} ineligible: ${swapEval.reason}`);
@@ -2130,7 +2183,7 @@
                     })
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey))
                     .filter(e => e.feasible)
-                    .sort((a, b) => b.liveSoc - a.liveSoc);
+                    .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
 
                 if (sameShiftCandidates.length > 0) {
                     const bestShiftBus = sameShiftCandidates[0];
@@ -2140,17 +2193,17 @@
                         shift: targetShift,
                         departureTime: depTimeClean,
                         allocType: `Shift Pool Allocation (${targetShift})`,
-                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} based on highest available battery state (${bestShiftBus.liveSoc}% SoC, ${bestShiftBus.fullDutyKm} km range).`
+                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} matching required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC, ${bestShiftBus.fullDutyKm} km range).`
                     });
                 }
             }
 
-            // 4. Reserve fleet fallback (highest battery SoC across active depot fleet)
+            // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = routes
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey))
                     .filter(e => e.feasible)
-                    .sort((a, b) => b.liveSoc - a.liveSoc);
+                    .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
 
                 if (eligibleReserves.length > 0) {
                     const bestReserve = eligibleReserves[0];
@@ -2160,12 +2213,12 @@
                         shift: targetShift,
                         departureTime: depTimeClean,
                         allocType: `Depot Reserve Fleet Allocation`,
-                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} with top battery state (${bestReserve.liveSoc}% SoC, ${bestReserve.fullDutyKm} km Full Duty Range).`
+                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} matching required Single Charge Operation level (${bestReserve.liveSoc}% SoC, ${bestReserve.fullDutyKm} km Full Duty Range).`
                     });
                 }
             }
 
-            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean };
+            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, maxAllowedSoc };
         }
 
         const autoAllocateBus = allocateBus;
@@ -2177,6 +2230,7 @@
             if (!result || !result.allocated) {
                 const shiftName = (result && result.shift) ? result.shift : "Selected Shift";
                 const depTime = (result && result.departureTime) ? result.departureTime : "selected time";
+                const reqText = (result && result.reqSoc) ? `${result.reqSoc}% SoC required (${result.reqSoc}%–${result.maxAllowedSoc}% window)` : "insufficient battery";
                 card.style.display = "block";
                 card.style.borderColor = "#fca5a5";
                 card.style.borderLeftColor = "#dc2626";
@@ -2189,8 +2243,8 @@
                     </div>
                     <div style="font-size:0.88rem;color:#7f1d1d;line-height:1.5;padding:6px 0;">
                         <strong>No eligible bus could be allocated for this schedule (${escapeHtml(shiftName)} at ${escapeHtml(depTime)}).</strong>
-                        <div style="margin-top:6px;font-size:0.8rem;color:#991b1b;">
-                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : "Candidate buses disqualified due to low SoC (<= 25%), active maintenance, or locked status."}
+                        <div style="margin-top:6px;font-size:0.8rem;color:#991b1b;line-height:1.4;">
+                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is not at the required Single Charge Operation level (${reqText}).`}
                         </div>
                     </div>
                 `;
