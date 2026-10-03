@@ -372,6 +372,17 @@ function loadCorridorSchedules() {
         console.warn("Could not read vehicle_assignments.csv in loadCorridorSchedules:", e.message);
     }
 
+    // Ensure 500DC has timetable schedule slots from GTFS trips (General Shift)
+    const has500DC = schedules.some(s => s.route === "500DC");
+    if (!has500DC) {
+        schedules.push(
+            { scheduleId: "500DC/12", route: "500DC", shift: "General", fixBm: "BM153", fixReg: "KA51AH4643", swapBm: "BM024", swapReg: "KA51AH2619", outTime: "07:45:00", inTime: "14:45:00" },
+            { scheduleId: "500DC/13", route: "500DC", shift: "General", fixBm: "BM285", fixReg: "KA51AH6252", swapBm: "BM285", swapReg: "KA51AH6252", outTime: "08:00:00", inTime: "15:00:00" },
+            { scheduleId: "500DC/14", route: "500DC", shift: "General", fixBm: "BM224", fixReg: "KA51AH8185", swapBm: "BM224", swapReg: "KA51AH8185", outTime: "08:15:00", inTime: "15:15:00" },
+            { scheduleId: "500DC/15", route: "500DC", shift: "General", fixBm: "BM283", fixReg: "KA51AH6249", swapBm: "BM075", swapReg: "KA51AH3122", outTime: "08:30:00", inTime: "15:30:00" }
+        );
+    }
+
     cachedCorridorSchedules = { corridors: corridorMap, directionalRoutes, schedules };
     return cachedCorridorSchedules;
 }
