@@ -438,7 +438,7 @@
     <!-- ── Quick Access Portal Tiles ── -->
     <div style="width:100%;margin-bottom:22px;">
         <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;text-align:center;">Quick Access Portal</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
             <a href="/public/charging.html" style="text-decoration:none;">
                 <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:18px 16px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
@@ -457,15 +457,6 @@
                     <div style="color:rgba(255,255,255,0.6);font-size:0.76rem;margin-top:3px;">Record cleaning status</div>
                 </div>
             </a>
-            <a href="/smart-bus-scheduling.html" style="text-decoration:none;">
-                <div style="background:rgba(43,123,232,0.22);border:1.5px solid rgba(100,180,255,0.55);border-radius:18px;padding:18px 16px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
-                     onmouseover="this.style.background='rgba(43,123,232,0.38)';this.style.transform='translateY(-2px)'"
-                     onmouseout="this.style.background='rgba(43,123,232,0.22)';this.style.transform='translateY(0)'">
-                    <div style="font-size:2rem;margin-bottom:8px;">🚌</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.95rem;">Recommending</div>
-                    <div style="color:rgba(255,255,255,0.75);font-size:0.76rem;margin-top:3px;">Find the best bus route</div>
-                </div>
-            </a>
         </div>
     </div>
 
@@ -473,10 +464,9 @@
     <section class="card" aria-label="Authentication">
 
         <!-- Tab switcher -->
-        <div class="tab-row" role="tablist" style="grid-template-columns: 1fr 1fr 1fr;">
+        <div class="tab-row" role="tablist">
             <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')">Sign In</button>
             <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')">Sign Up</button>
-            <button class="tab-btn" id="tab-recommending" type="button" onclick="window.location.href='/smart-bus-scheduling.html'" title="Go to Smart Bus Scheduling" style="color:#2563eb;font-weight:700;">Recommending 🚌</button>
         </div>
 
         <!-- ══════════════════════════════════════════ LOGIN PANEL ══════════════════════════════════════════ -->
@@ -529,12 +519,6 @@
                     </div>
 
                     <button type="submit" class="primary-btn" id="btn-login">Sign In</button>
-
-                    <div style="margin-top:12px;">
-                        <button type="button" class="google-btn" onclick="window.location.href='/smart-bus-scheduling.html'" style="background:#eff6ff;border:1.5px solid #bfdbfe;color:#1d4ed8;font-weight:700;">
-                            🚌 Recommending (Smart Bus Scheduling)
-                        </button>
-                    </div>
                 </form>
 
                 <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>

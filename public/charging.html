@@ -512,9 +512,6 @@
     <button type="button" class="btn-ongoing btn-ongoing-charge" id="ongoingChargingBtn" onclick="openOngoingModal('charging')">
       ⚡ Ongoing Charging <span class="ongoing-badge-pill" id="ongoingChargingCount">0</span>
     </button>
-    <button type="button" class="btn-ongoing btn-ongoing-clean" id="ongoingCleaningBtn" onclick="openOngoingModal('cleaning')">
-      🧹 Ongoing Cleaning <span class="ongoing-badge-pill" id="ongoingCleaningCount">0</span>
-    </button>
   </div>
 </div>
 
@@ -623,7 +620,7 @@
 <div class="card" id="logCard">
   <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
     <span>📋 Today's Charging Records</span>
-    <span style="font-size:0.75rem;font-weight:600;color:var(--muted);">Click any bus number to view when process started, duration &amp; final stage</span>
+    <span style="font-size:0.75rem;font-weight:600;color:var(--muted);">Click any bus number to view full charging details</span>
   </div>
   <ul class="log-list" id="logList"></ul>
 </div>
@@ -775,60 +772,26 @@
     let locked = getLockedBuses();
     const lockEntry = locked.find(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'));
 
-    // Read the exact real current clock time
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const startTime = lockEntry ? (lockEntry.startTime || fullTimeStr) : fullTimeStr;
-    const startTs = lockEntry ? (lockEntry.startTimestamp || now.getTime()) : now.getTime();
-    const diffMs = Math.max(0, now.getTime() - startTs);
-    const diffMins = Math.round(diffMs / 60000);
-    const duration = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
-
-    const finalSoc = document.getElementById('socAfter')?.value || '98';
-    const startSoc = lockEntry?.startSoc || document.getElementById('socBefore')?.value || '20';
-    const bay = document.getElementById('chargerSelect')?.value || 'Bay 03';
-    const status = selectedPillValue || 'Completed';
-    const usableSoc = Math.max(0, parseInt(finalSoc) - 10);
-    const fullDutyKm = Math.round(usableSoc * 1.42);
-    const remarks = document.getElementById('remarks')?.value?.trim();
-    const delta = parseInt(finalSoc) - parseInt(startSoc);
-
-    const historyItem = {
-      id: 'charg_' + Date.now(),
-      bm: bm,
-      reg: getRegNoForBm(bm),
-      processType: 'Depot Fast Plug-in Charging',
-      startTime: startTime,
-      unlockTime: fullTimeStr,
-      duration: duration,
-      startSoc: startSoc + '%',
-      finalSoc: finalSoc + '%',
-      delta: delta,
-      socBef: startSoc,
-      socAft: finalSoc,
-      finalStage: `Fast Charging ${status}: Charged from ${startSoc}% to ${finalSoc}% SoC (${fullDutyKm} km Full Duty Range)`,
-      chargerBay: bay,
-      bay: bay,
-      chargingStatus: status,
-      status: status,
-      clearanceState: Number(finalSoc) >= 90 ? '✅ High Range Fleet Category A (Single Charge Ready)' : '✅ Feasible for Dispatch',
-      remarks: remarks || 'Fast charging completed. No cell imbalance, BMS cleared for dispatch.',
-      timeStr: timeStr,
-      fullDutyKm: fullDutyKm
-    };
-
-    addChargingHistory(historyItem);
-
+    // Just unlock — do NOT save history yet. History is saved only when Submit is clicked.
     locked = locked.filter(x => !(isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg')));
     setLockedBuses(locked);
     localStorage.removeItem('depot_active_charging_selection');
 
+    // Store unlock time so submitCharging() can calculate duration correctly
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const startTs = lockEntry ? (lockEntry.startTimestamp || now.getTime()) : now.getTime();
+    window._chargingUnlockData = {
+      bm, startTime: lockEntry ? (lockEntry.startTime || fullTimeStr) : fullTimeStr,
+      startTs, startSoc: lockEntry?.startSoc || null
+    };
+
     updateLockUI(bm);
     renderOngoingButtons();
-    renderLog();
     filterBuses();
-    showToast(`🔓 ${bm} unlocked from Charging at ${timeStr} & recorded in Today's Charging Records below!`, 'success');
+    updateSubmitBtn();
+    showToast(`🔓 ${bm} unlocked from Charging. Click "Submit Charging Record" to save the record.`, 'success');
   }
 
   function updateLockUI(bm) {
@@ -861,31 +824,27 @@
 
   function renderOngoingButtons() {
     const locked = getLockedBuses();
-    const cleanCount = locked.filter(x => String(x.page || '').toLowerCase().includes('clean')).length;
     const chargeCount = locked.filter(x => String(x.page || '').toLowerCase().includes('charg')).length;
 
     const chargeEl = document.getElementById('ongoingChargingCount');
-    const cleanEl = document.getElementById('ongoingCleaningCount');
     if (chargeEl) chargeEl.textContent = chargeCount;
-    if (cleanEl) cleanEl.textContent = cleanCount;
   }
 
-  function openOngoingModal(type) {
+  function openOngoingModal() {
     const locked = getLockedBuses();
-    const isCharge = type === 'charging';
-    const list = locked.filter(x => isCharge ? String(x.page || '').toLowerCase().includes('charg') : String(x.page || '').toLowerCase().includes('clean'));
+    const list = locked.filter(x => String(x.page || '').toLowerCase().includes('charg'));
     const modal = document.getElementById('ongoingModal');
     const title = document.getElementById('ongoingModalTitle');
     const body = document.getElementById('ongoingModalBody');
     if (!modal || !title || !body) return;
 
-    title.innerHTML = isCharge ? `⚡ Buses in Ongoing Charging (${list.length})` : `🧹 Buses in Ongoing Cleaning (${list.length})`;
+    title.innerHTML = `⚡ Buses in Ongoing Charging (${list.length})`;
 
     if (!list.length) {
       body.innerHTML = `
         <div style="text-align:center; padding:28px 14px; color:var(--muted);">
-          <div style="font-size:2.2rem; margin-bottom:8px;">${isCharge ? '⚡' : '🧹'}</div>
-          <strong style="color:var(--text); font-size:1.05rem; display:block;">No buses currently in ongoing ${isCharge ? 'charging' : 'cleaning'}</strong>
+          <div style="font-size:2.2rem; margin-bottom:8px;">⚡</div>
+          <strong style="color:var(--text); font-size:1.05rem; display:block;">No buses currently in ongoing charging</strong>
           <p style="font-size:0.85rem; margin-top:5px;">All depot vehicles are either ready for service duty or in active operation.</p>
         </div>
       `;
@@ -900,15 +859,15 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <strong style="font-size:1.08rem; color:var(--text);">${x.bm}</strong>
-                <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; ${isCharge ? 'background:#dbeafe; color:#1e40af;' : 'background:#dcfce7; color:#166534;'}">
-                  ${isCharge ? '⚡ Charging Bay' : '🧹 Cleaning Bay'}
+                <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dbeafe; color:#1e40af;">
+                  ⚡ Charging Bay
                 </span>
               </div>
               <div style="font-size:0.82rem; color:var(--muted); margin-top:3px;">
                 Reg: <strong>${x.reg || 'KA51AH'}</strong> • Started: <strong>${x.startTime || x.time || 'N/A'}</strong> (${elapsedStr})
               </div>
               <div style="font-size:0.8rem; color:#475569; margin-top:3px;">
-                ${x.reason || (isCharge ? 'Depot fast plug-in charging' : 'Interior & exterior sanitization & washing')}
+                ${x.reason || 'Depot fast plug-in charging'}
               </div>
             </div>
             <div>
@@ -1287,7 +1246,7 @@
       return;
     }
 
-    // Read the exact real current clock time
+    // Read the exact real current clock time (submit time)
     const now     = new Date();
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1295,11 +1254,18 @@
     const usableSoc = Math.max(0, parseInt(socAft) - 10);
     const fullDutyKm = Math.round(usableSoc * 1.42);
 
-    let formattedStartTime = fullTimeStr;
+    // Use unlock data if bus was previously locked+unlocked; otherwise use manual time fields
+    const unlockData = window._chargingUnlockData && window._chargingUnlockData.bm === bm ? window._chargingUnlockData : null;
+
+    let formattedStartTime = unlockData ? unlockData.startTime : fullTimeStr;
     let formattedEndTime = fullTimeStr;
     let durationStr = 'Completed in bay';
 
-    if (startT && endT) {
+    if (unlockData) {
+      const diffMs = Math.max(0, now.getTime() - unlockData.startTs);
+      const diffMins = Math.round(diffMs / 60000);
+      durationStr = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
+    } else if (startT && endT) {
       const [sh, sm] = startT.split(':').map(Number);
       const [eh, em] = endT.split(':').map(Number);
       let diff = (eh * 60 + em) - (sh * 60 + sm);
@@ -1307,13 +1273,14 @@
       durationStr = diff < 1 ? 'Just finished (<1 min)' : (diff >= 60 ? `${Math.floor(diff/60)} hr ${diff%60} mins` : `${diff} mins`);
 
       const fmt12 = (h, m) => {
-        const h12 = ((h % 12) || 12).toString().padStart(2, '0');
+        const h12 = ((h % 12) || 12).toString().padStart(2, '00');
         const ampm = h >= 12 ? 'PM' : 'AM';
         return `${h12}:${String(m).padStart(2, '0')} ${ampm}, today`;
       };
       formattedStartTime = fmt12(sh, sm);
       formattedEndTime = fmt12(eh, em);
     }
+
 
     const historyItem = {
       id: 'charg_' + Date.now(),
@@ -1388,6 +1355,7 @@
     updateSOC('After',  '80');
     document.getElementById('remarks').value   = '';
     document.getElementById('chargerSelect').value = '';
+    window._chargingUnlockData = null;
     updateSubmitBtn();
 
     showToast(`⚡ Charging record saved for ${bm}: ${socAft}% SoC • Full Duty Distance: ${fullDutyKm} km (Single Charge Operation)`, 'success');
@@ -1400,29 +1368,14 @@
     if (!records.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     list.innerHTML = records.map(e => `
-      <li class="log-item" onclick="openProcessDetailModal('${e.id}')" title="Click to view process details for ${e.bm}">
+      <li class="log-item" onclick="openProcessDetailModal('${e.id}')" title="Click to view full charging details for ${e.bm}">
         <div class="log-dot ${e.status === 'Completed' || e.chargingStatus === 'Completed' ? 'charged' : 'partial'}"></div>
         <div style="flex:1;">
-          <div class="log-text" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:gap:8px;">
-            <div>
-              <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
-                ⚡ ${e.bm}
-              </button>
-              <span style="margin-left:6px;font-weight:600;">SOC: ${e.startSoc || (e.socBef + '%')} ➔ ${e.finalSoc || (e.socAft + '%')}</span>
-              <span style="color:#16a34a;font-weight:700;">(${e.delta ? (e.delta > 0 ? '+' : '') + e.delta + '%' : 'Charged'})</span>
-              <span style="color:var(--muted);">· ${e.chargerBay || e.bay || 'Bay 03'} · ${e.chargingStatus || e.status || 'Completed'}</span>
-              ${e.remarks ? `<em style="color:var(--muted)"> · "${e.remarks}"</em>` : ''}
-            </div>
-            <span class="click-details-tag">👉 Click for Details &amp; Final Stage ›</span>
-          </div>
-          <div class="log-time" style="margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);">
-            <span>⏱️ <strong>Started:</strong> ${e.startTime || e.startT}</span>
-            <span>•</span>
-            <span>🏁 <strong>Finished:</strong> ${e.unlockTime || e.endT || e.timeStr}</span>
-            <span>•</span>
-            <span>⏳ <strong>Duration:</strong> ${e.duration || '45 mins'}</span>
-            <span>•</span>
-            <span style="color:#15803d;font-weight:600;">🎯 ${e.finalStage ? (e.finalStage.length > 55 ? e.finalStage.substring(0, 55) + '…' : e.finalStage) : 'Completed'}</span>
+          <div class="log-text" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+            <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
+              ⚡ ${e.bm}
+            </button>
+            <span class="click-details-tag">👉 Click for Details ›</span>
           </div>
         </div>
       </li>

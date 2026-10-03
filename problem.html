@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Webpage</title>
+    <title>Recommending Webpage</title>
     <style>
         :root {
             --ink: #15324b;
@@ -1162,8 +1162,8 @@
     <main class="shell">
         <header class="topbar">
             <div>
-                <div class="eyebrow">Depot Operations &amp; Administration</div>
-                <h1>Admin Webpage</h1>
+                <div class="eyebrow">Depot Operations</div>
+                <h1>Recommending Webpage</h1>
                 <p class="subtitle">Allocate the right available bus to the right schedule using battery state, expected range, route distance, cleaning, charging, maintenance, and driver readiness.</p>
             </div>
             <div class="topbar-actions">
@@ -1268,9 +1268,8 @@
                 <div class="kpis">
                     <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
                     <div class="kpi"><strong id="bus-departure">0</strong><span>Buses available for departure</span></div>
-                    <div class="kpi"><strong id="driver-total">0</strong><span>Assigned drivers</span></div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
-                    <div class="kpi" id="kpi-range" style="grid-column: span 2;"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
+                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
@@ -1281,7 +1280,6 @@
                     <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
-                    <div class="rule"><span>Driver status</span><strong id="driver-status-rule">—</strong></div>
                 </div>
             </aside>
         </div>
@@ -1317,7 +1315,7 @@
                 </div>
                 <div class="region-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses (bus, route, stop...)" autocomplete="off" spellcheck="false" />
+                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route..." autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear allocated search" style="display:none;">✕</button>
                 </div>
                 <div id="route-summary" class="route-list">
@@ -1354,7 +1352,7 @@
                 </div>
                 <div class="region-search-wrap not-allocated-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses (bus, route, reason...)" autocomplete="off" spellcheck="false" />
+                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, reason..." autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-not-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear not allocated search" style="display:none;">✕</button>
                 </div>
                 <div id="not-allocated-summary" class="route-list">
@@ -1379,7 +1377,7 @@
             <div class="scheduled-toolbar">
                 <div class="region-search-wrap scheduled-search-wrap">
                     <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number, route, origin, destination, time, status..." autocomplete="off" spellcheck="false" />
+                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, time..." autocomplete="off" spellcheck="false" />
                     <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
                 </div>
                 <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
@@ -1451,7 +1449,7 @@
                 <div class="modal-search-wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; padding:12px 24px; border-bottom:1px solid var(--line);">
                     <div style="position:relative; flex:1; max-width:380px;">
                         <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:#64748b;">🔍</span>
-                        <input type="text" id="locked-bus-search-input" placeholder="Search locked buses by BM, Reg, Reason..." style="width:100%; padding:8px 12px 8px 34px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.84rem;" />
+                        <input type="text" id="locked-bus-search-input" placeholder="Search locked buses by bus number (e.g. BM153), bus short name (e.g. 500DC), reason..." style="width:100%; padding:8px 12px 8px 34px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.84rem;" />
                     </div>
                     <div style="display:flex; align-items:center; gap:8px;">
                         <a href="/public/cleaning.html" target="_blank" style="display:inline-flex; align-items:center; gap:5px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:6px 12px; border-radius:8px; font-size:0.78rem; font-weight:700; text-decoration:none;">
@@ -1526,11 +1524,7 @@
                 if (raw) {
                     const parsed = JSON.parse(raw);
                     if (Array.isArray(parsed)) {
-                        return parsed.filter(d => {
-                            const soc = getBusSocByBm(d.bm);
-                            const req = getRequiredSingleChargeSoc(d.routeDist || 28.7);
-                            return soc >= req && soc <= (req + 3);
-                        });
+                        return parsed.filter(d => d && (d.bm || d.bmNumber));
                     }
                 }
             } catch (e) {
@@ -2109,6 +2103,25 @@
             };
         }
 
+        function getBusShortNameForBm(bm) {
+            if (!bm) return "";
+            const key = String(bm).toUpperCase().trim();
+            if (busStates && busStates[key]) {
+                const st = busStates[key];
+                if (st.busNumber) return String(st.busNumber);
+                if (st.assignedRouteShortName) return String(st.assignedRouteShortName);
+            }
+            if (Array.isArray(routes)) {
+                const r = routes.find(x => String(x.bmNumber || x.uniqueId || "").toUpperCase().trim() === key);
+                if (r && (r.busNumber || r.routeShortName)) return String(r.busNumber || r.routeShortName);
+            }
+            if (Array.isArray(datasetSchedules)) {
+                const s = datasetSchedules.find(x => String(x.fixBm || "").toUpperCase().trim() === key || String(x.swapBm || "").toUpperCase().trim() === key);
+                if (s && s.route) return String(s.route);
+            }
+            return "";
+        }
+
         function allocateBus(routeObj, departureTime) {
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
@@ -2142,7 +2155,7 @@
             const maxAllowedSoc = reqSoc + 3;
 
             // 1. Primary bus for this schedule / shift
-            if (matchedSched && matchedSched.fixBm) {
+            if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
                 const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
 
@@ -2153,6 +2166,8 @@
                         shift: targetShift,
                         departureTime: matchedSched.outTime || depTimeClean,
                         allocType: `Primary Bus (${targetShift})`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
                         reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) matches required Single Charge Operation level (${primaryEval.reqSoc}% required, ${primaryEval.reqSoc}%–${primaryEval.maxAllowedSoc}% window) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
                     });
                 } else {
@@ -2169,6 +2184,8 @@
                                 shift: targetShift,
                                 departureTime: matchedSched.outTime || depTimeClean,
                                 allocType: `Swapped Bus (${targetShift})`,
+                                routeCode: routeCode,
+                                busShortName: routeCode,
                                 reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC matching required Single Charge Operation level (${swapEval.reqSoc}% required, ${swapEval.reqSoc}%–${swapEval.maxAllowedSoc}% window).`
                             });
                         } else {
@@ -2197,6 +2214,8 @@
                         shift: targetShift,
                         departureTime: depTimeClean,
                         allocType: `Shift Pool Allocation (${targetShift})`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
                         reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} matching required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC, ${bestShiftBus.fullDutyKm} km range).`
                     });
                 }
@@ -2217,9 +2236,16 @@
                         shift: targetShift,
                         departureTime: depTimeClean,
                         allocType: `Depot Reserve Fleet Allocation`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
                         reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} matching required Single Charge Operation level (${bestReserve.liveSoc}% SoC, ${bestReserve.fullDutyKm} km Full Duty Range).`
                     });
                 }
+            }
+
+            if (allocated) {
+                allocated.routeCode = routeCode;
+                allocated.busShortName = routeCode;
             }
 
             return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, maxAllowedSoc };
@@ -2361,9 +2387,14 @@
 
             const filteredDirectionalRoutes = query
                 ? directionalRoutes.filter((r) => {
+                    const rCode = String(r.code || "").toUpperCase();
+                    const busMatches = (datasetSchedules || []).some(s => 
+                        String(s.route || "").toUpperCase() === rCode &&
+                        (String(s.fixBm || "").toLowerCase().includes(query) || String(s.swapBm || "").toLowerCase().includes(query))
+                    );
                     const text = `${r.origin} ${r.destination} ${r.code} ${r.label}`.toLowerCase();
                     const textCompact = text.replace(/[^a-zA-Z0-9]/g, "");
-                    return text.includes(query) || (cleanCompactQuery && textCompact.includes(cleanCompactQuery));
+                    return text.includes(query) || (cleanCompactQuery && textCompact.includes(cleanCompactQuery)) || busMatches;
                 })
                 : directionalRoutes;
 
@@ -2442,6 +2473,7 @@
             if (!routeSummary) return;
             const sourceList = Array.isArray(allocatedList) ? allocatedList : (allocatedDuties || []);
             const query = (allocatedSearchInput ? allocatedSearchInput.value : "").trim().toLowerCase();
+            const queryClean = query.replace(/[^a-zA-Z0-9]/g, "");
             if (clearAllocatedBtn) {
                 clearAllocatedBtn.style.display = query ? "inline-flex" : "none";
             }
@@ -2450,15 +2482,15 @@
                 ? sourceList.filter((duty) => {
                     const bm = String(duty.bm || "").toLowerCase();
                     const regNo = String(duty.regNo || "").toLowerCase();
-                    const routeCode = String(duty.routeCode || "").toLowerCase();
+                    const routeCode = String(duty.routeCode || duty.busNumber || "").toLowerCase();
                     const routeName = String(duty.routeName || "").toLowerCase();
                     const origin = String(duty.origin || "").toLowerCase();
                     const dest = String(duty.destination || "").toLowerCase();
                     const shift = String(duty.shift || "").toLowerCase();
                     const depTime = String(duty.departureTime || "").toLowerCase();
-                    return bm.includes(query) || regNo.includes(query) || routeCode.includes(query) ||
-                           routeName.includes(query) || origin.includes(query) || dest.includes(query) ||
-                           shift.includes(query) || depTime.includes(query);
+                    const text = `${bm} ${regNo} ${routeCode} ${routeName} ${origin} ${dest} ${shift} ${depTime}`.toLowerCase();
+                    const textClean = text.replace(/[^a-zA-Z0-9]/g, "");
+                    return text.includes(query) || (queryClean && textClean.includes(queryClean));
                 })
                 : [...sourceList];
 
@@ -2648,6 +2680,7 @@
             if (!notAllocatedSummary) return;
             const sourceList = Array.isArray(notAllocatedList) ? notAllocatedList : (lastNotAllocatedRoutes || []);
             const query = (notAllocatedSearchInput ? notAllocatedSearchInput.value : "").trim().toLowerCase();
+            const queryClean = query.replace(/[^a-zA-Z0-9]/g, "");
             if (clearNotAllocatedBtn) {
                 clearNotAllocatedBtn.style.display = query ? "inline-flex" : "none";
             }
@@ -2655,7 +2688,9 @@
             let filtered = query
                 ? sourceList.filter((route) => {
                     const assignedName = String(getAssignedBusName(route) || "");
-                    const busNum = String(route.busNumber || "");
+                    const bmNum = String(route.bmNumber || route.uniqueId || "");
+                    const busNum = String(route.busNumber || route.routeShortName || route.code || "");
+                    const regNo = String(route.regNo || "");
                     const routeId = String(route.routeId || "");
                     const routeName = String(route.routeName || "");
                     const origin = String(route.origin || "");
@@ -2663,12 +2698,14 @@
                     const soc = getBusSoc(route);
                     const fullDutyDist = calculateFullDutyDistance(soc);
                     const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedName] || busStates[route.busNumber] || {};
+                    const stateReg = String(state.regNo || "");
                     const condition = String(state.condition || "");
                     const isBlocked = blockedRouteIds.has(String(route.routeId)) ? "blocked range" : "";
                     const lockInfo = getBusLockInfo(route);
                     const lockText = lockInfo ? `locked lock ${lockInfo.reason} ${lockInfo.label} ${lockInfo.isCleaning ? 'cleaning' : ''} ${lockInfo.isCharging ? 'charging' : ''} ${lockInfo.isBoth ? 'both' : ''}` : "";
-                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km ${condition} ${isBlocked} ${lockText} low soc maintenance`.toLowerCase();
-                    return text.includes(query);
+                    const text = `${assignedName} ${bmNum} ${busNum} ${regNo} ${stateReg} ${routeId} ${routeName} ${origin} ${dest} ${soc}% ${soc} ${fullDutyDist}km ${condition} ${isBlocked} ${lockText} low soc maintenance`.toLowerCase();
+                    const textClean = text.replace(/[^a-zA-Z0-9]/g, "");
+                    return text.includes(query) || (queryClean && textClean.includes(queryClean));
                 })
                 : [...sourceList];
 
@@ -2916,21 +2953,81 @@
         function renderScheduledTime() {
             if (!scheduledTimeTbody) return;
 
+            const allocatedDutyByBm = new Map();
+            (allocatedDuties || []).forEach(d => {
+                const bmKey = String(d.bm || d.bmNumber || "").toUpperCase().trim();
+                if (bmKey) allocatedDutyByBm.set(bmKey, d);
+            });
+
+            // Map each fleet bus in routes to an augmented object reflecting its allocated duty (if active)
+            const augmentedRoutes = (routes || []).map(r => {
+                const bmKey = String(r.bmNumber || r.uniqueId || r.vehicleId || r.routeId || "").toUpperCase().trim();
+                const allocDuty = allocatedDutyByBm.get(bmKey);
+                if (allocDuty) {
+                    return Object.assign({}, r, {
+                        isAllocated: true,
+                        busNumber: allocDuty.routeCode || allocDuty.busNumber || "500DC",
+                        busShortName: allocDuty.routeCode || allocDuty.busNumber || "500DC",
+                        routeCode: allocDuty.routeCode || "500DC",
+                        routeShortName: allocDuty.routeCode || "500DC",
+                        origin: allocDuty.origin || r.origin,
+                        destination: allocDuty.destination || r.destination,
+                        routeName: allocDuty.routeName || r.routeName,
+                        departureTime: allocDuty.departureTime,
+                        scheduleId: allocDuty.scheduleId || "500DC/12",
+                        tripCount: allocDuty.tripCount || (allocDuty.tasks ? allocDuty.tasks.length : 8),
+                        routeId: allocDuty.routeCode || allocDuty.corridorRouteId || "500DC",
+                        allocatedDuty: allocDuty
+                    });
+                }
+                return Object.assign({}, r, { isAllocated: false });
+            });
+
+            // Ensure any allocated duty that wasn't in routes list is also included
+            (allocatedDuties || []).forEach(d => {
+                const bmKey = String(d.bm || d.bmNumber || "").toUpperCase().trim();
+                if (bmKey && !augmentedRoutes.some(r => String(r.bmNumber || r.uniqueId || r.vehicleId || r.routeId || "").toUpperCase().trim() === bmKey)) {
+                    augmentedRoutes.unshift({
+                        uniqueId: d.bm,
+                        vehicleId: d.bm,
+                        bmNumber: d.bm,
+                        regNo: d.regNo,
+                        busNumber: d.routeCode || d.busNumber || "500DC",
+                        busShortName: d.routeCode || d.busNumber || "500DC",
+                        routeCode: d.routeCode || "500DC",
+                        routeShortName: d.routeCode || "500DC",
+                        routeName: d.routeName,
+                        origin: d.origin,
+                        destination: d.destination,
+                        routeId: d.routeCode || d.bm,
+                        departureTime: d.departureTime,
+                        scheduleId: d.scheduleId || "500DC/12",
+                        tripCount: d.tripCount || 8,
+                        isAllocated: true,
+                        allocatedDuty: d
+                    });
+                }
+            });
+
+            const allocatedRoutesList = augmentedRoutes.filter(r => r.isAllocated || allocatedDutyByBm.has(String(r.bmNumber || r.uniqueId || r.routeId || "").toUpperCase().trim()));
+            const notAllocatedRoutesList = augmentedRoutes.filter(r => !r.isAllocated && !allocatedDutyByBm.has(String(r.bmNumber || r.uniqueId || r.routeId || "").toUpperCase().trim()));
+
             const countAll = document.getElementById("scheduled-count-all");
             const countAlloc = document.getElementById("scheduled-count-alloc");
             const countNotAlloc = document.getElementById("scheduled-count-not-alloc");
-            if (countAll) countAll.textContent = String(lastFilteredRoutes.length);
-            if (countAlloc) countAlloc.textContent = String(lastAllocatedRoutes.length);
-            if (countNotAlloc) countNotAlloc.textContent = String(lastNotAllocatedRoutes.length);
+            if (countAll) countAll.textContent = String(augmentedRoutes.length);
+            if (countAlloc) countAlloc.textContent = String(allocatedRoutesList.length);
+            if (countNotAlloc) countNotAlloc.textContent = String(notAllocatedRoutesList.length);
 
-            let routesToDisplay = lastFilteredRoutes;
+            let routesToDisplay = augmentedRoutes;
             if (scheduledFilter === "allocated") {
-                routesToDisplay = lastAllocatedRoutes;
+                routesToDisplay = allocatedRoutesList;
             } else if (scheduledFilter === "not-allocated") {
-                routesToDisplay = lastNotAllocatedRoutes;
+                routesToDisplay = notAllocatedRoutesList;
             }
 
             const schedQuery = (scheduledSearchInput ? scheduledSearchInput.value : "").trim().toLowerCase();
+            const schedClean = schedQuery.replace(/[^a-zA-Z0-9]/g, "");
             if (clearScheduledBtn) {
                 clearScheduledBtn.style.display = schedQuery ? "inline-flex" : "none";
             }
@@ -2946,26 +3043,36 @@
                 return noDriverA - noDriverB;
             });
 
-            const allocatedSet = new Set(lastAllocatedRoutes.map((r) => String(r.routeId)));
+            const allocatedSet = new Set(Array.from(allocatedDutyByBm.keys()));
             const currentlySelectedId = String(routeSelect ? routeSelect.value : "");
 
             const filteredScheduledRoutes = schedQuery
                 ? routesToDisplay.filter((route) => {
-                    const assignedName = String(getAssignedBusName(route) || "");
-                    const busNum = String(route.busNumber || "");
+                    const bmKey = String(route.bm || route.bmNumber || route.uniqueId || route.vehicleId || route.routeId || "").toUpperCase().trim();
+                    const allocatedDuty = allocatedDutyByBm.get(bmKey) || route.allocatedDuty;
+                    const isAllocated = !!allocatedDuty || route.isAllocated;
+
+                    const assignedName = allocatedDuty ? allocatedDuty.bm : String(getAssignedBusName(route) || bmKey);
+                    const bmNum = allocatedDuty ? allocatedDuty.bm : String(route.bmNumber || route.uniqueId || bmKey);
+                    const busNum = String(route.busNumber || (allocatedDuty ? (allocatedDuty.routeCode || allocatedDuty.busNumber) : "") || route.routeShortName || route.code || "");
+                    const routeCode = String(route.routeCode || (allocatedDuty ? allocatedDuty.routeCode : "") || route.code || route.busNumber || "");
+                    const schedId = String(route.scheduleId || (allocatedDuty ? allocatedDuty.scheduleId : "") || "");
+                    const regNo = String(route.regNo || (allocatedDuty ? allocatedDuty.regNo : "") || "");
                     const routeId = String(route.routeId || "");
-                    const routeName = String(route.routeName || "");
-                    const origin = String(route.origin || "");
-                    const dest = String(route.destination || "");
-                    const isAllocated = allocatedSet.has(String(route.routeId));
+                    const routeName = String(route.routeName || (allocatedDuty ? allocatedDuty.routeName : "") || "");
+                    const origin = String(route.origin || (allocatedDuty ? allocatedDuty.origin : "") || "");
+                    const dest = String(route.destination || (allocatedDuty ? allocatedDuty.destination : "") || "");
                     const allocLabel = isAllocated ? "allocated" : "not allocated";
-                    const isSelected = String(route.routeId) === currentlySelectedId;
-                    const timings = getRouteScheduleTimings(route, isSelected);
+                    const isSelected = String(route.routeId) === currentlySelectedId || (allocatedDuty && String(allocatedDuty.routeId) === currentlySelectedId);
+                    const timings = (allocatedDuty && allocatedDuty.departureTime)
+                        ? { departure: allocatedDuty.departureTime, arrival: fiveMinutesLater(allocatedDuty.departureTime), status: "On Time" }
+                        : getRouteScheduleTimings(route, isSelected);
                     const depFormatted = formatTimeForDisplay(timings.departure);
                     const arrFormatted = formatTimeForDisplay(timings.arrival);
                     const status = timings.status || "";
-                    const text = `${assignedName} ${busNum} ${routeId} ${routeName} ${origin} ${dest} ${allocLabel} ${status} ${timings.departure} ${timings.arrival} ${depFormatted} ${arrFormatted}`.toLowerCase();
-                    return text.includes(schedQuery);
+                    const text = `${assignedName} ${bmNum} ${busNum} ${routeCode} ${schedId} ${regNo} ${routeId} ${routeName} ${origin} ${dest} ${allocLabel} ${status} ${timings.departure} ${timings.arrival} ${depFormatted} ${arrFormatted}`.toLowerCase();
+                    const textClean = text.replace(/[^a-zA-Z0-9]/g, "");
+                    return text.includes(schedQuery) || (schedClean && textClean.includes(schedClean));
                 })
                 : routesToDisplay;
 
@@ -3034,32 +3141,52 @@
         }
 
         function buildScheduledRowHTML(route, allocatedSet, currentlySelectedId) {
-            const assignedVehicle = getAssignedBusName(route);
-            const isAllocated = allocatedSet.has(String(route.routeId));
-            const isSelected = String(route.routeId) === currentlySelectedId;
-            const timings = getRouteScheduleTimings(route, isSelected);
+            const bmKey = String(route.bm || route.bmNumber || route.uniqueId || route.vehicleId || route.routeId || "").toUpperCase().trim();
+            const allocatedDuty = route.allocatedDuty || (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === bmKey);
+            const isAllocated = !!allocatedDuty || route.isAllocated || (allocatedSet && allocatedSet.has(bmKey));
+
+            const assignedVehicle = getAssignedBusName(route) || (allocatedDuty ? allocatedDuty.bm : bmKey);
+            const isSelected = String(route.routeId) === currentlySelectedId || (allocatedDuty && String(allocatedDuty.routeId) === currentlySelectedId);
+            const timings = (allocatedDuty && allocatedDuty.departureTime)
+                ? { departure: allocatedDuty.departureTime, arrival: fiveMinutesLater(allocatedDuty.departureTime), status: "On Time" }
+                : getRouteScheduleTimings(route, isSelected);
             const depFormatted = formatTimeForDisplay(timings.departure);
             const arrFormatted = formatTimeForDisplay(timings.arrival);
             const statusClass = timings.status === "Delayed" ? "delayed" : (timings.status === "Ahead" ? "ahead" : "on-time");
-            const soc = getBusSoc(route);
-            const fullDutyDist = calculateFullDutyDistance(soc);
+            const soc = (allocatedDuty && typeof allocatedDuty.soc === "number") ? allocatedDuty.soc : getBusSoc(route);
+            const fullDutyDist = (allocatedDuty && typeof allocatedDuty.fullDutyKm === "number") ? allocatedDuty.fullDutyKm : calculateFullDutyDistance(soc);
             const state = busStates[assignedVehicle] || busStates[route.routeId] || busStates[route.busNumber] || {};
             const condition = state.condition || "Good";
+            const displayBusNum = (allocatedDuty && (allocatedDuty.routeCode || allocatedDuty.busNumber)) 
+                ? (allocatedDuty.routeCode || allocatedDuty.busNumber) 
+                : (route.busNumber || route.routeShortName || route.code || "500DC");
+            const displayOrigin = (allocatedDuty && allocatedDuty.origin) ? allocatedDuty.origin : (route.origin || "");
+            const displayDest = (allocatedDuty && allocatedDuty.destination) ? allocatedDuty.destination : (route.destination || "");
+            const displayRouteName = (allocatedDuty && allocatedDuty.routeName) ? allocatedDuty.routeName : (route.routeName || "");
+            
+            // PRIORITY: If allocatedDuty exists, its tripCount (e.g. 8 for 500DC) ALWAYS takes precedence over route.tripCount
+            const displayTripCount = allocatedDuty
+                ? (allocatedDuty.tripCount || (allocatedDuty.tasks ? allocatedDuty.tasks.length : 8))
+                : (route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 8);
+
+            const targetRouteId = allocatedDuty ? (allocatedDuty.routeCode || "500DC") : (route.routeCode || route.busNumber || route.routeId || assignedVehicle);
+            const targetScheduleId = allocatedDuty ? (allocatedDuty.scheduleId || "500DC/12") : (route.scheduleId || "");
+
             return `
-                <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${route.routeId}" style="cursor:pointer;">
+                <tr class="scheduled-row ${isSelected ? "selected-row" : ""}" data-route-id="${escapeHtml(targetRouteId)}" data-bus="${escapeHtml(assignedVehicle)}" style="cursor:pointer;">
                     <td>
-                        <strong>${route.busNumber}</strong>
-                        <div style="color:var(--muted);font-size:.72rem;">Route ID: ${route.routeId}</div>
+                        <strong>${escapeHtml(displayBusNum)}</strong>
+                        <div style="color:var(--muted);font-size:.72rem;">Route Line: ${escapeHtml(displayBusNum)}</div>
                     </td>
                     <td>
-                        <div style="font-weight:600;">${route.origin} ➔ ${route.destination}</div>
-                        <div style="color:var(--muted);font-size:.72rem;">${route.routeName}</div>
+                        <div style="font-weight:600;">${escapeHtml(displayOrigin)} ➔ ${escapeHtml(displayDest)}</div>
+                        <div style="color:var(--muted);font-size:.72rem;">${escapeHtml(displayRouteName)}</div>
                     </td>
                     <td>
                         <div style="display:flex;align-items:center;gap:6px;">
-                            <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${assignedVehicle}</span>
+                            <span style="font-weight:700;color:#0369a1;background:#e0f2fe;padding:2px 8px;border-radius:6px;font-size:.78rem;">🚌 BM: ${escapeHtml(assignedVehicle)}</span>
                         </div>
-                        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">⚡ ${soc}% SoC • 📏 ${fullDutyDist} km Duty • ${condition}</div>
+                        <div style="font-size:.72rem;color:var(--muted);margin-top:2px;">🔋 ${soc}% SoC • 📏 ${fullDutyDist} km Duty • ${escapeHtml(condition)}</div>
                     </td>
                     <td><span class="time-badge departure">🕒 ${depFormatted}</span></td>
                     <td><span class="time-badge arrival">🏁 ${arrFormatted}</span></td>
@@ -3067,8 +3194,13 @@
                     <td>${isAllocated ? '<span class="alloc-pill allocated">✅ Allocated</span>' : '<span class="alloc-pill not-allocated">⛔ Not Allocated</span>'}</td>
                     <td>
                         <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
-                            <button class="tasks-action-btn scheduled-tasks-btn" type="button" data-route-id="${route.routeId}" data-bus="${assignedVehicle}" title="Click to view assigned tasks and route schedule for ${assignedVehicle}">
-                                <span class="tasks-count-pill">📋 ${route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0} Tasks</span>
+                            <button class="tasks-action-btn scheduled-tasks-btn" type="button" 
+                                data-route-id="${escapeHtml(targetRouteId)}" 
+                                data-bus="${escapeHtml(assignedVehicle)}"
+                                data-schedule-id="${escapeHtml(targetScheduleId)}"
+                                data-bus-short-name="${escapeHtml(displayBusNum)}"
+                                title="Click to view assigned tasks and route schedule for ${displayBusNum} (${assignedVehicle})">
+                                <span class="tasks-count-pill">📋 ${displayTripCount} Tasks</span>
                                 <span class="route-arrow">›</span>
                             </button>
                         </div>
@@ -3085,7 +3217,9 @@
                     e.stopPropagation();
                     const routeId = btn.dataset.routeId;
                     const busId = btn.dataset.bus;
-                    openBusTasksModal(routeId, busId);
+                    const scheduleId = btn.dataset.scheduleId;
+                    const busShortName = btn.dataset.busShortName;
+                    openBusTasksModal(routeId, busId, scheduleId, busShortName);
                 });
             });
 
@@ -3095,8 +3229,8 @@
                 row.addEventListener("click", async () => {
                     const routeId = row.dataset.routeId;
                     if (!routeId) return;
-                    const rObj = routes.find(r => String(r.routeId) === String(routeId));
-                    const code = rObj ? (rObj.busNumber || rObj.routeCode || "") : "";
+                    const rObj = routes.find(r => String(r.routeId) === String(routeId) || String(r.busNumber).toUpperCase() === String(routeId).toUpperCase());
+                    const code = rObj ? (rObj.busNumber || rObj.routeCode || "") : routeId;
                     const matchingRoute = directionalRoutes.find(r => (code && (r.code === code || r.routeCode === code)) || String(r.routeId) === String(routeId));
                     if (matchingRoute && routeSelect.value !== matchingRoute.id) {
                         routeSelect.value = matchingRoute.id;
@@ -3118,34 +3252,55 @@
         const tasksModalBusBadge = document.getElementById("tasks-modal-bus-badge");
         const tasksModalSubtitle = document.getElementById("tasks-modal-subtitle");
 
-        async function openBusTasksModal(routeId, busId) {
+        async function openBusTasksModal(routeId, busId, explicitScheduleId, explicitShortName) {
             if (!busTasksModalBackdrop) return;
             busTasksModalBackdrop.style.display = "flex";
             busTasksModalBackdrop.setAttribute("aria-hidden", "false");
             document.body.style.overflow = "hidden";
 
-            const targetRoute = routes.find((r) => String(r.routeId) === String(routeId)) || routes[0] || {};
-            const assignedVehicle = busId || getAssignedBusName(targetRoute) || targetRoute.bmNumber || targetRoute.uniqueId || "BM238";
+            // 1. Check allocated duties first
+            const allocDuty = (allocatedDuties || []).find(d => 
+                (busId && String(d.bm || d.bmNumber || '').toUpperCase().trim() === String(busId).toUpperCase().trim()) ||
+                (routeId && (String(d.routeId) === String(routeId) || String(d.routeCode).toUpperCase() === String(routeId).toUpperCase()))
+            );
+
+            const targetRoute = routes.find((r) => String(r.routeId) === String(routeId) || String(r.busNumber).toUpperCase() === String(routeId).toUpperCase()) || routes[0] || {};
+            const assignedVehicle = busId || (allocDuty ? allocDuty.bm : null) || getAssignedBusName(targetRoute) || targetRoute.bmNumber || targetRoute.uniqueId || "BM153";
+
+            // Bus Short Name (Route Line code, e.g. 500DC)
+            const routeCode = (allocDuty && (allocDuty.routeCode || allocDuty.busNumber)) 
+                ? (allocDuty.routeCode || allocDuty.busNumber) 
+                : (explicitShortName || targetRoute.busNumber || targetRoute.code || targetRoute.routeShortName || routeId || "500DC");
+
+            // Schedule ID (e.g. 500DC/12, 500DC/15)
+            let scheduleId = (allocDuty && allocDuty.scheduleId) ? allocDuty.scheduleId : (explicitScheduleId || targetRoute.scheduleId || "");
+            if (!scheduleId && datasetSchedules && datasetSchedules.length > 0) {
+                const matchInDs = datasetSchedules.find(s => 
+                    String(s.route || "").toUpperCase() === String(routeCode).toUpperCase() &&
+                    (String(s.fixBm || "").toUpperCase() === String(assignedVehicle).toUpperCase() || String(s.swapBm || "").toUpperCase() === String(assignedVehicle).toUpperCase())
+                ) || datasetSchedules.find(s => String(s.route || "").toUpperCase() === String(routeCode).toUpperCase());
+                if (matchInDs && matchInDs.scheduleId) scheduleId = matchInDs.scheduleId;
+            }
 
             if (tasksModalBusBadge) {
                 tasksModalBusBadge.textContent = assignedVehicle;
             }
             if (tasksModalSubtitle) {
-                tasksModalSubtitle.textContent = `Duty tasks assigned to ${assignedVehicle} on Route ${targetRoute.busNumber || routeId} (${targetRoute.origin || ''} ➔ ${targetRoute.destination || ''}) based on GTFS dataset.`;
+                tasksModalSubtitle.textContent = `All sequential duty trips assigned to Bus ${assignedVehicle} on Route ${routeCode} (${scheduleId || 'Duty'}) starting from DPT-32 (Bommasandra Depot 32) to final depot pull-in, including breaks.`;
             }
 
             if (tasksModalBody) {
                 tasksModalBody.innerHTML = `
                     <div style="text-align:center;padding:36px;color:var(--muted);">
                         <div style="font-size:2.2rem;margin-bottom:8px;">⏳</div>
-                        <div>Loading assigned tasks and GTFS route energy schedule for <strong>${escapeHtml(assignedVehicle)}</strong>…</div>
+                        <div>Loading assigned duty trips &amp; schedule for <strong>${escapeHtml(routeCode)} (${escapeHtml(assignedVehicle)})</strong>…</div>
                     </div>
                 `;
             }
 
             let taskData = null;
             try {
-                const res = await fetch(`/api/bus-tasks?bus=${encodeURIComponent(assignedVehicle)}&routeId=${encodeURIComponent(routeId)}`);
+                const res = await fetch(`/api/bus-tasks?bus=${encodeURIComponent(assignedVehicle)}&routeId=${encodeURIComponent(routeCode)}&scheduleId=${encodeURIComponent(scheduleId)}`);
                 if (res.ok) {
                     taskData = await res.json();
                 }
@@ -3159,48 +3314,64 @@
                 const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
                 const condition = state.condition || "Good";
                 const distKm = Number(targetRoute.distanceKm || calculateRouteDistanceKm(targetRoute.routeId) || 28.7);
-                const estChargePct = Number((distKm / 1.42).toFixed(1));
-                const estChargeKwh = Number((distKm * 0.85).toFixed(1));
                 const estRange = Math.round(Math.max(0, soc - 10) * 1.42);
-                const totalTrips = targetRoute.tripCount || gtfsScheduleMap.get(String(routeId))?.tripCount || 4;
-                const maxFeasible = estChargePct > 0 ? Math.floor(Math.max(0, soc - 25) / estChargePct) : 0;
+                const depotTransitKm = 8.5;
 
                 const tasks = [
                     {
                         taskNumber: 1,
-                        taskType: "Passenger Service Trip",
-                        tripId: "TRIP-101",
-                        headsign: targetRoute.destination,
-                        direction: "Outbound",
-                        fromStop: targetRoute.origin,
-                        toStop: targetRoute.destination,
-                        departureTime: "07:30",
-                        arrivalTime: "08:15",
-                        distanceKm: distKm,
-                        estimatedChargePct: estChargePct,
-                        estimatedChargeKwh: estChargeKwh,
-                        projectedSocStart: soc,
-                        projectedSocEnd: Number(Math.max(0, soc - estChargePct).toFixed(1)),
-                        isFeasible: (soc - estChargePct) >= 25,
-                        status: (soc - estChargePct) >= 25 ? "✅ Feasible (Ready)" : "⚡ Low SoC (<25% floor)"
+                        taskType: "Depot Pull-Out Trip",
+                        tripId: `TRIP-${routeCode}-1`,
+                        fromStop: "DPT-32 (Bommasandra)",
+                        toStop: targetRoute.origin || "Origin",
+                        departureTime: "06:30",
+                        arrivalTime: "07:15",
+                        distanceKm: depotTransitKm,
+                        notes: `DPT-32 (Bommasandra) ➔ ${targetRoute.origin || 'Origin'}`
                     },
                     {
                         taskNumber: 2,
                         taskType: "Passenger Service Trip",
-                        tripId: "TRIP-102",
-                        headsign: targetRoute.origin,
-                        direction: "Inbound",
-                        fromStop: targetRoute.destination,
-                        toStop: targetRoute.origin,
-                        departureTime: "08:45",
-                        arrivalTime: "09:30",
+                        tripId: `TRIP-${routeCode}-2`,
+                        fromStop: targetRoute.origin || "Origin",
+                        toStop: targetRoute.destination || "Destination",
+                        departureTime: "07:30",
+                        arrivalTime: "09:00",
                         distanceKm: distKm,
-                        estimatedChargePct: estChargePct,
-                        estimatedChargeKwh: estChargeKwh,
-                        projectedSocStart: Number(Math.max(0, soc - estChargePct).toFixed(1)),
-                        projectedSocEnd: Number(Math.max(0, soc - 2 * estChargePct).toFixed(1)),
-                        isFeasible: (soc - 2 * estChargePct) >= 25,
-                        status: (soc - 2 * estChargePct) >= 25 ? "✅ Feasible (Ready)" : "⚡ Low SoC (<25% floor)"
+                        notes: `${targetRoute.origin || 'Origin'} ➔ ${targetRoute.destination || 'Destination'}`
+                    },
+                    {
+                        taskNumber: 3,
+                        taskType: "☕ Layover / Rest Break",
+                        tripId: `REST-${routeCode}-3`,
+                        fromStop: targetRoute.destination || "Destination",
+                        toStop: targetRoute.destination || "Destination",
+                        departureTime: "09:00",
+                        arrivalTime: "09:30",
+                        distanceKm: 0.0,
+                        notes: `Scheduled layover at ${targetRoute.destination || 'Destination'} (30 mins)`
+                    },
+                    {
+                        taskNumber: 4,
+                        taskType: "Passenger Service Trip",
+                        tripId: `TRIP-${routeCode}-4`,
+                        fromStop: targetRoute.destination || "Destination",
+                        toStop: targetRoute.origin || "Origin",
+                        departureTime: "09:35",
+                        arrivalTime: "11:05",
+                        distanceKm: distKm,
+                        notes: `${targetRoute.destination || 'Destination'} ➔ ${targetRoute.origin || 'Origin'}`
+                    },
+                    {
+                        taskNumber: 5,
+                        taskType: "Depot Pull-In Trip",
+                        tripId: `TRIP-${routeCode}-5`,
+                        fromStop: targetRoute.origin || "Origin",
+                        toStop: "DPT-32 (Bommasandra)",
+                        departureTime: "11:15",
+                        arrivalTime: "12:00",
+                        distanceKm: depotTransitKm,
+                        notes: `${targetRoute.origin || 'Origin'} ➔ DPT-32 (Bommasandra)`
                     }
                 ];
 
@@ -3208,19 +3379,18 @@
                     ok: true,
                     uniqueId: assignedVehicle,
                     assignedVehicle,
-                    busNumber: targetRoute.busNumber,
+                    busNumber: routeCode,
                     routeId: targetRoute.routeId,
                     routeName: targetRoute.routeName,
+                    scheduleId: scheduleId || `SCH-${routeCode}`,
+                    shift: "General",
                     origin: targetRoute.origin,
                     destination: targetRoute.destination,
                     currentSoc: soc,
                     condition,
-                    distanceKm: distKm,
-                    estimatedChargePctPerTrip: estChargePct,
-                    estimatedChargeKwhPerTrip: estChargeKwh,
+                    distanceKm: Number((distKm * 2 + depotTransitKm * 2).toFixed(1)),
                     estimatedRangeKm: estRange,
-                    totalAssignedTrips: totalTrips,
-                    maxFeasibleTrips: maxFeasible,
+                    totalAssignedTrips: tasks.length,
                     tasks
                 };
             }
@@ -3239,16 +3409,14 @@
             if (!tasksModalBody) return;
             const soc = data.currentSoc ?? 100;
             const cond = data.condition || "Good";
-            const dist = (data.distanceKm || 0).toFixed(1);
-            const estChargePct = data.estimatedChargePctPerTrip ?? 20.2;
-            const estChargeKwh = data.estimatedChargeKwhPerTrip ?? 24.3;
             const estRange = data.estimatedRangeKm ?? 106;
-            const totalTrips = data.totalAssignedTrips || 0;
-            const maxFeasible = data.maxFeasibleTrips || 0;
+            const totalTrips = data.totalAssignedTrips || (data.tasks ? data.tasks.length : 0);
             const vehicle = data.assignedVehicle || data.bmNumber || data.uniqueId || "BM238";
-            const busNum = data.busNumber || "N/A";
+            const busNum = data.busNumber || "500DC";
             const origin = data.origin || "Origin";
             const dest = data.destination || "Destination";
+            const scheduleId = data.scheduleId || "Duty";
+            const shift = data.shift || "General";
             const isMaintenance = cond === "Not Good";
             const isLowSoc = soc <= 25;
 
@@ -3256,55 +3424,62 @@
             if (isMaintenance) {
                 feasibilityAlert = `
                     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:12px 16px;color:#991b1b;font-size:0.85rem;line-height:1.45;">
-                        <strong>⚠️ Maintenance Safety Warning:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> is currently flagged for maintenance inspection. Scheduled tasks should remain on hold until depot technical clearance.
+                        <strong>⚠️ Maintenance Safety Warning:</strong> Bus Number <strong>${escapeHtml(vehicle)}</strong> is currently flagged for maintenance inspection. Scheduled tasks for Route ${escapeHtml(busNum)} should remain on hold until depot technical clearance.
                     </div>`;
             } else if (isLowSoc) {
                 feasibilityAlert = `
                     <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 16px;color:#92400e;font-size:0.85rem;line-height:1.45;">
-                        <strong>⚡ Battery Reserve Notice:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> battery is at <strong>${soc}% SoC</strong> (at or below 25% minimum depot reserve floor). Vehicle must plug into depot fast DC charging before commencing next passenger duty.
+                        <strong>⚡ Battery Reserve Notice:</strong> Bus Number <strong>${escapeHtml(vehicle)}</strong> battery is at <strong>${soc}% SoC</strong> (at or below 25% minimum depot reserve floor). Vehicle must plug into depot fast DC charging before commencing next passenger duty on Route ${escapeHtml(busNum)}.
                     </div>`;
             } else {
                 feasibilityAlert = `
                     <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:12px 16px;color:#166534;font-size:0.85rem;line-height:1.45;">
-                        <strong>✅ Energy Feasible on GTFS Route:</strong> Bus <strong>${escapeHtml(vehicle)}</strong> holds <strong>${soc}% SoC (~${estRange} km Full Duty Distance under Single Charge Operation)</strong>, sufficient for <strong>${maxFeasible} service trip(s)</strong> of ${dist} km (consuming ~${estChargePct}% SoC per trip) while strictly maintaining the 25% depot safety buffer.
+                        <strong>✅ Duty Sequence Allocated:</strong> Bus Number <strong>${escapeHtml(vehicle)}</strong> holds <strong>${soc}% SoC (~${estRange} km Single Charge Range)</strong> for <strong>${totalTrips} sequential trips &amp; breaks</strong> assigned to Route <strong>${escapeHtml(busNum)}</strong> starting from DPT-32 to final depot pull-in.
                     </div>`;
             }
 
             const taskRows = (data.tasks || []).map((t) => {
-                const isCharge = t.taskType && t.taskType.toLowerCase().includes("charge");
-                const socChange = isCharge ? `+${Math.abs(t.estimatedChargePct)}% SoC` : `-${Math.abs(t.estimatedChargePct)}% SoC (${t.estimatedChargeKwh} kWh)`;
-                const socChangeColor = isCharge ? '#16a34a' : '#0369a1';
-                const rowClass = isCharge ? 'charging-row' : '';
-                const badgeColor = isCharge ? '#0284c7' : '#166534';
-                const badgeBg = isCharge ? '#e0f2fe' : '#dcfce7';
+                const isCharge = t.taskType && (t.taskType.toLowerCase().includes("charge") || t.taskType.toLowerCase().includes("charging"));
+                const isBreak = t.taskType && (t.taskType.toLowerCase().includes("break") || t.taskType.toLowerCase().includes("rest") || t.taskType.toLowerCase().includes("layover"));
+                const isPullOut = t.taskType && t.taskType.toLowerCase().includes("pull-out");
+                const isPullIn = t.taskType && t.taskType.toLowerCase().includes("pull-in");
+                
+                let badgeBg = '#dcfce7';
+                let badgeColor = '#166534';
+                if (isCharge) {
+                    badgeBg = '#e0f2fe';
+                    badgeColor = '#0284c7';
+                } else if (isBreak) {
+                    badgeBg = '#fef3c7';
+                    badgeColor = '#92400e';
+                } else if (isPullOut || isPullIn) {
+                    badgeBg = '#f1f5f9';
+                    badgeColor = '#334155';
+                }
+
+                const distDisplay = (t.distanceKm !== undefined && t.distanceKm !== null && Number(t.distanceKm) > 0)
+                    ? `${Number(t.distanceKm).toFixed(1)} km`
+                    : '—';
 
                 return `
-                    <tr class="${rowClass}">
-                        <td style="font-weight:700;">Task #${t.taskNumber}</td>
+                    <tr style="${isCharge ? 'background:#f0f9ff;' : (isBreak ? 'background:#fffbeb;' : '')}">
+                        <td style="font-weight:700;">#${t.taskNumber}</td>
                         <td>
-                            <span style="background:${badgeBg};color:${badgeColor};font-weight:700;padding:2px 7px;border-radius:4px;font-size:0.7rem;white-space:nowrap;">
-                                ${isCharge ? '🔌 Fast Charge' : '🚌 Service Trip'}
+                            <span style="background:${badgeBg};color:${badgeColor};font-weight:700;padding:3px 8px;border-radius:5px;font-size:0.75rem;white-space:nowrap;">
+                                ${escapeHtml(t.taskType)}
                             </span>
-                            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">ID: ${escapeHtml(t.tripId)}</div>
+                            <div style="font-size:0.72rem;color:var(--muted);margin-top:2px;">ID: ${escapeHtml(t.tripId || `TASK-${t.taskNumber}`)}</div>
                         </td>
                         <td>
-                            <div style="font-weight:600;">🕒 ${escapeHtml(t.departureTime)} ➔ ${escapeHtml(t.arrivalTime)}</div>
-                            <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.direction)}</div>
+                            <div style="font-weight:600;">🕒 ${escapeHtml(t.departureTime || '—')} ➔ ${escapeHtml(t.arrivalTime || '—')}</div>
+                            ${t.duration ? `<div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.duration)}</div>` : ''}
                         </td>
                         <td>
                             <div style="font-weight:600;">${escapeHtml(t.fromStop)} ➔ ${escapeHtml(t.toStop)}</div>
-                            <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.headsign)}</div>
+                            ${t.notes ? `<div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(t.notes)}</div>` : ''}
                         </td>
-                        <td><strong>${t.distanceKm} km</strong></td>
-                        <td style="color:${socChangeColor};font-weight:700;">${socChange}</td>
-                        <td>
-                            <div style="font-weight:700;">${t.projectedSocStart}% ➔ ${t.projectedSocEnd}%</div>
-                            <div style="font-size:0.72rem;color:${t.projectedSocEnd >= 25 ? '#16a34a' : '#dc2626'};">${t.projectedSocEnd >= 25 ? '✓ Above 25% floor' : '⚠️ Below 25% floor'}</div>
-                        </td>
-                        <td>
-                            <span class="status-pill ${t.isFeasible ? 'status-ahead' : 'status-delayed'}" style="font-size:0.72rem;">
-                                ${escapeHtml(t.status)}
-                            </span>
+                        <td style="text-align:right;">
+                            <strong style="font-size:0.9rem;color:${t.distanceKm > 0 ? 'var(--ink)' : 'var(--muted)'};">${distDisplay}</strong>
                         </td>
                     </tr>
                 `;
@@ -3313,24 +3488,19 @@
             tasksModalBody.innerHTML = `
                 <div class="task-kpi-grid">
                     <div class="task-kpi-card">
-                        <div class="task-kpi-label">Assigned Vehicle</div>
+                        <div class="task-kpi-label">Assigned Vehicle (Bus Number)</div>
                         <div class="task-kpi-val" style="color:#0369a1;">🚌 ${escapeHtml(vehicle)}</div>
-                        <div class="task-kpi-sub">Route ${escapeHtml(busNum)} • ID: ${escapeHtml(data.routeId)}</div>
+                        <div class="task-kpi-sub">Live Battery: <strong>${soc}% SoC</strong> • ${escapeHtml(cond)}</div>
                     </div>
                     <div class="task-kpi-card">
-                        <div class="task-kpi-label">GTFS Route Distance</div>
-                        <div class="task-kpi-val">${dist} km</div>
-                        <div class="task-kpi-sub">${escapeHtml(origin)} ⇔ ${escapeHtml(dest)}</div>
+                        <div class="task-kpi-label">Route Short Name &amp; Corridor</div>
+                        <div class="task-kpi-val">${escapeHtml(busNum)}: ${escapeHtml(origin)} ⇔ ${escapeHtml(dest)}</div>
+                        <div class="task-kpi-sub">Schedule: ${escapeHtml(scheduleId)} • Shift: ${escapeHtml(shift)}</div>
                     </div>
                     <div class="task-kpi-card">
-                        <div class="task-kpi-label">Est. Charge / Trip</div>
-                        <div class="task-kpi-val" style="color:#08755f;">~${estChargePct}% SoC</div>
-                        <div class="task-kpi-sub">${estChargeKwh} kWh at 0.85 kWh/km</div>
-                    </div>
-                    <div class="task-kpi-card">
-                        <div class="task-kpi-label">Single Charge Duty</div>
-                        <div class="task-kpi-val">${totalTrips} Trips</div>
-                        <div class="task-kpi-sub">${maxFeasible} feasible (Single Charge Operation)</div>
+                        <div class="task-kpi-label">Sequential Duties (${escapeHtml(busNum)})</div>
+                        <div class="task-kpi-val">${totalTrips} Tasks</div>
+                        <div class="task-kpi-sub">Starting DPT-32 to end incl. breaks</div>
                     </div>
                 </div>
 
@@ -3339,20 +3509,17 @@
                 <div>
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
                         <h4 style="margin:0;font-size:0.95rem;color:var(--ink);">📅 Specified Route Duty Schedule (Sequential Tasks)</h4>
-                        <span style="font-size:0.75rem;color:var(--muted);font-weight:600;">Based on GTFS departure timetable &amp; battery drain model</span>
+                        <span style="font-size:0.75rem;color:var(--muted);font-weight:600;">Full sequence starting from DPT-32 to depot return including breaks</span>
                     </div>
                     <div class="tasks-table-wrap">
                         <table class="tasks-table">
                             <thead>
                                 <tr>
-                                    <th>Task</th>
-                                    <th>Type</th>
+                                    <th style="width:70px;">Task #</th>
+                                    <th>Trip Type</th>
                                     <th>Timings</th>
-                                    <th>Segment (Stops)</th>
-                                    <th>Distance</th>
-                                    <th>Est. Charge</th>
-                                    <th>Projected SoC</th>
-                                    <th>Status</th>
+                                    <th>Segment (Origin ➔ Destination)</th>
+                                    <th style="text-align:right;">Distance (Leg)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -3361,7 +3528,7 @@
                         </table>
                     </div>
                     <p style="margin:8px 0 0;font-size:0.74rem;color:var(--muted);line-height:1.4;">
-                        * Note: A total of <strong>${totalTrips} timetable trips</strong> are assigned to Route ${escapeHtml(busNum)} in the GTFS dataset. The above sequence outlines the active and upcoming duty tasks allocated to Bus <strong>${escapeHtml(vehicle)}</strong> according to its estimated charge and the GTFS distance.
+                        * Note: A total of <strong>${totalTrips} sequential tasks</strong> are assigned to Route ${escapeHtml(busNum)} (${escapeHtml(scheduleId)}). The above sequence outlines all duty trips starting from <strong>DPT-32 (Bommasandra Depot 32)</strong>, all round-trip passenger legs with individual segment distances, scheduled driver/bus rest breaks, and final depot pull-in.
                     </p>
                 </div>
 
@@ -3488,12 +3655,15 @@
 
             let list = Array.from(consolidatedMap.values());
             const q = (searchQuery || "").trim().toLowerCase();
+            const qClean = q.replace(/[^a-zA-Z0-9]/g, "");
             if (q) {
                 list = list.filter(item => {
                     const pagesStr = Array.from(item.pages).join(' ');
                     const reasonsStr = item.reasons.join(' ');
-                    const text = `${item.bm} ${item.reg} ${pagesStr} ${reasonsStr}`.toLowerCase();
-                    return text.includes(q);
+                    const busRoute = getBusShortNameForBm(item.bm);
+                    const text = `${item.bm} ${item.reg} ${busRoute} ${pagesStr} ${reasonsStr}`.toLowerCase();
+                    const textClean = text.replace(/[^a-zA-Z0-9]/g, "");
+                    return text.includes(q) || (qClean && textClean.includes(qClean));
                 });
             }
 
@@ -3675,8 +3845,6 @@
                 distance || 
                 28.7
             );
-            const complexityEl = document.getElementById("complexity");
-            const complexity = (complexityEl ? complexityEl.value : null) || (routeDistance >= 20 ? "complex" : (routeDistance >= 10 ? "moderate" : "simple"));
 
             const titleEl = document.getElementById("allocation-title");
             const socKpi = document.getElementById("kpi-soc");
@@ -3688,7 +3856,6 @@
             const opStandardRule = document.getElementById("operation-standard-rule");
             const rangeRule = document.getElementById("range-rule");
             const timeRule = document.getElementById("time-rule");
-            const driverRule = document.getElementById("driver-status-rule");
             const busCatRule = document.getElementById("bus-category-rule");
             const matrixStatusRule = document.getElementById("matrix-status-rule");
 
@@ -3700,8 +3867,37 @@
                 renderAllocatedCard(allocResult);
             }
 
+            // Determine schedule complexity & route category:
+            // 1) From matched schedule (e.g. Standard, Moderate, Complex)
+            // 2) From dataset schedules on this route sharing total route length (e.g. 500DC/12, 13, 14, 15 -> Standard)
+            // 3) Fallback to route distance
+            let schedCat = currentScheduleMatch ? currentScheduleMatch.category : null;
+            if (!schedCat && selectedRouteObj) {
+                const rCode = String(selectedRouteObj.code || "").toUpperCase();
+                const routeScheds = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === rCode);
+                const withCat = routeScheds.find(s => s.category);
+                if (withCat) schedCat = withCat.category;
+            }
+
+            const complexityEl = document.getElementById("complexity");
+            let complexity = complexityEl ? complexityEl.value : null;
+            if (!complexity) {
+                if (schedCat) {
+                    const scLower = String(schedCat).toLowerCase();
+                    if (scLower.includes("stand") || scLower.includes("simp")) complexity = "simple";
+                    else if (scLower.includes("mod")) complexity = "moderate";
+                    else if (scLower.includes("comp")) complexity = "complex";
+                }
+                if (!complexity) {
+                    complexity = (routeDistance >= 20 ? "complex" : (routeDistance >= 10 ? "moderate" : "simple"));
+                }
+            }
+            const routeCategoryLabel = schedCat || (complexity === "simple" ? "Standard" : (complexity === "complex" ? "Complex" : "Moderate"));
+
+            const busShortName = (selectedRouteObj && (selectedRouteObj.code || selectedRouteObj.routeShortName)) || (currentlyAllocatedBus && (currentlyAllocatedBus.busShortName || currentlyAllocatedBus.busNumber)) || "500DC";
+
             if (!currentlyAllocatedBus) {
-                if (titleEl) titleEl.textContent = "Allocation result (No eligible bus)";
+                if (titleEl) titleEl.textContent = `Allocation result of ${busShortName} (No eligible bus)`;
                 if (socResult) socResult.textContent = "—";
                 if (rangeResult) rangeResult.textContent = "—";
                 if (socKpi) socKpi.style.opacity = "0.4";
@@ -3709,9 +3905,8 @@
                 if (currentSocRule) currentSocRule.textContent = "—";
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
-                if (rangeRule) rangeRule.textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
+                if (rangeRule) rangeRule.textContent = routeCategoryLabel;
                 if (timeRule) timeRule.textContent = "—";
-                if (driverRule) { driverRule.textContent = "—"; driverRule.style.color = ""; }
                 if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
                 if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
                 updateSelectedBusDutyBanner();
@@ -3723,7 +3918,7 @@
             const rangeValue = currentlyAllocatedBus.fullDutyKm;
             const grossDutyDist = Math.round(liveSoc * 1.42);
 
-            if (titleEl) titleEl.textContent = `Allocation result of ${assignedVehicle}`;
+            if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
             if (socKpi) socKpi.style.opacity = "1";
             if (rangeKpi) rangeKpi.style.opacity = "1";
 
@@ -3756,7 +3951,7 @@
             if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
             if (fullDutyDistRule) fullDutyDistRule.textContent = `${rangeValue} km usable (${grossDutyDist} km gross)`;
             if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
-            if (rangeRule) rangeRule.textContent = complexity === "simple" ? "Simple" : (complexity === "complex" ? "Complex" : "Moderate");
+            if (rangeRule) rangeRule.textContent = routeCategoryLabel;
             if (timeRule) timeRule.textContent = timeCategoryLabel;
 
             const totalDistanceRuleEl = document.getElementById("route-distance-rule");
@@ -3776,13 +3971,7 @@
                 matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
             }
 
-            if (driverRule) {
-                driverRule.textContent = "✅ Driver Assigned";
-                driverRule.style.color = "#16a34a";
-            }
-
             updateSelectedBusDutyBanner();
-            updateAssignedDriverCount();
         }
 
         async function loadData() {
@@ -3922,6 +4111,7 @@
                     depInput.addEventListener("input", handleDeparture);
                     depInput.addEventListener("change", handleDeparture);
                 }
+
                 document.getElementById("recommend").addEventListener("click", async () => {
                     updateSelectedRouteDistance();
                     syncScheduleTiming();
@@ -3963,13 +4153,26 @@
                         return;
                     }
 
+                    const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
+                    const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
+
                     const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
                     const newDuty = {
                         id: dutyId,
                         bm: alloc.bm,
+                        bmNumber: alloc.bm,
+                        uniqueId: alloc.bm,
+                        vehicleId: alloc.bm,
+                        busId: alloc.bm,
                         regNo: alloc.regNo || getBusRegNo(alloc.bm),
-                        routeId: routeObj.id,
+                        routeId: routeObj.code || routeObj.routeId || routeObj.id || alloc.bm,
+                        corridorRouteId: routeObj.id,
+                        busNumber: routeObj.code,
+                        busShortName: routeObj.code,
+                        routeShortName: routeObj.code,
                         routeCode: routeObj.code,
+                        code: routeObj.code,
+                        scheduleId: targetScheduleId,
                         routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
                         origin: routeObj.origin,
                         destination: routeObj.destination,
@@ -3978,7 +4181,7 @@
                         soc: alloc.liveSoc,
                         fullDutyKm: alloc.fullDutyKm,
                         routeDist: Number(routeObj.distKm || routeObj.distanceKm || 28.7),
-                        tripCount: (routeObj && routeObj.trips) || 8,
+                        tripCount: targetTripCount,
                         allocType: alloc.allocType || "Primary Bus",
                         reason: alloc.reason || "",
                         allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),

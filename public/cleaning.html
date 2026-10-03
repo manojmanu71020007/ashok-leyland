@@ -486,9 +486,6 @@
     <button type="button" class="btn-ongoing btn-ongoing-clean" id="ongoingCleaningBtn" onclick="openOngoingModal('cleaning')">
       🧹 Ongoing Cleaning <span class="ongoing-badge-pill" id="ongoingCleaningCount">0</span>
     </button>
-    <button type="button" class="btn-ongoing btn-ongoing-charge" id="ongoingChargingBtn" onclick="openOngoingModal('charging')">
-      ⚡ Ongoing Charging <span class="ongoing-badge-pill" id="ongoingChargingCount">0</span>
-    </button>
   </div>
 </div>
 
@@ -529,7 +526,7 @@
 <div class="card" id="logCard">
   <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
     <span>📋 Today's Cleaning Records</span>
-    <span style="font-size:0.75rem;font-weight:600;color:var(--muted);">Click any bus number to view when process started, duration &amp; final stage</span>
+    <span style="font-size:0.75rem;font-weight:600;color:var(--muted);">Click any bus number to view full cleaning details</span>
   </div>
   <ul class="log-list" id="logList"></ul>
 </div>
@@ -733,51 +730,27 @@
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const startTime = lockEntry ? (lockEntry.startTime || fullTimeStr) : fullTimeStr;
     const startTs = lockEntry ? (lockEntry.startTimestamp || now.getTime()) : now.getTime();
-    const diffMs = Math.max(0, now.getTime() - startTs);
-    const diffMins = Math.round(diffMs / 60000);
-    const duration = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
 
-    const checks = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].map(id => ({
-      label: document.querySelector(`label[for="${id}"]`)?.textContent || id,
-      done: document.getElementById(id)?.checked || false
-    }));
-    const totalDone = checks.filter(c => c.done).length;
-    const remarks = document.getElementById('remarks')?.value?.trim();
-
-    const historyItem = {
-      id: 'clean_' + Date.now(),
-      bm: bm,
-      reg: getRegNoForBm(bm),
-      processType: 'Interior & Exterior Bus Cleaning',
-      startTime: startTime,
-      unlockTime: fullTimeStr,
-      duration: duration,
-      totalDone: totalDone,
-      total: checks.length,
-      finalStage: 'Interior & Exterior Cleaned (10/10 tasks completed)',
-      tasksSummary: 'All 10 depot cleaning checks verified and cleared',
-      clearanceState: '✅ Inspection Passed: Cleared for Schedule Allocation',
-      remarks: remarks || 'Cleaning, sweeping, and washing completed. Vehicle returned to active fleet pool.',
-      timeStr: timeStr
+    // Store unlock data — history is saved only when Submit is clicked!
+    window._cleaningUnlockData = {
+      bm,
+      startTime,
+      startTs,
+      unlockTime: fullTimeStr
     };
 
-    addCleaningHistory(historyItem);
-
+    // Remove from locked list
     locked = locked.filter(x => !(isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('clean')));
     setLockedBuses(locked);
     localStorage.removeItem('depot_active_cleaning_selection');
 
-    // Reset checklist items
-    ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.checked = false;
-    });
-
+    // Keep checklist items checked so the user can submit the cleaning record
     updateLockUI(bm);
     renderOngoingButtons();
-    renderLog();
     filterBuses();
-    showToast(`🔓 ${bm} unlocked from Cleaning at ${timeStr} & recorded in Today's Cleaning Records below!`, 'success');
+    updateSubmitBtn();
+    updateChecklistAndUnlockState();
+    showToast(`🔓 ${bm} unlocked from Cleaning. Click "Submit Cleaning Record" to save the record.`, 'success');
   }
 
   function updateLockUI(bm) {
@@ -812,30 +785,26 @@
   function renderOngoingButtons() {
     const locked = getLockedBuses();
     const cleanCount = locked.filter(x => String(x.page || '').toLowerCase().includes('clean')).length;
-    const chargeCount = locked.filter(x => String(x.page || '').toLowerCase().includes('charg')).length;
 
     const cleanEl = document.getElementById('ongoingCleaningCount');
-    const chargeEl = document.getElementById('ongoingChargingCount');
     if (cleanEl) cleanEl.textContent = cleanCount;
-    if (chargeEl) chargeEl.textContent = chargeCount;
   }
 
-  function openOngoingModal(type) {
+  function openOngoingModal() {
     const locked = getLockedBuses();
-    const isClean = type === 'cleaning';
-    const list = locked.filter(x => isClean ? String(x.page || '').toLowerCase().includes('clean') : String(x.page || '').toLowerCase().includes('charg'));
+    const list = locked.filter(x => String(x.page || '').toLowerCase().includes('clean'));
     const modal = document.getElementById('ongoingModal');
     const title = document.getElementById('ongoingModalTitle');
     const body = document.getElementById('ongoingModalBody');
     if (!modal || !title || !body) return;
 
-    title.innerHTML = isClean ? `🧹 Buses in Ongoing Cleaning (${list.length})` : `⚡ Buses in Ongoing Charging (${list.length})`;
+    title.innerHTML = `🧹 Buses in Ongoing Cleaning (${list.length})`;
 
     if (!list.length) {
       body.innerHTML = `
         <div style="text-align:center; padding:28px 14px; color:var(--muted);">
-          <div style="font-size:2.2rem; margin-bottom:8px;">${isClean ? '🧹' : '⚡'}</div>
-          <strong style="color:var(--text); font-size:1.05rem; display:block;">No buses currently in ongoing ${isClean ? 'cleaning' : 'charging'}</strong>
+          <div style="font-size:2.2rem; margin-bottom:8px;">🧹</div>
+          <strong style="color:var(--text); font-size:1.05rem; display:block;">No buses currently in ongoing cleaning</strong>
           <p style="font-size:0.85rem; margin-top:5px;">All depot vehicles are either ready for service duty or in active operation.</p>
         </div>
       `;
@@ -850,15 +819,15 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <strong style="font-size:1.08rem; color:var(--text);">${x.bm}</strong>
-                <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; ${isClean ? 'background:#dcfce7; color:#166534;' : 'background:#dbeafe; color:#1e40af;'}">
-                  ${isClean ? '🧹 Cleaning Bay' : '⚡ Charging Bay'}
+                <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dcfce7; color:#166534;">
+                  🧹 Cleaning Bay
                 </span>
               </div>
               <div style="font-size:0.82rem; color:var(--muted); margin-top:3px;">
                 Reg: <strong>${x.reg || 'KA51AH'}</strong> • Started: <strong>${x.startTime || x.time || 'N/A'}</strong> (${elapsedStr})
               </div>
               <div style="font-size:0.8rem; color:#475569; margin-top:3px;">
-                ${x.reason || (isClean ? 'Interior & exterior sanitization & washing' : 'Depot fast plug-in charging')}
+                ${x.reason || 'Interior & exterior sanitization & washing'}
               </div>
             </div>
             <div>
@@ -1180,15 +1149,21 @@
     const now       = new Date();
     const timeStr   = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const diffMins  = Math.max(1, Math.round((now.getTime() - sessionSelectionTs) / 60000));
-    const duration  = diffMins < 2 ? 'Logged upon inspection' : `${diffMins} mins`;
+
+    // Use unlock data if the bus was unlocked; otherwise fall back to sessionSelectionTs
+    const unlockData = window._cleaningUnlockData && window._cleaningUnlockData.bm === bm ? window._cleaningUnlockData : null;
+    const startTime  = unlockData ? unlockData.startTime : (timeStr + ' (Inspection Log)');
+    const startTs    = unlockData ? unlockData.startTs : sessionSelectionTs;
+    const diffMs     = Math.max(0, now.getTime() - startTs);
+    const diffMins   = Math.round(diffMs / 60000);
+    const duration   = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
 
     const historyItem = {
       id: 'clean_' + Date.now(),
       bm: bm,
       reg: getRegNoForBm(bm),
       processType: 'Interior & Exterior Bus Cleaning',
-      startTime: timeStr + ' (Inspection Log)',
+      startTime: startTime,
       unlockTime: fullTimeStr,
       duration: duration,
       totalDone: totalDone,
@@ -1203,6 +1178,7 @@
     addCleaningHistory(historyItem);
     renderLog();
 
+    window._cleaningUnlockData = null;
     document.getElementById('busSelect').value = '';
     document.getElementById('searchInput').value = '';
     document.getElementById('busInfoBox').classList.remove('show');
@@ -1226,28 +1202,14 @@
     if (!records.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
     list.innerHTML = records.map(e => `
-      <li class="log-item" onclick="openProcessDetailModal('${e.id}')" title="Click to view process details for ${e.bm}">
+      <li class="log-item" onclick="openProcessDetailModal('${e.id}')" title="Click to view full cleaning details for ${e.bm}">
         <div class="log-dot done"></div>
         <div style="flex:1;">
           <div class="log-text" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <div>
-              <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
-                🧹 ${e.bm}
-              </button>
-              <span style="margin-left:6px;font-weight:600;">${e.tasksSummary || `${e.totalDone}/${e.total || 10} tasks completed`}</span>
-              <span style="color:#16a34a;font-weight:700;">(Sanitized &amp; Cleared)</span>
-              ${e.remarks ? `<em style="color:var(--muted)"> · "${e.remarks}"</em>` : ''}
-            </div>
-            <span class="click-details-tag">👉 Click for Details &amp; Final Stage ›</span>
-          </div>
-          <div class="log-time" style="margin-top:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:0.75rem;color:var(--muted);">
-            <span>⏱️ <strong>Started:</strong> ${e.startTime}</span>
-            <span>•</span>
-            <span>🏁 <strong>Ended:</strong> ${e.unlockTime || e.timeStr}</span>
-            <span>•</span>
-            <span>⏳ <strong>Duration:</strong> ${e.duration || 'Completed'}</span>
-            <span>•</span>
-            <span style="color:#15803d;font-weight:600;">🎯 ${e.finalStage ? (e.finalStage.length > 55 ? e.finalStage.substring(0, 55) + '…' : e.finalStage) : 'Cleaned'}</span>
+            <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
+              🧹 ${e.bm}
+            </button>
+            <span class="click-details-tag">👉 Click for Details ›</span>
           </div>
         </div>
       </li>

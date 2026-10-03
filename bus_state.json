@@ -281,33 +281,33 @@
     "fullDutyDistanceKm": 0
   },
   "BM001": {
-    "status": "Blocked",
+    "status": "Warning",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 25,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T14:27:12.373Z",
+    "updatedAt": "2026-10-03T12:29:47.924Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "09:20",
-        "departure": "09:15"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "On Time": {
-        "arrival": "09:20",
-        "departure": "09:15"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "Ahead": {
-        "arrival": "09:20",
-        "departure": "09:15"
+        "arrival": "13:50",
+        "departure": "13:45"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": "05:57 pm",
+    "socBefore": 100,
+    "socAfter": 25,
+    "fullDutyDistanceKm": 21,
+    "lastChargedTime": "05:59:47 pm",
     "history": [
       {
         "timestamp": "2026-09-30T12:58:51.284Z",
@@ -374,6 +374,36 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:30:57.988Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:32:22.277Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:32:57.183Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:17:57.180Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:47.924Z",
+        "soc": 25,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM001",
@@ -382,10 +412,7 @@
     "assignedRouteId": "BM001",
     "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 106.8782,
-    "actualRangeFinal": 106.8782
+    "blocked": true
   },
   "BUS-01": {
     "status": "Blocked",
@@ -671,19 +698,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:06.393Z",
+    "updatedAt": "2026-10-03T13:40:23.101Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       },
       "On Time": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       },
       "Ahead": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       }
     },
     "operation": "Single Charge Operation",
@@ -705,6 +732,42 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:28.644Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:33:10.051Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:28:26.176Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:59.067Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:36:58.151Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T13:40:23.101Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM005",
@@ -713,10 +776,7 @@
     "assignedRouteId": "BM005",
     "assignedRouteDisplay": "Route BM005 - 360K (99.1 km)",
     "assignedRouteShortName": "360K",
-    "blocked": true,
-    "busCategory": "C",
-    "testedRangeKm": 98.4861,
-    "actualRangeFinal": 98.4861
+    "blocked": true
   },
   "BUS-05": {
     "uniqueId": "BUS-05",
@@ -782,19 +842,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:21:07.344Z",
+    "updatedAt": "2026-10-03T12:45:14.381Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "On Time": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "Ahead": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "13:05",
+        "departure": "13:00"
       }
     },
     "operation": "Single Charge Operation",
@@ -816,6 +876,18 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:27.893Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:45:14.381Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM012",
@@ -824,10 +896,7 @@
     "assignedRouteId": "BM012",
     "assignedRouteDisplay": "Route BM012 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
-    "blocked": true,
-    "busCategory": "C",
-    "testedRangeKm": 92.9117,
-    "actualRangeFinal": 92.9117
+    "blocked": true
   },
   "BUS-07": {
     "uniqueId": "BUS-07",
@@ -935,19 +1004,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:46.033Z",
+    "updatedAt": "2026-10-03T12:18:02.276Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       }
     },
     "operation": "Single Charge Operation",
@@ -969,6 +1038,18 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:19.435Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:18:02.276Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM020",
@@ -977,10 +1058,7 @@
     "assignedRouteId": "BM020",
     "assignedRouteDisplay": "Route BM020 - 361C (178.3 km)",
     "assignedRouteShortName": "361C",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 117.552,
-    "actualRangeFinal": 117.552
+    "blocked": true
   },
   "BUS-09": {
     "uniqueId": "BUS-09",
@@ -1417,26 +1495,78 @@
     "fullDutyDistanceKm": 0
   },
   "BM062": {
-    "uniqueId": "BM062",
-    "vehicleId": "BM062",
-    "regNo": "KA51AH3269",
-    "busNumber": "KBS3A",
-    "scheduleId": "KBS3A/77",
-    "soc": 0,
-    "soh": 0.98,
-    "condition": "Good",
     "status": "Blocked",
-    "assignedRouteId": "BM062",
-    "assignedRouteShortName": "KBS3A",
-    "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM062",
+    "rawStatus": "On Time",
+    "soc": 0,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-03T13:40:24.470Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      },
+      "On Time": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      },
+      "Ahead": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 0,
     "fullDutyDistanceKm": 0,
-    "busCategory": "B",
-    "testedRangeKm": 111.8532,
-    "actualRangeFinal": 111.8532
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-03T12:18:00.896Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:15.137Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:30:00.527Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:37:00.124Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:38:23.129Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T13:40:24.470Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM062",
+    "busNumber": "KBS3A",
+    "bmNumber": "BM062",
+    "assignedRouteId": "BM062",
+    "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
+    "assignedRouteShortName": "KBS3A",
+    "blocked": true
   },
   "BUS-19": {
     "uniqueId": "BUS-19",
@@ -1622,19 +1752,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:28.444Z",
+    "updatedAt": "2026-10-03T07:31:13.793Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       }
     },
     "operation": "Single Charge Operation",
@@ -1656,6 +1786,12 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:13.793Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM082",
@@ -1664,10 +1800,7 @@
     "assignedRouteId": "BM082",
     "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
     "assignedRouteShortName": "KBS3F",
-    "blocked": true,
-    "busCategory": "C",
-    "testedRangeKm": 92.504,
-    "actualRangeFinal": 92.504
+    "blocked": true
   },
   "BUS-24": {
     "uniqueId": "BUS-24",
@@ -2002,12 +2135,12 @@
     "fullDutyDistanceKm": 0
   },
   "BM153": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 92,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T05:08:56.617Z",
+    "updatedAt": "2026-10-03T06:59:43.878Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -2025,10 +2158,10 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 93,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": "10:38:54 am",
+    "socBefore": 20,
+    "socAfter": 92,
+    "fullDutyDistanceKm": 116,
+    "lastChargedTime": "12:29:43 pm",
     "history": [
       {
         "timestamp": "2026-09-30T15:36:53.110Z",
@@ -2059,6 +2192,12 @@
         "soc": 0,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T06:59:43.878Z",
+        "soc": 92,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM153",
@@ -2067,10 +2206,7 @@
     "assignedRouteId": "BM153",
     "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 117.6711,
-    "actualRangeFinal": 117.6711
+    "blocked": true
   },
   "BUS-33": {
     "uniqueId": "BUS-33",
@@ -3167,19 +3303,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T10:09:03.881Z",
+    "updatedAt": "2026-10-03T07:31:55.460Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       },
       "On Time": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       },
       "Ahead": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       }
     },
     "operation": "Single Charge Operation",
@@ -3225,6 +3361,18 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:07:04.975Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:48.561Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM217",
@@ -3233,10 +3381,7 @@
     "assignedRouteId": "BM217",
     "assignedRouteDisplay": "Route BM217 - 356Z (228.5 km)",
     "assignedRouteShortName": "356Z",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 116.7584,
-    "actualRangeFinal": 116.7584
+    "blocked": true
   },
   "BUS-60": {
     "uniqueId": "BUS-60",
@@ -3622,19 +3767,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T05:48:49.603Z",
+    "updatedAt": "2026-10-03T11:52:02.266Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "08:35",
-        "departure": "08:30"
+        "arrival": "07:50",
+        "departure": "07:45"
       },
       "On Time": {
-        "arrival": "08:35",
-        "departure": "08:30"
+        "arrival": "07:50",
+        "departure": "07:45"
       },
       "Ahead": {
-        "arrival": "08:35",
-        "departure": "08:30"
+        "arrival": "07:50",
+        "departure": "07:45"
       }
     },
     "operation": "Single Charge Operation",
@@ -3821,6 +3966,60 @@
       },
       {
         "timestamp": "2026-10-03T05:48:49.603Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T06:52:56.185Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T06:53:17.558Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T06:53:58.592Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T06:58:53.122Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:00:11.704Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:00:43.051Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:25.304Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:33:23.128Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T11:52:02.266Z",
         "soc": 0,
         "condition": "Good",
         "status": "On Time"
@@ -6213,19 +6412,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T10:09:03.881Z",
+    "updatedAt": "2026-10-03T07:31:55.460Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       },
       "On Time": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       },
       "Ahead": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:40",
+        "departure": "14:35"
       }
     },
     "operation": "Single Charge Operation",
@@ -6271,6 +6470,18 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:07:04.975Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:48.561Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM256",
@@ -6283,19 +6494,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:06.393Z",
+    "updatedAt": "2026-10-03T13:40:23.101Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       },
       "On Time": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       },
       "Ahead": {
-        "arrival": "14:10",
-        "departure": "14:05"
+        "arrival": "10:00",
+        "departure": "09:55"
       }
     },
     "operation": "Single Charge Operation",
@@ -6317,6 +6528,42 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:28.644Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:33:10.051Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:28:26.176Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:59.067Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:36:58.151Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T13:40:23.101Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM292",
@@ -6329,32 +6576,122 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T05:11:12.356Z",
+    "updatedAt": "2026-10-03T12:29:47.924Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "13:50",
+        "departure": "13:45"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "13:50",
+        "departure": "13:45"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 60,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": "10:41:10 am",
+    "socBefore": 100,
+    "socAfter": 25,
+    "fullDutyDistanceKm": 21,
+    "lastChargedTime": "05:59:47 pm",
     "history": [
       {
-        "timestamp": "2026-10-03T05:11:12.356Z",
+        "timestamp": "2026-09-30T12:58:51.284Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-01T16:32:14.218Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T02:19:19.114Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T02:19:36.945Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T05:22:09.938Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T11:14:58.180Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T12:27:28.131Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:19:47.907Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:20:08.544Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:27:10.946Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
         "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:30:57.988Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:32:22.277Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T07:32:57.183Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:17:57.180Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:47.924Z",
+        "soc": 25,
         "condition": "Good",
         "status": "On Time"
       }
@@ -6364,13 +6701,74 @@
     "blocked": true
   },
   "KBS3A": {
+    "status": "Blocked",
+    "rawStatus": "On Time",
     "soc": 0,
     "condition": "Good",
-    "status": "Blocked",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-03T13:40:24.470Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      },
+      "On Time": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      },
+      "Ahead": {
+        "arrival": "09:05",
+        "departure": "09:00"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": null,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
+    "lastChargedTime": null,
+    "history": [
+      {
+        "timestamp": "2026-10-03T12:18:00.896Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:15.137Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:30:00.527Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:37:00.124Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:38:23.129Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T13:40:24.470Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
     "uniqueId": "BM297",
-    "blocked": true,
     "bmNumber": "BM297",
-    "fullDutyDistanceKm": 0
+    "blocked": true
   },
   "KBS3F": {
     "status": "Blocked",
@@ -6378,19 +6776,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:28.444Z",
+    "updatedAt": "2026-10-03T07:31:13.793Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "09:50",
+        "departure": "09:45"
       }
     },
     "operation": "Single Charge Operation",
@@ -6412,6 +6810,12 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:13.793Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM293",
@@ -6424,37 +6828,31 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T05:08:56.617Z",
+    "updatedAt": "2026-10-03T12:45:14.381Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:05",
+        "departure": "13:00"
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": "Completed",
-    "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 93,
+    "chargingStatus": null,
+    "chargerBay": null,
+    "socBefore": 0,
+    "socAfter": 0,
     "fullDutyDistanceKm": 0,
-    "lastChargedTime": "10:38:54 am",
+    "lastChargedTime": null,
     "history": [
       {
-        "timestamp": "2026-09-30T15:36:53.110Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-01T16:29:16.246Z",
+        "timestamp": "2026-10-02T05:21:03.785Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -6466,13 +6864,13 @@
         "status": "Blocked"
       },
       {
-        "timestamp": "2026-10-03T05:06:48.507Z",
-        "soc": 93,
+        "timestamp": "2026-10-03T12:29:27.893Z",
+        "soc": 0,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T05:08:56.617Z",
+        "timestamp": "2026-10-03T12:45:14.381Z",
         "soc": 0,
         "condition": "Good",
         "status": "On Time"
@@ -6488,19 +6886,19 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:22:46.033Z",
+    "updatedAt": "2026-10-03T12:18:02.276Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "13:15",
+        "departure": "13:10"
       }
     },
     "operation": "Single Charge Operation",
@@ -6522,6 +6920,18 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T07:31:19.435Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:18:02.276Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM304",
@@ -6629,17 +7039,17 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 21,
+      "fullDutyDistanceKm": 21,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -6657,7 +7067,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6685,7 +7095,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6713,7 +7123,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM004 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6741,7 +7151,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM005 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6769,7 +7179,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6797,7 +7207,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM012 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6825,7 +7235,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6853,7 +7263,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM020 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6881,7 +7291,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM024 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6890,7 +7300,7 @@
       "soc": 0,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 71,
+      "estimatedRangeKm": 0,
       "fullDutyDistanceKm": 0,
       "operationMode": "Single Charge Operation",
       "blocked": true
@@ -6909,7 +7319,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM032 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6937,7 +7347,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM033 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6965,7 +7375,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM038 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -6993,7 +7403,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7021,7 +7431,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM054 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7049,7 +7459,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7077,7 +7487,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM057 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7105,7 +7515,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM058 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7133,7 +7543,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7161,7 +7571,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM068 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7189,7 +7599,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM075 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7217,7 +7627,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM080 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7245,7 +7655,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM081 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7273,7 +7683,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7301,7 +7711,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM086 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7329,7 +7739,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM088 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7357,7 +7767,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7385,7 +7795,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM116 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7413,7 +7823,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM119 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7441,7 +7851,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM124 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7469,7 +7879,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM151 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7497,7 +7907,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7525,17 +7935,17 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 118,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -7553,7 +7963,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM157 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7581,7 +7991,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM174 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7609,7 +8019,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM183 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7637,7 +8047,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM185 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7665,7 +8075,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM187 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7693,7 +8103,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM191 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7721,7 +8131,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM193 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7749,7 +8159,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7777,7 +8187,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM198 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7805,7 +8215,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM199 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7833,7 +8243,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM200 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7861,7 +8271,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM201 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7889,7 +8299,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM202 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7917,7 +8327,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM203 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7945,7 +8355,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM204 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -7973,7 +8383,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM205 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8001,7 +8411,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8029,7 +8439,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM207 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8057,7 +8467,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM208 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8085,7 +8495,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8113,7 +8523,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM210 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8141,7 +8551,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM212 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8169,7 +8579,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM213 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8197,7 +8607,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM214 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8225,7 +8635,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM215 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8253,7 +8663,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM216 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8281,7 +8691,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM217 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8309,7 +8719,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM218 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8337,7 +8747,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM219 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8365,7 +8775,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM220 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8393,7 +8803,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM221 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8421,7 +8831,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM222 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8449,7 +8859,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM223 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8477,7 +8887,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM224 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8505,7 +8915,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM225 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8533,7 +8943,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM227 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8561,7 +8971,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM238 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8589,7 +8999,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM239 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8617,7 +9027,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM240 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8645,7 +9055,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM245 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8673,7 +9083,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8701,7 +9111,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM249 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8729,7 +9139,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM250 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8757,7 +9167,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM253 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8785,7 +9195,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM255 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8813,7 +9223,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM256 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8841,7 +9251,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM257 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8869,7 +9279,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM258 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8897,7 +9307,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM259 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8925,7 +9335,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM260 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8953,7 +9363,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM261 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -8981,7 +9391,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM263 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9009,7 +9419,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM264 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9037,7 +9447,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM265 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9065,7 +9475,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM267 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9093,7 +9503,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM268 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9121,7 +9531,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM269 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9149,7 +9559,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM271 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9177,7 +9587,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM272 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9205,7 +9615,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9233,7 +9643,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM274 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9261,7 +9671,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM275 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9289,7 +9699,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM276 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9317,7 +9727,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM277 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9345,7 +9755,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM278 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9373,7 +9783,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM279 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9401,7 +9811,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM280 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9429,7 +9839,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM281 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9457,7 +9867,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM282 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9485,7 +9895,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM283 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9513,7 +9923,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM284 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9541,7 +9951,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM285 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9569,7 +9979,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM286 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9597,7 +10007,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM287 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9625,7 +10035,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM288 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9653,7 +10063,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM289 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9681,7 +10091,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM290 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9709,7 +10119,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM291 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9737,7 +10147,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM292 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9765,7 +10175,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM293 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9793,7 +10203,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM294 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9821,7 +10231,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM295 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9849,7 +10259,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM296 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9877,7 +10287,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM297 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9905,7 +10315,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM298 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9933,7 +10343,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM299 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9961,7 +10371,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -9989,7 +10399,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM303 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10017,7 +10427,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM304 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10047,17 +10457,17 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 21,
+      "fullDutyDistanceKm": 21,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -10075,7 +10485,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10103,7 +10513,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10131,7 +10541,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10159,7 +10569,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM004 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10187,7 +10597,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM005 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10215,7 +10625,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM292 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10243,7 +10653,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10271,7 +10681,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM012 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10299,7 +10709,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM294 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10327,7 +10737,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10355,7 +10765,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM020 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10383,7 +10793,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM304 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10411,7 +10821,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM024 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10420,7 +10830,7 @@
       "soc": 0,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 71,
+      "estimatedRangeKm": 0,
       "fullDutyDistanceKm": 0,
       "operationMode": "Single Charge Operation",
       "blocked": true
@@ -10439,7 +10849,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM032 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10467,7 +10877,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM033 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10495,7 +10905,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM038 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10523,7 +10933,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10551,7 +10961,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM054 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10579,7 +10989,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10607,7 +11017,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM057 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10635,7 +11045,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM058 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10663,7 +11073,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10691,7 +11101,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM297 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10719,7 +11129,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM068 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10747,7 +11157,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM075 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10775,7 +11185,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM080 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10803,7 +11213,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM081 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10831,7 +11241,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10859,7 +11269,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM293 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10887,7 +11297,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM086 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10915,7 +11325,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM088 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10943,7 +11353,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10971,7 +11381,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM116 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -10999,7 +11409,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM119 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11027,7 +11437,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM124 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11055,7 +11465,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM151 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11083,7 +11493,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11111,17 +11521,17 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 118,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -11139,7 +11549,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM157 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11167,7 +11577,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM174 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11195,7 +11605,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM183 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11223,7 +11633,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM185 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11251,7 +11661,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM187 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11279,7 +11689,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM191 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11307,7 +11717,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM193 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11335,7 +11745,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11363,7 +11773,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM198 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11391,7 +11801,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM199 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11419,7 +11829,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM200 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11447,7 +11857,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM201 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11475,7 +11885,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM202 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11503,7 +11913,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM203 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11531,7 +11941,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM204 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11559,7 +11969,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM205 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11587,7 +11997,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11615,7 +12025,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM207 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11643,7 +12053,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM208 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11671,7 +12081,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11699,7 +12109,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM210 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11727,7 +12137,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM212 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11755,7 +12165,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM213 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11783,7 +12193,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM214 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11811,7 +12221,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM215 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11839,7 +12249,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM216 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11867,7 +12277,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM286 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11895,7 +12305,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM217 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11923,7 +12333,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM256 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11951,7 +12361,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM218 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -11979,7 +12389,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM219 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12007,7 +12417,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM220 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12035,7 +12445,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM221 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12063,7 +12473,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM222 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12091,7 +12501,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM223 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12119,7 +12529,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM224 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12147,7 +12557,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM225 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12175,7 +12585,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM227 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12203,7 +12613,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM238 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12231,7 +12641,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM239 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12259,7 +12669,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM240 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12287,7 +12697,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM245 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12315,7 +12725,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12343,7 +12753,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM249 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12371,7 +12781,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM250 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12399,7 +12809,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM253 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12427,7 +12837,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM255 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12455,7 +12865,7 @@
       "assignedRouteDistanceKm": 228.48,
       "assignedRouteDisplay": "Route BM256 - 356Z (228.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12483,7 +12893,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM257 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12511,7 +12921,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM258 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12539,7 +12949,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM259 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12567,7 +12977,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM260 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12595,7 +13005,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM261 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12623,7 +13033,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM263 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12651,7 +13061,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM264 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12679,7 +13089,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM265 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12707,7 +13117,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM267 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12735,7 +13145,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM268 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12763,7 +13173,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM269 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12791,7 +13201,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM271 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12819,7 +13229,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM272 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12847,7 +13257,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12875,7 +13285,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM274 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12903,7 +13313,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM275 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12931,7 +13341,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM276 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12959,7 +13369,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM277 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -12987,7 +13397,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM278 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13015,7 +13425,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM279 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13043,7 +13453,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM280 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13071,7 +13481,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM281 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13099,7 +13509,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM282 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13127,7 +13537,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM283 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13155,7 +13565,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM284 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13183,7 +13593,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM285 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13211,7 +13621,7 @@
       "assignedRouteDistanceKm": 106.11,
       "assignedRouteDisplay": "Route BM286 - 399C (106.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13239,7 +13649,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM287 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13267,7 +13677,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM288 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13295,7 +13705,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM289 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13323,7 +13733,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM290 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13351,7 +13761,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM291 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13379,7 +13789,7 @@
       "assignedRouteDistanceKm": 99.12,
       "assignedRouteDisplay": "Route BM292 - 360K (99.1 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13407,7 +13817,7 @@
       "assignedRouteDistanceKm": 129.72,
       "assignedRouteDisplay": "Route BM293 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13435,7 +13845,7 @@
       "assignedRouteDistanceKm": 187.17,
       "assignedRouteDisplay": "Route BM294 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13463,7 +13873,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM295 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13491,7 +13901,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM296 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13519,7 +13929,7 @@
       "assignedRouteDistanceKm": 125.55,
       "assignedRouteDisplay": "Route BM297 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13547,7 +13957,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM298 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13575,7 +13985,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM299 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13603,7 +14013,7 @@
       "assignedRouteDistanceKm": 114.75,
       "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13631,7 +14041,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM303 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13659,7 +14069,7 @@
       "assignedRouteDistanceKm": 178.27,
       "assignedRouteDisplay": "Route BM304 - 361C (178.3 km)",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13803,17 +14213,17 @@
       "assignedVehicle": "BM001",
       "bmNumber": "BM001",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 25,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 21,
+      "fullDutyDistanceKm": 21,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
@@ -13822,7 +14232,7 @@
       "assignedVehicle": "BM002",
       "bmNumber": "BM002",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13841,7 +14251,7 @@
       "assignedVehicle": "BM003",
       "bmNumber": "BM003",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13860,7 +14270,7 @@
       "assignedVehicle": "BM004",
       "bmNumber": "BM004",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13879,7 +14289,7 @@
       "assignedVehicle": "BM005",
       "bmNumber": "BM005",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13898,7 +14308,7 @@
       "assignedVehicle": "BM010",
       "bmNumber": "BM010",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13917,7 +14327,7 @@
       "assignedVehicle": "BM012",
       "bmNumber": "BM012",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13936,7 +14346,7 @@
       "assignedVehicle": "BM019",
       "bmNumber": "BM019",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13955,7 +14365,7 @@
       "assignedVehicle": "BM020",
       "bmNumber": "BM020",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -13974,17 +14384,17 @@
       "assignedVehicle": "BM024",
       "bmNumber": "BM024",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 60,
+      "soc": 0,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 71,
-      "fullDutyDistanceKm": 71,
+      "estimatedRangeKm": 0,
+      "fullDutyDistanceKm": 0,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
@@ -13993,7 +14403,7 @@
       "assignedVehicle": "BM032",
       "bmNumber": "BM032",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14012,7 +14422,7 @@
       "assignedVehicle": "BM033",
       "bmNumber": "BM033",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14031,7 +14441,7 @@
       "assignedVehicle": "BM038",
       "bmNumber": "BM038",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14050,7 +14460,7 @@
       "assignedVehicle": "BM052",
       "bmNumber": "BM052",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14069,7 +14479,7 @@
       "assignedVehicle": "BM054",
       "bmNumber": "BM054",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14088,7 +14498,7 @@
       "assignedVehicle": "BM056",
       "bmNumber": "BM056",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14107,7 +14517,7 @@
       "assignedVehicle": "BM057",
       "bmNumber": "BM057",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14126,7 +14536,7 @@
       "assignedVehicle": "BM058",
       "bmNumber": "BM058",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14145,7 +14555,7 @@
       "assignedVehicle": "BM062",
       "bmNumber": "BM062",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14164,7 +14574,7 @@
       "assignedVehicle": "BM068",
       "bmNumber": "BM068",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14183,7 +14593,7 @@
       "assignedVehicle": "BM075",
       "bmNumber": "BM075",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14202,7 +14612,7 @@
       "assignedVehicle": "BM080",
       "bmNumber": "BM080",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14221,7 +14631,7 @@
       "assignedVehicle": "BM081",
       "bmNumber": "BM081",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14240,7 +14650,7 @@
       "assignedVehicle": "BM082",
       "bmNumber": "BM082",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14259,7 +14669,7 @@
       "assignedVehicle": "BM086",
       "bmNumber": "BM086",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14278,7 +14688,7 @@
       "assignedVehicle": "BM088",
       "bmNumber": "BM088",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14297,7 +14707,7 @@
       "assignedVehicle": "BM107",
       "bmNumber": "BM107",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14316,7 +14726,7 @@
       "assignedVehicle": "BM116",
       "bmNumber": "BM116",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14335,7 +14745,7 @@
       "assignedVehicle": "BM119",
       "bmNumber": "BM119",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14354,7 +14764,7 @@
       "assignedVehicle": "BM124",
       "bmNumber": "BM124",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14373,7 +14783,7 @@
       "assignedVehicle": "BM151",
       "bmNumber": "BM151",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14392,7 +14802,7 @@
       "assignedVehicle": "BM152",
       "bmNumber": "BM152",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14411,17 +14821,17 @@
       "assignedVehicle": "BM153",
       "bmNumber": "BM153",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 93,
+      "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 118,
-      "fullDutyDistanceKm": 118,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 187.17,
       "blocked": true
@@ -14430,7 +14840,7 @@
       "assignedVehicle": "BM157",
       "bmNumber": "BM157",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14449,7 +14859,7 @@
       "assignedVehicle": "BM174",
       "bmNumber": "BM174",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14468,7 +14878,7 @@
       "assignedVehicle": "BM183",
       "bmNumber": "BM183",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14487,7 +14897,7 @@
       "assignedVehicle": "BM185",
       "bmNumber": "BM185",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14506,7 +14916,7 @@
       "assignedVehicle": "BM187",
       "bmNumber": "BM187",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14525,7 +14935,7 @@
       "assignedVehicle": "BM191",
       "bmNumber": "BM191",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14544,7 +14954,7 @@
       "assignedVehicle": "BM193",
       "bmNumber": "BM193",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14563,7 +14973,7 @@
       "assignedVehicle": "BM197",
       "bmNumber": "BM197",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14582,7 +14992,7 @@
       "assignedVehicle": "BM198",
       "bmNumber": "BM198",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14601,7 +15011,7 @@
       "assignedVehicle": "BM199",
       "bmNumber": "BM199",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14620,7 +15030,7 @@
       "assignedVehicle": "BM200",
       "bmNumber": "BM200",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14639,7 +15049,7 @@
       "assignedVehicle": "BM201",
       "bmNumber": "BM201",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14658,7 +15068,7 @@
       "assignedVehicle": "BM202",
       "bmNumber": "BM202",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14677,7 +15087,7 @@
       "assignedVehicle": "BM203",
       "bmNumber": "BM203",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14696,7 +15106,7 @@
       "assignedVehicle": "BM204",
       "bmNumber": "BM204",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14715,7 +15125,7 @@
       "assignedVehicle": "BM205",
       "bmNumber": "BM205",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14734,7 +15144,7 @@
       "assignedVehicle": "BM206",
       "bmNumber": "BM206",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14753,7 +15163,7 @@
       "assignedVehicle": "BM207",
       "bmNumber": "BM207",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14772,7 +15182,7 @@
       "assignedVehicle": "BM208",
       "bmNumber": "BM208",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14791,7 +15201,7 @@
       "assignedVehicle": "BM209",
       "bmNumber": "BM209",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14810,7 +15220,7 @@
       "assignedVehicle": "BM210",
       "bmNumber": "BM210",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14829,7 +15239,7 @@
       "assignedVehicle": "BM212",
       "bmNumber": "BM212",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14848,7 +15258,7 @@
       "assignedVehicle": "BM213",
       "bmNumber": "BM213",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14867,7 +15277,7 @@
       "assignedVehicle": "BM214",
       "bmNumber": "BM214",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14886,7 +15296,7 @@
       "assignedVehicle": "BM215",
       "bmNumber": "BM215",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14905,7 +15315,7 @@
       "assignedVehicle": "BM216",
       "bmNumber": "BM216",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14924,7 +15334,7 @@
       "assignedVehicle": "BM217",
       "bmNumber": "BM217",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14943,7 +15353,7 @@
       "assignedVehicle": "BM218",
       "bmNumber": "BM218",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14962,7 +15372,7 @@
       "assignedVehicle": "BM219",
       "bmNumber": "BM219",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -14981,7 +15391,7 @@
       "assignedVehicle": "BM220",
       "bmNumber": "BM220",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15000,7 +15410,7 @@
       "assignedVehicle": "BM221",
       "bmNumber": "BM221",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15019,7 +15429,7 @@
       "assignedVehicle": "BM222",
       "bmNumber": "BM222",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15038,7 +15448,7 @@
       "assignedVehicle": "BM223",
       "bmNumber": "BM223",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15057,7 +15467,7 @@
       "assignedVehicle": "BM224",
       "bmNumber": "BM224",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15076,7 +15486,7 @@
       "assignedVehicle": "BM225",
       "bmNumber": "BM225",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15095,7 +15505,7 @@
       "assignedVehicle": "BM227",
       "bmNumber": "BM227",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15114,7 +15524,7 @@
       "assignedVehicle": "BM238",
       "bmNumber": "BM238",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15133,7 +15543,7 @@
       "assignedVehicle": "BM239",
       "bmNumber": "BM239",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15152,7 +15562,7 @@
       "assignedVehicle": "BM240",
       "bmNumber": "BM240",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15171,7 +15581,7 @@
       "assignedVehicle": "BM245",
       "bmNumber": "BM245",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15190,7 +15600,7 @@
       "assignedVehicle": "BM248",
       "bmNumber": "BM248",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15209,7 +15619,7 @@
       "assignedVehicle": "BM249",
       "bmNumber": "BM249",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15228,7 +15638,7 @@
       "assignedVehicle": "BM250",
       "bmNumber": "BM250",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15247,7 +15657,7 @@
       "assignedVehicle": "BM253",
       "bmNumber": "BM253",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15266,7 +15676,7 @@
       "assignedVehicle": "BM255",
       "bmNumber": "BM255",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15285,7 +15695,7 @@
       "assignedVehicle": "BM256",
       "bmNumber": "BM256",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15304,7 +15714,7 @@
       "assignedVehicle": "BM257",
       "bmNumber": "BM257",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15323,7 +15733,7 @@
       "assignedVehicle": "BM258",
       "bmNumber": "BM258",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15342,7 +15752,7 @@
       "assignedVehicle": "BM259",
       "bmNumber": "BM259",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15361,7 +15771,7 @@
       "assignedVehicle": "BM260",
       "bmNumber": "BM260",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15380,7 +15790,7 @@
       "assignedVehicle": "BM261",
       "bmNumber": "BM261",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15399,7 +15809,7 @@
       "assignedVehicle": "BM263",
       "bmNumber": "BM263",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15418,7 +15828,7 @@
       "assignedVehicle": "BM264",
       "bmNumber": "BM264",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15437,7 +15847,7 @@
       "assignedVehicle": "BM265",
       "bmNumber": "BM265",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15456,7 +15866,7 @@
       "assignedVehicle": "BM267",
       "bmNumber": "BM267",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15475,7 +15885,7 @@
       "assignedVehicle": "BM268",
       "bmNumber": "BM268",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15494,7 +15904,7 @@
       "assignedVehicle": "BM269",
       "bmNumber": "BM269",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15513,7 +15923,7 @@
       "assignedVehicle": "BM271",
       "bmNumber": "BM271",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15532,7 +15942,7 @@
       "assignedVehicle": "BM272",
       "bmNumber": "BM272",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15551,7 +15961,7 @@
       "assignedVehicle": "BM273",
       "bmNumber": "BM273",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15570,7 +15980,7 @@
       "assignedVehicle": "BM274",
       "bmNumber": "BM274",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15589,7 +15999,7 @@
       "assignedVehicle": "BM275",
       "bmNumber": "BM275",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15608,7 +16018,7 @@
       "assignedVehicle": "BM276",
       "bmNumber": "BM276",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15627,7 +16037,7 @@
       "assignedVehicle": "BM277",
       "bmNumber": "BM277",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15646,7 +16056,7 @@
       "assignedVehicle": "BM278",
       "bmNumber": "BM278",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15665,7 +16075,7 @@
       "assignedVehicle": "BM279",
       "bmNumber": "BM279",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15684,7 +16094,7 @@
       "assignedVehicle": "BM280",
       "bmNumber": "BM280",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15703,7 +16113,7 @@
       "assignedVehicle": "BM281",
       "bmNumber": "BM281",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15722,7 +16132,7 @@
       "assignedVehicle": "BM282",
       "bmNumber": "BM282",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15741,7 +16151,7 @@
       "assignedVehicle": "BM283",
       "bmNumber": "BM283",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15760,7 +16170,7 @@
       "assignedVehicle": "BM284",
       "bmNumber": "BM284",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15779,7 +16189,7 @@
       "assignedVehicle": "BM285",
       "bmNumber": "BM285",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15798,7 +16208,7 @@
       "assignedVehicle": "BM286",
       "bmNumber": "BM286",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15817,7 +16227,7 @@
       "assignedVehicle": "BM287",
       "bmNumber": "BM287",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15836,7 +16246,7 @@
       "assignedVehicle": "BM288",
       "bmNumber": "BM288",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15855,7 +16265,7 @@
       "assignedVehicle": "BM289",
       "bmNumber": "BM289",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15874,7 +16284,7 @@
       "assignedVehicle": "BM290",
       "bmNumber": "BM290",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15893,7 +16303,7 @@
       "assignedVehicle": "BM291",
       "bmNumber": "BM291",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15912,7 +16322,7 @@
       "assignedVehicle": "BM292",
       "bmNumber": "BM292",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15931,7 +16341,7 @@
       "assignedVehicle": "BM293",
       "bmNumber": "BM293",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15950,7 +16360,7 @@
       "assignedVehicle": "BM294",
       "bmNumber": "BM294",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15969,7 +16379,7 @@
       "assignedVehicle": "BM295",
       "bmNumber": "BM295",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -15988,7 +16398,7 @@
       "assignedVehicle": "BM296",
       "bmNumber": "BM296",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16007,7 +16417,7 @@
       "assignedVehicle": "BM297",
       "bmNumber": "BM297",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16026,7 +16436,7 @@
       "assignedVehicle": "BM298",
       "bmNumber": "BM298",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16045,7 +16455,7 @@
       "assignedVehicle": "BM299",
       "bmNumber": "BM299",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16064,7 +16474,7 @@
       "assignedVehicle": "BM300",
       "bmNumber": "BM300",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16083,7 +16493,7 @@
       "assignedVehicle": "BM303",
       "bmNumber": "BM303",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
@@ -16102,7 +16512,7 @@
       "assignedVehicle": "BM304",
       "bmNumber": "BM304",
       "routeCategory": "COMPLEX",
-      "timeSlot": "NORMAL",
+      "timeSlot": "EXTREME_PEAK",
       "busCategory": "C",
       "allowedCategories": [
         "A"
