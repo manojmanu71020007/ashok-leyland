@@ -1881,12 +1881,12 @@
     "fullDutyDistanceKm": 0
   },
   "BM153": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 93,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-01T16:29:16.246Z",
+    "updatedAt": "2026-10-03T05:06:48.507Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -1901,6 +1901,13 @@
         "departure": "07:30"
       }
     },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "N/A",
+    "socBefore": 14,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "10:36:46 am",
     "history": [
       {
         "timestamp": "2026-09-30T15:36:53.110Z",
@@ -1919,16 +1926,21 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T05:06:48.507Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM153",
+    "busNumber": "328H",
     "bmNumber": "BM153",
     "assignedRouteId": "BM153",
     "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
-    "blocked": true,
-    "busNumber": "328H",
-    "fullDutyDistanceKm": 0
+    "blocked": true
   },
   "BUS-33": {
     "uniqueId": "BUS-33",
@@ -6024,31 +6036,37 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-02T05:21:07.344Z",
+    "updatedAt": "2026-10-03T05:06:48.507Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "On Time": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "Ahead": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "07:35",
+        "departure": "07:30"
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": null,
+    "chargingStatus": "Completed",
+    "chargerBay": "N/A",
+    "socBefore": 14,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "10:36:46 am",
     "history": [
       {
-        "timestamp": "2026-10-02T05:21:03.785Z",
+        "timestamp": "2026-09-30T15:36:53.110Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-01T16:29:16.246Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -6058,6 +6076,12 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T05:06:48.507Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM294",
@@ -7108,16 +7132,16 @@
       "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -10694,16 +10718,16 @@
       "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -13994,16 +14018,16 @@
       "bmNumber": "BM153",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 187.17,
       "blocked": true
