@@ -146,6 +146,13 @@
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(14,165,233,0.35); }
     .btn-primary:active { transform: none; }
     .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .btn-primary.disabled {
+      opacity: 0.55 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      background: #94a3b8 !important;
+      box-shadow: none !important;
+    }
 
     /* ── Lock / Unlock Button ── */
     .lock-row {
@@ -509,9 +516,13 @@
 
 <!-- ── Submit ── -->
 <div class="card" style="padding: 18px 24px;">
-  <button class="btn btn-primary" id="submitBtn" onclick="submitCleaning()" disabled>
+  <button type="button" class="btn btn-primary disabled" id="submitBtn" onclick="handleSubmitClick()">
     Submit Cleaning Record
   </button>
+  <!-- 7-second warning comment when locked or checklists incomplete -->
+  <div id="submitWarningText" style="display:none; margin-top:12px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 16px; color:#991b1b; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;">
+    <span id="submitWarningSpan">⚠️ Complete all the checklists to submit this cleaning record!</span>
+  </div>
 </div>
 
 <!-- ── Today's Cleaning Records ── -->
@@ -586,6 +597,18 @@
     return getLockedBuses().some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('clean'));
   }
 
+  function isBusLockedAnywhere(bm, reg) {
+    if (!bm && !reg) return false;
+    const locked = getLockedBuses();
+    return locked.some(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)));
+  }
+
+  function getBusLockInfo(bm, reg) {
+    if (!bm && !reg) return null;
+    const locked = getLockedBuses();
+    return locked.find(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg))) || null;
+  }
+
   function isBusInCharging(bm, reg) {
     if (!bm && !reg) return false;
     const locked = getLockedBuses();
@@ -637,6 +660,7 @@
         unlockBtn.title = 'Please complete all 10 checklists before unlocking';
       }
     }
+    updateSubmitBtn();
   }
 
   function handleUnlockClick() {
@@ -765,6 +789,7 @@
     if (!bm) {
       lockRow.classList.remove('show');
       lockBanner.classList.remove('show');
+      updateSubmitBtn();
       return;
     }
 
@@ -781,6 +806,7 @@
     } else {
       lockBanner.classList.remove('show');
     }
+    updateSubmitBtn();
   }
 
   function renderOngoingButtons() {
@@ -1054,12 +1080,94 @@
 
   function updateSubmitBtn() {
     const bm = document.getElementById('busSelect').value;
-    document.getElementById('submitBtn').disabled = !bm;
+    const submitBtn = document.getElementById('submitBtn');
+    const warnEl = document.getElementById('submitWarningText');
+    if (!submitBtn) return;
+
+    if (!bm) {
+      submitBtn.classList.add('disabled');
+      submitBtn.title = 'Please select a bus';
+      if (warnEl) warnEl.style.display = 'none';
+      return;
+    }
+
+    const lockInfo = getBusLockInfo(bm);
+    const allDone = checkAllChecklistsDone();
+
+    if (lockInfo) {
+      submitBtn.classList.add('disabled');
+      const isCharge = String(lockInfo.page || '').toLowerCase().includes('charg');
+      submitBtn.title = `Bus ${bm} is currently locked for ${isCharge ? 'Charging' : 'Cleaning'}. Unlock before submitting records.`;
+    } else if (!allDone) {
+      submitBtn.classList.add('disabled');
+      submitBtn.title = 'Complete all 10 checklists before submitting cleaning record';
+    } else {
+      submitBtn.classList.remove('disabled');
+      submitBtn.title = 'Click to submit cleaning record';
+      if (warnEl) warnEl.style.display = 'none';
+    }
+  }
+
+  function handleSubmitClick() {
+    const bm = document.getElementById('busSelect').value;
+    if (!bm) {
+      showToast('⚠️ Please select a bus first.', 'error', 3000);
+      return;
+    }
+
+    const lockInfo = getBusLockInfo(bm);
+    if (lockInfo) {
+      const isCharge = String(lockInfo.page || '').toLowerCase().includes('charg');
+      const pageName = isCharge ? 'Charging' : 'Cleaning';
+      const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for ${pageName}! Please complete the process and unlock the bus before submitting records.`;
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
+
+    const allDone = checkAllChecklistsDone();
+    if (!allDone) {
+      const msg = '⚠️ Complete all the checklists to submit this cleaning record!';
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
+
+    submitCleaning();
+  }
+
+  function showSubmitWarning(msg, duration = 7000) {
+    const warnEl = document.getElementById('submitWarningText');
+    const warnSpan = document.getElementById('submitWarningSpan');
+    if (!warnEl) return;
+    if (warnSpan && msg) warnSpan.textContent = msg;
+    warnEl.style.display = 'flex';
+    clearTimeout(warnEl._timer);
+    warnEl._timer = setTimeout(() => {
+      warnEl.style.display = 'none';
+    }, duration);
   }
 
   function submitCleaning() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) return;
+
+    const lockInfo = getBusLockInfo(bm);
+    if (lockInfo) {
+      const isCharge = String(lockInfo.page || '').toLowerCase().includes('charg');
+      const pageName = isCharge ? 'Charging' : 'Cleaning';
+      const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for ${pageName}! Please complete the process and unlock the bus before submitting records.`;
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
+
+    if (!checkAllChecklistsDone()) {
+      const msg = '⚠️ Complete all the checklists to submit this cleaning record!';
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
 
     const checks = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].map(id => ({
       label: document.querySelector(`label[for="${id}"]`)?.textContent || id,
