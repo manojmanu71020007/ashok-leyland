@@ -2187,6 +2187,38 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // ── GET /api/schedule-categories ──────────────────────────────────────────
+    if (pathname === "/api/schedule-categories") {
+        try {
+            const schedPath = path.join(BASE_DIR, "vehicles", "schedule_categories.json");
+            if (fs.existsSync(schedPath)) {
+                const data = JSON.parse(fs.readFileSync(schedPath, "utf8"));
+                sendJson(res, { ok: true, count: data.length, schedules: data });
+            } else {
+                sendJson(res, { ok: false, error: "Schedule categories not found" }, 404);
+            }
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load schedule categories", details: error.message }, 500);
+        }
+        return;
+    }
+
+    // ── GET /api/bus-categories ───────────────────────────────────────────────
+    if (pathname === "/api/bus-categories") {
+        try {
+            const busPath = path.join(BASE_DIR, "vehicles", "bus_categories.json");
+            if (fs.existsSync(busPath)) {
+                const data = JSON.parse(fs.readFileSync(busPath, "utf8"));
+                sendJson(res, { ok: true, count: data.length, buses: data });
+            } else {
+                sendJson(res, { ok: false, error: "Bus categories not found" }, 404);
+            }
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load bus categories", details: error.message }, 500);
+        }
+        return;
+    }
+
     // ── GET /api/matrix ──────────────────────────────────────────────────────
     if (pathname === "/api/matrix") {
         sendJson(res, {
@@ -2195,14 +2227,19 @@ const server = http.createServer(async (req, res) => {
             title: "Priority Allocation Matrix",
             currentSlot: getTimeSlot(),
             busRangeCategories: {
-                A: { name: "High", rangeKm: ">120 km" },
-                B: { name: "Medium", rangeKm: "100-120 km" },
-                C: { name: "Low", rangeKm: "<100 km" }
+                A: { name: "High", rangeKm: ">120 km (121.25–136.34 km)", count: 41 },
+                B: { name: "Medium", rangeKm: "106–120.5 km (106.05–120.53 km)", count: 59 },
+                C: { name: "Low", rangeKm: "<106 km (62.05–105.50 km)", count: 22 }
             },
             routeCategories: {
                 SIMPLE: { meaning: "Easy to operate", distanceKm: "< 10 km" },
                 MODERATE: { meaning: "Normal effort", distanceKm: "10 - 20 km" },
                 COMPLEX: { meaning: "Requires additional planning", distanceKm: ">= 20 km" }
+            },
+            scheduleCategories: {
+                STANDARD: { name: "Standard", reqRangeKm: "91.9–101.6 km", count: 17 },
+                MODERATE: { name: "Moderate", reqRangeKm: "108.6–116.5 km", count: 34 },
+                COMPLEX:  { name: "Complex", reqRangeKm: "117.7–146.9 km", count: 79 }
             },
             timeSlots: {
                 NORMAL: "05:00–07:00 (and 23:00–05:00)",
