@@ -791,7 +791,7 @@ function ensureFixedAssignments(state) {
     for (const r of routeInfos) {
         const uId = r.uniqueId;
         const s = state[uId] || state[r.busShortName] || state[r.routeId] || {};
-        const soc = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 100;
+        const soc = Number.isFinite(Number(s.soc)) ? Number(s.soc) : 0;
         const range = estimatedRangeKm(soc, uId);
         vehicleTelemetry[uId] = {
             uniqueId: uId,
@@ -825,7 +825,7 @@ function ensureFixedAssignments(state) {
         const uId = r.uniqueId;
         const assignedRouteId = r.routeId;
         const assignedRouteObj = r;
-        const t = vehicleTelemetry[uId] || { soc: 100, condition: "Good", driver: "Driver Assigned", estimatedRangeKm: 128, busCategory: "A" };
+        const t = vehicleTelemetry[uId] || { soc: 0, condition: "Good", driver: "Driver Assigned", estimatedRangeKm: 0, busCategory: "C" };
         const range = estimatedRangeKm(t.soc, uId);
         const dist = assignedRouteObj.gtfsDistanceKm;
         const isNoDriver = Boolean(t.driver && t.driver.toLowerCase().includes("no"));
@@ -1140,7 +1140,7 @@ function normalizeBusStateEntry(entry, existing = {}) {
     const status = normalizeBusStatus(rawStatus);
     const soc = Number.isFinite(Number(entry?.soc))
         ? Math.max(0, Math.min(100, Number(entry.soc)))
-        : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : 100);
+        : (Number.isFinite(Number(existing?.soc)) ? Number(existing.soc) : 0);
     const condition = entry?.condition ? String(entry.condition) : (existing?.condition || "Good");
     const driver = entry?.driver ? String(entry.driver) : (existing?.driver || "Driver Assigned");
     const timings = entry?.statusTimings && typeof entry.statusTimings === "object"
@@ -1447,7 +1447,7 @@ function resolveBusAndRoute(rawBusId) {
         || busState[assignedRouteId]
         || {};
 
-    const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
+    const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 0;
     const condition = stateEntry.condition || "Good";
     const routeDistanceKm = (assignedRouteObj && calculateRouteDistanceByRouteId(assignedRouteObj.routeId))
         || (matchingRoute && calculateRouteDistanceByRouteId(matchingRoute.routeId))
@@ -1605,7 +1605,7 @@ function getBusTasks(busIdentifier, routeIdParam) {
     const finalUniqueId = assignedVehicle || uniqueId;
 
     const stateEntry = busState[finalUniqueId] || busState[targetRoute.routeId] || busState[targetRoute.busNumber] || {};
-    const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 100;
+    const currentSoc = Number.isFinite(Number(stateEntry.soc)) ? Number(stateEntry.soc) : 0;
     const condition = stateEntry.condition || "Good";
 
     const distKm = calculateRouteDistanceByRouteId(targetRoute.corridorRouteId || targetRoute.routeId) || targetRoute.gtfsDistanceKm || targetRoute.distanceKm || 28.7;
@@ -2228,7 +2228,7 @@ const server = http.createServer(async (req, res) => {
                 const assignedDisplay = `Route ${assignedRouteId} - ${assignedRouteObj.busNumber} (${dist.toFixed(1)} km)`;
 
                 const state = busState[uniqueId] || busState[r.busNumber] || busState[r.routeId] || {};
-                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 100;
+                const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : 0;
                 const condition = state.condition || "Good";
                 const status = state.status || (soc > 30 ? "Active" : soc > 15 ? "Warning" : "Blocked");
                 const range = Math.round(Math.max(0, soc - 10) * 1.42);

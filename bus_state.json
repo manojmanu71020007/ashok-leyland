@@ -1,8 +1,8 @@
 {
   "1": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T14:38:40.383Z",
@@ -44,17 +44,24 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.166Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM238",
     "busNumber": "356Z",
     "bmNumber": "BM238",
-    "blocked": true
+    "blocked": true,
+    "fullDutyDistanceKm": 0
   },
   "2": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T14:59:28.011Z",
@@ -84,17 +91,24 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM291",
     "busNumber": "360K",
     "bmNumber": "BM291",
-    "blocked": false
+    "blocked": false,
+    "fullDutyDistanceKm": 0
   },
   "3": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T16:32:14.218Z",
@@ -124,35 +138,44 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM001",
     "busNumber": "600F",
     "bmNumber": "BM001",
-    "blocked": false
+    "blocked": false,
+    "fullDutyDistanceKm": 0
   },
   "4": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM086",
     "busNumber": "KBS3A",
     "blocked": false,
-    "bmNumber": "BM086"
+    "bmNumber": "BM086",
+    "fullDutyDistanceKm": 0
   },
   "5": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM293",
     "busNumber": "KBS3F",
     "blocked": true,
-    "bmNumber": "BM293"
+    "bmNumber": "BM293",
+    "fullDutyDistanceKm": 0
   },
   "6": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T16:29:16.246Z",
@@ -182,35 +205,44 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM153",
     "busNumber": "328H",
     "bmNumber": "BM153",
-    "blocked": true
+    "blocked": true,
+    "fullDutyDistanceKm": 0
   },
   "7": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM299",
     "busNumber": "361C",
     "blocked": true,
-    "bmNumber": "BM299"
+    "bmNumber": "BM299",
+    "fullDutyDistanceKm": 0
   },
   "8": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM216",
     "busNumber": "399C",
     "blocked": false,
-    "bmNumber": "BM216"
+    "bmNumber": "BM216",
+    "fullDutyDistanceKm": 0
   },
   "9": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T15:04:26.348Z",
@@ -234,17 +266,24 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM002",
     "busNumber": "500DC",
     "bmNumber": "BM002",
-    "blocked": true
+    "blocked": true,
+    "fullDutyDistanceKm": 0
   },
   "BM001": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 97,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T14:27:12.373Z",
@@ -265,9 +304,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 20,
-    "socAfter": 97,
-    "fullDutyDistanceKm": 124,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": "05:57 pm",
     "history": [
       {
@@ -329,6 +368,12 @@
         "soc": 97,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM001",
@@ -340,9 +385,9 @@
     "blocked": false
   },
   "BUS-01": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T13:04:14.630Z",
@@ -372,21 +417,28 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BUS-01",
     "assignedRouteId": "1",
     "assignedRouteDisplay": "Route 1 - 356Z (228.5 km)",
     "assignedRouteShortName": "356Z",
-    "blocked": true
+    "blocked": true,
+    "fullDutyDistanceKm": 0
   },
   "BM002": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 90,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T04:47:15.930Z",
+    "updatedAt": "2026-10-01T15:04:26.348Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -401,13 +453,6 @@
         "departure": "07:30"
       }
     },
-    "operation": "Single Charge Operation",
-    "chargingStatus": "Completed",
-    "chargerBay": "N/A",
-    "socBefore": 20,
-    "socAfter": 90,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": "10:17:01 am",
     "history": [
       {
         "timestamp": "2026-10-01T15:04:26.348Z",
@@ -416,24 +461,25 @@
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T04:47:15.930Z",
-        "soc": 90,
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
         "condition": "Good",
-        "status": "On Time"
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM002",
-    "busNumber": "600F",
     "bmNumber": "BM002",
     "assignedRouteId": "BM002",
     "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true
+    "blocked": false,
+    "busNumber": "600F",
+    "fullDutyDistanceKm": 0
   },
   "BUS-02": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T12:55:40.941Z",
@@ -457,18 +503,25 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BUS-02",
     "assignedRouteId": "2",
     "assignedRouteDisplay": "Route 2 - 360K (99.1 km)",
     "assignedRouteShortName": "360K",
-    "blocked": false
+    "blocked": false,
+    "fullDutyDistanceKm": 0
   },
   "BM003": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 96,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T14:09:22.928Z",
@@ -489,9 +542,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 20,
-    "socAfter": 96,
-    "fullDutyDistanceKm": 122,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": "07:39 pm",
     "history": [
       {
@@ -505,6 +558,12 @@
         "soc": 96,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM003",
@@ -516,9 +575,9 @@
     "blocked": false
   },
   "BUS-03": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T12:58:51.284Z",
@@ -542,13 +601,20 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BUS-03",
     "assignedRouteId": "3",
     "assignedRouteDisplay": "Route 3 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "fullDutyDistanceKm": 0
   },
   "BM004": {
     "uniqueId": "BM004",
@@ -556,17 +622,18 @@
     "regNo": "KA51AH2429",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM004",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM004 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM004"
+    "bmNumber": "BM004",
+    "fullDutyDistanceKm": 0
   },
   "BUS-04": {
     "uniqueId": "BUS-04",
@@ -574,21 +641,22 @@
     "regNo": "KA51AH2429",
     "busNumber": "BM004",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route 4 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM005": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:06.393Z",
@@ -609,9 +677,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -619,6 +687,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM005",
@@ -635,16 +709,17 @@
     "regNo": "KA51AH2421",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/78",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "5",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route 5 - KBS3F (129.7 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM010": {
     "uniqueId": "BM010",
@@ -652,17 +727,18 @@
     "regNo": "KA51AH2424",
     "busNumber": "600F",
     "scheduleId": "KBS3A/80",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM010",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM010"
+    "bmNumber": "BM010",
+    "fullDutyDistanceKm": 0
   },
   "BUS-06": {
     "uniqueId": "BUS-06",
@@ -670,21 +746,22 @@
     "regNo": "KA51AH2424",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/80",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 6 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM012": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:21:07.344Z",
@@ -705,9 +782,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -715,6 +792,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM012",
@@ -731,16 +814,17 @@
     "regNo": "KA51AH2551",
     "busNumber": "328H",
     "scheduleId": "328H/28",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 7 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM019": {
     "uniqueId": "BM019",
@@ -748,22 +832,23 @@
     "regNo": "KA51AH2552",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM019",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM019"
+    "bmNumber": "BM019",
+    "fullDutyDistanceKm": 0
   },
   "BUS-08": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "Active",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T11:37:02.312529Z",
@@ -799,6 +884,12 @@
         "soc": 15,
         "condition": "Not Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BUS-08",
@@ -811,12 +902,13 @@
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 8 - 399C (106.1 km)",
     "depot": "Chandapura (BMT-32)",
-    "blocked": false
+    "blocked": false,
+    "fullDutyDistanceKm": 0
   },
   "BM020": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:46.033Z",
@@ -837,9 +929,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -847,6 +939,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM020",
@@ -863,16 +961,17 @@
     "regNo": "KA51AH2556",
     "busNumber": "361C",
     "scheduleId": "361C/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "9",
     "assignedRouteShortName": "500DC",
     "assignedRouteDisplay": "Route 9 - 500DC (149.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM024": {
     "uniqueId": "BM024",
@@ -880,17 +979,18 @@
     "regNo": "KA51AH2619",
     "busNumber": "600F",
     "scheduleId": "328H/1",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM024",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM024 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM024"
+    "bmNumber": "BM024",
+    "fullDutyDistanceKm": 0
   },
   "BUS-10": {
     "uniqueId": "BUS-10",
@@ -898,16 +998,17 @@
     "regNo": "KA51AH2619",
     "busNumber": "328H",
     "scheduleId": "328H/1",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/1)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM032": {
     "uniqueId": "BM032",
@@ -915,17 +1016,18 @@
     "regNo": "KA51AH2739",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM032",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM032 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM032"
+    "bmNumber": "BM032",
+    "fullDutyDistanceKm": 0
   },
   "BUS-11": {
     "uniqueId": "BUS-11",
@@ -933,16 +1035,17 @@
     "regNo": "KA51AH2739",
     "busNumber": "BM032",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM033": {
     "uniqueId": "BM033",
@@ -950,17 +1053,18 @@
     "regNo": "KA51AH2740",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM033",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM033 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM033"
+    "bmNumber": "BM033",
+    "fullDutyDistanceKm": 0
   },
   "BUS-12": {
     "uniqueId": "BUS-12",
@@ -968,16 +1072,17 @@
     "regNo": "KA51AH2740",
     "busNumber": "BM033",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM038": {
     "uniqueId": "BM038",
@@ -985,17 +1090,18 @@
     "regNo": "KA51AH2741",
     "busNumber": "328H",
     "scheduleId": "328H/28",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM038",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM038 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM038"
+    "bmNumber": "BM038",
+    "fullDutyDistanceKm": 0
   },
   "BUS-13": {
     "uniqueId": "BUS-13",
@@ -1003,16 +1109,17 @@
     "regNo": "KA51AH2741",
     "busNumber": "328H",
     "scheduleId": "328H/28",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/28)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM052": {
     "uniqueId": "BM052",
@@ -1020,17 +1127,18 @@
     "regNo": "KA51AH2955",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM052",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM052"
+    "bmNumber": "BM052",
+    "fullDutyDistanceKm": 0
   },
   "BUS-14": {
     "uniqueId": "BUS-14",
@@ -1038,21 +1146,22 @@
     "regNo": "KA51AH2955",
     "busNumber": "BM052",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM054": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T02:23:41.994Z",
@@ -1073,9 +1182,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -1083,6 +1192,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM054",
@@ -1099,16 +1214,17 @@
     "regNo": "KA51AH2951",
     "busNumber": "361C",
     "scheduleId": "361C/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/2)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM056": {
     "uniqueId": "BM056",
@@ -1116,17 +1232,18 @@
     "regNo": "KA51AH2953",
     "busNumber": "600F",
     "scheduleId": "360K/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM056",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM056"
+    "bmNumber": "BM056",
+    "fullDutyDistanceKm": 0
   },
   "BUS-16": {
     "uniqueId": "BUS-16",
@@ -1134,16 +1251,17 @@
     "regNo": "KA51AH2953",
     "busNumber": "360K",
     "scheduleId": "360K/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM057": {
     "uniqueId": "BM057",
@@ -1151,17 +1269,18 @@
     "regNo": "KA51AH2956",
     "busNumber": "328H",
     "scheduleId": "328H/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM057",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM057 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM057"
+    "bmNumber": "BM057",
+    "fullDutyDistanceKm": 0
   },
   "BUS-17": {
     "uniqueId": "BUS-17",
@@ -1169,16 +1288,17 @@
     "regNo": "KA51AH2956",
     "busNumber": "328H",
     "scheduleId": "328H/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/6)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM058": {
     "uniqueId": "BM058",
@@ -1186,17 +1306,18 @@
     "regNo": "KA51AH3603",
     "busNumber": "600F",
     "scheduleId": "600F/75",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM058",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM058 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM058"
+    "bmNumber": "BM058",
+    "fullDutyDistanceKm": 0
   },
   "BUS-18": {
     "uniqueId": "BUS-18",
@@ -1204,16 +1325,17 @@
     "regNo": "KA51AH3603",
     "busNumber": "600F",
     "scheduleId": "600F/75",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/75)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM062": {
     "uniqueId": "BM062",
@@ -1221,17 +1343,18 @@
     "regNo": "KA51AH3269",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/77",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM062",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM062 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM062"
+    "bmNumber": "BM062",
+    "fullDutyDistanceKm": 0
   },
   "BUS-19": {
     "uniqueId": "BUS-19",
@@ -1239,16 +1362,17 @@
     "regNo": "KA51AH3269",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/77",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/77)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM068": {
     "uniqueId": "BM068",
@@ -1256,17 +1380,18 @@
     "regNo": "KA51AH3266",
     "busNumber": "328H",
     "scheduleId": "328H/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM068",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM068 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM068"
+    "bmNumber": "BM068",
+    "fullDutyDistanceKm": 0
   },
   "BUS-20": {
     "uniqueId": "BUS-20",
@@ -1274,16 +1399,17 @@
     "regNo": "KA51AH3266",
     "busNumber": "328H",
     "scheduleId": "328H/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM075": {
     "uniqueId": "BM075",
@@ -1291,17 +1417,18 @@
     "regNo": "KA51AH3122",
     "busNumber": "328H",
     "scheduleId": "328H/13",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM075",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM075 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM075"
+    "bmNumber": "BM075",
+    "fullDutyDistanceKm": 0
   },
   "BUS-21": {
     "uniqueId": "BUS-21",
@@ -1309,16 +1436,17 @@
     "regNo": "KA51AH3122",
     "busNumber": "328H",
     "scheduleId": "328H/13",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/13)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM080": {
     "uniqueId": "BM080",
@@ -1326,17 +1454,18 @@
     "regNo": "KA51AH3336",
     "busNumber": "360K",
     "scheduleId": "360K/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM080",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route BM080 - 360K (99.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM080"
+    "bmNumber": "BM080",
+    "fullDutyDistanceKm": 0
   },
   "BUS-22": {
     "uniqueId": "BUS-22",
@@ -1344,16 +1473,17 @@
     "regNo": "KA51AH3336",
     "busNumber": "360K",
     "scheduleId": "360K/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/4)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM081": {
     "uniqueId": "BM081",
@@ -1361,17 +1491,18 @@
     "regNo": "KA51AH3129",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM081",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM081 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM081"
+    "bmNumber": "BM081",
+    "fullDutyDistanceKm": 0
   },
   "BUS-23": {
     "uniqueId": "BUS-23",
@@ -1379,21 +1510,22 @@
     "regNo": "KA51AH3129",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/2)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM082": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:28.444Z",
@@ -1414,9 +1546,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -1424,6 +1556,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM082",
@@ -1440,28 +1578,30 @@
     "regNo": "KA51AH3131",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/16",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "5",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route KBS3F (KBS3F/16)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM086": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM086",
     "busNumber": "KBS3A",
     "blocked": false,
     "bmNumber": "BM086",
     "assignedRouteId": "BM086",
     "assignedRouteDisplay": "Route BM086 - KBS3A (125.5 km)",
-    "assignedRouteShortName": "KBS3A"
+    "assignedRouteShortName": "KBS3A",
+    "fullDutyDistanceKm": 0
   },
   "BUS-25": {
     "uniqueId": "BUS-25",
@@ -1469,16 +1609,17 @@
     "regNo": "KA51AH3125",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/2)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM088": {
     "uniqueId": "BM088",
@@ -1486,17 +1627,18 @@
     "regNo": "KA51AH3127",
     "busNumber": "328H",
     "scheduleId": "399C/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM088",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM088 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM088"
+    "bmNumber": "BM088",
+    "fullDutyDistanceKm": 0
   },
   "BUS-26": {
     "uniqueId": "BUS-26",
@@ -1504,16 +1646,17 @@
     "regNo": "KA51AH3127",
     "busNumber": "399C",
     "scheduleId": "399C/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "8",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 399C (399C/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM107": {
     "uniqueId": "BM107",
@@ -1521,17 +1664,18 @@
     "regNo": "KA51AH4062",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM107",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM107"
+    "bmNumber": "BM107",
+    "fullDutyDistanceKm": 0
   },
   "BUS-27": {
     "uniqueId": "BUS-27",
@@ -1539,16 +1683,17 @@
     "regNo": "KA51AH4062",
     "busNumber": "BM107",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM116": {
     "uniqueId": "BM116",
@@ -1556,17 +1701,18 @@
     "regNo": "KA51AH4068",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM116",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM116 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM116"
+    "bmNumber": "BM116",
+    "fullDutyDistanceKm": 0
   },
   "BUS-28": {
     "uniqueId": "BUS-28",
@@ -1574,16 +1720,17 @@
     "regNo": "KA51AH4068",
     "busNumber": "BM116",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM119": {
     "uniqueId": "BM119",
@@ -1591,17 +1738,18 @@
     "regNo": "KA51AH4129",
     "busNumber": "328H",
     "scheduleId": "328H/21",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM119",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM119 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM119"
+    "bmNumber": "BM119",
+    "fullDutyDistanceKm": 0
   },
   "BUS-29": {
     "uniqueId": "BUS-29",
@@ -1609,16 +1757,17 @@
     "regNo": "KA51AH4129",
     "busNumber": "328H",
     "scheduleId": "328H/21",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/21)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM124": {
     "uniqueId": "BM124",
@@ -1626,17 +1775,18 @@
     "regNo": "KA51AH4146",
     "busNumber": "328H",
     "scheduleId": "328H/16",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM124",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM124 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM124"
+    "bmNumber": "BM124",
+    "fullDutyDistanceKm": 0
   },
   "BUS-30": {
     "uniqueId": "BUS-30",
@@ -1644,16 +1794,17 @@
     "regNo": "KA51AH4146",
     "busNumber": "328H",
     "scheduleId": "328H/16",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/16)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM151": {
     "uniqueId": "BM151",
@@ -1661,17 +1812,18 @@
     "regNo": "KA51AH4650",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM151",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM151 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM151"
+    "bmNumber": "BM151",
+    "fullDutyDistanceKm": 0
   },
   "BUS-31": {
     "uniqueId": "BUS-31",
@@ -1679,16 +1831,17 @@
     "regNo": "KA51AH4650",
     "busNumber": "BM151",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM152": {
     "uniqueId": "BM152",
@@ -1696,17 +1849,18 @@
     "regNo": "KA51AH4652",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM152",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM152"
+    "bmNumber": "BM152",
+    "fullDutyDistanceKm": 0
   },
   "BUS-32": {
     "uniqueId": "BUS-32",
@@ -1714,21 +1868,22 @@
     "regNo": "KA51AH4652",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/8)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM153": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T16:29:16.246Z",
@@ -1758,6 +1913,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM153",
@@ -1766,7 +1927,8 @@
     "assignedRouteDisplay": "Route BM153 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
     "blocked": true,
-    "busNumber": "328H"
+    "busNumber": "328H",
+    "fullDutyDistanceKm": 0
   },
   "BUS-33": {
     "uniqueId": "BUS-33",
@@ -1774,16 +1936,17 @@
     "regNo": "KA51AH4643",
     "busNumber": "328H",
     "scheduleId": "328H/1",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/1)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM157": {
     "uniqueId": "BM157",
@@ -1791,17 +1954,18 @@
     "regNo": "KA51AH4800",
     "busNumber": "328H",
     "scheduleId": "328H/22",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM157",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM157 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM157"
+    "bmNumber": "BM157",
+    "fullDutyDistanceKm": 0
   },
   "BUS-34": {
     "uniqueId": "BUS-34",
@@ -1809,16 +1973,17 @@
     "regNo": "KA51AH4800",
     "busNumber": "328H",
     "scheduleId": "328H/22",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/22)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM174": {
     "uniqueId": "BM174",
@@ -1826,17 +1991,18 @@
     "regNo": "KA51AH5823",
     "busNumber": "361C",
     "scheduleId": "361C/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM174",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM174 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM174"
+    "bmNumber": "BM174",
+    "fullDutyDistanceKm": 0
   },
   "BUS-35": {
     "uniqueId": "BUS-35",
@@ -1844,16 +2010,17 @@
     "regNo": "KA51AH5823",
     "busNumber": "361C",
     "scheduleId": "361C/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/8)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM183": {
     "uniqueId": "BM183",
@@ -1861,17 +2028,18 @@
     "regNo": "KA51AH5825",
     "busNumber": "328H",
     "scheduleId": "328H/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM183",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM183 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM183"
+    "bmNumber": "BM183",
+    "fullDutyDistanceKm": 0
   },
   "BUS-36": {
     "uniqueId": "BUS-36",
@@ -1879,16 +2047,17 @@
     "regNo": "KA51AH5825",
     "busNumber": "328H",
     "scheduleId": "328H/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM185": {
     "uniqueId": "BM185",
@@ -1896,17 +2065,18 @@
     "regNo": "KA51AH5820",
     "busNumber": "328H",
     "scheduleId": "328H/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM185",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM185 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM185"
+    "bmNumber": "BM185",
+    "fullDutyDistanceKm": 0
   },
   "BUS-37": {
     "uniqueId": "BUS-37",
@@ -1914,16 +2084,17 @@
     "regNo": "KA51AH5820",
     "busNumber": "328H",
     "scheduleId": "328H/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/7)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM187": {
     "uniqueId": "BM187",
@@ -1931,17 +2102,18 @@
     "regNo": "KA51AH5822",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM187",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM187 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM187"
+    "bmNumber": "BM187",
+    "fullDutyDistanceKm": 0
   },
   "BUS-38": {
     "uniqueId": "BUS-38",
@@ -1949,16 +2121,17 @@
     "regNo": "KA51AH5822",
     "busNumber": "BM187",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM191": {
     "uniqueId": "BM191",
@@ -1966,17 +2139,18 @@
     "regNo": "KA51AH6038",
     "busNumber": "328H",
     "scheduleId": "361C/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM191",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM191 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM191"
+    "bmNumber": "BM191",
+    "fullDutyDistanceKm": 0
   },
   "BUS-39": {
     "uniqueId": "BUS-39",
@@ -1984,16 +2158,17 @@
     "regNo": "KA51AH6038",
     "busNumber": "361C",
     "scheduleId": "361C/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/4)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM193": {
     "uniqueId": "BM193",
@@ -2001,17 +2176,18 @@
     "regNo": "KA51AH7660",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM193",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM193 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM193"
+    "bmNumber": "BM193",
+    "fullDutyDistanceKm": 0
   },
   "BUS-40": {
     "uniqueId": "BUS-40",
@@ -2019,16 +2195,17 @@
     "regNo": "KA51AH7660",
     "busNumber": "BM193",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM197": {
     "uniqueId": "BM197",
@@ -2036,17 +2213,18 @@
     "regNo": "KA51AH7661",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM197",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM197"
+    "bmNumber": "BM197",
+    "fullDutyDistanceKm": 0
   },
   "BUS-41": {
     "uniqueId": "BUS-41",
@@ -2054,16 +2232,17 @@
     "regNo": "KA51AH7661",
     "busNumber": "BM197",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM198": {
     "uniqueId": "BM198",
@@ -2071,17 +2250,18 @@
     "regNo": "KA51AH7664",
     "busNumber": "600F",
     "scheduleId": "360K/30",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM198",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM198 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM198"
+    "bmNumber": "BM198",
+    "fullDutyDistanceKm": 0
   },
   "BUS-42": {
     "uniqueId": "BUS-42",
@@ -2089,16 +2269,17 @@
     "regNo": "KA51AH7664",
     "busNumber": "360K",
     "scheduleId": "360K/30",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/30)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM199": {
     "uniqueId": "BM199",
@@ -2106,17 +2287,18 @@
     "regNo": "KA51AH7662",
     "busNumber": "360K",
     "scheduleId": "360K/38",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM199",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route BM199 - 360K (99.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM199"
+    "bmNumber": "BM199",
+    "fullDutyDistanceKm": 0
   },
   "BUS-43": {
     "uniqueId": "BUS-43",
@@ -2124,16 +2306,17 @@
     "regNo": "KA51AH7662",
     "busNumber": "360K",
     "scheduleId": "360K/38",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/38)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM200": {
     "uniqueId": "BM200",
@@ -2141,17 +2324,18 @@
     "regNo": "KA51AH7659",
     "busNumber": "600F",
     "scheduleId": "600F/93",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM200",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM200 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM200"
+    "bmNumber": "BM200",
+    "fullDutyDistanceKm": 0
   },
   "BUS-44": {
     "uniqueId": "BUS-44",
@@ -2159,16 +2343,17 @@
     "regNo": "KA51AH7659",
     "busNumber": "600F",
     "scheduleId": "600F/93",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/93)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM201": {
     "uniqueId": "BM201",
@@ -2176,17 +2361,18 @@
     "regNo": "KA51AH7656",
     "busNumber": "600F",
     "scheduleId": "600F/94",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM201",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM201 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM201"
+    "bmNumber": "BM201",
+    "fullDutyDistanceKm": 0
   },
   "BUS-45": {
     "uniqueId": "BUS-45",
@@ -2194,16 +2380,17 @@
     "regNo": "KA51AH7656",
     "busNumber": "600F",
     "scheduleId": "600F/94",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/94)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM202": {
     "uniqueId": "BM202",
@@ -2211,17 +2398,18 @@
     "regNo": "KA51AH7658",
     "busNumber": "600F",
     "scheduleId": "600F/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM202",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM202 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM202"
+    "bmNumber": "BM202",
+    "fullDutyDistanceKm": 0
   },
   "BUS-46": {
     "uniqueId": "BUS-46",
@@ -2229,16 +2417,17 @@
     "regNo": "KA51AH7658",
     "busNumber": "600F",
     "scheduleId": "600F/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/6)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM203": {
     "uniqueId": "BM203",
@@ -2246,17 +2435,18 @@
     "regNo": "KA51AH7670",
     "busNumber": "600F",
     "scheduleId": "600F/67",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM203",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM203 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM203"
+    "bmNumber": "BM203",
+    "fullDutyDistanceKm": 0
   },
   "BUS-47": {
     "uniqueId": "BUS-47",
@@ -2264,16 +2454,17 @@
     "regNo": "KA51AH7670",
     "busNumber": "600F",
     "scheduleId": "600F/67",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/67)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM204": {
     "uniqueId": "BM204",
@@ -2281,17 +2472,18 @@
     "regNo": "KA51AH7666",
     "busNumber": "328H",
     "scheduleId": "328H/20",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM204",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM204 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM204"
+    "bmNumber": "BM204",
+    "fullDutyDistanceKm": 0
   },
   "BUS-48": {
     "uniqueId": "BUS-48",
@@ -2299,16 +2491,17 @@
     "regNo": "KA51AH7666",
     "busNumber": "328H",
     "scheduleId": "328H/20",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/20)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM205": {
     "uniqueId": "BM205",
@@ -2316,17 +2509,18 @@
     "regNo": "KA51AH7673",
     "busNumber": "360K",
     "scheduleId": "356Z/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM205",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route BM205 - 360K (99.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM205"
+    "bmNumber": "BM205",
+    "fullDutyDistanceKm": 0
   },
   "BUS-49": {
     "uniqueId": "BUS-49",
@@ -2334,16 +2528,17 @@
     "regNo": "KA51AH7673",
     "busNumber": "356Z",
     "scheduleId": "356Z/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/7)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM206": {
     "uniqueId": "BM206",
@@ -2351,17 +2546,18 @@
     "regNo": "KA51AH7669",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM206",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM206"
+    "bmNumber": "BM206",
+    "fullDutyDistanceKm": 0
   },
   "BUS-50": {
     "uniqueId": "BUS-50",
@@ -2369,16 +2565,17 @@
     "regNo": "KA51AH7669",
     "busNumber": "BM206",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM207": {
     "uniqueId": "BM207",
@@ -2386,17 +2583,18 @@
     "regNo": "KA51AH7671",
     "busNumber": "328H",
     "scheduleId": "328H/9",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM207",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM207 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM207"
+    "bmNumber": "BM207",
+    "fullDutyDistanceKm": 0
   },
   "BUS-51": {
     "uniqueId": "BUS-51",
@@ -2404,16 +2602,17 @@
     "regNo": "KA51AH7671",
     "busNumber": "328H",
     "scheduleId": "328H/9",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/9)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM208": {
     "uniqueId": "BM208",
@@ -2421,17 +2620,18 @@
     "regNo": "KA51AH7775",
     "busNumber": "600F",
     "scheduleId": "600F/27",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM208",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM208 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM208"
+    "bmNumber": "BM208",
+    "fullDutyDistanceKm": 0
   },
   "BUS-52": {
     "uniqueId": "BUS-52",
@@ -2439,16 +2639,17 @@
     "regNo": "KA51AH7775",
     "busNumber": "600F",
     "scheduleId": "600F/27",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/27)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM209": {
     "uniqueId": "BM209",
@@ -2456,17 +2657,18 @@
     "regNo": "KA51AH7668",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/9",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM209",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM209"
+    "bmNumber": "BM209",
+    "fullDutyDistanceKm": 0
   },
   "BUS-53": {
     "uniqueId": "BUS-53",
@@ -2474,16 +2676,17 @@
     "regNo": "KA51AH7668",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/9",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/9)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM210": {
     "uniqueId": "BM210",
@@ -2491,17 +2694,18 @@
     "regNo": "KA51AH8350",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/26",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM210",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM210 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM210"
+    "bmNumber": "BM210",
+    "fullDutyDistanceKm": 0
   },
   "BUS-54": {
     "uniqueId": "BUS-54",
@@ -2509,16 +2713,17 @@
     "regNo": "KA51AH8350",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/26",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/26)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM212": {
     "uniqueId": "BM212",
@@ -2526,17 +2731,18 @@
     "regNo": "KA51AH7779",
     "busNumber": "328H",
     "scheduleId": "328H/23",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM212",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM212 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM212"
+    "bmNumber": "BM212",
+    "fullDutyDistanceKm": 0
   },
   "BUS-55": {
     "uniqueId": "BUS-55",
@@ -2544,16 +2750,17 @@
     "regNo": "KA51AH7779",
     "busNumber": "328H",
     "scheduleId": "328H/23",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/23)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM213": {
     "uniqueId": "BM213",
@@ -2561,17 +2768,18 @@
     "regNo": "KA51AH8179",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM213",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM213 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM213"
+    "bmNumber": "BM213",
+    "fullDutyDistanceKm": 0
   },
   "BUS-56": {
     "uniqueId": "BUS-56",
@@ -2579,16 +2787,17 @@
     "regNo": "KA51AH8179",
     "busNumber": "BM213",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM214": {
     "uniqueId": "BM214",
@@ -2596,17 +2805,18 @@
     "regNo": "KA51AH8348",
     "busNumber": "600F",
     "scheduleId": "600F/75",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM214",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM214 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM214"
+    "bmNumber": "BM214",
+    "fullDutyDistanceKm": 0
   },
   "BUS-57": {
     "uniqueId": "BUS-57",
@@ -2614,16 +2824,17 @@
     "regNo": "KA51AH8348",
     "busNumber": "600F",
     "scheduleId": "600F/75",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/75)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM215": {
     "uniqueId": "BM215",
@@ -2631,17 +2842,18 @@
     "regNo": "KA51AH8346",
     "busNumber": "600F",
     "scheduleId": "600F/94",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM215",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM215 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM215"
+    "bmNumber": "BM215",
+    "fullDutyDistanceKm": 0
   },
   "BUS-58": {
     "uniqueId": "BUS-58",
@@ -2649,21 +2861,22 @@
     "regNo": "KA51AH8346",
     "busNumber": "600F",
     "scheduleId": "600F/94",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/94)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM216": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:52.565Z",
@@ -2684,9 +2897,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -2694,6 +2907,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM216",
@@ -2710,21 +2929,22 @@
     "regNo": "KA51AH8281",
     "busNumber": "399C",
     "scheduleId": "399C/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "8",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 399C (399C/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM217": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T10:09:03.881Z",
@@ -2745,9 +2965,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -2779,6 +2999,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM217",
@@ -2795,16 +3021,17 @@
     "regNo": "KA51AH8284",
     "busNumber": "356Z",
     "scheduleId": "356Z/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/6)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM218": {
     "uniqueId": "BM218",
@@ -2812,17 +3039,18 @@
     "regNo": "KA51AH8182",
     "busNumber": "356Z",
     "scheduleId": "356Z/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM218",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route BM218 - 356Z (228.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM218"
+    "bmNumber": "BM218",
+    "fullDutyDistanceKm": 0
   },
   "BUS-61": {
     "uniqueId": "BUS-61",
@@ -2830,16 +3058,17 @@
     "regNo": "KA51AH8182",
     "busNumber": "356Z",
     "scheduleId": "356Z/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/8)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM219": {
     "uniqueId": "BM219",
@@ -2847,17 +3076,18 @@
     "regNo": "KA51AH8181",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM219",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM219 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM219"
+    "bmNumber": "BM219",
+    "fullDutyDistanceKm": 0
   },
   "BUS-62": {
     "uniqueId": "BUS-62",
@@ -2865,16 +3095,17 @@
     "regNo": "KA51AH8181",
     "busNumber": "BM219",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM220": {
     "uniqueId": "BM220",
@@ -2882,17 +3113,18 @@
     "regNo": "KA51AH8180",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM220",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM220 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM220"
+    "bmNumber": "BM220",
+    "fullDutyDistanceKm": 0
   },
   "BUS-63": {
     "uniqueId": "BUS-63",
@@ -2900,16 +3132,17 @@
     "regNo": "KA51AH8180",
     "busNumber": "BM220",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM221": {
     "uniqueId": "BM221",
@@ -2917,17 +3150,18 @@
     "regNo": "KA51AH8184",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM221",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM221 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM221"
+    "bmNumber": "BM221",
+    "fullDutyDistanceKm": 0
   },
   "BUS-64": {
     "uniqueId": "BUS-64",
@@ -2935,16 +3169,17 @@
     "regNo": "KA51AH8184",
     "busNumber": "BM221",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM222": {
     "uniqueId": "BM222",
@@ -2952,17 +3187,18 @@
     "regNo": "KA51AH8183",
     "busNumber": "328H",
     "scheduleId": "328H/14",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM222",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM222 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM222"
+    "bmNumber": "BM222",
+    "fullDutyDistanceKm": 0
   },
   "BUS-65": {
     "uniqueId": "BUS-65",
@@ -2970,16 +3206,17 @@
     "regNo": "KA51AH8183",
     "busNumber": "328H",
     "scheduleId": "328H/14",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/14)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM223": {
     "uniqueId": "BM223",
@@ -2987,17 +3224,18 @@
     "regNo": "KA51AH8283",
     "busNumber": "600F",
     "scheduleId": "600F/95",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM223",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM223 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM223"
+    "bmNumber": "BM223",
+    "fullDutyDistanceKm": 0
   },
   "BUS-66": {
     "uniqueId": "BUS-66",
@@ -3005,16 +3243,17 @@
     "regNo": "KA51AH8283",
     "busNumber": "600F",
     "scheduleId": "600F/95",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/95)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM224": {
     "uniqueId": "BM224",
@@ -3022,17 +3261,18 @@
     "regNo": "KA51AH8185",
     "busNumber": "328H",
     "scheduleId": "328H/12",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM224",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM224 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM224"
+    "bmNumber": "BM224",
+    "fullDutyDistanceKm": 0
   },
   "BUS-67": {
     "uniqueId": "BUS-67",
@@ -3040,16 +3280,17 @@
     "regNo": "KA51AH8185",
     "busNumber": "328H",
     "scheduleId": "328H/12",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/12)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM225": {
     "uniqueId": "BM225",
@@ -3057,17 +3298,18 @@
     "regNo": "KA51AH8349",
     "busNumber": "361C",
     "scheduleId": "361C/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM225",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM225 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM225"
+    "bmNumber": "BM225",
+    "fullDutyDistanceKm": 0
   },
   "BUS-68": {
     "uniqueId": "BUS-68",
@@ -3075,16 +3317,17 @@
     "regNo": "KA51AH8349",
     "busNumber": "361C",
     "scheduleId": "361C/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/6)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM227": {
     "uniqueId": "BM227",
@@ -3092,17 +3335,18 @@
     "regNo": "KA51AH4544",
     "busNumber": "328H",
     "scheduleId": "328H/16",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM227",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM227 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM227"
+    "bmNumber": "BM227",
+    "fullDutyDistanceKm": 0
   },
   "BUS-69": {
     "uniqueId": "BUS-69",
@@ -3110,44 +3354,45 @@
     "regNo": "KA51AH4544",
     "busNumber": "328H",
     "scheduleId": "328H/16",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/16)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM238": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T04:16:19.782Z",
+    "updatedAt": "2026-10-03T03:54:18.455Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "00:20",
-        "departure": "00:15"
+        "arrival": "07:50",
+        "departure": "07:45"
       },
       "On Time": {
-        "arrival": "00:20",
-        "departure": "00:15"
+        "arrival": "07:50",
+        "departure": "07:45"
       },
       "Ahead": {
-        "arrival": "00:20",
-        "departure": "00:15"
+        "arrival": "07:50",
+        "departure": "07:45"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -3259,34 +3504,10 @@
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T04:13:48.026Z",
-        "soc": 100,
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
         "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T04:14:10.156Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T04:14:31.212Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T04:15:18.412Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T04:16:19.782Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM238",
@@ -3303,16 +3524,17 @@
     "regNo": "KA51AH4540",
     "busNumber": "356Z",
     "scheduleId": "356Z/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM239": {
     "uniqueId": "BM239",
@@ -3320,17 +3542,18 @@
     "regNo": "KA51AH4790",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM239",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM239 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM239"
+    "bmNumber": "BM239",
+    "fullDutyDistanceKm": 0
   },
   "BUS-71": {
     "uniqueId": "BUS-71",
@@ -3338,16 +3561,17 @@
     "regNo": "KA51AH4790",
     "busNumber": "BM239",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM240": {
     "uniqueId": "BM240",
@@ -3355,17 +3579,18 @@
     "regNo": "KA51AH4789",
     "busNumber": "600F",
     "scheduleId": "600F/69",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM240",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM240 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM240"
+    "bmNumber": "BM240",
+    "fullDutyDistanceKm": 0
   },
   "BUS-72": {
     "uniqueId": "BUS-72",
@@ -3373,16 +3598,17 @@
     "regNo": "KA51AH4789",
     "busNumber": "600F",
     "scheduleId": "600F/69",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/69)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM245": {
     "uniqueId": "BM245",
@@ -3390,17 +3616,18 @@
     "regNo": "KA51AH4799",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/78",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM245",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM245 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.312529Z",
-    "bmNumber": "BM245"
+    "bmNumber": "BM245",
+    "fullDutyDistanceKm": 0
   },
   "BUS-73": {
     "uniqueId": "BUS-73",
@@ -3408,16 +3635,17 @@
     "regNo": "KA51AH4799",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/78",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/78)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.312529Z"
+    "updatedAt": "2026-09-30T11:37:02.312529Z",
+    "fullDutyDistanceKm": 0
   },
   "BM248": {
     "uniqueId": "BM248",
@@ -3425,17 +3653,18 @@
     "regNo": "KA51AH4797",
     "busNumber": "600F",
     "scheduleId": "600F/91",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM248",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM248"
+    "bmNumber": "BM248",
+    "fullDutyDistanceKm": 0
   },
   "BUS-74": {
     "uniqueId": "BUS-74",
@@ -3443,16 +3672,17 @@
     "regNo": "KA51AH4797",
     "busNumber": "600F",
     "scheduleId": "600F/91",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/91)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM249": {
     "uniqueId": "BM249",
@@ -3460,17 +3690,18 @@
     "regNo": "KA51AH6029",
     "busNumber": "600F",
     "scheduleId": "600F/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM249",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM249 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM249"
+    "bmNumber": "BM249",
+    "fullDutyDistanceKm": 0
   },
   "BUS-75": {
     "uniqueId": "BUS-75",
@@ -3478,16 +3709,17 @@
     "regNo": "KA51AH6029",
     "busNumber": "600F",
     "scheduleId": "600F/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM250": {
     "uniqueId": "BM250",
@@ -3495,17 +3727,18 @@
     "regNo": "KA51AH4801",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/18",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM250",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route BM250 - KBS3F (129.7 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM250"
+    "bmNumber": "BM250",
+    "fullDutyDistanceKm": 0
   },
   "BUS-76": {
     "uniqueId": "BUS-76",
@@ -3513,16 +3746,17 @@
     "regNo": "KA51AH4801",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/18",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "5",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route KBS3F (KBS3F/18)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM253": {
     "uniqueId": "BM253",
@@ -3530,17 +3764,18 @@
     "regNo": "KA51AH4987",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM253",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM253 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM253"
+    "bmNumber": "BM253",
+    "fullDutyDistanceKm": 0
   },
   "BUS-77": {
     "uniqueId": "BUS-77",
@@ -3548,16 +3783,17 @@
     "regNo": "KA51AH4987",
     "busNumber": "BM253",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM255": {
     "uniqueId": "BM255",
@@ -3565,17 +3801,18 @@
     "regNo": "KA51AH5640",
     "busNumber": "600F",
     "scheduleId": "600F/49",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM255",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM255 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM255"
+    "bmNumber": "BM255",
+    "fullDutyDistanceKm": 0
   },
   "BUS-78": {
     "uniqueId": "BUS-78",
@@ -3583,16 +3820,17 @@
     "regNo": "KA51AH5640",
     "busNumber": "600F",
     "scheduleId": "600F/49",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/49)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM256": {
     "uniqueId": "BM256",
@@ -3600,17 +3838,18 @@
     "regNo": "KA51AH5641",
     "busNumber": "356Z",
     "scheduleId": "356Z/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM256",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route BM256 - 356Z (228.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM256"
+    "bmNumber": "BM256",
+    "fullDutyDistanceKm": 0
   },
   "BUS-79": {
     "uniqueId": "BUS-79",
@@ -3618,16 +3857,17 @@
     "regNo": "KA51AH5641",
     "busNumber": "356Z",
     "scheduleId": "356Z/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/7)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM257": {
     "uniqueId": "BM257",
@@ -3635,17 +3875,18 @@
     "regNo": "KA51AH5648",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM257",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM257 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM257"
+    "bmNumber": "BM257",
+    "fullDutyDistanceKm": 0
   },
   "BUS-80": {
     "uniqueId": "BUS-80",
@@ -3653,16 +3894,17 @@
     "regNo": "KA51AH5648",
     "busNumber": "BM257",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM258": {
     "uniqueId": "BM258",
@@ -3670,17 +3912,18 @@
     "regNo": "KA51AH5643",
     "busNumber": "600F",
     "scheduleId": "600F/26",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM258",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM258 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM258"
+    "bmNumber": "BM258",
+    "fullDutyDistanceKm": 0
   },
   "BUS-81": {
     "uniqueId": "BUS-81",
@@ -3688,16 +3931,17 @@
     "regNo": "KA51AH5643",
     "busNumber": "600F",
     "scheduleId": "600F/26",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/26)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM259": {
     "uniqueId": "BM259",
@@ -3705,17 +3949,18 @@
     "regNo": "KA51AH5642",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/23",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM259",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM259 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM259"
+    "bmNumber": "BM259",
+    "fullDutyDistanceKm": 0
   },
   "BUS-82": {
     "uniqueId": "BUS-82",
@@ -3723,16 +3968,17 @@
     "regNo": "KA51AH5642",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/23",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/23)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM260": {
     "uniqueId": "BM260",
@@ -3740,17 +3986,18 @@
     "regNo": "KA51AH6036",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM260",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM260 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM260"
+    "bmNumber": "BM260",
+    "fullDutyDistanceKm": 0
   },
   "BUS-83": {
     "uniqueId": "BUS-83",
@@ -3758,16 +4005,17 @@
     "regNo": "KA51AH6036",
     "busNumber": "BM260",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM261": {
     "uniqueId": "BM261",
@@ -3775,17 +4023,18 @@
     "regNo": "KA51AH5717",
     "busNumber": "600F",
     "scheduleId": "600F/42",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM261",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM261 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM261"
+    "bmNumber": "BM261",
+    "fullDutyDistanceKm": 0
   },
   "BUS-84": {
     "uniqueId": "BUS-84",
@@ -3793,16 +4042,17 @@
     "regNo": "KA51AH5717",
     "busNumber": "600F",
     "scheduleId": "600F/42",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/42)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM263": {
     "uniqueId": "BM263",
@@ -3810,17 +4060,18 @@
     "regNo": "KA51AH5715",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM263",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM263 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM263"
+    "bmNumber": "BM263",
+    "fullDutyDistanceKm": 0
   },
   "BUS-85": {
     "uniqueId": "BUS-85",
@@ -3828,16 +4079,17 @@
     "regNo": "KA51AH5715",
     "busNumber": "BM263",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM264": {
     "uniqueId": "BM264",
@@ -3845,17 +4097,18 @@
     "regNo": "KA51AH6037",
     "busNumber": "600F",
     "scheduleId": "360K/15",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM264",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM264 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM264"
+    "bmNumber": "BM264",
+    "fullDutyDistanceKm": 0
   },
   "BUS-86": {
     "uniqueId": "BUS-86",
@@ -3863,16 +4116,17 @@
     "regNo": "KA51AH6037",
     "busNumber": "360K",
     "scheduleId": "360K/15",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/15)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM265": {
     "uniqueId": "BM265",
@@ -3880,17 +4134,18 @@
     "regNo": "KA51AH5723",
     "busNumber": "600F",
     "scheduleId": "600F/31",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM265",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM265 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM265"
+    "bmNumber": "BM265",
+    "fullDutyDistanceKm": 0
   },
   "BUS-87": {
     "uniqueId": "BUS-87",
@@ -3898,16 +4153,17 @@
     "regNo": "KA51AH5723",
     "busNumber": "600F",
     "scheduleId": "600F/31",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/31)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM267": {
     "uniqueId": "BM267",
@@ -3915,17 +4171,18 @@
     "regNo": "KA51AH6034",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM267",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM267 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM267"
+    "bmNumber": "BM267",
+    "fullDutyDistanceKm": 0
   },
   "BUS-88": {
     "uniqueId": "BUS-88",
@@ -3933,16 +4190,17 @@
     "regNo": "KA51AH6034",
     "busNumber": "BM267",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM268": {
     "uniqueId": "BM268",
@@ -3950,17 +4208,18 @@
     "regNo": "KA51AH6035",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/20",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM268",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM268 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM268"
+    "bmNumber": "BM268",
+    "fullDutyDistanceKm": 0
   },
   "BUS-89": {
     "uniqueId": "BUS-89",
@@ -3968,16 +4227,17 @@
     "regNo": "KA51AH6035",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/20",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/20)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM269": {
     "uniqueId": "BM269",
@@ -3985,17 +4245,18 @@
     "regNo": "KA51AH6030",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM269",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM269 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM269"
+    "bmNumber": "BM269",
+    "fullDutyDistanceKm": 0
   },
   "BUS-90": {
     "uniqueId": "BUS-90",
@@ -4003,16 +4264,17 @@
     "regNo": "KA51AH6030",
     "busNumber": "BM269",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM271": {
     "uniqueId": "BM271",
@@ -4020,17 +4282,18 @@
     "regNo": "KA51AH6095",
     "busNumber": "600F",
     "scheduleId": "600F/74",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM271",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM271 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM271"
+    "bmNumber": "BM271",
+    "fullDutyDistanceKm": 0
   },
   "BUS-91": {
     "uniqueId": "BUS-91",
@@ -4038,16 +4301,17 @@
     "regNo": "KA51AH6095",
     "busNumber": "600F",
     "scheduleId": "600F/74",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/74)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM272": {
     "uniqueId": "BM272",
@@ -4055,17 +4319,18 @@
     "regNo": "KA51AH6097",
     "busNumber": "399C",
     "scheduleId": "399C/5",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM272",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route BM272 - 399C (106.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM272"
+    "bmNumber": "BM272",
+    "fullDutyDistanceKm": 0
   },
   "BUS-92": {
     "uniqueId": "BUS-92",
@@ -4073,16 +4338,17 @@
     "regNo": "KA51AH6097",
     "busNumber": "399C",
     "scheduleId": "399C/5",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "8",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 399C (399C/5)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM273": {
     "uniqueId": "BM273",
@@ -4090,17 +4356,18 @@
     "regNo": "KA51AH6098",
     "busNumber": "600F",
     "scheduleId": "600F/51",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM273",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM273"
+    "bmNumber": "BM273",
+    "fullDutyDistanceKm": 0
   },
   "BUS-93": {
     "uniqueId": "BUS-93",
@@ -4108,16 +4375,17 @@
     "regNo": "KA51AH6098",
     "busNumber": "600F",
     "scheduleId": "600F/51",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/51)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM274": {
     "uniqueId": "BM274",
@@ -4125,17 +4393,18 @@
     "regNo": "KA51AH6099",
     "busNumber": "600F",
     "scheduleId": "600F/5",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM274",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM274 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM274"
+    "bmNumber": "BM274",
+    "fullDutyDistanceKm": 0
   },
   "BUS-94": {
     "uniqueId": "BUS-94",
@@ -4143,16 +4412,17 @@
     "regNo": "KA51AH6099",
     "busNumber": "600F",
     "scheduleId": "600F/5",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/5)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM275": {
     "uniqueId": "BM275",
@@ -4160,17 +4430,18 @@
     "regNo": "KA51AH6096",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/17",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM275",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route BM275 - KBS3F (129.7 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM275"
+    "bmNumber": "BM275",
+    "fullDutyDistanceKm": 0
   },
   "BUS-95": {
     "uniqueId": "BUS-95",
@@ -4178,16 +4449,17 @@
     "regNo": "KA51AH6096",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/17",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "5",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route KBS3F (KBS3F/17)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM276": {
     "uniqueId": "BM276",
@@ -4195,17 +4467,18 @@
     "regNo": "KA51AH6250",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM276",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM276 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM276"
+    "bmNumber": "BM276",
+    "fullDutyDistanceKm": 0
   },
   "BUS-96": {
     "uniqueId": "BUS-96",
@@ -4213,16 +4486,17 @@
     "regNo": "KA51AH6250",
     "busNumber": "BM276",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM277": {
     "uniqueId": "BM277",
@@ -4230,17 +4504,18 @@
     "regNo": "KA51AH6245",
     "busNumber": "600F",
     "scheduleId": "600F/17",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM277",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM277 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM277"
+    "bmNumber": "BM277",
+    "fullDutyDistanceKm": 0
   },
   "BUS-97": {
     "uniqueId": "BUS-97",
@@ -4248,16 +4523,17 @@
     "regNo": "KA51AH6245",
     "busNumber": "600F",
     "scheduleId": "600F/17",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/17)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM278": {
     "uniqueId": "BM278",
@@ -4265,17 +4541,18 @@
     "regNo": "KA51AH6246",
     "busNumber": "600F",
     "scheduleId": "600F/92",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM278",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM278 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM278"
+    "bmNumber": "BM278",
+    "fullDutyDistanceKm": 0
   },
   "BUS-98": {
     "uniqueId": "BUS-98",
@@ -4283,16 +4560,17 @@
     "regNo": "KA51AH6246",
     "busNumber": "600F",
     "scheduleId": "600F/92",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/92)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM279": {
     "uniqueId": "BM279",
@@ -4300,17 +4578,18 @@
     "regNo": "KA51AH6244",
     "busNumber": "328H",
     "scheduleId": "328H/19",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM279",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM279 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM279"
+    "bmNumber": "BM279",
+    "fullDutyDistanceKm": 0
   },
   "BUS-99": {
     "uniqueId": "BUS-99",
@@ -4318,16 +4597,17 @@
     "regNo": "KA51AH6244",
     "busNumber": "328H",
     "scheduleId": "328H/19",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/19)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM280": {
     "uniqueId": "BM280",
@@ -4335,17 +4615,18 @@
     "regNo": "KA51AH6247",
     "busNumber": "361C",
     "scheduleId": "361C/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM280",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM280 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM280"
+    "bmNumber": "BM280",
+    "fullDutyDistanceKm": 0
   },
   "BUS-100": {
     "uniqueId": "BUS-100",
@@ -4353,16 +4634,17 @@
     "regNo": "KA51AH6247",
     "busNumber": "361C",
     "scheduleId": "361C/7",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/7)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM281": {
     "uniqueId": "BM281",
@@ -4370,17 +4652,18 @@
     "regNo": "KA51AH6251",
     "busNumber": "600F",
     "scheduleId": "600F/52",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM281",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM281 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM281"
+    "bmNumber": "BM281",
+    "fullDutyDistanceKm": 0
   },
   "BUS-101": {
     "uniqueId": "BUS-101",
@@ -4388,16 +4671,17 @@
     "regNo": "KA51AH6251",
     "busNumber": "600F",
     "scheduleId": "600F/52",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/52)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM282": {
     "uniqueId": "BM282",
@@ -4405,17 +4689,18 @@
     "regNo": "KA51AH7667",
     "busNumber": "360K",
     "scheduleId": "399C/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM282",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route BM282 - 360K (99.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM282"
+    "bmNumber": "BM282",
+    "fullDutyDistanceKm": 0
   },
   "BUS-102": {
     "uniqueId": "BUS-102",
@@ -4423,16 +4708,17 @@
     "regNo": "KA51AH7667",
     "busNumber": "399C",
     "scheduleId": "399C/4",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "8",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 399C (399C/4)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM283": {
     "uniqueId": "BM283",
@@ -4440,17 +4726,18 @@
     "regNo": "KA51AH6249",
     "busNumber": "328H",
     "scheduleId": "600F/92",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM283",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM283 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM283"
+    "bmNumber": "BM283",
+    "fullDutyDistanceKm": 0
   },
   "BUS-103": {
     "uniqueId": "BUS-103",
@@ -4458,16 +4745,17 @@
     "regNo": "KA51AH6249",
     "busNumber": "600F",
     "scheduleId": "600F/92",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/92)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM284": {
     "uniqueId": "BM284",
@@ -4475,17 +4763,18 @@
     "regNo": "KA51AH6248",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM284",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM284 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM284"
+    "bmNumber": "BM284",
+    "fullDutyDistanceKm": 0
   },
   "BUS-104": {
     "uniqueId": "BUS-104",
@@ -4493,16 +4782,17 @@
     "regNo": "KA51AH6248",
     "busNumber": "BM284",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM285": {
     "uniqueId": "BM285",
@@ -4510,17 +4800,18 @@
     "regNo": "KA51AH6252",
     "busNumber": "328H",
     "scheduleId": "328H/10",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM285",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM285 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM285"
+    "bmNumber": "BM285",
+    "fullDutyDistanceKm": 0
   },
   "BUS-105": {
     "uniqueId": "BUS-105",
@@ -4528,16 +4819,17 @@
     "regNo": "KA51AH6252",
     "busNumber": "328H",
     "scheduleId": "328H/10",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/10)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM286": {
     "uniqueId": "BM286",
@@ -4545,17 +4837,18 @@
     "regNo": "KA51AH6469",
     "busNumber": "399C",
     "scheduleId": "399C/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM286",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route BM286 - 399C (106.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM286"
+    "bmNumber": "BM286",
+    "fullDutyDistanceKm": 0
   },
   "BUS-106": {
     "uniqueId": "BUS-106",
@@ -4563,16 +4856,17 @@
     "regNo": "KA51AH6469",
     "busNumber": "399C",
     "scheduleId": "399C/6",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "8",
     "assignedRouteShortName": "399C",
     "assignedRouteDisplay": "Route 399C (399C/6)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM287": {
     "uniqueId": "BM287",
@@ -4580,17 +4874,18 @@
     "regNo": "KA51AH7657",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM287",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM287 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM287"
+    "bmNumber": "BM287",
+    "fullDutyDistanceKm": 0
   },
   "BUS-107": {
     "uniqueId": "BUS-107",
@@ -4598,16 +4893,17 @@
     "regNo": "KA51AH7657",
     "busNumber": "BM287",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM288": {
     "uniqueId": "BM288",
@@ -4615,17 +4911,18 @@
     "regNo": "KA51AH7672",
     "busNumber": "600F",
     "scheduleId": "600F/67",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM288",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM288 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM288"
+    "bmNumber": "BM288",
+    "fullDutyDistanceKm": 0
   },
   "BUS-108": {
     "uniqueId": "BUS-108",
@@ -4633,16 +4930,17 @@
     "regNo": "KA51AH7672",
     "busNumber": "600F",
     "scheduleId": "600F/67",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/67)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM289": {
     "uniqueId": "BM289",
@@ -4650,17 +4948,18 @@
     "regNo": "KA51AH6471",
     "busNumber": "361C",
     "scheduleId": "361C/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM289",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM289 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM289"
+    "bmNumber": "BM289",
+    "fullDutyDistanceKm": 0
   },
   "BUS-109": {
     "uniqueId": "BUS-109",
@@ -4668,16 +4967,17 @@
     "regNo": "KA51AH6471",
     "busNumber": "361C",
     "scheduleId": "361C/3",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/3)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM290": {
     "uniqueId": "BM290",
@@ -4685,17 +4985,18 @@
     "regNo": "KA51AH6467",
     "busNumber": "600F",
     "scheduleId": "600F/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM290",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM290 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM290"
+    "bmNumber": "BM290",
+    "fullDutyDistanceKm": 0
   },
   "BUS-110": {
     "uniqueId": "BUS-110",
@@ -4703,21 +5004,22 @@
     "regNo": "KA51AH6467",
     "busNumber": "600F",
     "scheduleId": "600F/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/8)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM291": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-09-30T14:59:28.011Z",
@@ -4747,6 +5049,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM291",
@@ -4755,7 +5063,8 @@
     "assignedRouteDisplay": "Route BM291 - 360K (99.1 km)",
     "assignedRouteShortName": "360K",
     "blocked": false,
-    "busNumber": "360K"
+    "busNumber": "360K",
+    "fullDutyDistanceKm": 0
   },
   "BUS-111": {
     "uniqueId": "BUS-111",
@@ -4763,16 +5072,17 @@
     "regNo": "KA51AH6466",
     "busNumber": "360K",
     "scheduleId": "360K/15",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "2",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route 360K (360K/15)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM292": {
     "uniqueId": "BM292",
@@ -4780,17 +5090,18 @@
     "regNo": "KA51AH6468",
     "busNumber": "360K",
     "scheduleId": "600F/81",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM292",
     "assignedRouteShortName": "360K",
     "assignedRouteDisplay": "Route BM292 - 360K (99.1 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM292"
+    "bmNumber": "BM292",
+    "fullDutyDistanceKm": 0
   },
   "BUS-112": {
     "uniqueId": "BUS-112",
@@ -4798,28 +5109,30 @@
     "regNo": "KA51AH6468",
     "busNumber": "600F",
     "scheduleId": "600F/81",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/81)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM293": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM293",
     "busNumber": "KBS3F",
     "blocked": true,
     "bmNumber": "BM293",
     "assignedRouteId": "BM293",
     "assignedRouteDisplay": "Route BM293 - KBS3F (129.7 km)",
-    "assignedRouteShortName": "KBS3F"
+    "assignedRouteShortName": "KBS3F",
+    "fullDutyDistanceKm": 0
   },
   "BUS-113": {
     "uniqueId": "BUS-113",
@@ -4827,16 +5140,17 @@
     "regNo": "KA51AH6470",
     "busNumber": "KBS3F",
     "scheduleId": "KBS3F/15",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "5",
     "assignedRouteShortName": "KBS3F",
     "assignedRouteDisplay": "Route KBS3F (KBS3F/15)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM294": {
     "uniqueId": "BM294",
@@ -4844,17 +5158,18 @@
     "regNo": "KA51AH6777",
     "busNumber": "328H",
     "scheduleId": "328H/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM294",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route BM294 - 328H (187.2 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM294"
+    "bmNumber": "BM294",
+    "fullDutyDistanceKm": 0
   },
   "BUS-114": {
     "uniqueId": "BUS-114",
@@ -4862,16 +5177,17 @@
     "regNo": "KA51AH6777",
     "busNumber": "328H",
     "scheduleId": "328H/2",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "6",
     "assignedRouteShortName": "328H",
     "assignedRouteDisplay": "Route 328H (328H/2)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM295": {
     "uniqueId": "BM295",
@@ -4879,17 +5195,18 @@
     "regNo": "KA51AH6780",
     "busNumber": "600F",
     "scheduleId": "600F/79",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM295",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM295 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM295"
+    "bmNumber": "BM295",
+    "fullDutyDistanceKm": 0
   },
   "BUS-115": {
     "uniqueId": "BUS-115",
@@ -4897,16 +5214,17 @@
     "regNo": "KA51AH6780",
     "busNumber": "600F",
     "scheduleId": "600F/79",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/79)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM296": {
     "uniqueId": "BM296",
@@ -4914,17 +5232,18 @@
     "regNo": "KA51AH6779",
     "busNumber": "600F",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM296",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM296 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM296"
+    "bmNumber": "BM296",
+    "fullDutyDistanceKm": 0
   },
   "BUS-116": {
     "uniqueId": "BUS-116",
@@ -4932,16 +5251,17 @@
     "regNo": "KA51AH6779",
     "busNumber": "BM296",
     "scheduleId": "RESERVE",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "Reserve",
     "assignedRouteDisplay": "Route Reserve (Depot Reserve)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM297": {
     "uniqueId": "BM297",
@@ -4949,17 +5269,18 @@
     "regNo": "KA51AH6472",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/79",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM297",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route BM297 - KBS3A (125.5 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM297"
+    "bmNumber": "BM297",
+    "fullDutyDistanceKm": 0
   },
   "BUS-117": {
     "uniqueId": "BUS-117",
@@ -4967,16 +5288,17 @@
     "regNo": "KA51AH6472",
     "busNumber": "KBS3A",
     "scheduleId": "KBS3A/79",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "4",
     "assignedRouteShortName": "KBS3A",
     "assignedRouteDisplay": "Route KBS3A (KBS3A/79)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM298": {
     "uniqueId": "BM298",
@@ -4984,17 +5306,18 @@
     "regNo": "KA51AH6778",
     "busNumber": "600F",
     "scheduleId": "600F/21",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM298",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM298 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM298"
+    "bmNumber": "BM298",
+    "fullDutyDistanceKm": 0
   },
   "BUS-118": {
     "uniqueId": "BUS-118",
@@ -5002,28 +5325,30 @@
     "regNo": "KA51AH6778",
     "busNumber": "600F",
     "scheduleId": "600F/21",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/21)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM299": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM299",
     "busNumber": "361C",
     "blocked": true,
     "bmNumber": "BM299",
     "assignedRouteId": "BM299",
     "assignedRouteDisplay": "Route BM299 - 361C (178.3 km)",
-    "assignedRouteShortName": "361C"
+    "assignedRouteShortName": "361C",
+    "fullDutyDistanceKm": 0
   },
   "BUS-119": {
     "uniqueId": "BUS-119",
@@ -5031,16 +5356,17 @@
     "regNo": "KA51AH7663",
     "busNumber": "361C",
     "scheduleId": "361C/1",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/1)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM300": {
     "uniqueId": "BM300",
@@ -5048,17 +5374,18 @@
     "regNo": "KA51AH6782",
     "busNumber": "600F",
     "scheduleId": "600F/72",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM300",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM300"
+    "bmNumber": "BM300",
+    "fullDutyDistanceKm": 0
   },
   "BUS-120": {
     "uniqueId": "BUS-120",
@@ -5066,16 +5393,17 @@
     "regNo": "KA51AH6782",
     "busNumber": "600F",
     "scheduleId": "600F/72",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "3",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route 600F (600F/72)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM303": {
     "uniqueId": "BM303",
@@ -5083,17 +5411,18 @@
     "regNo": "KA51AJ0138",
     "busNumber": "361C",
     "scheduleId": "356Z/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM303",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM303 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM303"
+    "bmNumber": "BM303",
+    "fullDutyDistanceKm": 0
   },
   "BUS-121": {
     "uniqueId": "BUS-121",
@@ -5101,16 +5430,17 @@
     "regNo": "KA51AJ0138",
     "busNumber": "356Z",
     "scheduleId": "356Z/8",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "1",
     "assignedRouteShortName": "356Z",
     "assignedRouteDisplay": "Route 356Z (356Z/8)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "BM304": {
     "uniqueId": "BM304",
@@ -5118,17 +5448,18 @@
     "regNo": "KA51AJ0137",
     "busNumber": "361C",
     "scheduleId": "361C/11",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "BM304",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route BM304 - 361C (178.3 km)",
     "depot": "Chandapura (BMT-32)",
     "blocked": true,
     "updatedAt": "2026-09-30T11:37:02.313550Z",
-    "bmNumber": "BM304"
+    "bmNumber": "BM304",
+    "fullDutyDistanceKm": 0
   },
   "BUS-122": {
     "uniqueId": "BUS-122",
@@ -5136,16 +5467,17 @@
     "regNo": "KA51AJ0137",
     "busNumber": "361C",
     "scheduleId": "361C/11",
-    "soc": 100,
+    "soc": 0,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "assignedRouteId": "7",
     "assignedRouteShortName": "361C",
     "assignedRouteDisplay": "Route 361C (361C/11)",
     "depot": "Chandapura (BMT-32)",
     "blocked": false,
-    "updatedAt": "2026-09-30T11:37:02.313550Z"
+    "updatedAt": "2026-09-30T11:37:02.313550Z",
+    "fullDutyDistanceKm": 0
   },
   "_assignments": {
     "BM001": "BM001",
@@ -5277,10 +5609,12 @@
     "BM299": "BM299",
     "BM300": "BM300",
     "BM303": "BM303",
-    "BM304": "BM304"
+    "BM304": "BM304",
+    "soc": 0,
+    "status": "Blocked",
+    "fullDutyDistanceKm": 0
   },
   "_blockedBuses": [
-    "BM002",
     "BM012",
     "BM020",
     "BM038",
@@ -5323,9 +5657,9 @@
     "BM304"
   ],
   "356Z": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T10:09:03.881Z",
@@ -5346,9 +5680,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5380,6 +5714,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM256",
@@ -5387,9 +5727,9 @@
     "blocked": true
   },
   "360K": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:06.393Z",
@@ -5410,9 +5750,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5420,6 +5760,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM292",
@@ -5427,45 +5773,99 @@
     "blocked": false
   },
   "600F": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T04:47:15.930Z",
+    "updatedAt": "2026-10-02T14:27:12.373Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "09:20",
+        "departure": "09:15"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "09:20",
+        "departure": "09:15"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "09:20",
+        "departure": "09:15"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 20,
-    "socAfter": 90,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": "10:17:01 am",
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
+    "lastChargedTime": "05:57 pm",
     "history": [
       {
-        "timestamp": "2026-10-01T15:04:26.348Z",
+        "timestamp": "2026-09-30T12:58:51.284Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T04:47:15.930Z",
-        "soc": 90,
+        "timestamp": "2026-10-01T16:32:14.218Z",
+        "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T02:19:19.114Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T02:19:36.945Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T05:22:09.938Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T11:14:58.180Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T12:27:28.131Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:19:47.907Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:20:08.544Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-02T14:27:10.946Z",
+        "soc": 97,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM300",
@@ -5473,17 +5873,18 @@
     "blocked": false
   },
   "KBS3A": {
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
-    "status": "Active",
+    "status": "Blocked",
     "uniqueId": "BM297",
     "blocked": false,
-    "bmNumber": "BM297"
+    "bmNumber": "BM297",
+    "fullDutyDistanceKm": 0
   },
   "KBS3F": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:28.444Z",
@@ -5504,9 +5905,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5514,6 +5915,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM293",
@@ -5521,9 +5928,9 @@
     "blocked": true
   },
   "328H": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:21:07.344Z",
@@ -5544,9 +5951,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5554,6 +5961,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM294",
@@ -5561,9 +5974,9 @@
     "blocked": true
   },
   "361C": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:46.033Z",
@@ -5584,9 +5997,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5594,6 +6007,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM304",
@@ -5601,9 +6020,9 @@
     "blocked": true
   },
   "399C": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-02T05:22:52.565Z",
@@ -5624,9 +6043,9 @@
     "operation": "Single Charge Operation",
     "chargingStatus": null,
     "chargerBay": null,
-    "socBefore": null,
-    "socAfter": 100,
-    "fullDutyDistanceKm": 128,
+    "socBefore": 0,
+    "socAfter": 0,
+    "fullDutyDistanceKm": 0,
     "lastChargedTime": null,
     "history": [
       {
@@ -5634,6 +6053,12 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM286",
@@ -5641,9 +6066,9 @@
     "blocked": false
   },
   "500DC": {
-    "status": "Active",
+    "status": "Blocked",
     "rawStatus": "On Time",
-    "soc": 100,
+    "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-01T15:04:26.348Z",
@@ -5667,11 +6092,18 @@
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
       }
     ],
     "uniqueId": "BM002",
     "bmNumber": "BM002",
-    "blocked": true
+    "blocked": true,
+    "fullDutyDistanceKm": 0
   },
   "_vehicleAssignments": {
     "BM001": {
@@ -5717,18 +6149,18 @@
       "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 90,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 114,
-      "fullDutyDistanceKm": 114,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM003": {
       "uniqueId": "BM003",
@@ -9089,7 +9521,10 @@
       "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
-    }
+    },
+    "soc": 0,
+    "status": "Blocked",
+    "fullDutyDistanceKm": 0
   },
   "_busAssignments": {
     "BM001": {
@@ -9163,18 +9598,18 @@
       "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 90,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 114,
-      "fullDutyDistanceKm": 114,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM003": {
       "uniqueId": "BM003",
@@ -12731,10 +13166,12 @@
       "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
-    }
+    },
+    "soc": 0,
+    "status": "Blocked",
+    "fullDutyDistanceKm": 0
   },
   "_blockedRouteIds": [
-    "BM002",
     "BM012",
     "BM020",
     "BM038",
@@ -12801,19 +13238,19 @@
       "bmNumber": "BM002",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 90,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 114,
-      "fullDutyDistanceKm": 114,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": true
+      "blocked": false
     },
     "BM003": {
       "assignedVehicle": "BM003",
@@ -15094,7 +15531,10 @@
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
-    }
+    },
+    "soc": 0,
+    "status": "Blocked",
+    "fullDutyDistanceKm": 0
   },
   "_swapLog": []
 }

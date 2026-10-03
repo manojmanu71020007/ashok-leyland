@@ -283,7 +283,7 @@ function isBusAllocated(bus, sharedState = {}, assignmentData = {}) {
     }
 
     // 6. Battery floor: must not be below 25%
-    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : (Number.isFinite(Number(bus.soc)) ? Number(bus.soc) : 100);
+    const soc = Number.isFinite(Number(state.soc)) ? Number(state.soc) : (Number.isFinite(Number(bus.soc)) ? Number(bus.soc) : 0);
     if (soc < 25) {
         return false;
     }
@@ -1068,7 +1068,7 @@ function toBusModel(route, index, sharedState = {}) {
             "On Time": { arrival: "15:00", departure: "15:05" },
             Ahead: { arrival: "14:50", departure: "14:55" }
         },
-        soc: 100,
+        soc: 0,
         condition: "Good",
         driver: "Driver Assigned",
         location: getPseudoLocation(routeId),
