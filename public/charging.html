@@ -183,6 +183,13 @@
     .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(22,163,74,0.35); }
     .btn-primary:active { transform: none; }
     .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+    .btn-primary.disabled {
+      opacity: 0.55 !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      background: #94a3b8 !important;
+      box-shadow: none !important;
+    }
 
     /* ── Lock / Unlock Button ── */
     .lock-row {
@@ -205,6 +212,15 @@
       color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,0.28);
     }
     .btn-unlock:hover { transform: translateY(-1px); }
+    .btn-unlock.disabled {
+      background: #94a3b8 !important;
+      box-shadow: none !important;
+      cursor: not-allowed !important;
+      opacity: 0.65;
+    }
+    .btn-unlock.disabled:hover {
+      transform: none !important;
+    }
 
     /* ── Lock Status Banner ── */
     .lock-banner {
@@ -594,9 +610,13 @@
 
 <!-- ── Submit ── -->
 <div class="card" style="padding: 18px 24px;">
-  <button class="btn btn-primary" id="submitBtn" onclick="submitCharging()" disabled>
+  <button type="button" class="btn btn-primary disabled" id="submitBtn" onclick="handleSubmitClick()">
     Submit Charging Record
   </button>
+  <!-- 7-second warning comment when locked in depot operations -->
+  <div id="submitWarningText" style="display:none; margin-top:12px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 16px; color:#991b1b; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;">
+    <span id="submitWarningSpan">⚠️ Cannot submit record: This bus is currently locked in depot operations! Please complete the process and unlock the bus before submitting records.</span>
+  </div>
 </div>
 
 <!-- ── Today's Charging Records ── -->
@@ -670,6 +690,18 @@
   function isBusLockedForCharging(bm) {
     if (!bm) return false;
     return getLockedBuses().some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'));
+  }
+
+  function isBusLockedAnywhere(bm, reg) {
+    if (!bm && !reg) return false;
+    const locked = getLockedBuses();
+    return locked.some(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)));
+  }
+
+  function getBusLockInfo(bm, reg) {
+    if (!bm && !reg) return null;
+    const locked = getLockedBuses();
+    return locked.find(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg))) || null;
   }
 
   function isBusInCleaning(bm, reg) {
@@ -808,6 +840,7 @@
     if (!bm) {
       lockRow.classList.remove('show');
       lockBanner.classList.remove('show');
+      updateSubmitBtn();
       return;
     }
 
@@ -823,6 +856,7 @@
     } else {
       lockBanner.classList.remove('show');
     }
+    updateSubmitBtn();
   }
 
   function renderOngoingButtons() {
@@ -926,25 +960,18 @@
         duration: '45 mins',
         startSoc: '20%',
         finalSoc: '98%',
+        delta: 78,
+        socBef: '20',
+        socAft: '98',
+        bay: 'Bay 03',
+        status: 'Completed',
         finalStage: 'Fast Charging Completed: Reached 98% SoC (125 km Usable Range)',
         chargerBay: 'Bay 03 (150 kW CCS2 Fast Charger)',
         chargingStatus: 'Completed',
         clearanceState: '✅ High Range Fleet Category A (Single Charge Ready)',
         remarks: 'Smooth charging cycle. Full SoC attained, ready for dispatch.',
-        timeStr: t1.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true })
-      }
-    ];
-    localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(initial));
-    return initial;
-  }
-        duration: '1 hr 00 min',
-        startSoc: '20%',
-        finalSoc: '98%',
-        finalStage: 'Fast Charging Completed: Reached 98% SoC (125 km Usable Range)',
-        chargerBay: 'Bay 03 (150 kW CCS2 Fast Charger)',
-        chargingStatus: 'Completed',
-        clearanceState: '✅ High Range Fleet Category A (Single Charge Ready)',
-        remarks: 'Smooth charging cycle. Full SoC attained, ready for dispatch.'
+        timeStr: t1.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        fullDutyKm: 125
       },
       {
         id: 'charg_init_2',
@@ -1150,7 +1177,59 @@
 
   function updateSubmitBtn() {
     const bm = document.getElementById('busSelect').value;
-    document.getElementById('submitBtn').disabled = !bm;
+    const submitBtn = document.getElementById('submitBtn');
+    const warnEl = document.getElementById('submitWarningText');
+    if (!submitBtn) return;
+
+    if (!bm) {
+      submitBtn.classList.add('disabled');
+      submitBtn.title = 'Please select a bus';
+      if (warnEl) warnEl.style.display = 'none';
+      return;
+    }
+
+    const lockInfo = getBusLockInfo(bm);
+    if (lockInfo) {
+      submitBtn.classList.add('disabled');
+      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
+      submitBtn.title = `Bus ${bm} is currently locked for ${isClean ? 'Cleaning' : 'Charging'}. Unlock before submitting records.`;
+    } else {
+      submitBtn.classList.remove('disabled');
+      submitBtn.title = 'Click to submit charging record';
+      if (warnEl) warnEl.style.display = 'none';
+    }
+  }
+
+  function handleSubmitClick() {
+    const bm = document.getElementById('busSelect').value;
+    if (!bm) {
+      showToast('⚠️ Please select a bus first.', 'error', 3000);
+      return;
+    }
+
+    const lockInfo = getBusLockInfo(bm);
+    if (lockInfo) {
+      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
+      const pageName = isClean ? 'Cleaning' : 'Charging';
+      const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for ${pageName}! Please complete the process and unlock the bus before submitting records.`;
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
+
+    submitCharging();
+  }
+
+  function showSubmitWarning(msg, duration = 7000) {
+    const warnEl = document.getElementById('submitWarningText');
+    const warnSpan = document.getElementById('submitWarningSpan');
+    if (!warnEl) return;
+    if (warnSpan && msg) warnSpan.textContent = msg;
+    warnEl.style.display = 'flex';
+    clearTimeout(warnEl._timer);
+    warnEl._timer = setTimeout(() => {
+      warnEl.style.display = 'none';
+    }, duration);
   }
 
   function updateSOC(which, val) {
@@ -1197,6 +1276,16 @@
     const status   = selectedPillValue;
     const remarks  = document.getElementById('remarks').value.trim();
     if (!bm) return;
+
+    const lockInfo = getBusLockInfo(bm);
+    if (lockInfo) {
+      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
+      const pageName = isClean ? 'Cleaning' : 'Charging';
+      const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for ${pageName}! Please complete the process and unlock the bus before submitting records.`;
+      showToast(msg, 'error', 7000);
+      showSubmitWarning(msg, 7000);
+      return;
+    }
 
     // Read the exact real current clock time
     const now     = new Date();
@@ -1340,12 +1429,13 @@
     `).join('');
   }
 
-  function showToast(msg, type = '') {
+  function showToast(msg, type = '', duration = 3200) {
     const t = document.getElementById('toast');
+    if (!t) return;
     t.textContent = msg;
     t.className = `toast ${type} show`;
     clearTimeout(t._timer);
-    t._timer = setTimeout(() => { t.classList.remove('show'); }, 3200);
+    t._timer = setTimeout(() => { t.classList.remove('show'); }, duration);
   }
 
   window.addEventListener('storage', (e) => {
@@ -1355,6 +1445,7 @@
       renderLog();
       const curBm = document.getElementById('busSelect').value;
       if (curBm) updateLockUI(curBm);
+      updateSubmitBtn();
     }
   });
 
@@ -1366,6 +1457,7 @@
   loadVehicles().then(() => {
     renderOngoingButtons();
     renderLog();
+    updateSubmitBtn();
   });
 </script>
 </body>
