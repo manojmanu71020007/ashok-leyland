@@ -391,6 +391,284 @@
             .fields, .checks { grid-template-columns: 1fr; }
             .wide { grid-column: auto; }
         }
+        /* ── Fleet & Timetable Section Selector Buttons ── */
+        .section-switch-wrapper {
+            margin-top: 22px;
+            margin-bottom: 14px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow);
+        }
+        .section-switch-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .section-switch-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .section-switch-tag {
+            font-size: .75rem;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            font-weight: 800;
+            color: var(--blue-dark);
+            background: #e0f2fe;
+            border: 1px solid #bae6fd;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+        .section-switch-sub {
+            font-size: .86rem;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .btn-util-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            color: #475569;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: .78rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0;
+            transition: all 0.15s ease;
+        }
+        .btn-util-toggle:hover {
+            background: #f1f5f9;
+            color: var(--ink);
+            border-color: #94a3b8;
+        }
+        .section-switch-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+        @media (max-width: 850px) {
+            .section-switch-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        .section-nav-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            background: #ffffff;
+            color: var(--ink);
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-top: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            text-align: left;
+            user-select: none;
+            width: 100%;
+        }
+        .section-nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+        .btn-nav-main {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        .btn-nav-icon {
+            font-size: 1.35rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .btn-nav-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+        .btn-nav-title {
+            font-weight: 800;
+            font-size: .96rem;
+            letter-spacing: -0.01em;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-nav-desc {
+            font-size: .74rem;
+            font-weight: 600;
+            color: var(--muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .btn-nav-end {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .btn-nav-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+            min-width: 28px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .btn-nav-chevron {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            transition: transform 0.2s ease;
+        }
+
+        /* ── Button 1: Allocated (Emerald Theme) ── */
+        .section-nav-btn.btn-view-allocated:hover {
+            border-color: #a7f3d0;
+            background: #f0fdf4;
+        }
+        .section-nav-btn.btn-view-allocated.active {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border-color: #10b981;
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.25);
+        }
+        .section-nav-btn.btn-view-allocated.active .btn-nav-title {
+            color: #065f46;
+        }
+        .section-nav-btn.btn-view-allocated.active .btn-nav-desc {
+            color: #047857;
+        }
+        .section-nav-btn.btn-view-allocated.active .btn-nav-pill {
+            background: #10b981;
+            color: #ffffff;
+            border-color: #059669;
+        }
+        .section-nav-btn.btn-view-allocated.active .btn-nav-chevron {
+            color: #065f46;
+        }
+
+        /* ── Button 2: Not Allocated (Amber/Orange Theme) ── */
+        .section-nav-btn.btn-view-not-allocated:hover {
+            border-color: #fed7aa;
+            background: #fff7ed;
+        }
+        .section-nav-btn.btn-view-not-allocated.active {
+            background: linear-gradient(135deg, #fff7ed, #ffedd5);
+            border-color: #f97316;
+            box-shadow: 0 4px 18px rgba(249, 115, 22, 0.25);
+        }
+        .section-nav-btn.btn-view-not-allocated.active .btn-nav-title {
+            color: #9a3412;
+        }
+        .section-nav-btn.btn-view-not-allocated.active .btn-nav-desc {
+            color: #c2410c;
+        }
+        .section-nav-btn.btn-view-not-allocated.active .btn-nav-pill {
+            background: #f97316;
+            color: #ffffff;
+            border-color: #ea580c;
+        }
+        .section-nav-btn.btn-view-not-allocated.active .btn-nav-chevron {
+            color: #9a3412;
+        }
+
+        /* ── Button 3: Scheduled Time (Cyan/Blue Theme) ── */
+        .section-nav-btn.btn-view-scheduled:hover {
+            border-color: #bae6fd;
+            background: #f0f9ff;
+        }
+        .section-nav-btn.btn-view-scheduled.active {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-color: #0284c7;
+            box-shadow: 0 4px 18px rgba(2, 132, 199, 0.25);
+        }
+        .section-nav-btn.btn-view-scheduled.active .btn-nav-title {
+            color: #0369a1;
+        }
+        .section-nav-btn.btn-view-scheduled.active .btn-nav-desc {
+            color: #0284c7;
+        }
+        .section-nav-btn.btn-view-scheduled.active .btn-nav-pill {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0369a1;
+        }
+        .section-nav-btn.btn-view-scheduled.active .btn-nav-chevron {
+            color: #0369a1;
+        }
+
+        /* ── Section Views Container & Panels ── */
+        .section-views-container {
+            margin-top: 14px;
+        }
+        .section-view-panel {
+            animation: fadeInSectionView 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            margin-bottom: 20px;
+        }
+        @keyframes fadeInSectionView {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .section-empty-prompt {
+            padding: 30px 20px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px dashed #cbd5e1;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 18px;
+        }
+        .empty-prompt-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .empty-prompt-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+        .empty-prompt-text strong {
+            display: block;
+            font-size: 1.05rem;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+        .empty-prompt-text span {
+            color: var(--muted);
+            font-size: .88rem;
+        }
         .allocation-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1284,127 +1562,207 @@
             </aside>
         </div>
 
-        <div class="allocation-grid">
-            <section class="panel" aria-label="Allocated buses">
-                <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;">
-                    <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
-                    <button id="reset-allocations-btn" type="button" class="btn-reset-allocations" style="display:none;" title="Reset all allocations">✕ Reset All</button>
+        <!-- ── Section Buttons Bar (Allocated Buses, Non-Allocated Buses & Scheduled Time) ── -->
+        <div class="section-switch-wrapper" aria-label="Fleet view navigation">
+            <div class="section-switch-header">
+                <div class="section-switch-label">
+                    <span class="section-switch-tag">Fleet &amp; Schedule Explorer</span>
+                    <span class="section-switch-sub">Click a section below to toggle and inspect details:</span>
                 </div>
-                <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
-                <!-- Sort strip for Allocated -->
-                <div class="sort-strip">
-                    <label>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-                        Sort by:
-                    </label>
-                    <label>Route
-                        <select id="alloc-sort-route">
-                            <option value="all">All Routes (A → Z)</option>
-                            <option value="route-desc">Route (Z → A)</option>
-                            <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
-                            <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
-                            <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
-                            <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
-                            <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
-                            <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
-                            <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
-                            <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
-                            <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
-                        </select>
-                    </label>
+                <div class="section-switch-quick-actions">
+                    <button type="button" id="btn-toggle-all-sections" class="btn-util-toggle" title="Show or collapse all sections simultaneously">
+                        <span id="btn-toggle-all-icon">⊞</span> <span id="btn-toggle-all-text">Show All Sections</span>
+                    </button>
                 </div>
-                <div class="region-search-wrap">
-                    <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route..." autocomplete="off" spellcheck="false" />
-                    <button type="button" id="clear-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear allocated search" style="display:none;">✕</button>
-                </div>
-                <div id="route-summary" class="route-list">
-                    <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
-                </div>
-            </section>
+            </div>
 
-            <section class="panel" aria-label="Not allocated buses">
-                <div class="panel-heading-row">
-                    <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
-                </div>
-                <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
-                <!-- Sort strip for Not Allocated -->
-                <div class="sort-strip">
-                    <label>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-                        Sort by:
-                    </label>
-                    <label>Route
-                        <select id="not-alloc-sort-route">
-                            <option value="all">All Routes (A → Z)</option>
-                            <option value="route-desc">Route (Z → A)</option>
-                            <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
-                            <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
-                            <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
-                            <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
-                            <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
-                            <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
-                            <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
-                            <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
-                            <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
-                        </select>
-                    </label>
-                </div>
-                <div class="region-search-wrap not-allocated-search-wrap">
-                    <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, reason..." autocomplete="off" spellcheck="false" />
-                    <button type="button" id="clear-not-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear not allocated search" style="display:none;">✕</button>
-                </div>
-                <div id="not-allocated-summary" class="route-list">
-                    <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
-                </div>
-            </section>
+            <div class="section-switch-buttons" role="tablist" aria-label="Fleet Views">
+                <button type="button" class="section-nav-btn btn-view-allocated" id="btn-tab-allocated" data-target="view-panel-allocated" role="tab" aria-selected="false" aria-controls="view-panel-allocated">
+                    <div class="btn-nav-main">
+                        <span class="btn-nav-icon">✅</span>
+                        <div class="btn-nav-meta">
+                            <span class="btn-nav-title">Allocated Buses</span>
+                            <span class="btn-nav-desc">Ready for Departure</span>
+                        </div>
+                    </div>
+                    <div class="btn-nav-end">
+                        <span class="btn-nav-pill" id="nav-count-allocated">0</span>
+                        <span class="btn-nav-chevron">▼</span>
+                    </div>
+                </button>
+
+                <button type="button" class="section-nav-btn btn-view-not-allocated" id="btn-tab-not-allocated" data-target="view-panel-not-allocated" role="tab" aria-selected="false" aria-controls="view-panel-not-allocated">
+                    <div class="btn-nav-main">
+                        <span class="btn-nav-icon">⛔</span>
+                        <div class="btn-nav-meta">
+                            <span class="btn-nav-title">Non-Allocated Buses</span>
+                            <span class="btn-nav-desc">Ineligible or In Reserve</span>
+                        </div>
+                    </div>
+                    <div class="btn-nav-end">
+                        <span class="btn-nav-pill" id="nav-count-not-allocated">0</span>
+                        <span class="btn-nav-chevron">▼</span>
+                    </div>
+                </button>
+
+                <button type="button" class="section-nav-btn btn-view-scheduled" id="btn-tab-scheduled" data-target="view-panel-scheduled" role="tab" aria-selected="false" aria-controls="view-panel-scheduled">
+                    <div class="btn-nav-main">
+                        <span class="btn-nav-icon">🕒</span>
+                        <div class="btn-nav-meta">
+                            <span class="btn-nav-title">Scheduled Time</span>
+                            <span class="btn-nav-desc">Timetable &amp; Trip Schedule</span>
+                        </div>
+                    </div>
+                    <div class="btn-nav-end">
+                        <span class="btn-nav-pill" id="nav-count-scheduled">0</span>
+                        <span class="btn-nav-chevron">▼</span>
+                    </div>
+                </button>
+            </div>
         </div>
 
-        <section class="panel scheduled-time-panel" aria-label="Scheduled time">
-            <div class="scheduled-header">
-                <div>
-                    <h2 style="color:#087ea4; margin:0;">🕒 Scheduled Time</h2>
-                    <p class="panel-note" style="margin-bottom:0; margin-top:4px;">Live departure timings, assigned buses, and service schedule.</p>
-                </div>
-                <div class="filter-tabs" id="scheduled-filter-tabs">
-                    <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
-                    <button type="button" class="tab-btn" data-filter="allocated">Allocated (<span id="scheduled-count-alloc">0</span>)</button>
-                    <button type="button" class="tab-btn" data-filter="not-allocated">Not Allocated (<span id="scheduled-count-not-alloc">0</span>)</button>
+        <!-- ── Section Display Panels ── -->
+        <div id="section-views-container" class="section-views-container">
+            <!-- Hint shown when no section is currently open -->
+            <div id="section-empty-prompt" class="section-empty-prompt">
+                <div class="empty-prompt-box">
+                    <div class="empty-prompt-icon">👆</div>
+                    <div class="empty-prompt-text">
+                        <strong>Click any button above to display its section</strong>
+                        <span>View <strong>Allocated Buses</strong>, <strong>Non-Allocated Buses</strong>, or the full <strong>Scheduled Timetable</strong>.</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="scheduled-toolbar">
-                <div class="region-search-wrap scheduled-search-wrap">
-                    <span class="search-icon" aria-hidden="true">🔍</span>
-                    <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, time..." autocomplete="off" spellcheck="false" />
-                    <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
-                </div>
-                <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
+            <!-- Panel 1: Allocated Buses -->
+            <div id="view-panel-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-allocated">
+                <section class="panel" aria-label="Allocated buses">
+                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;">
+                        <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
+                        <button id="reset-allocations-btn" type="button" class="btn-reset-allocations" style="display:none;" title="Reset all allocations">✕ Reset All</button>
+                    </div>
+                    <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
+                    <!-- Sort strip for Allocated -->
+                    <div class="sort-strip">
+                        <label>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                            Sort by:
+                        </label>
+                        <label>Route
+                            <select id="alloc-sort-route">
+                                <option value="all">All Routes (A → Z)</option>
+                                <option value="route-desc">Route (Z → A)</option>
+                                <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
+                                <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
+                                <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
+                                <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
+                                <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
+                                <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
+                                <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
+                                <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                                <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="region-search-wrap">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input type="text" id="allocated-search" class="region-search-input" placeholder="Search allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route..." autocomplete="off" spellcheck="false" />
+                        <button type="button" id="clear-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear allocated search" style="display:none;">✕</button>
+                    </div>
+                    <div id="route-summary" class="route-list">
+                        <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
+                    </div>
+                </section>
             </div>
 
-            <div class="scheduled-table-wrap">
-                <table class="scheduled-table">
-                    <thead>
-                        <tr>
-                            <th>Route Line</th>
-                            <th>Origin ➔ Destination</th>
-                            <th>Assigned Vehicle (BM Number)</th>
-                            <th>Departure Time</th>
-                            <th>Arrival Time</th>
-                            <th>Status</th>
-                            <th>Allocation</th>
-                            <th>Tasks</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scheduled-time-tbody">
-                        <tr>
-                            <td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <!-- Panel 2: Non-Allocated Buses -->
+            <div id="view-panel-not-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-not-allocated">
+                <section class="panel" aria-label="Not allocated buses">
+                    <div class="panel-heading-row">
+                        <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
+                    </div>
+                    <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
+                    <!-- Sort strip for Not Allocated -->
+                    <div class="sort-strip">
+                        <label>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                            Sort by:
+                        </label>
+                        <label>Route
+                            <select id="not-alloc-sort-route">
+                                <option value="all">All Routes (A → Z)</option>
+                                <option value="route-desc">Route (Z → A)</option>
+                                <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
+                                <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
+                                <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
+                                <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
+                                <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
+                                <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
+                                <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
+                                <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                                <option value="500DC">Route 500DC (Anekal ⇔ Tin Factory)</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="region-search-wrap not-allocated-search-wrap">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input type="text" id="not-allocated-search" class="region-search-input not-allocated-search-input" placeholder="Search not allocated buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, reason..." autocomplete="off" spellcheck="false" />
+                        <button type="button" id="clear-not-allocated-search" class="clear-search-btn" title="Clear search" aria-label="Clear not allocated search" style="display:none;">✕</button>
+                    </div>
+                    <div id="not-allocated-summary" class="route-list">
+                        <div class="route-row"><strong>Loading…</strong><span>Fetching GTFS data</span></div>
+                    </div>
+                </section>
             </div>
-        </section>
+
+            <!-- Panel 3: Scheduled Time -->
+            <div id="view-panel-scheduled" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-scheduled">
+                <section class="panel scheduled-time-panel" style="margin-top:0;" aria-label="Scheduled time">
+                    <div class="scheduled-header">
+                        <div>
+                            <h2 style="color:#087ea4; margin:0;">🕒 Scheduled Time</h2>
+                            <p class="panel-note" style="margin-bottom:0; margin-top:4px;">Live departure timings, assigned buses, and service schedule.</p>
+                        </div>
+                        <div class="filter-tabs" id="scheduled-filter-tabs">
+                            <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
+                            <button type="button" class="tab-btn" data-filter="allocated">Allocated (<span id="scheduled-count-alloc">0</span>)</button>
+                            <button type="button" class="tab-btn" data-filter="not-allocated">Not Allocated (<span id="scheduled-count-not-alloc">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <div class="scheduled-toolbar">
+                        <div class="region-search-wrap scheduled-search-wrap">
+                            <span class="search-icon" aria-hidden="true">🔍</span>
+                            <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, time..." autocomplete="off" spellcheck="false" />
+                            <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
+                        </div>
+                        <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
+                    </div>
+
+                    <div class="scheduled-table-wrap">
+                        <table class="scheduled-table">
+                            <thead>
+                                <tr>
+                                    <th>Route Line</th>
+                                    <th>Origin ➔ Destination</th>
+                                    <th>Assigned Vehicle (BM Number)</th>
+                                    <th>Departure Time</th>
+                                    <th>Arrival Time</th>
+                                    <th>Status</th>
+                                    <th>Allocation</th>
+                                    <th>Tasks</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduled-time-tbody">
+                                <tr>
+                                    <td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
 
         <!-- Bus Tasks & Route Duty Schedule Modal Dialog -->
         <div id="bus-tasks-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
@@ -1565,7 +1923,130 @@
             }, 4500);
         }
 
+        // ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time) ──
+        function initSectionViewSwitcher() {
+            const btnAllocated = document.getElementById("btn-tab-allocated");
+            const btnNotAllocated = document.getElementById("btn-tab-not-allocated");
+            const btnScheduled = document.getElementById("btn-tab-scheduled");
+            const btnToggleAll = document.getElementById("btn-toggle-all-sections");
+            const btnToggleAllText = document.getElementById("btn-toggle-all-text");
+            const btnToggleAllIcon = document.getElementById("btn-toggle-all-icon");
+
+            const panelAllocated = document.getElementById("view-panel-allocated");
+            const panelNotAllocated = document.getElementById("view-panel-not-allocated");
+            const panelScheduled = document.getElementById("view-panel-scheduled");
+            const emptyPrompt = document.getElementById("section-empty-prompt");
+
+            const panelMap = {
+                "allocated": { btn: btnAllocated, panel: panelAllocated },
+                "not-allocated": { btn: btnNotAllocated, panel: panelNotAllocated },
+                "scheduled": { btn: btnScheduled, panel: panelScheduled }
+            };
+
+            let allExpanded = false;
+
+            window.openFleetSection = function(sectionKey, shouldScroll = false) {
+                allExpanded = false;
+                if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
+                if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
+
+                Object.entries(panelMap).forEach(([key, item]) => {
+                    if (!item.panel || !item.btn) return;
+                    if (key === sectionKey) {
+                        item.panel.style.display = "block";
+                        item.btn.classList.add("active");
+                        item.btn.setAttribute("aria-selected", "true");
+                        const chevron = item.btn.querySelector(".btn-nav-chevron");
+                        if (chevron) chevron.textContent = "▲";
+                    } else {
+                        item.panel.style.display = "none";
+                        item.btn.classList.remove("active");
+                        item.btn.setAttribute("aria-selected", "false");
+                        const chevron = item.btn.querySelector(".btn-nav-chevron");
+                        if (chevron) chevron.textContent = "▼";
+                    }
+                });
+
+                if (emptyPrompt) emptyPrompt.style.display = "none";
+
+                if (shouldScroll && panelMap[sectionKey]?.panel) {
+                    panelMap[sectionKey].panel.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+            };
+
+            window.toggleFleetSection = function(sectionKey) {
+                const item = panelMap[sectionKey];
+                if (!item || !item.panel) return;
+
+                if (allExpanded) {
+                    openFleetSection(sectionKey);
+                    return;
+                }
+
+                const isCurrentlyOpen = item.panel.style.display === "block";
+                if (isCurrentlyOpen) {
+                    item.panel.style.display = "none";
+                    if (item.btn) {
+                        item.btn.classList.remove("active");
+                        item.btn.setAttribute("aria-selected", "false");
+                        const chevron = item.btn.querySelector(".btn-nav-chevron");
+                        if (chevron) chevron.textContent = "▼";
+                    }
+                    const anyOpen = Object.values(panelMap).some(it => it.panel && it.panel.style.display === "block");
+                    if (emptyPrompt) emptyPrompt.style.display = anyOpen ? "none" : "block";
+                } else {
+                    openFleetSection(sectionKey);
+                }
+            };
+
+            if (btnAllocated) {
+                btnAllocated.addEventListener("click", () => toggleFleetSection("allocated"));
+            }
+            if (btnNotAllocated) {
+                btnNotAllocated.addEventListener("click", () => toggleFleetSection("not-allocated"));
+            }
+            if (btnScheduled) {
+                btnScheduled.addEventListener("click", () => toggleFleetSection("scheduled"));
+            }
+
+            if (btnToggleAll) {
+                btnToggleAll.addEventListener("click", () => {
+                    allExpanded = !allExpanded;
+                    if (allExpanded) {
+                        Object.values(panelMap).forEach(item => {
+                            if (item.panel) item.panel.style.display = "block";
+                            if (item.btn) {
+                                item.btn.classList.add("active");
+                                item.btn.setAttribute("aria-selected", "true");
+                                const chevron = item.btn.querySelector(".btn-nav-chevron");
+                                if (chevron) chevron.textContent = "▲";
+                            }
+                        });
+                        if (emptyPrompt) emptyPrompt.style.display = "none";
+                        if (btnToggleAllText) btnToggleAllText.textContent = "Collapse View";
+                        if (btnToggleAllIcon) btnToggleAllIcon.textContent = "✕";
+                    } else {
+                        Object.values(panelMap).forEach(item => {
+                            if (item.panel) item.panel.style.display = "none";
+                            if (item.btn) {
+                                item.btn.classList.remove("active");
+                                item.btn.setAttribute("aria-selected", "false");
+                                const chevron = item.btn.querySelector(".btn-nav-chevron");
+                                if (chevron) chevron.textContent = "▼";
+                            }
+                        });
+                        if (emptyPrompt) emptyPrompt.style.display = "block";
+                        if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
+                        if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
+                    }
+                });
+            }
+        }
+
         function scrollToAllocatedDuty(dutyId) {
+            if (typeof window.openFleetSection === "function") {
+                window.openFleetSection("allocated");
+            }
             const row = dutyId ? document.querySelector(`.route-row[data-duty-id="${dutyId}"]`) : null;
             if (row) {
                 row.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -2527,6 +3008,10 @@
                     ? `${filtered.length} of ${sourceList.length}`
                     : String(sourceList.length);
             }
+            const navAllocPill = document.getElementById("nav-count-allocated");
+            if (navAllocPill) {
+                navAllocPill.textContent = String(sourceList.length);
+            }
 
             const resetBtn = document.getElementById("reset-allocations-btn");
             if (resetBtn) {
@@ -2752,6 +3237,10 @@
                 notAllocatedCountEl.textContent = query
                     ? `${filtered.length} of ${sourceList.length}`
                     : String(sourceList.length);
+            }
+            const navNotAllocPill = document.getElementById("nav-count-not-allocated");
+            if (navNotAllocPill) {
+                navNotAllocPill.textContent = String(sourceList.length);
             }
 
             if (!sourceList.length) {
@@ -3018,6 +3507,10 @@
             if (countAll) countAll.textContent = String(augmentedRoutes.length);
             if (countAlloc) countAlloc.textContent = String(allocatedRoutesList.length);
             if (countNotAlloc) countNotAlloc.textContent = String(notAllocatedRoutesList.length);
+            const navSchedPill = document.getElementById("nav-count-scheduled");
+            if (navSchedPill) {
+                navSchedPill.textContent = String(augmentedRoutes.length);
+            }
 
             let routesToDisplay = augmentedRoutes;
             if (scheduledFilter === "allocated") {
@@ -4402,6 +4895,9 @@
                 if (notAllocSortRouteEl) {
                     notAllocSortRouteEl.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
                 }
+
+                // ── Initialize Fleet View Switcher Buttons ──
+                initSectionViewSwitcher();
 
                 // ── Logout button ──
                 const logoutBtn = document.getElementById("logout-btn");
