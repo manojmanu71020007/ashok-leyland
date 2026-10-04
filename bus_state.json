@@ -859,12 +859,12 @@
     "fullDutyDistanceKm": 0
   },
   "BM012": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T12:45:14.381Z",
+    "updatedAt": "2026-10-04T02:57:35.092Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:05",
@@ -880,12 +880,12 @@
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": null,
+    "chargingStatus": "Partial",
+    "chargerBay": "N/A",
+    "socBefore": 20,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": "08:27:34 am",
     "history": [
       {
         "timestamp": "2026-10-02T05:21:03.785Z",
@@ -908,6 +908,12 @@
       {
         "timestamp": "2026-10-03T12:45:14.381Z",
         "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T02:57:35.092Z",
+        "soc": 100,
         "condition": "Good",
         "status": "On Time"
       }
@@ -6796,7 +6802,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-03T12:45:14.381Z",
+    "updatedAt": "2026-10-04T02:57:35.092Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:05",
@@ -6812,12 +6818,12 @@
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": null,
+    "chargingStatus": "Partial",
+    "chargerBay": "N/A",
+    "socBefore": 20,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": "08:27:34 am",
     "history": [
       {
         "timestamp": "2026-10-02T05:21:03.785Z",
@@ -6844,8 +6850,8 @@
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T06:02:14.905Z",
-        "soc": 93,
+        "timestamp": "2026-10-04T02:57:35.092Z",
+        "soc": 100,
         "condition": "Good",
         "status": "On Time"
       }
@@ -7188,16 +7194,16 @@
       "assignedRouteDisplay": "Route BM012 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -10662,16 +10668,16 @@
       "assignedRouteDisplay": "Route BM012 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -14308,16 +14314,16 @@
       "bmNumber": "BM012",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 187.17,
       "blocked": true
