@@ -1445,10 +1445,10 @@
                     </label>
                     <label>
                         Scheduled Departure Time (from dataset)
-                        <select id="scheduled-time-select"><option value="">Loading timetable schedules...</option></select>
+                        <select id="scheduled-time-select" disabled style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Auto-synced from selected route timetable"><option value="">Loading timetable schedules...</option></select>
                     </label>
-                    <label>Departure time<input id="departure" type="time" value="13:10"></label>
-                    <label class="wide">Schedule distance (km)<input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data"></label>
+                    <label>Departure time<input id="departure" type="time" value="13:10" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Scheduled departure time fixed by selected timetable"></label>
+                    <label class="wide">Schedule distance (km)<input id="distance" type="number" min="1" value="28.7" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Schedule distance is fixed based on route GTFS data"></label>
                 </div>
 
                 <!-- ── Allocated Bus Card (System allocates bus based on Route, Shift, Time & Battery State) ── -->
@@ -1507,8 +1507,6 @@
                         <span id="banner-charge-info" style="font-size:.76rem; color:#0369a1; font-weight:700; background:#e0f2fe; padding:2px 8px; border-radius:6px;">⚡ Est. Charge: ~22.9% SoC</span>
                     </div>
                 </div>
-
-                <button id="recommend">⚡ Allocate Bus</button>
             </section>
 
             <aside class="panel">
@@ -1824,13 +1822,27 @@
 
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
         function getRequiredSingleChargeSoc(distKm, schedObj) {
-            // Energy needed for trip = distance / 1.42
-            // Plus 25% minimum depot safety reserve floor
-            const targetKm = (schedObj && schedObj.singleChargeReqKm)
+            let targetKm = (schedObj && schedObj.singleChargeReqKm)
                 ? Number(schedObj.singleChargeReqKm)
                 : (Number(distKm) || 28.7);
-            const tripConsumption = targetKm / 1.42;
-            return Math.min(100, Math.round(25 + tripConsumption));
+
+            // If the schedule specifies intermediate rest stops / opportunity charging in remarks (e.g. "1 rest stoop at HSK 65.7")
+            if (schedObj && schedObj.remarks) {
+                const match = String(schedObj.remarks).match(/([0-9]+(?:\.[0-9]+)?)/);
+                if (match && Number(match[1]) > 20 && Number(match[1]) < targetKm) {
+                    targetKm = Number(match[1]);
+                }
+            }
+            // For multi-trip schedules with rest breaks, cap single operating stretch at 95 km
+            if (targetKm > 110 && (!schedObj || !schedObj.singleChargeReqKm || (schedObj.noOfRest && schedObj.noOfRest > 0))) {
+                targetKm = Math.min(targetKm, 95);
+            }
+
+            // Energy needed for operating stretch = targetKm / 1.42 km per % SOC
+            // Plus 15% depot safety reserve floor
+            const baseSoc = targetKm / 1.42;
+            const reservePct = 15;
+            return Math.min(100, Math.round(baseSoc + reservePct));
         }
 
         // ── Allocated Duties persistence & state ──
@@ -2169,16 +2181,17 @@
             return (busAssignments && (busAssignments[String(route.routeId)] || busAssignments[route.uniqueId])) || route.bmNumber || route.uniqueId || route.busNumber || route.routeId;
         }
 
-        // Reset old cached battery states so all depot vehicles initialize at 0%
+        // One-time reset requested: set/clear initial localStorage state so all buses start at 0% as of now,
+        // and never reset again so future manual updates are permanently preserved.
         try {
-            if (!localStorage.getItem('depot_battery_reset_zero_v1')) {
+            if (!localStorage.getItem('depot_battery_reset_zero_v2')) {
                 for (let i = localStorage.length - 1; i >= 0; i--) {
                     const k = localStorage.key(i);
-                    if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties')) {
+                    if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties' || k === 'depot_charging_event')) {
                         localStorage.removeItem(k);
                     }
                 }
-                localStorage.setItem('depot_battery_reset_zero_v1', '1');
+                localStorage.setItem('depot_battery_reset_zero_v2', '1');
             }
         } catch (e) {}
 
@@ -2497,9 +2510,8 @@
             const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
                 ? targetReqSoc
                 : getRequiredSingleChargeSoc(routeDist);
-            const maxAllowedSoc = reqSoc + 3;
 
-            // Strict Single Charge Operation Battery Requirement & 3% Tolerance Gate
+            // Bus is feasible if its manually updated live battery SoC meets or exceeds the required level
             if (liveSoc < reqSoc) {
                 return {
                     feasible: false,
@@ -2507,20 +2519,7 @@
                     liveSoc,
                     fullDutyKm,
                     reqSoc,
-                    maxAllowedSoc,
                     reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
-                };
-            }
-
-            if (liveSoc > maxAllowedSoc) {
-                return {
-                    feasible: false,
-                    bm,
-                    liveSoc,
-                    fullDutyKm,
-                    reqSoc,
-                    maxAllowedSoc,
-                    reason: `Bus ${bm} battery at ${liveSoc}% SoC exceeds the Single Charge Operation requirement (${reqSoc}%) by more than 3% tolerance (allowed: ${reqSoc}%–${maxAllowedSoc}%).`
                 };
             }
 
@@ -2530,7 +2529,6 @@
                 liveSoc,
                 fullDutyKm,
                 reqSoc,
-                maxAllowedSoc,
                 condition,
                 driver,
                 role: candidateRole
@@ -2588,12 +2586,40 @@
             const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
             const maxAllowedSoc = reqSoc + 3;
 
+            // Check if this specific duty already has a bus officially allocated
+            const existingDuty = (allocatedDuties || []).find(d => d.routeCode === routeCode && (d.departureTime || '').substring(0, 5) === depShort);
+            if (existingDuty) {
+                const liveSoc = getBusSocByBm(existingDuty.bm);
+                return {
+                    allocated: {
+                        bm: existingDuty.bm,
+                        regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
+                        liveSoc: liveSoc,
+                        fullDutyKm: calculateFullDutyDistance(liveSoc),
+                        shift: existingDuty.shift || targetShift,
+                        departureTime: depTimeClean,
+                        allocType: existingDuty.allocType || "Committed Duty Allocation",
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        reqSoc: reqSoc,
+                        isCommitted: true,
+                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
+                    },
+                    matchedSched,
+                    swapLog: [],
+                    shift: targetShift,
+                    departureTime: depTimeClean,
+                    reqSoc
+                };
+            }
+
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
                 const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
 
                 if (primaryEval.feasible) {
+                    const surplus = primaryEval.liveSoc - reqSoc;
                     allocated = Object.assign({}, primaryEval, {
                         regNo: matchedSched.fixReg || getBusRegNo(primaryBm),
                         scheduleId: matchedSched.scheduleId,
@@ -2602,7 +2628,7 @@
                         allocType: `Primary Bus (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) matches required Single Charge Operation level (${primaryEval.reqSoc}% required, ${primaryEval.reqSoc}%–${primaryEval.maxAllowedSoc}% window) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
+                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
                     });
                 } else {
                     swapLog.push(`Primary bus ${primaryBm} (${targetShift}) ineligible: ${primaryEval.reason}`);
@@ -2612,6 +2638,7 @@
                     if (swapBm && swapBm !== primaryBm) {
                         const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
                         if (swapEval.feasible) {
+                            const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
                                 regNo: matchedSched.swapReg || getBusRegNo(swapBm),
                                 scheduleId: matchedSched.scheduleId,
@@ -2620,7 +2647,7 @@
                                 allocType: `Swapped Bus (${targetShift})`,
                                 routeCode: routeCode,
                                 busShortName: routeCode,
-                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC matching required Single Charge Operation level (${swapEval.reqSoc}% required, ${swapEval.reqSoc}%–${swapEval.maxAllowedSoc}% window).`
+                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
                             });
                         } else {
                             swapLog.push(`Designated swap bus ${swapBm} ineligible: ${swapEval.reason}`);
@@ -2638,10 +2665,11 @@
                     })
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc))
                     .filter(e => e.feasible)
-                    .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
+                    .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
                 if (sameShiftCandidates.length > 0) {
                     const bestShiftBus = sameShiftCandidates[0];
+                    const surplus = bestShiftBus.liveSoc - reqSoc;
                     allocated = Object.assign({}, bestShiftBus, {
                         regNo: getBusRegNo(bestShiftBus.bm),
                         scheduleId: matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`,
@@ -2650,7 +2678,7 @@
                         allocType: `Shift Pool Allocation (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} matching required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC, ${bestShiftBus.fullDutyKm} km range).`
+                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
                     });
                 }
             }
@@ -2660,10 +2688,11 @@
                 const eligibleReserves = routes
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc))
                     .filter(e => e.feasible)
-                    .sort((a, b) => Math.abs(a.liveSoc - reqSoc) - Math.abs(b.liveSoc - reqSoc));
+                    .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
                 if (eligibleReserves.length > 0) {
                     const bestReserve = eligibleReserves[0];
+                    const surplus = bestReserve.liveSoc - reqSoc;
                     allocated = Object.assign({}, bestReserve, {
                         regNo: getBusRegNo(bestReserve.bm),
                         scheduleId: matchedSched ? matchedSched.scheduleId : `RES-${depShort}`,
@@ -2672,7 +2701,7 @@
                         allocType: `Depot Reserve Fleet Allocation`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} matching required Single Charge Operation level (${bestReserve.liveSoc}% SoC, ${bestReserve.fullDutyKm} km Full Duty Range).`
+                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
                     });
                 }
             }
@@ -2680,9 +2709,10 @@
             if (allocated) {
                 allocated.routeCode = routeCode;
                 allocated.busShortName = routeCode;
+                allocated.reqSoc = reqSoc;
             }
 
-            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, maxAllowedSoc };
+            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc };
         }
 
         const autoAllocateBus = allocateBus;
@@ -2694,7 +2724,7 @@
             if (!result || !result.allocated) {
                 const shiftName = (result && result.shift) ? result.shift : "Selected Shift";
                 const depTime = (result && result.departureTime) ? result.departureTime : "selected time";
-                const reqText = (result && result.reqSoc) ? `${result.reqSoc}% SoC required (${result.reqSoc}%–${result.maxAllowedSoc}% window)` : "insufficient battery";
+                const reqText = (result && result.reqSoc) ? `${result.reqSoc}% SoC required` : "insufficient battery";
                 card.style.display = "block";
                 card.style.borderColor = "#fca5a5";
                 card.style.borderLeftColor = "#dc2626";
@@ -2708,7 +2738,7 @@
                     <div style="font-size:0.88rem;color:#7f1d1d;line-height:1.5;padding:6px 0;">
                         <strong>No eligible bus could be allocated for this schedule (${escapeHtml(shiftName)} at ${escapeHtml(depTime)}).</strong>
                         <div style="margin-top:6px;font-size:0.8rem;color:#991b1b;line-height:1.4;">
-                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is not at the required Single Charge Operation level (${reqText}).`}
+                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is below the estimated required Single Charge Operation level (${reqText}). Update bus SOC in Charging Portal to allocate.`}
                         </div>
                     </div>
                 `;
@@ -2717,16 +2747,30 @@
 
             const alloc = result.allocated;
             const shiftName = alloc.shift || (result && result.shift) || "Regular Shift";
+            const reqSocVal = (alloc.reqSoc !== undefined && alloc.reqSoc !== null) ? alloc.reqSoc : (result && result.reqSoc ? result.reqSoc : "—");
+            const surplusVal = (Number.isFinite(alloc.liveSoc) && Number.isFinite(reqSocVal)) ? (alloc.liveSoc - reqSocVal) : 0;
+            const routeDistVal = (() => {
+                const selectedRouteId = routeSelect ? routeSelect.value : "";
+                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                return routeObj ? `${routeObj.distKm.toFixed(1)} km` : "28.7 km";
+            })();
+
             card.style.display = "block";
             card.style.borderColor = "#86efac";
             card.style.borderLeftColor = "#16a34a";
             card.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
 
+            const isCommitted = !!alloc.isCommitted;
+            const badgeText = isCommitted ? "🔒 Allocated & Locked to this Duty" : "💡 Recommended Candidate Bus";
+            const badgeBg = isCommitted ? "#dcfce7" : "#e0f2fe";
+            const badgeColor = isCommitted ? "#15803d" : "#0369a1";
+            const badgeBorder = isCommitted ? "#86efac" : "#bae6fd";
+
             card.innerHTML = `
                 <div class="auto-alloc-header">
-                    <span class="auto-alloc-badge">⚡ Allocated Bus</span>
+                    <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
-                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || "Primary Scheduled Bus")}</span>
+                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus"))}</span>
                 </div>
                 <div class="auto-alloc-body">
                     <div class="auto-alloc-main">
@@ -2737,16 +2781,22 @@
                     </div>
                     <div class="auto-alloc-metrics">
                         <div class="alloc-metric-item">
-                            <span class="metric-label">Shift</span>
-                            <strong id="alloc-shift" class="metric-val" style="color:#0369a1;">${escapeHtml(shiftName)}</strong>
+                            <span class="metric-label">Shift & Schedule</span>
+                            <strong id="alloc-shift" class="metric-val" style="color:#0369a1;">${escapeHtml(shiftName)} <span style="font-size:0.8rem;font-weight:600;color:#64748b;">(${escapeHtml(alloc.scheduleId || '—')})</span></strong>
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Time Slot</span>
                             <strong id="alloc-timeslot" class="metric-val">${escapeHtml(alloc.departureTime || (result && result.departureTime) || "—")}</strong>
                         </div>
-                        <div class="alloc-metric-item">
-                            <span class="metric-label">Live Battery SOC</span>
-                            <strong id="alloc-soc" class="metric-val">${alloc.liveSoc}%</strong>
+                        <div class="alloc-metric-item" style="background:#fef3c7;border-radius:8px;padding:6px 10px;">
+                            <span class="metric-label" style="color:#92400e;font-weight:700;">Estimated Required SOC</span>
+                            <strong id="alloc-req-soc" class="metric-val" style="color:#b45309;font-size:1.15rem;">${reqSocVal}%</strong>
+                            <span class="metric-sub" style="color:#92400e;">Target Requirement</span>
+                        </div>
+                        <div class="alloc-metric-item" style="background:#dcfce7;border-radius:8px;padding:6px 10px;">
+                            <span class="metric-label" style="color:#166534;font-weight:700;">Manual Updated SOC</span>
+                            <strong id="alloc-soc" class="metric-val" style="color:#15803d;font-size:1.15rem;">${alloc.liveSoc}%</strong>
+                            <span class="metric-sub" style="color:#166534;">Surplus: +${surplusVal}% (Feasible)</span>
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Full Duty Distance</span>
@@ -2755,11 +2805,7 @@
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Route Distance</span>
-                            <strong id="alloc-route-dist" class="metric-val">${(() => {
-                                const selectedRouteId = routeSelect.value;
-                                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
-                                return routeObj ? `${routeObj.distKm.toFixed(1)} km` : "28.7 km";
-                            })()}</strong>
+                            <strong id="alloc-route-dist" class="metric-val">${routeDistVal}</strong>
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Driver Status</span>
@@ -2774,6 +2820,52 @@
         }
 
         const renderAutoAllocatedCard = renderAllocatedCard;
+
+        function updateRouteKpis(routeObj, departureTime) {
+            const routeCodeVal = routeObj ? (routeObj.code || "356Z") : "356Z";
+            const routeDistKmVal = routeObj ? Number(routeObj.distKm || 28.7) : 28.7;
+            const reqSocForRoute = getRequiredSingleChargeSoc(routeDistKmVal, currentScheduleMatch);
+
+            // Collect all unique BM numbers designated for this particular route only
+            const routeDesignatedBms = new Set();
+            (datasetSchedules || []).forEach(s => {
+                if (String(s.route || "").toUpperCase() === routeCodeVal.toUpperCase()) {
+                    if (s.fixBm) routeDesignatedBms.add(String(s.fixBm).toUpperCase().trim());
+                    if (s.swapBm) routeDesignatedBms.add(String(s.swapBm).toUpperCase().trim());
+                }
+            });
+            (routes || []).forEach(r => {
+                const rBusNum = String(r.busNumber || r.routeShortName || "").toUpperCase();
+                if (rBusNum === routeCodeVal.toUpperCase()) {
+                    const bm = String(r.bmNumber || r.uniqueId || "").toUpperCase().trim();
+                    if (bm) routeDesignatedBms.add(bm);
+                }
+            });
+
+            const totalBusesForRoute = routeDesignatedBms.size > 0 ? routeDesignatedBms.size : 7;
+
+            // Calculate how many buses are available for departure on this particular route only
+            let busesAvailableForDeparture = 0;
+            const targetDepShort = (departureTime || "13:10").substring(0, 5);
+            const currentTargetKey = `${routeCodeVal}_${targetDepShort}`;
+
+            routeDesignatedBms.forEach(bm => {
+                const feas = evaluateBusFeasibility(bm, "Candidate", routeDistKmVal, currentTargetKey, reqSocForRoute);
+                if (feas && feas.feasible) {
+                    busesAvailableForDeparture++;
+                }
+            });
+
+            const busTotalEl = document.getElementById("bus-total");
+            if (busTotalEl) busTotalEl.textContent = String(totalBusesForRoute);
+            const busDepEl = document.getElementById("bus-departure");
+            if (busDepEl) busDepEl.textContent = String(busesAvailableForDeparture);
+
+            const busTotalSpan = busTotalEl ? busTotalEl.parentElement.querySelector("span") : null;
+            if (busTotalSpan) busTotalSpan.textContent = `Total buses (${routeCodeVal})`;
+            const busDepSpan = busDepEl ? busDepEl.parentElement.querySelector("span") : null;
+            if (busDepSpan) busDepSpan.textContent = `Buses available for departure (${routeCodeVal})`;
+        }
 
         function renderRoutes(preserveManualTime = true) {
             // Render locked banner
@@ -2858,6 +2950,7 @@
             updateScheduledTimesForSelectedRoute(preserveManualTime);
 
             // ── 2. Run Bus Allocation for currently chosen Route, Shift, Time & Battery State ──
+            allocatedDuties = loadAllocatedDuties();
             const selectedRouteId = routeSelect.value;
             const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
             const departureTime = document.getElementById("departure")?.value || "13:10";
@@ -2894,10 +2987,7 @@
             renderNotAllocatedList(notAllocatedRoutes);
 
             updateSelectedRouteDistance();
-            const busTotalEl = document.getElementById("bus-total");
-            if (busTotalEl) busTotalEl.textContent = String(routes.length || 122);
-            const busDepEl = document.getElementById("bus-departure");
-            if (busDepEl) busDepEl.textContent = String(allocatedDuties.length);
+            updateRouteKpis(routeObj, departureTime);
             updateAssignedDriverCount();
 
             renderScheduledTime();
@@ -4356,6 +4446,7 @@
                 if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
                 if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
                 updateSelectedBusDutyBanner();
+                updateRouteKpis(selectedRouteObj, departure);
                 return;
             }
 
@@ -4418,6 +4509,7 @@
             }
 
             updateSelectedBusDutyBanner();
+            updateRouteKpis(selectedRouteObj, departure);
         }
 
         async function loadData() {
@@ -4509,28 +4601,31 @@
                 updateScheduledTimesForSelectedRoute(false);
                 renderRoutes(true);
 
-                routeSelect.addEventListener("change", () => {
+                routeSelect.addEventListener("change", async () => {
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
                     renderRoutes(true);
+                    await recommend();
                 });
-                routeSearch.addEventListener("input", () => {
+                routeSearch.addEventListener("input", async () => {
                     renderRoutes(true);
+                    await recommend();
                 });
                 if (scheduledTimeSelect) {
-                    scheduledTimeSelect.addEventListener("change", () => {
+                    scheduledTimeSelect.addEventListener("change", async () => {
                         const depInput = document.getElementById("departure");
                         if (depInput && scheduledTimeSelect.value) {
                             depInput.value = scheduledTimeSelect.value;
                         }
                         syncScheduleTiming();
                         renderRoutes(true);
+                        await recommend();
                     });
                 }
                 const depInput = document.getElementById("departure");
                 if (depInput) {
-                    const handleDeparture = () => {
+                    const handleDeparture = async () => {
                         const val = depInput.value;
                         if (scheduledTimeSelect && val) {
                             const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
@@ -4553,108 +4648,112 @@
                         }
                         syncScheduleTiming();
                         renderRoutes(true);
+                        await recommend();
                     };
                     depInput.addEventListener("input", handleDeparture);
                     depInput.addEventListener("change", handleDeparture);
                 }
 
-                document.getElementById("recommend").addEventListener("click", async () => {
-                    updateSelectedRouteDistance();
-                    syncScheduleTiming();
+                const recBtn = document.getElementById("recommend");
+                if (recBtn) {
+                    recBtn.addEventListener("click", async () => {
+                        updateSelectedRouteDistance();
+                        syncScheduleTiming();
 
-                    const selectedRouteId = routeSelect ? routeSelect.value : "";
-                    const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
-                    const depInput = document.getElementById("departure");
-                    const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
+                        const selectedRouteId = routeSelect ? routeSelect.value : "";
+                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                        const depInput = document.getElementById("departure");
+                        const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
 
-                    if (!routeObj) {
-                        showAllocationToast("⚠️ Please select a route first.", "error");
-                        return;
-                    }
+                        if (!routeObj) {
+                            showAllocationToast("⚠️ Please select a route first.", "error");
+                            return;
+                        }
 
-                    // Run bus allocation engine for this route, shift, time & battery state
-                    const allocResult = allocateBus(routeObj, departureTime);
-                    currentlyAllocatedBus = allocResult.allocated;
-                    currentScheduleMatch = allocResult.matchedSched;
-                    renderAllocatedCard(allocResult);
+                        // Run bus allocation engine for this route, shift, time & battery state
+                        const allocResult = allocateBus(routeObj, departureTime);
+                        currentlyAllocatedBus = allocResult.allocated;
+                        currentScheduleMatch = allocResult.matchedSched;
+                        renderAllocatedCard(allocResult);
 
-                    if (!allocResult || !allocResult.allocated) {
-                        const reason = (allocResult && allocResult.swapLog && allocResult.swapLog.length)
-                            ? allocResult.swapLog.join(". ")
-                            : "No eligible bus available with sufficient battery and range for this departure.";
-                        showAllocationToast(`⚠️ Cannot allocate bus: ${reason}`, "error");
-                        return;
-                    }
+                        if (!allocResult || !allocResult.allocated) {
+                            const reason = (allocResult && allocResult.swapLog && allocResult.swapLog.length)
+                                ? allocResult.swapLog.join(". ")
+                                : "No eligible bus available with sufficient battery and range for this departure.";
+                            showAllocationToast(`⚠️ Cannot allocate bus: ${reason}`, "error");
+                            return;
+                        }
 
-                    const alloc = allocResult.allocated;
-                    const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
+                        const alloc = allocResult.allocated;
+                        const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
 
-                    // Check if this bus is already allocated
-                    const existingIndex = allocatedDuties.findIndex(d => String(d.bm).toUpperCase() === String(alloc.bm).toUpperCase());
-                    const existingDuty = existingIndex >= 0 ? allocatedDuties[existingIndex] : null;
+                        // Check if this bus is already allocated
+                        const existingIndex = allocatedDuties.findIndex(d => String(d.bm).toUpperCase() === String(alloc.bm).toUpperCase());
+                        const existingDuty = existingIndex >= 0 ? allocatedDuties[existingIndex] : null;
 
-                    if (existingDuty && existingDuty.routeCode === routeObj.code && existingDuty.departureTime === departureTime) {
-                        showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
-                        scrollToAllocatedDuty(existingDuty.id);
-                        return;
-                    }
+                        if (existingDuty && existingDuty.routeCode === routeObj.code && existingDuty.departureTime === departureTime) {
+                            showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
+                            scrollToAllocatedDuty(existingDuty.id);
+                            return;
+                        }
 
-                    const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
-                    const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
+                        const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
+                        const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
 
-                    const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
-                    const newDuty = {
-                        id: dutyId,
-                        bm: alloc.bm,
-                        bmNumber: alloc.bm,
-                        uniqueId: alloc.bm,
-                        vehicleId: alloc.bm,
-                        busId: alloc.bm,
-                        regNo: alloc.regNo || getBusRegNo(alloc.bm),
-                        routeId: routeObj.code || routeObj.routeId || routeObj.id || alloc.bm,
-                        corridorRouteId: routeObj.id,
-                        busNumber: routeObj.code,
-                        busShortName: routeObj.code,
-                        routeShortName: routeObj.code,
-                        routeCode: routeObj.code,
-                        code: routeObj.code,
-                        scheduleId: targetScheduleId,
-                        routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
-                        origin: routeObj.origin,
-                        destination: routeObj.destination,
-                        departureTime: departureTime,
-                        shift: targetShift,
-                        soc: alloc.liveSoc,
-                        fullDutyKm: alloc.fullDutyKm,
-                        routeDist: Number(routeObj.distKm || routeObj.distanceKm || 28.7),
-                        tripCount: targetTripCount,
-                        allocType: alloc.allocType || "Primary Bus",
-                        reason: alloc.reason || "",
-                        allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                        _isJustAdded: true
-                    };
+                        const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
+                        const newDuty = {
+                            id: dutyId,
+                            bm: alloc.bm,
+                            bmNumber: alloc.bm,
+                            uniqueId: alloc.bm,
+                            vehicleId: alloc.bm,
+                            busId: alloc.bm,
+                            regNo: alloc.regNo || getBusRegNo(alloc.bm),
+                            routeId: routeObj.code || routeObj.routeId || routeObj.id || alloc.bm,
+                            corridorRouteId: routeObj.id,
+                            busNumber: routeObj.code,
+                            busShortName: routeObj.code,
+                            routeShortName: routeObj.code,
+                            routeCode: routeObj.code,
+                            code: routeObj.code,
+                            scheduleId: targetScheduleId,
+                            routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
+                            origin: routeObj.origin,
+                            destination: routeObj.destination,
+                            departureTime: departureTime,
+                            shift: targetShift,
+                            soc: alloc.liveSoc,
+                            fullDutyKm: alloc.fullDutyKm,
+                            routeDist: Number(routeObj.distKm || routeObj.distanceKm || 28.7),
+                            tripCount: targetTripCount,
+                            allocType: alloc.allocType || "Primary Bus",
+                            reason: alloc.reason || "",
+                            allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                            _isJustAdded: true
+                        };
 
-                    if (existingIndex >= 0) {
-                        allocatedDuties[existingIndex] = newDuty;
-                    } else {
-                        allocatedDuties.unshift(newDuty);
-                    }
+                        if (existingIndex >= 0) {
+                            allocatedDuties[existingIndex] = newDuty;
+                        } else {
+                            allocatedDuties.unshift(newDuty);
+                        }
 
-                    saveAllocatedDuties(allocatedDuties);
+                        saveAllocatedDuties(allocatedDuties);
 
-                    // Re-render routes and list panels
-                    renderRoutes(true);
-                    await recommend();
+                        // Re-render routes and list panels
+                        renderRoutes(true);
+                        await recommend();
 
-                    showAllocationToast(`⚡ Bus ${alloc.bm} (${alloc.regNo || ''}) successfully added to Allocated Buses region for Route ${routeObj.code} at ${departureTime} (${targetShift})!`, "success");
+                        showAllocationToast(`⚡ Bus ${alloc.bm} (${alloc.regNo || ''}) successfully added to Allocated Buses region for Route ${routeObj.code} at ${departureTime} (${targetShift})!`, "success");
 
-                    setTimeout(() => {
-                        scrollToAllocatedDuty(dutyId);
                         setTimeout(() => {
-                            delete newDuty._isJustAdded;
-                        }, 3000);
-                    }, 120);
-                });
+                            scrollToAllocatedDuty(dutyId);
+                            setTimeout(() => {
+                                delete newDuty._isJustAdded;
+                            }, 3000);
+                        }, 120);
+                    });
+                }
 
                 const resetAllocBtn = document.getElementById("reset-allocations-btn");
                 if (resetAllocBtn) {
@@ -4912,8 +5011,9 @@
                     renderLockedBusesModalContent(searchInput ? searchInput.value : "");
                 }
             }
-            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_'))) {
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {
                 syncLocalStorageBusStates();
+                allocatedDuties = loadAllocatedDuties();
                 renderRoutes();
                 recommend();
             }

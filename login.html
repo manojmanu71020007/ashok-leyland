@@ -438,23 +438,32 @@
     <!-- ── Quick Access Portal Tiles ── -->
     <div style="width:100%;margin-bottom:22px;">
         <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;text-align:center;">Quick Access Portal</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:12px;">
             <a href="/public/charging.html" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:18px 16px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
-                    <div style="font-size:2rem;margin-bottom:8px;">⚡</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.95rem;">Charging</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.76rem;margin-top:3px;">Log charging sessions</div>
+                    <div style="font-size:1.8rem;margin-bottom:6px;">⚡</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">Charging</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;">Log sessions</div>
                 </div>
             </a>
             <a href="/public/cleaning.html" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:18px 16px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
-                    <div style="font-size:2rem;margin-bottom:8px;">🧹</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.95rem;">Cleaning</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.76rem;margin-top:3px;">Record cleaning status</div>
+                    <div style="font-size:1.8rem;margin-bottom:6px;">🧹</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">Cleaning</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;">Status record</div>
+                </div>
+            </a>
+            <a href="/ad" style="text-decoration:none;">
+                <div style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(14,165,233,0.45);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+                     onmouseover="this.style.background='rgba(14,165,233,0.22)';this.style.transform='translateY(-2px)'"
+                     onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
+                    <div style="font-size:1.8rem;margin-bottom:6px;">🎯</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">AD Portal</div>
+                    <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;">Smart allocation</div>
                 </div>
             </a>
         </div>

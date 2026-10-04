@@ -663,6 +663,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // One-time reset requested: set/clear initial localStorage state so all buses start at 0% as of now,
+  // and never reset again so future manual updates are permanently preserved.
+  try {
+    if (!localStorage.getItem('depot_battery_reset_zero_v2')) {
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties' || k === 'depot_charging_event')) {
+          localStorage.removeItem(k);
+        }
+      }
+      localStorage.setItem('depot_battery_reset_zero_v2', '1');
+    }
+  } catch (e) {}
+
   let allVehicles = [];
   let filteredVehicles = [];
   let sessionLogs = [];
@@ -1122,16 +1136,12 @@
     updateSubmitBtn();
 
     const existingSoc = localStorage.getItem('depot_bus_soc_' + bm);
-    if (existingSoc) {
-      const cur = parseInt(existingSoc);
-      document.getElementById('socBefore').value = cur;
-      updateSOC('Before', cur);
-      const nextSoc = Math.min(100, Math.max(cur, 85));
-      document.getElementById('socAfter').value = nextSoc;
-      updateSOC('After', nextSoc);
-    } else {
-      updateSOC('After', document.getElementById('socAfter').value);
-    }
+    const cur = (existingSoc !== null && !isNaN(parseInt(existingSoc))) ? parseInt(existingSoc) : 0;
+    document.getElementById('socBefore').value = cur;
+    updateSOC('Before', cur);
+    const nextSoc = Math.min(100, Math.max(cur, 80));
+    document.getElementById('socAfter').value = nextSoc;
+    updateSOC('After', nextSoc);
   }
 
   function updateSubmitBtn() {

@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Bus Allocation – AD Portal</title>
+    <style>
+        :root {
+            --ink: #15324b;
+            --muted: #5f7386;
+            --line: #d7e3ea;
+            --panel: #ffffff;
+            --blue: #087ea4;
+            --blue-dark: #056781;
+            --teal: #11a889;
+            --teal-soft: #dff9f3;
+            --bg-1: #edf7fb;
+            --bg-2: #f3fbfb;
+            --bg-3: #f8fdfd;
+            --warning-bg: #fff3e9;
+            --warning-text: #a94b15;
+            --shadow: 0 12px 30px rgba(25, 63, 79, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Inter, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(180deg, var(--bg-1), var(--bg-2) 25%, var(--bg-3));
+            color: var(--ink);
+            min-height: 100vh;
+        }
+        .shell {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 24px 60px;
+        }
+        .topbar {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .eyebrow {
+            font-size: .75rem;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--muted);
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        h1 {
+            margin: 0;
+            font-size: clamp(1.8rem, 3.5vw, 2.4rem);
+            line-height: 1.15;
+            letter-spacing: -0.03em;
+            color: var(--ink);
+        }
+        .subtitle {
+            margin-top: 8px;
+            max-width: 720px;
+            color: var(--muted);
+            font-size: 0.98rem;
+            line-height: 1.5;
+        }
+
+
+        /* ── 2-Column Grid Layout ── */
+        .grid {
+            display: grid;
+            grid-template-columns: 1.18fr 0.82fr;
+            gap: 22px;
+            align-items: start;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.95);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 24px;
+        }
+        .panel h2 {
+            margin: 0 0 6px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .panel-note {
+            color: var(--muted);
+            font-size: .88rem;
+            margin-bottom: 20px;
+            line-height: 1.45;
+        }
+
+        /* ── Form Fields ── */
+        .fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        @media (max-width: 580px) {
+            .fields { grid-template-columns: 1fr; }
+        }
+        .wide { grid-column: 1 / -1; }
+        label {
+            display: grid;
+            gap: 6px;
+            color: #3e5b6d;
+            font-size: .84rem;
+            font-weight: 700;
+        }
+        input, select {
+            width: 100%;
+            border: 1.5px solid #c8d8df;
+            border-radius: 9px;
+            padding: 11px 13px;
+            background: #fbfdfd;
+            color: var(--ink);
+            font: inherit;
+            font-size: 0.92rem;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(8,126,164,0.14);
+        }
+        input[readonly] {
+            background-color: #f1f5f9;
+            color: #475569;
+            cursor: not-allowed;
+            border-color: #cbd5e1;
+        }
+        .route-search {
+            margin-bottom: 2px;
+        }
+
+        /* ── Auto-Allocated Bus Card ── */
+        .auto-allocated-card {
+            margin-top: 18px;
+            padding: 18px 20px;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%);
+            border: 1.5px solid #86efac;
+            border-left: 5px solid #16a34a;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(22, 163, 74, 0.08);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .auto-alloc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .auto-alloc-badge {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #15803d;
+            background: #dcfce7;
+            padding: 4px 12px;
+            border-radius: 999px;
+            border: 1px solid #bbf7d0;
+        }
+        .alloc-type-badge {
+            font-size: 0.76rem;
+            font-weight: 700;
+            color: #0369a1;
+            background: #e0f2fe;
+            padding: 4px 11px;
+            border-radius: 999px;
+            border: 1px solid #bae6fd;
+        }
+        .auto-alloc-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .auto-alloc-bus-id {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #14532d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .alloc-reg-no {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #4b6371;
+            background: #f1f5f9;
+            padding: 3px 9px;
+            border-radius: 6px;
+        }
+        .alloc-status-pill {
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: #e8f7ed;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+        }
+        .auto-alloc-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .alloc-metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .alloc-metric-item .metric-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .alloc-metric-item .metric-val {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+        .alloc-metric-item .metric-sub {
+            font-size: 0.7rem;
+            color: #059669;
+            font-weight: 600;
+        }
+        .auto-alloc-reason {
+            font-size: 0.82rem;
+            color: #166534;
+            background: #f0fdf4;
+            border: 1px dashed #86efac;
+            border-radius: 8px;
+            padding: 9px 12px;
+            line-height: 1.45;
+        }
+
+        /* ── Selected route trips banner ── */
+        .selected-route-trips-banner {
+            margin-top: 14px;
+            padding: 10px 14px;
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-left: 4px solid #0284c7;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            color: #0369a1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        /* ── Button ── */
+        button.btn-allocate {
+            width: 100%;
+            border: 0;
+            border-radius: 10px;
+            padding: 13px 18px;
+            color: white;
+            background: var(--blue);
+            font: inherit;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 16px;
+            box-shadow: 0 4px 14px rgba(8, 126, 164, 0.28);
+            transition: all 0.2s ease;
+        }
+        button.btn-allocate:hover {
+            background: var(--blue-dark);
+            transform: translateY(-1px);
+        }
+        button.btn-allocate:active {
+            transform: translateY(0);
+        }
+
+        /* ── Allocation Result KPIs & Rules ── */
+        .kpis {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 18px 0;
+        }
+        .kpi {
+            border-left: 4px solid var(--teal);
+            background: #f2faf8;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .kpi strong {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--ink);
+        }
+        .kpi span {
+            color: var(--muted);
+            font-size: .78rem;
+            font-weight: 600;
+        }
+        .rules {
+            display: grid;
+            gap: 12px;
+        }
+        .rule {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid #edf2f4;
+            padding-bottom: 10px;
+            font-size: .88rem;
+        }
+        .rule span {
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .rule strong {
+            font-weight: 700;
+            color: var(--ink);
+            text-align: right;
+        }
+
+        /* ── Toast ── */
+        .allocation-toast {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            min-width: 300px;
+            max-width: 460px;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+            display: none;
+            align-items: center;
+            gap: 12px;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .allocation-toast.success { background: #064e3b; color: #ecfdf5; border: 1px solid #059669; }
+        .allocation-toast.error   { background: #7f1d1d; color: #fef2f2; border: 1px solid #dc2626; }
+        .allocation-toast.info    { background: #0c4a6e; color: #f0f9ff; border: 1px solid #0284c7; }
+    </style>
+</head>
+<body>
+    <main class="shell">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">BMTC Depot 32 • Chandapura</div>
+                <h1>Smart Bus Allocation</h1>
+                <p class="subtitle">Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC.</p>
+            </div>
+        </header>
+
+        <div class="grid">
+            <!-- ── Column 1: Schedule Requirement ── -->
+            <section class="panel">
+                <h2>Schedule requirement</h2>
+                <p class="panel-note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
+                <div class="fields">
+                    <label class="wide">
+                        Search Route (Origin ➔ Destination)
+                        <input id="route-search" class="route-search" type="text" placeholder="Search route by origin or destination (e.g. Chandapura, Anekal, Hoskote, KBS...)" autocomplete="off" />
+                    </label>
+                    <label class="wide">
+                        Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">Loading routes...</span></span>
+                        <select id="route-select"><option value="">Loading routes...</option></select>
+                    </label>
+                    <label>
+                        Scheduled Departure Time (from dataset)
+                        <select id="scheduled-time-select"><option value="">Loading timetable schedules...</option></select>
+                    </label>
+                    <label>
+                        Departure time
+                        <input id="departure" type="time" value="13:10">
+                    </label>
+                    <label class="wide">
+                        Schedule distance (km)
+                        <input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data">
+                    </label>
+                </div>
+
+                <!-- ── Allocated Bus Card (Updated Automatically) ── -->
+                <div id="auto-allocated-card" class="auto-allocated-card" style="display:none;">
+                    <!-- Rendered dynamically by JavaScript -->
+                </div>
+
+                <div id="selected-route-trips-banner" class="selected-route-trips-banner" style="display:none;">
+                    <div>
+                        <strong>🎯 Assigned Duty:</strong> BM Number: <span id="banner-bus-id" style="font-weight:700;">—</span> on Route <span id="banner-route-name" style="font-weight:700;">—</span> (<span id="banner-stops-name">—</span>)
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <span class="trip-count-badge" id="banner-trip-count" style="background:#0284c7; color:#fff; padding:2px 8px; border-radius:10px; font-weight:700; font-size:.75rem;">8 Trips</span>
+                        <span id="banner-charge-info" style="font-size:.76rem; color:#0369a1; font-weight:700; background:#e0f2fe; padding:2px 8px; border-radius:6px;">⚡ Est. Charge: ~22.9% SoC</span>
+                    </div>
+                </div>
+
+                <button id="recommend" class="btn-allocate">⚡ Allocate Bus</button>
+            </section>
+
+            <!-- ── Column 2: Allocation Result ── -->
+            <aside class="panel">
+                <h2 id="allocation-title">Allocation result</h2>
+                <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
+                <div class="kpis">
+                    <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
+                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
+                </div>
+                <div class="rules">
+                    <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
+                    <div class="rule"><span>Full Duty Distance</span><strong id="full-duty-dist-rule">—</strong></div>
+                    <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
+                    <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
+                    <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
+                    <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
+                    <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
+                    <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Allocation Toast -->
+    <div id="allocation-toast" class="allocation-toast"></div>
+
+    <script>
+        const routeSelect = document.getElementById("route-select");
+        const routeSearch = document.getElementById("route-search");
+        const scheduledTimeSelect = document.getElementById("scheduled-time-select");
+        const depInput = document.getElementById("departure");
+        const distanceInput = document.getElementById("distance");
+        const routeCountBadge = document.getElementById("route-count-badge");
+
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        const CORRIDOR_ROUTES = [
+            { id: "1", code: "356Z", origin: "Chandapura", destination: "Anekal", distKm: 28.7, label: "Chandapura ➔ Anekal (356Z)", trips: 8 },
+            { id: "2", code: "360K", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, label: "Chandapura ➔ Kempegowda Bus Station (360K)", trips: 8 },
+            { id: "3", code: "600F", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, label: "Bommasandra Depot 32 ➔ Basavanagudi (600F)", trips: 8 },
+            { id: "4", code: "361C", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 38.5, label: "Attibele ➔ Kempegowda Bus Station (361C)", trips: 8 },
+            { id: "5", code: "399C", origin: "Hosakote", destination: "Electronic City", distKm: 34.0, label: "Hosakote ➔ Electronic City (399C)", trips: 8 },
+            { id: "6", code: "328H", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, label: "Hoskote ➔ Kempegowda Bus Station (328H)", trips: 12 },
+            { id: "7", code: "500DC", origin: "Attibele", destination: "Whitefield", distKm: 31.0, label: "Attibele ➔ Whitefield (500DC)", trips: 8 },
+            { id: "8", code: "KBS3A", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 35.8, label: "Chandapura ➔ Kempegowda Bus Station (KBS3A)", trips: 8 },
+            { id: "9", code: "KBS3F", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 39.2, label: "Attibele ➔ Kempegowda Bus Station (KBS3F)", trips: 8 }
+        ];
+
+        let routes = [];
+        let directionalRoutes = [...CORRIDOR_ROUTES];
+        let datasetSchedules = [];
+        let busStates = {};
+        let busAssignments = {};
+        let selectedRouteDistance = null;
+        let currentlyAllocatedBus = null;
+        let currentScheduleMatch = null;
+
+        // One-time reset requested: set/clear initial localStorage state so all buses start at 0% as of now,
+        // and never reset again so future manual updates are permanently preserved.
+        try {
+            if (!localStorage.getItem('depot_battery_reset_zero_v2')) {
+                for (let i = localStorage.length - 1; i >= 0; i--) {
+                    const k = localStorage.key(i);
+                    if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties' || k === 'depot_charging_event')) {
+                        localStorage.removeItem(k);
+                    }
+                }
+                localStorage.setItem('depot_battery_reset_zero_v2', '1');
+            }
+        } catch (e) {}
+
+        function syncLocalStorageBusStates() {
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const key = localStorage.key(i);
+                    if (key && key.startsWith('depot_bus_soc_')) {
+                        const bm = key.replace('depot_bus_soc_', '');
+                        const val = Number(localStorage.getItem(key));
+                        if (Number.isFinite(val)) {
+                            if (!busStates[bm]) busStates[bm] = {};
+                            busStates[bm].soc = val;
+                            busStates[bm].fullDutyDistanceKm = Math.round(val * 1.42);
+                            busStates[bm].operation = "Single Charge Operation";
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not sync localStorage bus states:", e);
+            }
+        }
+
+        const ALLOCATED_DUTIES_KEY = "smartbus_allocated_duties";
+
+        function loadAllocatedDuties() {
+            try {
+                const raw = localStorage.getItem(ALLOCATED_DUTIES_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed)) {
+                        return parsed.filter(d => d && (d.bm || d.bmNumber));
+                    }
+                }
+            } catch (e) {
+                console.warn("Could not load allocated duties from localStorage:", e);
+            }
+            return [];
+        }
+
+        function saveAllocatedDuties(duties) {
+            try {
+                localStorage.setItem(ALLOCATED_DUTIES_KEY, JSON.stringify(duties));
+            } catch (e) {
+                console.warn("Could not save allocated duties to localStorage:", e);
+            }
+        }
+
+        let allocatedDuties = loadAllocatedDuties();
+
+        function getBusSocByBm(bm) {
+            if (!bm) return 0;
+            const key = String(bm).toUpperCase().trim();
+            const localSoc = localStorage.getItem("depot_bus_soc_" + bm) || localStorage.getItem("depot_bus_soc_" + key);
+            if (localSoc !== null) {
+                const val = Number(localSoc);
+                if (Number.isFinite(val)) return val;
+            }
+            const state = busStates[bm] || busStates[key] || {};
+            if (Number.isFinite(Number(state.soc))) return Number(state.soc);
+            return 0;
+        }
+
+        function getBusRegNo(bm) {
+            if (!bm) return "";
+            const v = routes.find(r => r.bmNumber === bm || r.uniqueId === bm || r.vehicleId === bm);
+            if (v && v.regNo) return v.regNo;
+            const s = datasetSchedules.find(x => x.fixBm === bm || x.swapBm === bm);
+            if (s) {
+                if (s.fixBm === bm) return s.fixReg;
+                if (s.swapBm === bm) return s.swapReg;
+            }
+            return "";
+        }
+
+        function calculateFullDutyDistance(soc) {
+            if (!soc || soc <= 0) return 0;
+            return Math.round(soc * 1.42);
+        }
+
+        function timeToMinutes(tStr) {
+            if (!tStr) return 720;
+            const p = tStr.split(":");
+            return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+        }
+
+        function getShiftForTimeAndRoute(timeStr, routeCode) {
+            const depMin = timeToMinutes(timeStr);
+            const routeSchedules = datasetSchedules.filter(s => s.route === routeCode);
+            if (routeSchedules.length > 0) {
+                const depShort = (timeStr || "13:10").substring(0, 5);
+                const exact = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+                if (exact && exact.shift) return exact.shift;
+                const closest = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+                if (closest && closest.shift) return closest.shift;
+            }
+            if (depMin >= 300 && depMin < 810) return "General Shift";
+            if (depMin >= 810 && depMin < 1320) return "Shift B";
+            return "Night Halt";
+        }
+
+        // ── Single Charge Operation Requirement (Form 4 Standard) ──
+        function getRequiredSingleChargeSoc(distKm, schedObj) {
+            let targetKm = (schedObj && schedObj.singleChargeReqKm)
+                ? Number(schedObj.singleChargeReqKm)
+                : (Number(distKm) || 28.7);
+
+            // If the schedule specifies intermediate rest stops / opportunity charging in remarks (e.g. "1 rest stoop at HSK 65.7")
+            if (schedObj && schedObj.remarks) {
+                const match = String(schedObj.remarks).match(/([0-9]+(?:\.[0-9]+)?)/);
+                if (match && Number(match[1]) > 20 && Number(match[1]) < targetKm) {
+                    targetKm = Number(match[1]);
+                }
+            }
+            // For multi-trip schedules with rest breaks, cap single operating stretch at 95 km
+            if (targetKm > 110 && (!schedObj || !schedObj.singleChargeReqKm || (schedObj.noOfRest && schedObj.noOfRest > 0))) {
+                targetKm = Math.min(targetKm, 95);
+            }
+
+            // Energy needed for operating stretch = targetKm / 1.42 km per % SOC
+            // Plus 15% depot safety reserve floor
+            const baseSoc = targetKm / 1.42;
+            const reservePct = 15;
+            return Math.min(100, Math.round(baseSoc + reservePct));
+        }
+
+        function getBusLockInfo(bm) {
+            try {
+                const locked = JSON.parse(localStorage.getItem('depot_locked_buses') || '[]');
+                return locked.find(x => String(x.bm).toUpperCase() === String(bm).toUpperCase()) || null;
+            } catch { return null; }
+        }
+
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null) {
+            if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
+
+            const lockInfo = getBusLockInfo(bm);
+            if (lockInfo) {
+                return { feasible: false, bm, reason: `Bus ${bm} is locked under ${lockInfo.reason || 'cleaning/charging'}.` };
+            }
+
+            // Check if bus is already allocated to another route or time
+            const alreadyAllocatedDuty = allocatedDuties.find(d => String(d.bm).toUpperCase() === String(bm).toUpperCase());
+            if (alreadyAllocatedDuty) {
+                const dutyKey = `${alreadyAllocatedDuty.routeCode}_${(alreadyAllocatedDuty.departureTime || '').substring(0, 5)}`;
+                if (currentTargetKey && dutyKey === currentTargetKey) {
+                    // This bus is the one allocated to this exact duty (same route and same time)
+                } else {
+                    return {
+                        feasible: false,
+                        bm,
+                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes and times.`
+                    };
+                }
+            }
+
+            const liveSoc = getBusSocByBm(bm);
+            const fullDutyKm = calculateFullDutyDistance(liveSoc);
+            const state = busStates[bm] || {};
+            const condition = state.condition || "Good";
+            const driver = state.driver || "Driver Assigned";
+
+            if (condition === "Not Good") {
+                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} flagged for maintenance inspection.` };
+            }
+
+            if (driver.toLowerCase().includes("no")) {
+                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `No driver currently assigned to bus ${bm}.` };
+            }
+
+            const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
+                ? targetReqSoc
+                : getRequiredSingleChargeSoc(routeDist);
+
+            // Bus is feasible if its manually updated live battery SoC meets or exceeds the required level
+            if (liveSoc < reqSoc) {
+                return {
+                    feasible: false,
+                    bm,
+                    liveSoc,
+                    fullDutyKm,
+                    reqSoc,
+                    reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                };
+            }
+
+            return {
+                feasible: true,
+                bm,
+                liveSoc,
+                fullDutyKm,
+                reqSoc,
+                condition,
+                driver,
+                role: candidateRole
+            };
+        }
+
+        function allocateBus(routeObj, departureTime) {
+            allocatedDuties = loadAllocatedDuties();
+            const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
+            const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
+            const depTimeClean = (departureTime || "13:10").trim();
+            const depShort = depTimeClean.substring(0, 5);
+            const depMin = timeToMinutes(depShort);
+            const currentTargetKey = `${routeCode}_${depShort}`;
+
+            const routeSchedules = datasetSchedules.filter(s => s.route === routeCode);
+            let matchedSched = null;
+
+            if (routeSchedules.length > 0) {
+                matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+                if (!matchedSched) {
+                    matchedSched = routeSchedules.slice().sort((a, b) => {
+                        const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                        const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                        return diffA - diffB;
+                    })[0];
+                }
+            }
+
+            const targetShift = (matchedSched && matchedSched.shift)
+                ? matchedSched.shift
+                : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
+
+            let allocated = null;
+            let swapLog = [];
+
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
+
+            // Check if this specific duty already has a bus officially allocated
+            const existingDuty = allocatedDuties.find(d => d.routeCode === routeCode && (d.departureTime || '').substring(0, 5) === depShort);
+            if (existingDuty) {
+                const liveSoc = getBusSocByBm(existingDuty.bm);
+                return {
+                    allocated: {
+                        bm: existingDuty.bm,
+                        regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
+                        liveSoc: liveSoc,
+                        fullDutyKm: calculateFullDutyDistance(liveSoc),
+                        shift: existingDuty.shift || targetShift,
+                        departureTime: depTimeClean,
+                        allocType: existingDuty.allocType || "Committed Duty Allocation",
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        reqSoc: reqSoc,
+                        isCommitted: true,
+                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
+                    },
+                    matchedSched,
+                    swapLog: [],
+                    shift: targetShift,
+                    departureTime: depTimeClean,
+                    reqSoc
+                };
+            }
+
+            // 1. Primary bus for this schedule / shift
+            if (!allocated && matchedSched && matchedSched.fixBm) {
+                const primaryBm = matchedSched.fixBm;
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+
+                if (primaryEval.feasible) {
+                    const surplus = primaryEval.liveSoc - reqSoc;
+                    allocated = Object.assign({}, primaryEval, {
+                        regNo: matchedSched.fixReg || getBusRegNo(primaryBm),
+                        scheduleId: matchedSched.scheduleId,
+                        shift: targetShift,
+                        departureTime: matchedSched.outTime || depTimeClean,
+                        allocType: `Primary Bus (${targetShift})`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        reqSoc: reqSoc,
+                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
+                    });
+                } else {
+                    swapLog.push(`Primary bus ${primaryBm} (${targetShift}) ineligible: ${primaryEval.reason}`);
+
+                    // 2. Designated swap bus for this schedule / shift
+                    const swapBm = matchedSched.swapBm;
+                    if (swapBm && swapBm !== primaryBm) {
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+                        if (swapEval.feasible) {
+                            const surplus = swapEval.liveSoc - reqSoc;
+                            allocated = Object.assign({}, swapEval, {
+                                regNo: matchedSched.swapReg || getBusRegNo(swapBm),
+                                scheduleId: matchedSched.scheduleId,
+                                shift: targetShift,
+                                departureTime: matchedSched.outTime || depTimeClean,
+                                allocType: `Swapped Bus (${targetShift})`,
+                                routeCode: routeCode,
+                                busShortName: routeCode,
+                                reqSoc: reqSoc,
+                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
+                            });
+                        } else {
+                            swapLog.push(`Designated swap bus ${swapBm} ineligible: ${swapEval.reason}`);
+                        }
+                    }
+                }
+            }
+
+            // 3. Fallback: Search available fleet buses in the SAME shift with optimal battery state
+            if (!allocated) {
+                const sameShiftCandidates = routes
+                    .filter(b => {
+                        const bShift = String(b.shift || "");
+                        return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
+                    })
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc))
+                    .filter(e => e.feasible)
+                    .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
+
+                if (sameShiftCandidates.length > 0) {
+                    const bestShiftBus = sameShiftCandidates[0];
+                    const surplus = bestShiftBus.liveSoc - reqSoc;
+                    allocated = Object.assign({}, bestShiftBus, {
+                        regNo: getBusRegNo(bestShiftBus.bm),
+                        scheduleId: matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`,
+                        shift: targetShift,
+                        departureTime: depTimeClean,
+                        allocType: `Shift Pool Allocation (${targetShift})`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        reqSoc: reqSoc,
+                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
+                    });
+                }
+            }
+
+            // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
+            if (!allocated) {
+                const eligibleReserves = routes
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc))
+                    .filter(e => e.feasible)
+                    .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
+
+                if (eligibleReserves.length > 0) {
+                    const bestReserve = eligibleReserves[0];
+                    const surplus = bestReserve.liveSoc - reqSoc;
+                    allocated = Object.assign({}, bestReserve, {
+                        regNo: getBusRegNo(bestReserve.bm),
+                        scheduleId: matchedSched ? matchedSched.scheduleId : `RES-${depShort}`,
+                        shift: targetShift,
+                        departureTime: depTimeClean,
+                        allocType: `Depot Reserve Fleet Allocation`,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        reqSoc: reqSoc,
+                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
+                    });
+                }
+            }
+
+            if (allocated) {
+                allocated.routeCode = routeCode;
+                allocated.busShortName = routeCode;
+                allocated.reqSoc = reqSoc;
+            }
+
+            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc };
+        }
+
+        function renderAllocatedCard(result) {
+            const card = document.getElementById("auto-allocated-card");
+            if (!card) return;
+
+            if (!result || !result.allocated) {
+                const shiftName = (result && result.shift) ? result.shift : "Selected Shift";
+                const depTime = (result && result.departureTime) ? result.departureTime : "selected time";
+                const reqText = (result && result.reqSoc) ? `${result.reqSoc}% SoC required` : "insufficient battery";
+                card.style.display = "block";
+                card.style.borderColor = "#fca5a5";
+                card.style.borderLeftColor = "#dc2626";
+                card.style.background = "#fff8f8";
+                card.innerHTML = `
+                    <div class="auto-alloc-header">
+                        <span class="auto-alloc-badge" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;">⚠️ Ineligible Allocation</span>
+                        <span style="background:#fee2e2;color:#991b1b;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #fca5a5;">Shift: ${escapeHtml(shiftName)}</span>
+                        <span class="alloc-type-badge" style="background:#fee2e2;color:#991b1b;border-color:#fca5a5;">No Bus Allocated</span>
+                    </div>
+                    <div style="font-size:0.88rem;color:#7f1d1d;line-height:1.5;padding:6px 0;">
+                        <strong>No eligible bus could be allocated for this schedule (${escapeHtml(shiftName)} at ${escapeHtml(depTime)}).</strong>
+                        <div style="margin-top:6px;font-size:0.8rem;color:#991b1b;line-height:1.4;">
+                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is below the estimated required Single Charge Operation level (${reqText}). Update bus SOC in Charging Portal to allocate.`}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const alloc = result.allocated;
+            const shiftName = alloc.shift || (result && result.shift) || "Regular Shift";
+            const reqSocVal = (alloc.reqSoc !== undefined && alloc.reqSoc !== null) ? alloc.reqSoc : (result && result.reqSoc ? result.reqSoc : "—");
+            const surplusVal = (Number.isFinite(alloc.liveSoc) && Number.isFinite(reqSocVal)) ? (alloc.liveSoc - reqSocVal) : 0;
+            const routeDistVal = (() => {
+                const selectedRouteId = routeSelect ? routeSelect.value : "";
+                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                return routeObj ? `${routeObj.distKm.toFixed(1)} km` : "28.7 km";
+            })();
+
+            card.style.display = "block";
+            card.style.borderColor = "#86efac";
+            card.style.borderLeftColor = "#16a34a";
+            card.style.background = alloc.isCommitted
+                ? "linear-gradient(135deg, #ecfdf5 0%, #ffffff 70%, #d1fae5 100%)"
+                : "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
+
+            const isCommitted = alloc.isCommitted === true;
+            const badgeBg = isCommitted ? "#dcfce7" : "#e0f2fe";
+            const badgeColor = isCommitted ? "#166534" : "#0369a1";
+            const badgeBorder = isCommitted ? "#86efac" : "#bae6fd";
+            const badgeText = isCommitted ? "🔒 Allocated & Locked to this Duty" : "⚡ Candidate Match (Ready to Allocate)";
+            const statusPill = isCommitted
+                ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">● Officially Allocated</div>`
+                : `<div id="alloc-status-pill" class="alloc-status-pill">● Ready for Allocation</div>`;
+
+            card.innerHTML = `
+                <div class="auto-alloc-header">
+                    <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
+                    <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
+                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || "Primary Scheduled Bus")}</span>
+                </div>
+                <div class="auto-alloc-body">
+                    <div class="auto-alloc-main">
+                        <div class="auto-alloc-bus-id">
+                            🚌 <span id="alloc-bm-number">${escapeHtml(alloc.bm)}</span> <span id="alloc-reg-no" class="alloc-reg-no">${escapeHtml(alloc.regNo ? `(${alloc.regNo})` : '')}</span>
+                        </div>
+                        ${statusPill}
+                    </div>
+                    <div class="auto-alloc-metrics">
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Shift & Schedule</span>
+                            <strong id="alloc-shift" class="metric-val" style="color:#0369a1;">${escapeHtml(shiftName)} <span style="font-size:0.8rem;font-weight:600;color:#64748b;">(${escapeHtml(alloc.scheduleId || '—')})</span></strong>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Time Slot</span>
+                            <strong id="alloc-timeslot" class="metric-val">${escapeHtml(alloc.departureTime || (result && result.departureTime) || "—")}</strong>
+                        </div>
+                        <div class="alloc-metric-item" style="background:#fef3c7;border-radius:8px;padding:6px 10px;">
+                            <span class="metric-label" style="color:#92400e;font-weight:700;">Estimated Required SOC</span>
+                            <strong id="alloc-req-soc" class="metric-val" style="color:#b45309;font-size:1.15rem;">${reqSocVal}%</strong>
+                            <span class="metric-sub" style="color:#92400e;">Target Requirement</span>
+                        </div>
+                        <div class="alloc-metric-item" style="background:#dcfce7;border-radius:8px;padding:6px 10px;">
+                            <span class="metric-label" style="color:#166534;font-weight:700;">Manual Updated SOC</span>
+                            <strong id="alloc-soc" class="metric-val" style="color:#15803d;font-size:1.15rem;">${alloc.liveSoc}%</strong>
+                            <span class="metric-sub" style="color:#166534;">Surplus: +${surplusVal}% (Feasible)</span>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Full Duty Distance</span>
+                            <strong id="alloc-full-duty" class="metric-val">${alloc.fullDutyKm} km</strong>
+                            <span class="metric-sub">Single Charge Operation</span>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Route Distance</span>
+                            <strong id="alloc-route-dist" class="metric-val">${routeDistVal}</strong>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Driver Status</span>
+                            <strong id="alloc-driver" class="metric-val">${escapeHtml(alloc.driver || "Assigned")}</strong>
+                        </div>
+                    </div>
+                    <div id="alloc-reason-text" class="auto-alloc-reason">
+                        <strong>Allocation Rationale:</strong> ${escapeHtml(alloc.reason)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateSelectedBusDutyBanner() {
+            const banner = document.getElementById("selected-route-trips-banner");
+            if (!banner) return;
+            const selectedRouteId = routeSelect.value;
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+
+            if (!currentlyAllocatedBus || !routeObj) {
+                banner.style.display = "none";
+                return;
+            }
+
+            banner.style.display = "flex";
+            const busIdEl = document.getElementById("banner-bus-id");
+            const routeNameEl = document.getElementById("banner-route-name");
+            const stopsNameEl = document.getElementById("banner-stops-name");
+            const tripCountEl = document.getElementById("banner-trip-count");
+            const chargeInfoEl = document.getElementById("banner-charge-info");
+
+            const routeCode = routeObj.code || "356Z";
+            const tripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
+
+            if (busIdEl) busIdEl.textContent = currentlyAllocatedBus.bm || currentlyAllocatedBus.bmNumber || "BM153";
+            if (routeNameEl) routeNameEl.textContent = routeCode;
+            if (stopsNameEl) stopsNameEl.textContent = `${routeObj.origin} ➔ ${routeObj.destination}`;
+            if (tripCountEl) tripCountEl.textContent = `${tripCount} Trips`;
+
+            const singleTripDist = Number(routeObj.distKm) || 28.7;
+            const singleTripEstCharge = (singleTripDist / 1.42).toFixed(1);
+            if (chargeInfoEl) chargeInfoEl.textContent = `⚡ Est. Trip Charge: ~${singleTripEstCharge}% SoC`;
+        }
+
+        async function recommend() {
+            const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
+            const departure = (depInput ? depInput.value : "13:10") || "13:10";
+            const selectedRouteId = routeSelect.value;
+            const selectedRouteObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+
+            const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
+            const routeDistance = Number(
+                selectedRouteDistance || 
+                (selectedRouteObj ? selectedRouteObj.distKm : 0) || 
+                distance || 
+                28.7
+            );
+
+            const titleEl = document.getElementById("allocation-title");
+            const socKpi = document.getElementById("kpi-soc");
+            const rangeKpi = document.getElementById("kpi-range");
+            const socResult = document.getElementById("soc-result");
+            const rangeResult = document.getElementById("range-result");
+            const currentSocRule = document.getElementById("current-soc-rule");
+            const fullDutyDistRule = document.getElementById("full-duty-dist-rule");
+            const opStandardRule = document.getElementById("operation-standard-rule");
+            const rangeRule = document.getElementById("range-rule");
+            const timeRule = document.getElementById("time-rule");
+            const busCatRule = document.getElementById("bus-category-rule");
+            const matrixStatusRule = document.getElementById("matrix-status-rule");
+
+            // Execute allocation engine for this route, shift, time & battery state
+            if (selectedRouteObj) {
+                const allocResult = allocateBus(selectedRouteObj, departure);
+                currentlyAllocatedBus = allocResult.allocated;
+                currentScheduleMatch = allocResult.matchedSched;
+                renderAllocatedCard(allocResult);
+            }
+
+            let schedCat = currentScheduleMatch ? currentScheduleMatch.category : null;
+            if (!schedCat && selectedRouteObj) {
+                const rCode = String(selectedRouteObj.code || "").toUpperCase();
+                const routeScheds = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === rCode);
+                const withCat = routeScheds.find(s => s.category);
+                if (withCat) schedCat = withCat.category;
+            }
+
+            let complexity = null;
+            if (schedCat) {
+                const scLower = String(schedCat).toLowerCase();
+                if (scLower.includes("stand") || scLower.includes("simp")) complexity = "simple";
+                else if (scLower.includes("mod")) complexity = "moderate";
+                else if (scLower.includes("comp")) complexity = "complex";
+            }
+            if (!complexity) {
+                complexity = (routeDistance >= 20 ? "complex" : (routeDistance >= 10 ? "moderate" : "simple"));
+            }
+            const routeCategoryLabel = schedCat || (complexity === "simple" ? "Standard" : (complexity === "complex" ? "Complex" : "Moderate"));
+
+            const busShortName = (selectedRouteObj && (selectedRouteObj.code || selectedRouteObj.routeShortName)) || (currentlyAllocatedBus && (currentlyAllocatedBus.busShortName || currentlyAllocatedBus.busNumber)) || "500DC";
+
+            if (!currentlyAllocatedBus) {
+                if (titleEl) titleEl.textContent = `Allocation result of ${busShortName} (No eligible bus)`;
+                if (socResult) socResult.textContent = "—";
+                if (rangeResult) rangeResult.textContent = "—";
+                if (socKpi) socKpi.style.opacity = "0.4";
+                if (rangeKpi) rangeKpi.style.opacity = "0.4";
+                if (currentSocRule) currentSocRule.textContent = "—";
+                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
+                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                if (rangeRule) rangeRule.textContent = routeCategoryLabel;
+                if (timeRule) timeRule.textContent = "—";
+                if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
+                if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
+                updateSelectedBusDutyBanner();
+
+                const recBtn = document.getElementById("recommend");
+                if (recBtn) {
+                    recBtn.textContent = "⚡ No Eligible Bus to Allocate";
+                    recBtn.disabled = true;
+                    recBtn.style.opacity = "0.5";
+                    recBtn.style.cursor = "not-allowed";
+                    recBtn.style.background = "#94a3b8";
+                }
+                return;
+            }
+
+            const liveSoc = currentlyAllocatedBus.liveSoc;
+            const rangeValue = currentlyAllocatedBus.fullDutyKm;
+            const grossDutyDist = Math.round(liveSoc * 1.42);
+
+            if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
+            if (socKpi) socKpi.style.opacity = "1";
+            if (rangeKpi) rangeKpi.style.opacity = "1";
+
+            const busCategory = rangeValue > 120 ? "A" : (rangeValue >= 100 ? "B" : "C");
+
+            const departHours = departMinutes / 60;
+            let timeCategoryKey = "NORMAL";
+            let timeCategoryLabel = "Normal (Off-Peak)";
+            if (departHours >= 5 && departHours < 7) {
+                timeCategoryKey = "NORMAL";
+                timeCategoryLabel = "Normal (05:00–07:00)";
+            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
+                timeCategoryKey = "EXTREME_PEAK";
+                timeCategoryLabel = "Extreme Peak (07:00–10:00 & 16:00–20:00)";
+            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
+                timeCategoryKey = "PEAK";
+                timeCategoryLabel = "Peak (10:00–16:00 & 20:00–23:00)";
+            }
+
+            const allowedMatrix = {
+                simple: { NORMAL: ["A", "B", "C"], PEAK: ["A", "B"], EXTREME_PEAK: ["A", "B"] },
+                moderate: { NORMAL: ["A", "B"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
+            };
+            const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
+            const isMatrixCompliant = allowedCategories.includes(busCategory);
+
+            if (socResult) socResult.textContent = `${liveSoc}%`;
+            if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
+            if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
+            if (fullDutyDistRule) fullDutyDistRule.textContent = `${rangeValue} km usable (${grossDutyDist} km gross)`;
+            if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+            if (rangeRule) rangeRule.textContent = routeCategoryLabel;
+            if (timeRule) timeRule.textContent = timeCategoryLabel;
+
+            const totalDistanceRuleEl = document.getElementById("route-distance-rule");
+            if (totalDistanceRuleEl) {
+                totalDistanceRuleEl.textContent = `${routeDistance.toFixed(2)} km`;
+            }
+
+            if (busCatRule) {
+                busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
+                busCatRule.style.color = busCategory === "A" ? "#16a34a" : (busCategory === "B" ? "#2563eb" : "#d97706");
+            }
+
+            if (matrixStatusRule) {
+                matrixStatusRule.textContent = isMatrixCompliant
+                    ? `✅ Allowed (Cat ${allowedCategories.join('/')})`
+                    : `⚠️ Required Cat ${allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+                matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
+            }
+
+            updateSelectedBusDutyBanner();
+
+            const recBtn = document.getElementById("recommend");
+            if (recBtn) {
+                if (currentlyAllocatedBus.isCommitted) {
+                    recBtn.textContent = `🗑️ De-allocate Bus ${currentlyAllocatedBus.bm} (Return to Depot Pool)`;
+                    recBtn.disabled = false;
+                    recBtn.style.opacity = "1";
+                    recBtn.style.cursor = "pointer";
+                    recBtn.style.background = "#dc2626";
+                } else {
+                    recBtn.textContent = `⚡ Allocate Bus ${currentlyAllocatedBus.bm} to Route ${currentlyAllocatedBus.routeCode}`;
+                    recBtn.disabled = false;
+                    recBtn.style.opacity = "1";
+                    recBtn.style.cursor = "pointer";
+                    recBtn.style.background = "linear-gradient(135deg, var(--blue), var(--blue-dark))";
+                }
+            }
+        }
+
+        function updateSelectedRouteDistance() {
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+            if (!routeObj) return;
+
+            const distKm = Number(routeObj.distKm) || 28.7;
+            selectedRouteDistance = distKm;
+            if (distanceInput) distanceInput.value = distKm.toFixed(1);
+
+            const totalDistanceEl = document.getElementById("route-distance-rule");
+            if (totalDistanceEl) totalDistanceEl.textContent = `${distKm.toFixed(2)} km`;
+        }
+
+        function updateScheduledTimesForSelectedRoute(keepManualTime = false) {
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            if (!routeObj) return;
+
+            updateSelectedRouteDistance();
+
+            const routeCode = routeObj.code;
+            const matchingSchedules = datasetSchedules.filter(s => s.route === routeCode && s.outTime);
+
+            const timeMap = new Map();
+            matchingSchedules.forEach(s => {
+                const t = s.outTime.substring(0, 5);
+                if (!timeMap.has(t)) {
+                    timeMap.set(t, s);
+                }
+            });
+
+            const sortedTimes = Array.from(timeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (scheduledTimeSelect) {
+                if (sortedTimes.length === 0) {
+                    scheduledTimeSelect.innerHTML = `<option value="13:10">13:10:00 (Schedule General - Regular Shift)</option>`;
+                } else {
+                    scheduledTimeSelect.innerHTML = sortedTimes.map(([timeStr, sched]) => {
+                        return `<option value="${timeStr}">${sched.outTime || timeStr} (${sched.scheduleId} - ${sched.shift})</option>`;
+                    }).join("");
+                }
+
+                if (!keepManualTime && sortedTimes.length > 0) {
+                    scheduledTimeSelect.value = sortedTimes[0][0];
+                    if (depInput) depInput.value = sortedTimes[0][0];
+                } else if (keepManualTime && depInput) {
+                    const manualVal = depInput.value;
+                    const matchedOpt = scheduledTimeSelect.querySelector(`option[value="${manualVal}"]`);
+                    if (matchedOpt) {
+                        scheduledTimeSelect.value = manualVal;
+                    }
+                }
+            }
+        }
+
+        function populateRouteDropdown(filterText = "") {
+            const query = (filterText || "").trim().toLowerCase();
+            const filtered = directionalRoutes.filter(r => {
+                if (!query) return true;
+                const text = `${r.origin} ${r.destination} ${r.code} ${r.label}`.toLowerCase();
+                return text.includes(query);
+            });
+
+            if (routeCountBadge) {
+                routeCountBadge.textContent = `${filtered.length} Routes available`;
+            }
+
+            if (filtered.length === 0) {
+                routeSelect.innerHTML = `<option value="">No matching routes found</option>`;
+                return;
+            }
+
+            const currentVal = routeSelect.value;
+            routeSelect.innerHTML = filtered.map(r => {
+                return `<option value="${r.id}" ${r.id === currentVal ? 'selected' : ''}>${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
+            }).join("");
+
+            if (!filtered.some(r => r.id === currentVal)) {
+                routeSelect.value = filtered[0].id;
+            }
+        }
+
+        let toastTimer = null;
+        function showAllocationToast(message, type = "success") {
+            const toast = document.getElementById("allocation-toast");
+            if (!toast) return;
+            toast.className = `allocation-toast ${type}`;
+            toast.textContent = message;
+            toast.style.display = "flex";
+            toast.style.opacity = "1";
+            toast.style.transform = "translateY(0)";
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(-15px)";
+                setTimeout(() => { toast.style.display = "none"; }, 300);
+            }, 4000);
+        }
+
+        async function loadData() {
+            syncLocalStorageBusStates();
+
+            try {
+                const [routesResponse, busStateResponse, assignResponse, corridorResponse] = await Promise.all([
+                    fetch("/api/routes").catch(() => null),
+                    fetch("/api/bus-state").catch(() => null),
+                    fetch("/api/bus-assignments").catch(() => null),
+                    fetch("/api/corridor-schedules").catch(() => null)
+                ]);
+
+                if (routesResponse && routesResponse.ok) {
+                    const routesPayload = await routesResponse.json();
+                    routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
+                }
+
+                if (busStateResponse && busStateResponse.ok) {
+                    const busStatePayload = await busStateResponse.json();
+                    busStates = busStatePayload?.state || {};
+                }
+                syncLocalStorageBusStates();
+
+                if (assignResponse && assignResponse.ok) {
+                    const assignPayload = await assignResponse.json();
+                    busAssignments = assignPayload.assignments || {};
+                }
+
+                if (corridorResponse && corridorResponse.ok) {
+                    const corridorData = await corridorResponse.json();
+                    if (corridorData && corridorData.ok) {
+                        if (Array.isArray(corridorData.directionalRoutes) && corridorData.directionalRoutes.length) {
+                            directionalRoutes = corridorData.directionalRoutes;
+                        }
+                        if (Array.isArray(corridorData.schedules) && corridorData.schedules.length) {
+                            datasetSchedules = corridorData.schedules;
+                        }
+                    }
+                }
+
+                populateRouteDropdown();
+                updateSelectedRouteDistance();
+                updateScheduledTimesForSelectedRoute(false);
+                await recommend();
+
+                // ── Event Listeners for Automatic Trigger ──
+                routeSelect.addEventListener("change", async () => {
+                    updateSelectedRouteDistance();
+                    updateScheduledTimesForSelectedRoute(false);
+                    await recommend();
+                });
+
+                routeSearch.addEventListener("input", async () => {
+                    populateRouteDropdown(routeSearch.value);
+                    updateSelectedRouteDistance();
+                    updateScheduledTimesForSelectedRoute(false);
+                    await recommend();
+                });
+
+                if (scheduledTimeSelect) {
+                    scheduledTimeSelect.addEventListener("change", async () => {
+                        if (depInput && scheduledTimeSelect.value) {
+                            depInput.value = scheduledTimeSelect.value;
+                        }
+                        await recommend();
+                    });
+                }
+
+                if (depInput) {
+                    const handleDeparture = async () => {
+                        const val = depInput.value;
+                        if (scheduledTimeSelect && val) {
+                            const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
+                            if (exactOpt) {
+                                scheduledTimeSelect.value = val;
+                            }
+                        }
+                        await recommend();
+                    };
+                    depInput.addEventListener("input", handleDeparture);
+                    depInput.addEventListener("change", handleDeparture);
+                }
+
+                const recBtn = document.getElementById("recommend");
+                if (recBtn) {
+                    recBtn.addEventListener("click", async () => {
+                        if (!currentlyAllocatedBus) {
+                            showAllocationToast("⚠️ No eligible bus available to allocate for this route.", "error");
+                            return;
+                        }
+
+                        const selectedRouteId = routeSelect ? routeSelect.value : "";
+                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                        const depInput = document.getElementById("departure");
+                        const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
+                        const depShort = departureTime.substring(0, 5);
+
+                        if (currentlyAllocatedBus.isCommitted) {
+                            // De-allocate this duty
+                            const deallocBm = currentlyAllocatedBus.bm;
+                            allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                            saveAllocatedDuties(allocatedDuties);
+                            await recommend();
+                            showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
+                        } else {
+                            // Allocate this bus to this route and time only
+                            const alloc = currentlyAllocatedBus;
+                            const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
+                            const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
+                            const newDuty = {
+                                id: dutyId,
+                                bm: alloc.bm,
+                                bmNumber: alloc.bm,
+                                uniqueId: alloc.bm,
+                                vehicleId: alloc.bm,
+                                busId: alloc.bm,
+                                regNo: alloc.regNo || getBusRegNo(alloc.bm),
+                                routeId: routeObj.code,
+                                corridorRouteId: routeObj.id,
+                                busNumber: routeObj.code,
+                                busShortName: routeObj.code,
+                                routeShortName: routeObj.code,
+                                routeCode: routeObj.code,
+                                code: routeObj.code,
+                                scheduleId: alloc.scheduleId || `${routeObj.code}/12`,
+                                routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
+                                origin: routeObj.origin,
+                                destination: routeObj.destination,
+                                departureTime: departureTime,
+                                shift: targetShift,
+                                soc: alloc.liveSoc,
+                                fullDutyKm: alloc.fullDutyKm,
+                                routeDist: Number(routeObj.distKm || 28.7),
+                                tripCount: (routeObj && routeObj.trips) || 8,
+                                allocType: "Committed Duty Allocation",
+                                reason: alloc.reason || "",
+                                allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            };
+
+                            // Remove any prior bus on this specific route and departure time slot
+                            allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                            // Also ensure this bus is not in any other duty slot
+                            allocatedDuties = allocatedDuties.filter(d => String(d.bm).toUpperCase() !== String(alloc.bm).toUpperCase());
+                            allocatedDuties.unshift(newDuty);
+                            saveAllocatedDuties(allocatedDuties);
+
+                            await recommend();
+                            showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} at ${departureTime} (${targetShift})! It is now locked and unavailable for other routes and times.`, "success");
+                        }
+                    });
+                }
+
+            } catch (err) {
+                console.error("Failed to load initial data in AD portal:", err);
+            }
+        }
+
+        // Initialize portal
+        loadData();
+
+        // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
+        window.addEventListener('storage', async (e) => {
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {
+                syncLocalStorageBusStates();
+                allocatedDuties = loadAllocatedDuties();
+                await recommend();
+            }
+        });
+    </script>
+</body>
+</html>

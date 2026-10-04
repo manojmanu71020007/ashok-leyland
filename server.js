@@ -2567,6 +2567,11 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname === "/ad" || pathname === "/ad.html") {
+        sendFile(res, path.join(BASE_DIR, "ad.html"), "text/html");
+        return;
+    }
+
     if (pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
         sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
         return;
