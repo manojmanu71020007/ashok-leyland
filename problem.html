@@ -640,35 +640,6 @@
                 transform: translateY(0);
             }
         }
-        .section-empty-prompt {
-            padding: 30px 20px;
-            background: rgba(255, 255, 255, 0.85);
-            border: 2px dashed #cbd5e1;
-            border-radius: 16px;
-            text-align: center;
-            margin-bottom: 18px;
-        }
-        .empty-prompt-box {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .empty-prompt-icon {
-            font-size: 2rem;
-            line-height: 1;
-        }
-        .empty-prompt-text strong {
-            display: block;
-            font-size: 1.05rem;
-            color: var(--ink);
-            margin-bottom: 4px;
-        }
-        .empty-prompt-text span {
-            color: var(--muted);
-            font-size: .88rem;
-        }
         .allocation-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -1623,17 +1594,6 @@
 
         <!-- ── Section Display Panels ── -->
         <div id="section-views-container" class="section-views-container">
-            <!-- Hint shown when no section is currently open -->
-            <div id="section-empty-prompt" class="section-empty-prompt">
-                <div class="empty-prompt-box">
-                    <div class="empty-prompt-icon">👆</div>
-                    <div class="empty-prompt-text">
-                        <strong>Click any button above to display its section</strong>
-                        <span>View <strong>Allocated Buses</strong>, <strong>Non-Allocated Buses</strong>, or the full <strong>Scheduled Timetable</strong>.</span>
-                    </div>
-                </div>
-            </div>
-
             <!-- Panel 1: Allocated Buses -->
             <div id="view-panel-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-allocated">
                 <section class="panel" aria-label="Allocated buses">
@@ -1935,7 +1895,6 @@
             const panelAllocated = document.getElementById("view-panel-allocated");
             const panelNotAllocated = document.getElementById("view-panel-not-allocated");
             const panelScheduled = document.getElementById("view-panel-scheduled");
-            const emptyPrompt = document.getElementById("section-empty-prompt");
 
             const panelMap = {
                 "allocated": { btn: btnAllocated, panel: panelAllocated },
@@ -1967,8 +1926,6 @@
                     }
                 });
 
-                if (emptyPrompt) emptyPrompt.style.display = "none";
-
                 if (shouldScroll && panelMap[sectionKey]?.panel) {
                     panelMap[sectionKey].panel.scrollIntoView({ behavior: "smooth", block: "start" });
                 }
@@ -1992,8 +1949,6 @@
                         const chevron = item.btn.querySelector(".btn-nav-chevron");
                         if (chevron) chevron.textContent = "▼";
                     }
-                    const anyOpen = Object.values(panelMap).some(it => it.panel && it.panel.style.display === "block");
-                    if (emptyPrompt) emptyPrompt.style.display = anyOpen ? "none" : "block";
                 } else {
                     openFleetSection(sectionKey);
                 }
@@ -2022,7 +1977,6 @@
                                 if (chevron) chevron.textContent = "▲";
                             }
                         });
-                        if (emptyPrompt) emptyPrompt.style.display = "none";
                         if (btnToggleAllText) btnToggleAllText.textContent = "Collapse View";
                         if (btnToggleAllIcon) btnToggleAllIcon.textContent = "✕";
                     } else {
@@ -2035,7 +1989,6 @@
                                 if (chevron) chevron.textContent = "▼";
                             }
                         });
-                        if (emptyPrompt) emptyPrompt.style.display = "block";
                         if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
                         if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
                     }
