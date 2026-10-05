@@ -2573,12 +2573,12 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
-        sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "recommending.html"), "text/html");
         return;
     }
 
     if (pathname === "/admin" || pathname === "/admin.html") {
-        sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "recommending.html"), "text/html");
         return;
     }
 

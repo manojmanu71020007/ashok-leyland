@@ -746,7 +746,7 @@
         sessionStorage.setItem("isLoggedIn", "true");
         sessionStorage.setItem("userEmail", user.email || "");
         sessionStorage.setItem("userName",  user.displayName || "");
-        window.location.href = "/admin.html";
+        window.location.href = "/recommending.html";
     });
 
     // ── Expose to global scope (onclick attributes) ────────────────────────────
@@ -903,7 +903,7 @@
             sessionStorage.setItem("userName",  name);
 
             // Redirect
-            window.location.href = "/admin.html";
+            window.location.href = "/recommending.html";
 
         } catch (err) {
             showAlert("signup-alert", "error", friendlyError(err));
