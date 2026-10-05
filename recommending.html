@@ -2571,12 +2571,18 @@
 
         function getBusSocByBm(bm) {
             if (!bm) return 0;
-            const localSoc = localStorage.getItem("depot_bus_soc_" + bm);
+            const key = String(bm).toUpperCase().trim();
+            const localSoc = localStorage.getItem("depot_bus_soc_" + bm) || localStorage.getItem("depot_bus_soc_" + key);
             if (localSoc !== null) {
                 const val = Number(localSoc);
                 if (Number.isFinite(val)) return val;
             }
-            const state = busStates[bm] || {};
+            // Check if SoC was recorded when this bus was allocated in allocatedDuties
+            const existingDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
+            if (existingDuty && Number.isFinite(Number(existingDuty.soc)) && Number(existingDuty.soc) > 0) {
+                return Number(existingDuty.soc);
+            }
+            const state = busStates[bm] || busStates[key] || {};
             if (Number.isFinite(Number(state.soc))) return Number(state.soc);
             return 0;
         }
@@ -2727,33 +2733,40 @@
             return "simple";
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false) {
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
-            const lockInfo = getBusLockInfo(bm);
+            const key = String(bm).toUpperCase().trim();
+            const lockInfo = getBusLockInfo(key);
             if (lockInfo) {
-                return { feasible: false, bm, reason: `Bus ${bm} is ${lockInfo.reason.toLowerCase()}.` };
+                return { feasible: false, bm: key, reason: `Bus ${key} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
-            // Check if bus is already allocated to another duty in the Allocated Buses region
-            const alreadyAllocatedDuty = (allocatedDuties || []).find(d => String(d.bm).toUpperCase() === String(bm).toUpperCase());
+            // Check if bus is already allocated to another route or duty
+            const alreadyAllocatedDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
             if (alreadyAllocatedDuty) {
-                const dutyKey = `${alreadyAllocatedDuty.routeCode}_${(alreadyAllocatedDuty.departureTime || '').substring(0, 5)}`;
-                if (currentTargetKey && dutyKey === currentTargetKey) {
-                    // This bus is the one already allocated to this specific duty
+                const dutyRoute = String(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || '').toUpperCase().trim();
+                const curRoute = String(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : '')).toUpperCase().trim();
+                const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
+
+                const isSameRoute = curRoute && (dutyRoute === curRoute);
+                const isExactTarget = currentTargetKey && (`${dutyRoute}_${dutyTimeShort}` === currentTargetKey);
+
+                if (isAllocatedDuty || isSameRoute || isExactTarget) {
+                    // This bus is officially allocated to this route/duty (via AD portal or Recommending portal) — fully eligible for this departure!
                 } else {
                     return {
                         feasible: false,
-                        bm,
-                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift}).`
+                        bm: key,
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift}).`
                     };
                 }
             }
 
-            const liveSoc = getBusSocByBm(bm);
+            const liveSoc = getBusSocByBm(key);
             const fullDutyKm = calculateFullDutyDistance(liveSoc);
-            const busCat = getBusCategory(bm, liveSoc);
-            const state = busStates[bm] || {};
+            const busCat = getBusCategory(key, liveSoc);
+            const state = busStates[key] || {};
             const condition = state.condition || "Good";
             const driver = state.driver || "Driver Assigned";
 
@@ -2762,27 +2775,29 @@
             const maintChecked = document.getElementById("maintenance") ? document.getElementById("maintenance").checked : true;
 
             if (condition === "Not Good" || !maintChecked) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${bm} flagged for maintenance inspection.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} flagged for maintenance inspection.` };
             }
 
             if (driver.toLowerCase().includes("no")) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${bm}.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${key}.` };
             }
 
             if (!interiorChecked || !exteriorChecked) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${bm} pending interior/exterior cleaning clearance.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} pending interior/exterior cleaning clearance.` };
             }
 
-            // Complex route requirement: ONLY Category A buses can be allocated!
+            // Complex route requirement: ONLY Category A buses can be allocated / available!
             if (isComplexRoute && busCat !== "A") {
-                return {
-                    feasible: false,
-                    bm,
-                    liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reason: `Bus ${bm} is Category ${busCat}. Complex route strictly requires Category A bus only.`
-                };
+                if (!isAllocatedDuty) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        liveSoc,
+                        fullDutyKm,
+                        busCategory: busCat,
+                        reason: `Bus ${key} is Category ${busCat}. Complex route strictly requires Category A bus only.`
+                    };
+                }
             }
 
             const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
@@ -2790,21 +2805,21 @@
                 : getRequiredSingleChargeSoc(routeDist);
 
             // Bus is feasible if its manually updated live battery SoC meets or exceeds the required level
-            if (liveSoc < reqSoc) {
+            if (liveSoc < reqSoc && !isAllocatedDuty) {
                 return {
                     feasible: false,
-                    bm,
+                    bm: key,
                     liveSoc,
                     fullDutyKm,
                     busCategory: busCat,
                     reqSoc,
-                    reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                    reason: `Bus ${key} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
                 };
             }
 
             return {
                 feasible: true,
-                bm,
+                bm: key,
                 liveSoc,
                 fullDutyKm,
                 busCategory: busCat,
@@ -2909,7 +2924,7 @@
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
 
                 if (primaryEval.feasible) {
                     const surplus = primaryEval.liveSoc - reqSoc;
@@ -2930,7 +2945,7 @@
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
                         if (swapEval.feasible) {
                             const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
@@ -2958,7 +2973,7 @@
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -2982,7 +2997,7 @@
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = (routes || [])
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -3018,6 +3033,10 @@
         const autoAllocateBus = allocateBus;
 
         function getBusesAvailableForDeparture(routeObj, departureTime) {
+            // Always sync fresh storage data first
+            allocatedDuties = loadAllocatedDuties();
+            syncLocalStorageBusStates();
+
             if (!routeObj) {
                 const selectedRouteId = routeSelect ? routeSelect.value : "";
                 routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
@@ -3049,13 +3068,13 @@
             const candidates = [];
             const seenBms = new Set();
 
-            function addCandidate(bm, role) {
+            function addCandidate(bm, role, isDuty = false) {
                 if (!bm) return;
                 const key = String(bm).toUpperCase().trim();
                 if (seenBms.has(key)) return;
                 seenBms.add(key);
 
-                const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute);
+                const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, isDuty);
                 if (feas && feas.feasible) {
                     const liveSoc = feas.liveSoc;
                     const fullDutyKm = feas.fullDutyKm;
@@ -3064,10 +3083,10 @@
                     const surplus = liveSoc - reqSoc;
 
                     const existingDuty = (allocatedDuties || []).find(d => 
-                        String(d.bm).toUpperCase() === key && 
-                        d.routeCode === routeCode && 
-                        (d.departureTime || '').substring(0, 5) === depShort
+                        String(d.bm || d.bmNumber || '').toUpperCase().trim() === key && 
+                        String(d.routeCode || d.busNumber || '').toUpperCase().trim() === routeCode.toUpperCase()
                     );
+                    const isCommitted = isDuty || !!existingDuty;
 
                     candidates.push({
                         bm: key,
@@ -3078,20 +3097,37 @@
                         reqSoc: reqSoc,
                         surplus: surplus,
                         role: role,
-                        shift: targetShift,
-                        departureTime: depTimeClean,
+                        shift: (existingDuty && existingDuty.shift) || targetShift,
+                        departureTime: (existingDuty && existingDuty.departureTime) || depTimeClean,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        scheduleId: matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`,
-                        isCommitted: !!existingDuty,
+                        scheduleId: (existingDuty && existingDuty.scheduleId) || (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
+                        isCommitted: isCommitted,
                         isComplexRoute: isComplexRoute,
-                        allocType: existingDuty ? "Committed Duty Allocation" : role,
+                        allocType: isCommitted ? "Committed Duty Allocation" : role,
                         condition: feas.condition || "Good",
                         driver: feas.driver || "Assigned",
-                        reason: `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
+                        reason: isCommitted
+                            ? `Bus ${key} (Category ${busCat}) is officially allocated to Route ${routeCode} (${(existingDuty && existingDuty.shift) || targetShift}) at ${(existingDuty && existingDuty.departureTime) || depTimeClean}. Battery SoC: ${liveSoc}%, ${fullDutyKm} km Full Duty Range.`
+                            : `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
                     });
                 }
             }
+
+            // 0. Buses officially allocated to this route (via AD portal or Recommending portal)
+            (allocatedDuties || []).forEach(d => {
+                const dRoute = String(d.routeCode || d.busNumber || d.routeId || "").toUpperCase().trim();
+                if (dRoute === routeCode.toUpperCase()) {
+                    const bm = String(d.bm || d.bmNumber || d.uniqueId || "").toUpperCase().trim();
+                    if (bm) {
+                        const dTime = (d.departureTime || '').substring(0, 5);
+                        const role = (dTime === depShort)
+                            ? `🔒 Currently Allocated to ${routeCode} (${d.shift || targetShift})`
+                            : `🔒 Allocated to ${routeCode} @ ${d.departureTime} (${d.shift || targetShift})`;
+                        addCandidate(bm, role, true);
+                    }
+                }
+            });
 
             // 1. Primary & swap bus for this departure schedule
             if (matchedSched) {
@@ -3129,7 +3165,7 @@
                 if (bm) addCandidate(bm, `Depot Reserve Fleet`);
             });
 
-            // Sort: Committed first, then primary, then smallest surplus
+            // Sort: Committed / Allocated first, then primary, then smallest surplus
             candidates.sort((a, b) => {
                 if (a.isCommitted !== b.isCommitted) return a.isCommitted ? -1 : 1;
                 const isPrimaryA = a.role.toLowerCase().includes("primary");
@@ -5668,7 +5704,7 @@
 
         loadData();
 
-        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated)
+        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated, or allocated in AD portal)
         window.addEventListener('storage', (e) => {
             if (e.key === 'depot_locked_buses') {
                 renderRoutes();
@@ -5683,6 +5719,22 @@
                 allocatedDuties = loadAllocatedDuties();
                 renderRoutes();
                 recommend();
+                const availContainer = document.getElementById("available-buses-container");
+                if (availContainer && availContainer.style.display !== "none") {
+                    renderAvailableBusesForDeparture();
+                }
+            }
+        });
+
+        // Auto-sync when switching back to this tab
+        window.addEventListener('focus', () => {
+            syncLocalStorageBusStates();
+            allocatedDuties = loadAllocatedDuties();
+            renderRoutes();
+            recommend();
+            const availContainer = document.getElementById("available-buses-container");
+            if (availContainer && availContainer.style.display !== "none") {
+                renderAvailableBusesForDeparture();
             }
         });
     </script>

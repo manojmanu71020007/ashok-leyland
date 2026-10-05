@@ -257,6 +257,18 @@
             padding: 9px 12px;
             line-height: 1.45;
         }
+        .cat-pill {
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            letter-spacing: 0.02em;
+        }
+        .cat-pill-a { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+        .cat-pill-b { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+        .cat-pill-c { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
 
         /* ── Selected route trips banner ── */
         .selected-route-trips-banner {
@@ -627,6 +639,46 @@
             const baseSoc = targetKm / 1.42;
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
+        let busCategoriesMap = new Map();
+
+        function getBusCategory(bm, liveSoc) {
+            const key = String(bm || "").toUpperCase().trim();
+            if (busCategoriesMap && busCategoriesMap.has(key)) {
+                return busCategoriesMap.get(key);
+            }
+            if (busStates && busStates[key] && busStates[key].busCategory) {
+                return String(busStates[key].busCategory).toUpperCase();
+            }
+            if (Array.isArray(routes)) {
+                const r = routes.find(x => String(x.bmNumber || x.uniqueId || "").toUpperCase().trim() === key);
+                if (r && r.busCategory) return String(r.busCategory).toUpperCase();
+            }
+            const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
+            const range = calculateFullDutyDistance(soc);
+            return range > 120 ? "A" : (range >= 106 ? "B" : "C");
+        }
+
+        function getRouteComplexity(routeObj, matchedSched) {
+            if (matchedSched && matchedSched.category) {
+                const scLower = String(matchedSched.category).toLowerCase();
+                if (scLower.includes("comp")) return "complex";
+                if (scLower.includes("mod")) return "moderate";
+                if (scLower.includes("stand") || scLower.includes("simp")) return "simple";
+            }
+            const rCode = String(routeObj?.code || routeObj?.routeCode || "").toUpperCase();
+            if (rCode && Array.isArray(datasetSchedules)) {
+                const scheds = datasetSchedules.filter(s => String(s.route || "").toUpperCase() === rCode);
+                const compSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("comp"));
+                if (compSched) return "complex";
+                const modSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("mod"));
+                if (modSched) return "moderate";
+                const standSched = scheds.find(s => s.category && (String(s.category).toLowerCase().includes("stand") || String(s.category).toLowerCase().includes("simp")));
+                if (standSched) return "simple";
+            }
+            const dist = Number(routeObj?.distKm || routeObj?.distanceKm || 0);
+            if (dist >= 20) return "complex";
+            if (dist >= 10) return "moderate";
+            return "simple";
         }
 
         function getBusLockInfo(bm) {
@@ -636,41 +688,61 @@
             } catch { return null; }
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null) {
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
-            const lockInfo = getBusLockInfo(bm);
+            const key = String(bm).toUpperCase().trim();
+            const lockInfo = getBusLockInfo(key);
             if (lockInfo) {
-                return { feasible: false, bm, reason: `Bus ${bm} is locked under ${lockInfo.reason || 'cleaning/charging'}.` };
+                return { feasible: false, bm: key, reason: `Bus ${key} is locked under ${lockInfo.reason || 'cleaning/charging'}.` };
             }
 
             // Check if bus is already allocated to another route or time
-            const alreadyAllocatedDuty = allocatedDuties.find(d => String(d.bm).toUpperCase() === String(bm).toUpperCase());
+            const alreadyAllocatedDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
             if (alreadyAllocatedDuty) {
-                const dutyKey = `${alreadyAllocatedDuty.routeCode}_${(alreadyAllocatedDuty.departureTime || '').substring(0, 5)}`;
-                if (currentTargetKey && dutyKey === currentTargetKey) {
-                    // This bus is the one allocated to this exact duty (same route and same time)
+                const dutyRoute = String(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || '').toUpperCase().trim();
+                const curRoute = String(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : '')).toUpperCase().trim();
+                const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
+
+                const isSameRoute = curRoute && (dutyRoute === curRoute);
+                const isExactTarget = currentTargetKey && (`${dutyRoute}_${dutyTimeShort}` === currentTargetKey);
+
+                if (isSameRoute || isExactTarget) {
+                    // This bus is the one allocated to this exact route or duty
                 } else {
                     return {
                         feasible: false,
-                        bm,
-                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes and times.`
+                        bm: key,
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes and times.`
                     };
                 }
             }
 
-            const liveSoc = getBusSocByBm(bm);
+            const liveSoc = getBusSocByBm(key);
             const fullDutyKm = calculateFullDutyDistance(liveSoc);
-            const state = busStates[bm] || {};
+            const busCat = getBusCategory(key, liveSoc);
+            const state = busStates[key] || {};
             const condition = state.condition || "Good";
             const driver = state.driver || "Driver Assigned";
 
             if (condition === "Not Good") {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} flagged for maintenance inspection.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} flagged for maintenance inspection.` };
             }
 
             if (driver.toLowerCase().includes("no")) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `No driver currently assigned to bus ${bm}.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${key}.` };
+            }
+
+            // Complex route requirement: ONLY Category A buses can be allocated!
+            if (isComplexRoute && busCat !== "A") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm,
+                    busCategory: busCat,
+                    reason: `Bus ${key} is Category ${busCat}. Complex route strictly requires Category A bus only.`
+                };
             }
 
             const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
@@ -681,19 +753,21 @@
             if (liveSoc < reqSoc) {
                 return {
                     feasible: false,
-                    bm,
+                    bm: key,
                     liveSoc,
                     fullDutyKm,
+                    busCategory: busCat,
                     reqSoc,
-                    reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                    reason: `Bus ${key} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
                 };
             }
 
             return {
                 feasible: true,
-                bm,
+                bm: key,
                 liveSoc,
                 fullDutyKm,
+                busCategory: busCat,
                 reqSoc,
                 condition,
                 driver,
@@ -724,6 +798,9 @@
                 }
             }
 
+            const complexity = getRouteComplexity(routeObj, matchedSched);
+            const isComplexRoute = (complexity === "complex");
+
             const targetShift = (matchedSched && matchedSched.shift)
                 ? matchedSched.shift
                 : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
@@ -734,36 +811,50 @@
             const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
 
             // Check if this specific duty already has a bus officially allocated
-            const existingDuty = allocatedDuties.find(d => d.routeCode === routeCode && (d.departureTime || '').substring(0, 5) === depShort);
+            const existingDuty = (allocatedDuties || []).find(d => {
+                const dRoute = String(d.routeCode || d.busNumber || d.routeId || "").toUpperCase().trim();
+                return dRoute === routeCode.toUpperCase() && (d.departureTime || '').substring(0, 5) === depShort;
+            });
+
             if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
-                return {
-                    allocated: {
-                        bm: existingDuty.bm,
-                        regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
-                        liveSoc: liveSoc,
-                        fullDutyKm: calculateFullDutyDistance(liveSoc),
-                        shift: existingDuty.shift || targetShift,
+                const busCat = getBusCategory(existingDuty.bm, liveSoc);
+
+                if (!isComplexRoute || busCat === "A") {
+                    return {
+                        allocated: {
+                            bm: existingDuty.bm,
+                            regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
+                            liveSoc: liveSoc,
+                            fullDutyKm: calculateFullDutyDistance(liveSoc),
+                            shift: existingDuty.shift || targetShift,
+                            departureTime: depTimeClean,
+                            allocType: existingDuty.allocType || "Committed Duty Allocation",
+                            routeCode: routeCode,
+                            busShortName: routeCode,
+                            busCategory: busCat,
+                            reqSoc: reqSoc,
+                            isCommitted: true,
+                            isComplexRoute: isComplexRoute,
+                            reason: `Bus ${existingDuty.bm} (Category ${busCat}) is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
+                        },
+                        matchedSched,
+                        swapLog: [],
+                        shift: targetShift,
                         departureTime: depTimeClean,
-                        allocType: existingDuty.allocType || "Committed Duty Allocation",
-                        routeCode: routeCode,
-                        busShortName: routeCode,
-                        reqSoc: reqSoc,
-                        isCommitted: true,
-                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
-                    },
-                    matchedSched,
-                    swapLog: [],
-                    shift: targetShift,
-                    departureTime: depTimeClean,
-                    reqSoc
-                };
+                        reqSoc,
+                        isComplexRoute,
+                        complexity
+                    };
+                } else {
+                    swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: Complex route strictly requires Category A buses.`);
+                }
             }
 
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
 
                 if (primaryEval.feasible) {
                     const surplus = primaryEval.liveSoc - reqSoc;
@@ -775,8 +866,9 @@
                         allocType: `Primary Bus (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
+                        isComplexRoute: isComplexRoute,
                         reqSoc: reqSoc,
-                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
+                        reason: `Primary bus ${primaryBm} (Category ${primaryEval.busCategory}) scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
                     });
                 } else {
                     swapLog.push(`Primary bus ${primaryBm} (${targetShift}) ineligible: ${primaryEval.reason}`);
@@ -784,7 +876,7 @@
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
                         if (swapEval.feasible) {
                             const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
@@ -795,8 +887,9 @@
                                 allocType: `Swapped Bus (${targetShift})`,
                                 routeCode: routeCode,
                                 busShortName: routeCode,
+                                isComplexRoute: isComplexRoute,
                                 reqSoc: reqSoc,
-                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
+                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} (Category ${swapEval.busCategory}) for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
                             });
                         } else {
                             swapLog.push(`Designated swap bus ${swapBm} ineligible: ${swapEval.reason}`);
@@ -812,7 +905,7 @@
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -827,8 +920,9 @@
                         allocType: `Shift Pool Allocation (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
+                        isComplexRoute: isComplexRoute,
                         reqSoc: reqSoc,
-                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
+                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} (Category ${bestShiftBus.busCategory}) meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
                     });
                 }
             }
@@ -836,7 +930,7 @@
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = routes
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -851,8 +945,9 @@
                         allocType: `Depot Reserve Fleet Allocation`,
                         routeCode: routeCode,
                         busShortName: routeCode,
+                        isComplexRoute: isComplexRoute,
                         reqSoc: reqSoc,
-                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
+                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} (Category ${bestReserve.busCategory}) meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
                     });
                 }
             }
@@ -861,9 +956,13 @@
                 allocated.routeCode = routeCode;
                 allocated.busShortName = routeCode;
                 allocated.reqSoc = reqSoc;
+                allocated.busCategory = allocated.busCategory || getBusCategory(allocated.bm, allocated.liveSoc);
+                allocated.isComplexRoute = isComplexRoute;
+            } else if (isComplexRoute) {
+                swapLog.push("Route is Complex: Strictly Category A buses are eligible. No Category A bus with sufficient SoC available.");
             }
 
-            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc };
+            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
         }
 
         function renderAllocatedCard(result) {
@@ -920,9 +1019,13 @@
                 ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">● Officially Allocated</div>`
                 : `<div id="alloc-status-pill" class="alloc-status-pill">● Ready for Allocation</div>`;
 
+            const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
+            const catClass = busCat === 'A' ? 'cat-pill-a' : (busCat === 'B' ? 'cat-pill-b' : 'cat-pill-c');
+
             card.innerHTML = `
                 <div class="auto-alloc-header">
                     <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
+                    <span class="cat-pill ${catClass}" style="font-size:0.75rem;padding:3px 9px;">Category ${escapeHtml(busCat)}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
                     <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || "Primary Scheduled Bus")}</span>
                 </div>
@@ -964,6 +1067,10 @@
                         <div class="alloc-metric-item">
                             <span class="metric-label">Driver Status</span>
                             <strong id="alloc-driver" class="metric-val">${escapeHtml(alloc.driver || "Assigned")}</strong>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Bus Tier</span>
+                            <strong class="metric-val" style="color:${busCat === 'A' ? '#16a34a' : (busCat === 'B' ? '#2563eb' : '#d97706')};">Category ${escapeHtml(busCat)}</strong>
                         </div>
                     </div>
                     <div id="alloc-reason-text" class="auto-alloc-reason">
@@ -1267,16 +1374,31 @@
             syncLocalStorageBusStates();
 
             try {
-                const [routesResponse, busStateResponse, assignResponse, corridorResponse] = await Promise.all([
+                const [routesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
                     fetch("/api/routes").catch(() => null),
                     fetch("/api/bus-state").catch(() => null),
                     fetch("/api/bus-assignments").catch(() => null),
-                    fetch("/api/corridor-schedules").catch(() => null)
+                    fetch("/api/corridor-schedules").catch(() => null),
+                    fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null))
                 ]);
 
                 if (routesResponse && routesResponse.ok) {
                     const routesPayload = await routesResponse.json();
                     routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
+                }
+
+                if (busCategoriesResponse && busCategoriesResponse.ok) {
+                    try {
+                        const bcData = await busCategoriesResponse.json();
+                        const rawBuses = Array.isArray(bcData.buses) ? bcData.buses : (bcData.buses ? Object.values(bcData.buses) : (Array.isArray(bcData) ? bcData : []));
+                        rawBuses.forEach(b => {
+                            if (b && b.bm_number && b.category) {
+                                busCategoriesMap.set(String(b.bm_number).toUpperCase().trim(), String(b.category).toUpperCase().trim());
+                            }
+                        });
+                    } catch (e) {
+                        console.warn("Could not parse bus categories:", e);
+                    }
                 }
 
                 if (busStateResponse && busStateResponse.ok) {
@@ -1369,6 +1491,15 @@
                         } else {
                             // Allocate this bus to this route and time only
                             const alloc = currentlyAllocatedBus;
+                            const complexity = getRouteComplexity(routeObj, currentScheduleMatch);
+                            const isComplex = (complexity === "complex");
+                            const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
+
+                            if (isComplex && busCat !== "A") {
+                                showAllocationToast(`⚠️ Cannot allocate: Route ${routeObj.code} is Complex and strictly requires Category A buses. Bus ${alloc.bm} is Category ${busCat}.`, "error");
+                                return;
+                            }
+
                             const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
                             const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
                             const newDuty = {
@@ -1386,6 +1517,8 @@
                                 routeShortName: routeObj.code,
                                 routeCode: routeObj.code,
                                 code: routeObj.code,
+                                busCategory: busCat,
+                                isComplexRoute: isComplex,
                                 scheduleId: alloc.scheduleId || `${routeObj.code}/12`,
                                 routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
                                 origin: routeObj.origin,
