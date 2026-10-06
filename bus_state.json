@@ -4859,29 +4859,48 @@
     "chargingStatus": null
   },
   "BM248": {
-    "uniqueId": "BM248",
-    "vehicleId": "BM248",
-    "regNo": "KA51AH4797",
-    "busNumber": "600F",
-    "scheduleId": "600F/91",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 86,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM248",
-    "assignedRouteShortName": "600F",
-    "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.774Z",
-    "bmNumber": "BM248",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "A",
-    "testedRangeKm": 130.506,
-    "actualRangeFinal": 130.506,
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-06T11:35:49.979Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "N/A",
     "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "socAfter": 86,
+    "fullDutyDistanceKm": 108,
+    "lastChargedTime": "05:05:48 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-06T11:35:49.979Z",
+        "soc": 86,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM248",
+    "busNumber": "600F",
+    "bmNumber": "BM248",
+    "assignedRouteId": "BM248",
+    "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": true
   },
   "BUS-74": {
     "uniqueId": "BUS-74",
@@ -7599,7 +7618,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-06T11:34:54.866Z",
+    "updatedAt": "2026-10-06T11:35:49.979Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -7618,31 +7637,13 @@
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
     "socBefore": 0,
-    "socAfter": 95,
-    "fullDutyDistanceKm": 121,
-    "lastChargedTime": "05:04:52 pm",
+    "socAfter": 86,
+    "fullDutyDistanceKm": 108,
+    "lastChargedTime": "05:05:48 pm",
     "history": [
       {
-        "timestamp": "2026-10-02T12:28:05.748Z",
-        "soc": 97,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T14:09:22.928Z",
-        "soc": 96,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T04:45:42.167Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "Blocked"
-      },
-      {
-        "timestamp": "2026-10-06T11:34:54.866Z",
-        "soc": 95,
+        "timestamp": "2026-10-06T11:35:49.979Z",
+        "soc": 86,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10104,16 +10105,16 @@
       "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -13746,16 +13747,16 @@
       "assignedRouteDisplay": "Route BM248 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16619,16 +16620,16 @@
       "bmNumber": "BM248",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
