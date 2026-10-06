@@ -312,12 +312,12 @@
     "chargingStatus": null
   },
   "BM001": {
-    "status": "Warning",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 24,
+    "soc": 93,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-06T12:17:04.062Z",
+    "updatedAt": "2026-10-06T12:17:48.019Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:50",
@@ -335,10 +335,10 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 24,
-    "fullDutyDistanceKm": 20,
-    "lastChargedTime": "05:46:28 pm",
+    "socBefore": 24,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "05:47:46 pm",
     "history": [
       {
         "timestamp": "2026-09-30T12:58:51.284Z",
@@ -555,6 +555,12 @@
         "soc": 24,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-06T12:17:48.019Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM001",
@@ -563,7 +569,7 @@
     "assignedRouteId": "BM001",
     "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true
+    "blocked": false
   },
   "BUS-01": {
     "status": "Blocked",
@@ -7333,7 +7339,6 @@
     "BM304": "BM304"
   },
   "_blockedBuses": [
-    "BM001",
     "BM002",
     "BM003",
     "BM004",
@@ -7668,7 +7673,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-06T12:17:04.062Z",
+    "updatedAt": "2026-10-06T12:17:48.019Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:50",
@@ -7686,10 +7691,10 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 24,
-    "fullDutyDistanceKm": 20,
-    "lastChargedTime": "05:46:28 pm",
+    "socBefore": 24,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "05:47:46 pm",
     "history": [
       {
         "timestamp": "2026-09-30T12:58:51.284Z",
@@ -7904,6 +7909,12 @@
       {
         "timestamp": "2026-10-06T12:17:04.062Z",
         "soc": 24,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-06T12:17:48.019Z",
+        "soc": 93,
         "condition": "Good",
         "status": "On Time"
       }
@@ -8333,18 +8344,18 @@
       "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 24,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 20,
-      "fullDutyDistanceKm": 20,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM002": {
       "uniqueId": "BM002",
@@ -8397,8 +8408,8 @@
       "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 55.22,
-      "fullDutyDistanceKm": 55.22,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -11751,18 +11762,18 @@
       "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 24,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 20,
-      "fullDutyDistanceKm": 20,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "600F": {
       "uniqueId": "BM300",
@@ -11843,8 +11854,8 @@
       "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 55.22,
-      "fullDutyDistanceKm": 55.22,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -15378,7 +15389,6 @@
     }
   },
   "_blockedRouteIds": [
-    "BM001",
     "BM002",
     "BM003",
     "BM004",
@@ -15507,19 +15517,19 @@
       "bmNumber": "BM001",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 24,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 20,
-      "fullDutyDistanceKm": 20,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": true
+      "blocked": false
     },
     "BM002": {
       "assignedVehicle": "BM002",
@@ -15553,8 +15563,8 @@
       "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 55.22,
-      "fullDutyDistanceKm": 55.22,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
