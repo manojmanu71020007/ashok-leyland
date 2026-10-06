@@ -402,12 +402,24 @@
                         <input id="route-search" class="route-search" type="text" placeholder="Search route by origin or destination (e.g. Chandapura, Anekal, Hoskote, KBS...)" autocomplete="off" />
                     </label>
                     <label class="wide">
-                        Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">Loading routes...</span></span>
-                        <select id="route-select"><option value="">Loading routes...</option></select>
+                        Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">9 Routes available</span></span>
+                        <select id="route-select">
+                            <option value="356Z" selected>Chandapura ➔ Anekal (356Z)</option>
+                            <option value="360K">Chandapura ➔ Kempegowda Bus Station (360K)</option>
+                            <option value="600F">Bommasandra Depot 32 ➔ Basavanagudi (600F)</option>
+                            <option value="361C">Attibele ➔ Kempegowda Bus Station (361C)</option>
+                            <option value="399C">Hosakote ➔ Electronic City (399C)</option>
+                            <option value="328H">Hoskote ➔ Kempegowda Bus Station (328H)</option>
+                            <option value="500DC">Attibele ➔ Whitefield (500DC)</option>
+                            <option value="KBS3A">Chandapura ➔ Kempegowda Bus Station (KBS3A)</option>
+                            <option value="KBS3F">Attibele ➔ Kempegowda Bus Station (KBS3F)</option>
+                        </select>
                     </label>
                     <label>
                         Scheduled Departure Time (from dataset)
-                        <select id="scheduled-time-select"><option value="">Loading timetable schedules...</option></select>
+                        <select id="scheduled-time-select">
+                            <option value="13:10" selected>13:10:00 (Schedule General - Regular Shift)</option>
+                        </select>
                     </label>
                     <label>
                         Departure time
@@ -480,25 +492,84 @@
         }
 
         const CORRIDOR_ROUTES = [
-            { id: "1", code: "356Z", origin: "Chandapura", destination: "Anekal", distKm: 28.7, label: "Chandapura ➔ Anekal (356Z)", trips: 8 },
-            { id: "2", code: "360K", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, label: "Chandapura ➔ Kempegowda Bus Station (360K)", trips: 8 },
-            { id: "3", code: "600F", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, label: "Bommasandra Depot 32 ➔ Basavanagudi (600F)", trips: 8 },
-            { id: "4", code: "361C", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 38.5, label: "Attibele ➔ Kempegowda Bus Station (361C)", trips: 8 },
-            { id: "5", code: "399C", origin: "Hosakote", destination: "Electronic City", distKm: 34.0, label: "Hosakote ➔ Electronic City (399C)", trips: 8 },
-            { id: "6", code: "328H", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, label: "Hoskote ➔ Kempegowda Bus Station (328H)", trips: 12 },
-            { id: "7", code: "500DC", origin: "Attibele", destination: "Whitefield", distKm: 31.0, label: "Attibele ➔ Whitefield (500DC)", trips: 8 },
-            { id: "8", code: "KBS3A", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 35.8, label: "Chandapura ➔ Kempegowda Bus Station (KBS3A)", trips: 8 },
-            { id: "9", code: "KBS3F", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 39.2, label: "Attibele ➔ Kempegowda Bus Station (KBS3F)", trips: 8 }
+            { id: "356Z", code: "356Z", routeId: "1", origin: "Chandapura", destination: "Anekal", distKm: 28.7, label: "Chandapura ➔ Anekal (356Z)", trips: 8 },
+            { id: "360K", code: "360K", routeId: "2", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, label: "Chandapura ➔ Kempegowda Bus Station (360K)", trips: 8 },
+            { id: "600F", code: "600F", routeId: "3", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, label: "Bommasandra Depot 32 ➔ Basavanagudi (600F)", trips: 8 },
+            { id: "361C", code: "361C", routeId: "4", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 38.5, label: "Attibele ➔ Kempegowda Bus Station (361C)", trips: 8 },
+            { id: "399C", code: "399C", routeId: "5", origin: "Hosakote", destination: "Electronic City", distKm: 34.0, label: "Hosakote ➔ Electronic City (399C)", trips: 8 },
+            { id: "328H", code: "328H", routeId: "6", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, label: "Hoskote ➔ Kempegowda Bus Station (328H)", trips: 12 },
+            { id: "500DC", code: "500DC", routeId: "7", origin: "Attibele", destination: "Whitefield", distKm: 31.0, label: "Attibele ➔ Whitefield (500DC)", trips: 8 },
+            { id: "KBS3A", code: "KBS3A", routeId: "8", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 35.8, label: "Chandapura ➔ Kempegowda Bus Station (KBS3A)", trips: 8 },
+            { id: "KBS3F", code: "KBS3F", routeId: "9", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 39.2, label: "Attibele ➔ Kempegowda Bus Station (KBS3F)", trips: 8 }
+        ];
+
+        const DEFAULT_DATASET_SCHEDULES = [
+            { scheduleId: "356Z/1", route: "356Z", shift: "General Shift", outTime: "07:15:00", inTime: "15:15:00", category: "Standard", singleChargeReqKm: 45 },
+            { scheduleId: "356Z/2", route: "356Z", shift: "General Shift", outTime: "08:30:00", inTime: "16:30:00", category: "Standard", singleChargeReqKm: 45 },
+            { scheduleId: "356Z/3", route: "356Z", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 45 },
+            { scheduleId: "356Z/4", route: "356Z", shift: "Shift B", outTime: "14:20:00", inTime: "22:20:00", category: "Standard", singleChargeReqKm: 45 },
+            { scheduleId: "356Z/5", route: "356Z", shift: "Night Halt", outTime: "19:40:00", inTime: "06:00:00", category: "Standard", singleChargeReqKm: 45 },
+            { scheduleId: "360K/1", route: "360K", shift: "General Shift", outTime: "07:00:00", inTime: "15:00:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "360K/2", route: "360K", shift: "General Shift", outTime: "08:15:00", inTime: "16:15:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "360K/3", route: "360K", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "360K/4", route: "360K", shift: "Shift B", outTime: "14:00:00", inTime: "22:00:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "360K/5", route: "360K", shift: "Night Halt", outTime: "18:30:00", inTime: "06:30:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "600F/1", route: "600F", shift: "General Shift", outTime: "06:45:00", inTime: "14:45:00", category: "Standard", singleChargeReqKm: 42 },
+            { scheduleId: "600F/2", route: "600F", shift: "General Shift", outTime: "08:00:00", inTime: "16:00:00", category: "Standard", singleChargeReqKm: 42 },
+            { scheduleId: "600F/3", route: "600F", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 42 },
+            { scheduleId: "600F/4", route: "600F", shift: "Shift B", outTime: "14:30:00", inTime: "22:30:00", category: "Standard", singleChargeReqKm: 42 },
+            { scheduleId: "600F/5", route: "600F", shift: "Night Halt", outTime: "19:15:00", inTime: "06:15:00", category: "Standard", singleChargeReqKm: 42 },
+            { scheduleId: "361C/1", route: "361C", shift: "General Shift", outTime: "07:30:00", inTime: "15:30:00", category: "Standard", singleChargeReqKm: 60 },
+            { scheduleId: "361C/2", route: "361C", shift: "General Shift", outTime: "09:00:00", inTime: "17:00:00", category: "Standard", singleChargeReqKm: 60 },
+            { scheduleId: "361C/3", route: "361C", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 60 },
+            { scheduleId: "361C/4", route: "361C", shift: "Shift B", outTime: "15:00:00", inTime: "23:00:00", category: "Standard", singleChargeReqKm: 60 },
+            { scheduleId: "399C/1", route: "399C", shift: "General Shift", outTime: "07:45:00", inTime: "15:45:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "399C/2", route: "399C", shift: "General Shift", outTime: "09:15:00", inTime: "17:15:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "399C/3", route: "399C", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "399C/4", route: "399C", shift: "Shift B", outTime: "15:30:00", inTime: "23:30:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "328H/1", route: "328H", shift: "Night Halt", outTime: "13:10:00", inTime: "10:30:00", category: "Complex", singleChargeReqKm: 145.7, remarks: "1 rest stoop at HSK 65.7" },
+            { scheduleId: "328H/10", route: "328H", shift: "Night Halt", outTime: "13:45:00", inTime: "11:45:00", category: "Moderate", singleChargeReqKm: 110 },
+            { scheduleId: "328H/12", route: "328H", shift: "Night Halt", outTime: "13:50:00", inTime: "11:10:00", category: "Complex", singleChargeReqKm: 145.7, remarks: "1 rest stoop at HSK 65.7" },
+            { scheduleId: "500DC/12", route: "500DC", shift: "General Shift", outTime: "07:45:00", inTime: "14:45:00", category: "Complex", singleChargeReqKm: 85 },
+            { scheduleId: "500DC/13", route: "500DC", shift: "General Shift", outTime: "08:00:00", inTime: "15:00:00", category: "Complex", singleChargeReqKm: 85 },
+            { scheduleId: "500DC/14", route: "500DC", shift: "General Shift", outTime: "08:15:00", inTime: "15:15:00", category: "Complex", singleChargeReqKm: 85 },
+            { scheduleId: "500DC/15", route: "500DC", shift: "General Shift", outTime: "08:30:00", inTime: "15:30:00", category: "Complex", singleChargeReqKm: 85 },
+            { scheduleId: "500DC/1", route: "500DC", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Complex", singleChargeReqKm: 85 },
+            { scheduleId: "KBS3A/1", route: "KBS3A", shift: "General Shift", outTime: "07:00:00", inTime: "15:00:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "KBS3A/2", route: "KBS3A", shift: "General Shift", outTime: "08:30:00", inTime: "16:30:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "KBS3A/3", route: "KBS3A", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "KBS3A/4", route: "KBS3A", shift: "Shift B", outTime: "14:15:00", inTime: "22:15:00", category: "Standard", singleChargeReqKm: 55 },
+            { scheduleId: "KBS3F/1", route: "KBS3F", shift: "General Shift", outTime: "07:15:00", inTime: "15:15:00", category: "Standard", singleChargeReqKm: 30 },
+            { scheduleId: "KBS3F/2", route: "KBS3F", shift: "General Shift", outTime: "08:45:00", inTime: "16:45:00", category: "Standard", singleChargeReqKm: 30 },
+            { scheduleId: "KBS3F/3", route: "KBS3F", shift: "Shift B", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 30 },
+            { scheduleId: "KBS3F/4", route: "KBS3F", shift: "Shift B", outTime: "14:30:00", inTime: "22:30:00", category: "Standard", singleChargeReqKm: 30 }
         ];
 
         let routes = [];
         let directionalRoutes = [...CORRIDOR_ROUTES];
-        let datasetSchedules = [];
+        let datasetSchedules = [...DEFAULT_DATASET_SCHEDULES];
+
+        // Restore cached schedules from previous session if available
+        try {
+            const rawCached = localStorage.getItem("cached_corridor_schedules");
+            if (rawCached) {
+                const parsed = JSON.parse(rawCached);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    datasetSchedules = parsed;
+                }
+            }
+        } catch (e) {}
+
         let busStates = {};
         let busAssignments = {};
         let selectedRouteDistance = null;
         let currentlyAllocatedBus = null;
         let currentScheduleMatch = null;
+
+        function getSelectedRouteObj() {
+            const selectedRouteId = (routeSelect && routeSelect.value) ? routeSelect.value : "356Z";
+            return directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
+        }
 
         // One-time reset requested: set/clear initial localStorage state so all buses start at 0% as of now,
         // and never reset again so future manual updates are permanently preserved.
@@ -639,6 +710,8 @@
             const baseSoc = targetKm / 1.42;
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
+        }
+
         let busCategoriesMap = new Map();
 
         function getBusCategory(bm, liveSoc) {
@@ -998,9 +1071,8 @@
             const reqSocVal = (alloc.reqSoc !== undefined && alloc.reqSoc !== null) ? alloc.reqSoc : (result && result.reqSoc ? result.reqSoc : "—");
             const surplusVal = (Number.isFinite(alloc.liveSoc) && Number.isFinite(reqSocVal)) ? (alloc.liveSoc - reqSocVal) : 0;
             const routeDistVal = (() => {
-                const selectedRouteId = routeSelect ? routeSelect.value : "";
-                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
-                return routeObj ? `${routeObj.distKm.toFixed(1)} km` : "28.7 km";
+                const routeObj = getSelectedRouteObj();
+                return routeObj ? `${(Number(routeObj.distKm || routeObj.distanceKm) || 28.7).toFixed(1)} km` : "28.7 km";
             })();
 
             card.style.display = "block";
@@ -1083,8 +1155,7 @@
         function updateSelectedBusDutyBanner() {
             const banner = document.getElementById("selected-route-trips-banner");
             if (!banner) return;
-            const selectedRouteId = routeSelect.value;
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = getSelectedRouteObj();
 
             if (!currentlyAllocatedBus || !routeObj) {
                 banner.style.display = "none";
@@ -1114,8 +1185,7 @@
         async function recommend() {
             const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
             const departure = (depInput ? depInput.value : "13:10") || "13:10";
-            const selectedRouteId = routeSelect.value;
-            const selectedRouteObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+            const selectedRouteObj = getSelectedRouteObj();
 
             const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
             const routeDistance = Number(
@@ -1272,11 +1342,10 @@
         }
 
         function updateSelectedRouteDistance() {
-            const selectedRouteId = routeSelect ? routeSelect.value : "";
-            const routeObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = getSelectedRouteObj();
             if (!routeObj) return;
 
-            const distKm = Number(routeObj.distKm) || 28.7;
+            const distKm = Number(routeObj.distKm || routeObj.distanceKm) || 28.7;
             selectedRouteDistance = distKm;
             if (distanceInput) distanceInput.value = distKm.toFixed(1);
 
@@ -1285,13 +1354,12 @@
         }
 
         function updateScheduledTimesForSelectedRoute(keepManualTime = false) {
-            const selectedRouteId = routeSelect ? routeSelect.value : "";
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = getSelectedRouteObj();
             if (!routeObj) return;
 
             updateSelectedRouteDistance();
 
-            const routeCode = routeObj.code;
+            const routeCode = routeObj.code || routeObj.id;
             const matchingSchedules = datasetSchedules.filter(s => s.route === routeCode && s.outTime);
 
             const timeMap = new Map();
@@ -1335,7 +1403,9 @@
             });
 
             if (routeCountBadge) {
-                routeCountBadge.textContent = `${filtered.length} Routes available`;
+                routeCountBadge.textContent = query
+                    ? `${filtered.length} of ${directionalRoutes.length} available`
+                    : `${filtered.length} Routes available`;
             }
 
             if (filtered.length === 0) {
@@ -1343,13 +1413,15 @@
                 return;
             }
 
-            const currentVal = routeSelect.value;
+            const currentVal = routeSelect ? routeSelect.value : "";
             routeSelect.innerHTML = filtered.map(r => {
-                return `<option value="${r.id}" ${r.id === currentVal ? 'selected' : ''}>${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
+                const optVal = r.id || r.code;
+                const isSel = (optVal === currentVal || r.code === currentVal);
+                return `<option value="${optVal}" ${isSel ? 'selected' : ''}>${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
             }).join("");
 
-            if (!filtered.some(r => r.id === currentVal)) {
-                routeSelect.value = filtered[0].id;
+            if (!filtered.some(r => (r.id === currentVal || r.code === currentVal))) {
+                routeSelect.value = filtered[0].id || filtered[0].code;
             }
         }
 
@@ -1370,15 +1442,158 @@
             }, 4000);
         }
 
+        function initEventListeners() {
+            if (routeSelect) {
+                routeSelect.addEventListener("change", async () => {
+                    updateSelectedRouteDistance();
+                    updateScheduledTimesForSelectedRoute(false);
+                    await recommend();
+                });
+            }
+
+            if (routeSearch) {
+                routeSearch.addEventListener("input", async () => {
+                    populateRouteDropdown(routeSearch.value);
+                    updateSelectedRouteDistance();
+                    updateScheduledTimesForSelectedRoute(false);
+                    await recommend();
+                });
+            }
+
+            if (scheduledTimeSelect) {
+                scheduledTimeSelect.addEventListener("change", async () => {
+                    if (depInput && scheduledTimeSelect.value) {
+                        depInput.value = scheduledTimeSelect.value;
+                    }
+                    await recommend();
+                });
+            }
+
+            if (depInput) {
+                const handleDeparture = async () => {
+                    const val = depInput.value;
+                    if (scheduledTimeSelect && val) {
+                        const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
+                        if (exactOpt) {
+                            scheduledTimeSelect.value = val;
+                        }
+                    }
+                    await recommend();
+                };
+                depInput.addEventListener("input", handleDeparture);
+                depInput.addEventListener("change", handleDeparture);
+            }
+
+            const recBtn = document.getElementById("recommend");
+            if (recBtn) {
+                recBtn.addEventListener("click", async () => {
+                    if (!currentlyAllocatedBus) {
+                        showAllocationToast("⚠️ No eligible bus available to allocate for this route.", "error");
+                        return;
+                    }
+
+                    const routeObj = getSelectedRouteObj();
+                    const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
+                    const depShort = departureTime.substring(0, 5);
+
+                    if (currentlyAllocatedBus.isCommitted) {
+                        // De-allocate this duty
+                        const deallocBm = currentlyAllocatedBus.bm;
+                        allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                        saveAllocatedDuties(allocatedDuties);
+                        await recommend();
+                        showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
+                    } else {
+                        // Allocate this bus to this route and time only
+                        const alloc = currentlyAllocatedBus;
+                        const complexity = getRouteComplexity(routeObj, currentScheduleMatch);
+                        const isComplex = (complexity === "complex");
+                        const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
+
+                        if (isComplex && busCat !== "A") {
+                            showAllocationToast(`⚠️ Cannot allocate: Route ${routeObj.code} is Complex and strictly requires Category A buses. Bus ${alloc.bm} is Category ${busCat}.`, "error");
+                            return;
+                        }
+
+                        const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
+                        const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
+                        const newDuty = {
+                            id: dutyId,
+                            bm: alloc.bm,
+                            bmNumber: alloc.bm,
+                            uniqueId: alloc.bm,
+                            vehicleId: alloc.bm,
+                            busId: alloc.bm,
+                            regNo: alloc.regNo || getBusRegNo(alloc.bm),
+                            routeId: routeObj.code,
+                            corridorRouteId: routeObj.id || routeObj.routeId || routeObj.code,
+                            busNumber: routeObj.code,
+                            busShortName: routeObj.code,
+                            routeShortName: routeObj.code,
+                            routeCode: routeObj.code,
+                            code: routeObj.code,
+                            busCategory: busCat,
+                            isComplexRoute: isComplex,
+                            scheduleId: alloc.scheduleId || `${routeObj.code}/12`,
+                            routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
+                            origin: routeObj.origin,
+                            destination: routeObj.destination,
+                            departureTime: departureTime,
+                            shift: targetShift,
+                            soc: alloc.liveSoc,
+                            fullDutyKm: alloc.fullDutyKm,
+                            routeDist: Number(routeObj.distKm || 28.7),
+                            tripCount: (routeObj && routeObj.trips) || 8,
+                            allocType: "Committed Duty Allocation",
+                            reason: alloc.reason || "",
+                            allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                        };
+
+                        // Remove any prior bus on this specific route and departure time slot
+                        allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                        // Also ensure this bus is not in any other duty slot
+                        allocatedDuties = allocatedDuties.filter(d => String(d.bm).toUpperCase() !== String(alloc.bm).toUpperCase());
+                        allocatedDuties.unshift(newDuty);
+                        saveAllocatedDuties(allocatedDuties);
+
+                        await recommend();
+                        showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} at ${departureTime} (${targetShift})! It is now locked and unavailable for other routes and times.`, "success");
+                    }
+                });
+            }
+        }
+
         async function loadData() {
             syncLocalStorageBusStates();
 
+            // 1. Fetch latest corridor schedules in background (lightweight, immediately updates timetable)
+            fetch("/api/corridor-schedules")
+                .then(res => res && res.ok ? res.json() : null)
+                .then(corridorData => {
+                    if (corridorData && corridorData.ok) {
+                        if (Array.isArray(corridorData.directionalRoutes) && corridorData.directionalRoutes.length) {
+                            directionalRoutes = corridorData.directionalRoutes;
+                        }
+                        if (Array.isArray(corridorData.schedules) && corridorData.schedules.length) {
+                            datasetSchedules = corridorData.schedules;
+                            try {
+                                localStorage.setItem("cached_corridor_schedules", JSON.stringify(datasetSchedules));
+                            } catch (e) {}
+                        }
+                        populateRouteDropdown(routeSearch ? routeSearch.value : "");
+                        updateSelectedRouteDistance();
+                        updateScheduledTimesForSelectedRoute(true);
+                        recommend();
+                    }
+                })
+                .catch(err => console.warn("Background corridor-schedules fetch failed:", err));
+
+            // 2. Fetch fleet states, categories, and assignments in parallel in background
             try {
-                const [routesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
+                const [routesResponse, busStateResponse, assignResponse, busCategoriesResponse] = await Promise.all([
                     fetch("/api/routes").catch(() => null),
                     fetch("/api/bus-state").catch(() => null),
                     fetch("/api/bus-assignments").catch(() => null),
-                    fetch("/api/corridor-schedules").catch(() => null),
                     fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null))
                 ]);
 
@@ -1412,147 +1627,21 @@
                     busAssignments = assignPayload.assignments || {};
                 }
 
-                if (corridorResponse && corridorResponse.ok) {
-                    const corridorData = await corridorResponse.json();
-                    if (corridorData && corridorData.ok) {
-                        if (Array.isArray(corridorData.directionalRoutes) && corridorData.directionalRoutes.length) {
-                            directionalRoutes = corridorData.directionalRoutes;
-                        }
-                        if (Array.isArray(corridorData.schedules) && corridorData.schedules.length) {
-                            datasetSchedules = corridorData.schedules;
-                        }
-                    }
-                }
-
-                populateRouteDropdown();
-                updateSelectedRouteDistance();
-                updateScheduledTimesForSelectedRoute(false);
                 await recommend();
-
-                // ── Event Listeners for Automatic Trigger ──
-                routeSelect.addEventListener("change", async () => {
-                    updateSelectedRouteDistance();
-                    updateScheduledTimesForSelectedRoute(false);
-                    await recommend();
-                });
-
-                routeSearch.addEventListener("input", async () => {
-                    populateRouteDropdown(routeSearch.value);
-                    updateSelectedRouteDistance();
-                    updateScheduledTimesForSelectedRoute(false);
-                    await recommend();
-                });
-
-                if (scheduledTimeSelect) {
-                    scheduledTimeSelect.addEventListener("change", async () => {
-                        if (depInput && scheduledTimeSelect.value) {
-                            depInput.value = scheduledTimeSelect.value;
-                        }
-                        await recommend();
-                    });
-                }
-
-                if (depInput) {
-                    const handleDeparture = async () => {
-                        const val = depInput.value;
-                        if (scheduledTimeSelect && val) {
-                            const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
-                            if (exactOpt) {
-                                scheduledTimeSelect.value = val;
-                            }
-                        }
-                        await recommend();
-                    };
-                    depInput.addEventListener("input", handleDeparture);
-                    depInput.addEventListener("change", handleDeparture);
-                }
-
-                const recBtn = document.getElementById("recommend");
-                if (recBtn) {
-                    recBtn.addEventListener("click", async () => {
-                        if (!currentlyAllocatedBus) {
-                            showAllocationToast("⚠️ No eligible bus available to allocate for this route.", "error");
-                            return;
-                        }
-
-                        const selectedRouteId = routeSelect ? routeSelect.value : "";
-                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
-                        const depInput = document.getElementById("departure");
-                        const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
-                        const depShort = departureTime.substring(0, 5);
-
-                        if (currentlyAllocatedBus.isCommitted) {
-                            // De-allocate this duty
-                            const deallocBm = currentlyAllocatedBus.bm;
-                            allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
-                            saveAllocatedDuties(allocatedDuties);
-                            await recommend();
-                            showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
-                        } else {
-                            // Allocate this bus to this route and time only
-                            const alloc = currentlyAllocatedBus;
-                            const complexity = getRouteComplexity(routeObj, currentScheduleMatch);
-                            const isComplex = (complexity === "complex");
-                            const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
-
-                            if (isComplex && busCat !== "A") {
-                                showAllocationToast(`⚠️ Cannot allocate: Route ${routeObj.code} is Complex and strictly requires Category A buses. Bus ${alloc.bm} is Category ${busCat}.`, "error");
-                                return;
-                            }
-
-                            const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
-                            const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
-                            const newDuty = {
-                                id: dutyId,
-                                bm: alloc.bm,
-                                bmNumber: alloc.bm,
-                                uniqueId: alloc.bm,
-                                vehicleId: alloc.bm,
-                                busId: alloc.bm,
-                                regNo: alloc.regNo || getBusRegNo(alloc.bm),
-                                routeId: routeObj.code,
-                                corridorRouteId: routeObj.id,
-                                busNumber: routeObj.code,
-                                busShortName: routeObj.code,
-                                routeShortName: routeObj.code,
-                                routeCode: routeObj.code,
-                                code: routeObj.code,
-                                busCategory: busCat,
-                                isComplexRoute: isComplex,
-                                scheduleId: alloc.scheduleId || `${routeObj.code}/12`,
-                                routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
-                                origin: routeObj.origin,
-                                destination: routeObj.destination,
-                                departureTime: departureTime,
-                                shift: targetShift,
-                                soc: alloc.liveSoc,
-                                fullDutyKm: alloc.fullDutyKm,
-                                routeDist: Number(routeObj.distKm || 28.7),
-                                tripCount: (routeObj && routeObj.trips) || 8,
-                                allocType: "Committed Duty Allocation",
-                                reason: alloc.reason || "",
-                                allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                            };
-
-                            // Remove any prior bus on this specific route and departure time slot
-                            allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
-                            // Also ensure this bus is not in any other duty slot
-                            allocatedDuties = allocatedDuties.filter(d => String(d.bm).toUpperCase() !== String(alloc.bm).toUpperCase());
-                            allocatedDuties.unshift(newDuty);
-                            saveAllocatedDuties(allocatedDuties);
-
-                            await recommend();
-                            showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} at ${departureTime} (${targetShift})! It is now locked and unavailable for other routes and times.`, "success");
-                        }
-                    });
-                }
-
             } catch (err) {
-                console.error("Failed to load initial data in AD portal:", err);
+                console.error("Failed to load background fleet data in AD portal:", err);
             }
         }
 
-        // Initialize portal
+        // ── 1. Instant Synchronous Startup (0ms Latency) ──
+        syncLocalStorageBusStates();
+        populateRouteDropdown();
+        updateSelectedRouteDistance();
+        updateScheduledTimesForSelectedRoute(false);
+        initEventListeners();
+        recommend();
+
+        // ── 2. Background Data Sync (Non-blocking) ──
         loadData();
 
         // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)

@@ -2638,7 +2638,16 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
-    // Pre-warm GTFS shapes index and distance cache in background so initial server binding is instant
+    // Pre-warm local route and schedule caches immediately so initial API calls are instant
+    try {
+        loadRoutes();
+        loadCorridorSchedules();
+        loadGtfsScheduleSummary();
+        console.log(`[Cache] Pre-warmed routes and corridor schedules immediately.`);
+    } catch (e) {
+        console.warn("[Cache] Immediate warm-up failed:", e.message);
+    }
+
     setImmediate(async () => {
         try {
             await restoreBusStateFromGitHub();
@@ -2650,11 +2659,9 @@ server.listen(PORT, () => {
             for (const r of routes) {
                 calculateRouteDistanceByRouteId(r.routeId);
             }
-            loadGtfsScheduleSummary();
-            loadCorridorSchedules();
-            console.log(`[Cache] Pre-warmed GTFS cache for ${cachedRouteDistances.size} routes and schedule timetable.`);
+            console.log(`[Cache] Pre-warmed GTFS shape distances for ${cachedRouteDistances.size} routes.`);
         } catch (e) {
-            console.warn("[Cache] Pre-warm failed:", e.message);
+            console.warn("[Cache] Shape distance warm-up failed:", e.message);
         }
     });
 });
