@@ -708,10 +708,10 @@
   "BM003": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 95,
+    "soc": 47,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-06T11:34:54.866Z",
+    "updatedAt": "2026-10-06T12:16:50.789Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -729,10 +729,10 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 0,
-    "socAfter": 95,
-    "fullDutyDistanceKm": 121,
-    "lastChargedTime": "05:04:52 pm",
+    "socBefore": 95,
+    "socAfter": 47,
+    "fullDutyDistanceKm": 53,
+    "lastChargedTime": "05:46:48 pm",
     "history": [
       {
         "timestamp": "2026-10-02T12:28:05.748Z",
@@ -757,6 +757,12 @@
         "soc": 95,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-06T12:16:50.789Z",
+        "soc": 47,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM003",
@@ -765,7 +771,7 @@
     "assignedRouteId": "BM003",
     "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": true
   },
   "BUS-03": {
     "status": "Blocked",
@@ -7323,6 +7329,7 @@
   "_blockedBuses": [
     "BM001",
     "BM002",
+    "BM003",
     "BM004",
     "BM005",
     "BM010",
@@ -7655,86 +7662,38 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-06T12:16:30.845Z",
+    "updatedAt": "2026-10-06T12:16:50.789Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "15:10",
+        "departure": "15:15"
       },
       "On Time": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "15:00",
+        "departure": "15:05"
       },
       "Ahead": {
-        "arrival": "13:50",
-        "departure": "13:45"
+        "arrival": "14:50",
+        "departure": "14:55"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "N/A",
-    "socBefore": 93,
-    "socAfter": 24,
-    "fullDutyDistanceKm": 20,
-    "lastChargedTime": "05:46:28 pm",
+    "socBefore": 95,
+    "socAfter": 47,
+    "fullDutyDistanceKm": 53,
+    "lastChargedTime": "05:46:48 pm",
     "history": [
       {
-        "timestamp": "2026-09-30T12:58:51.284Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-01T16:32:14.218Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T02:19:19.114Z",
-        "soc": 80,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T02:19:36.945Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T05:22:09.938Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T11:14:58.180Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T12:27:28.131Z",
+        "timestamp": "2026-10-02T12:28:05.748Z",
         "soc": 97,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-02T14:19:47.907Z",
-        "soc": 97,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T14:20:08.544Z",
-        "soc": 97,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-02T14:27:10.946Z",
-        "soc": 97,
+        "timestamp": "2026-10-02T14:09:22.928Z",
+        "soc": 96,
         "condition": "Good",
         "status": "On Time"
       },
@@ -7745,146 +7704,14 @@
         "status": "Blocked"
       },
       {
-        "timestamp": "2026-10-03T07:30:57.988Z",
-        "soc": 93,
+        "timestamp": "2026-10-06T11:34:54.866Z",
+        "soc": 95,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T07:32:22.277Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T07:32:57.183Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:17:57.180Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:29:47.924Z",
-        "soc": 25,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:39:40.468Z",
-        "soc": 25,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:51:43.776Z",
-        "soc": 75,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:51:57.333Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T15:09:40.076Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T15:23:23.674Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T15:56:24.698Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T13:01:20.674Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T14:41:39.532Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T14:43:20.046Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T14:43:56.692Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T15:44:33.545Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T15:44:53.800Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-05T16:15:53.945Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T10:43:54.181Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T10:47:08.898Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T11:36:10.778Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T11:36:55.557Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:13:56.833Z",
-        "soc": 93,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:16:30.845Z",
-        "soc": 24,
+        "timestamp": "2026-10-06T12:16:50.789Z",
+        "soc": 47,
         "condition": "Good",
         "status": "On Time"
       }
@@ -8370,18 +8197,18 @@
       "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "A",
+      "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
-      "soc": 95,
+      "matrixCompliant": false,
+      "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 121,
-      "fullDutyDistanceKm": 121,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
-      "blocked": false
+      "blocked": true
     },
     "BM004": {
       "uniqueId": "BM004",
@@ -11816,18 +11643,18 @@
       "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "A",
+      "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
-      "soc": 95,
+      "matrixCompliant": false,
+      "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 121,
-      "fullDutyDistanceKm": 121,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
-      "blocked": false
+      "blocked": true
     },
     "BM004": {
       "uniqueId": "BM004",
@@ -15361,6 +15188,7 @@
   "_blockedRouteIds": [
     "BM001",
     "BM002",
+    "BM003",
     "BM004",
     "BM005",
     "BM010",
@@ -15525,19 +15353,19 @@
       "bmNumber": "BM003",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "A",
+      "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
-      "soc": 95,
+      "matrixCompliant": false,
+      "soc": 47,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 121,
-      "fullDutyDistanceKm": 121,
+      "estimatedRangeKm": 53,
+      "fullDutyDistanceKm": 53,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": false
+      "blocked": true
     },
     "BM004": {
       "assignedVehicle": "BM004",
