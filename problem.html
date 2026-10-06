@@ -1871,6 +1871,29 @@
             }
         }
 
+        function normalizeBm(bm) {
+            return String(bm || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
+        function normalizeRoute(route) {
+            if (!route) return '';
+            return String(route)
+                .toUpperCase()
+                .replace(/^ROUTE\s*/i, '')
+                .replace(/[^A-Z0-9]/g, '');
+        }
+
+        function findAllocatedDutyForBm(bm, duties = null) {
+            if (!bm) return null;
+            const target = normalizeBm(bm);
+            if (!target) return null;
+            const list = duties || loadAllocatedDuties();
+            return (list || []).find(d => {
+                const ids = [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId];
+                return ids.some(id => id && normalizeBm(id) === target);
+            }) || null;
+        }
+
         let allocatedDuties = loadAllocatedDuties();
 
         let toastTimer = null;
@@ -2470,17 +2493,33 @@
                 return { feasible: false, bm, reason: `Bus ${bm} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
+            // Always ensure fresh duties from storage
+            if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
+
             // Check if bus is already allocated to another duty in the Allocated Buses region
-            const alreadyAllocatedDuty = allocatedDuties.find(d => String(d.bm).toUpperCase() === String(bm).toUpperCase());
+            const alreadyAllocatedDuty = findAllocatedDutyForBm(bm, allocatedDuties);
             if (alreadyAllocatedDuty) {
-                const dutyKey = `${alreadyAllocatedDuty.routeCode}_${(alreadyAllocatedDuty.departureTime || '').substring(0, 5)}`;
-                if (currentTargetKey && dutyKey === currentTargetKey) {
+                const dutyRoute = normalizeRoute(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || alreadyAllocatedDuty.routeId);
+                const curRoute = normalizeRoute(currentTargetKey ? currentTargetKey.split('_')[0] : '');
+                const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
+                const curTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : '';
+
+                const isSameRoute = curRoute && (dutyRoute === curRoute);
+                const isExactTarget = isSameRoute && curTimeShort && (dutyTimeShort === curTimeShort);
+
+                if (isExactTarget) {
                     // This bus is the one already allocated to this specific duty
-                } else {
+                } else if (!isSameRoute && dutyRoute) {
                     return {
                         feasible: false,
                         bm,
-                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift}).`
+                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes.`
+                    };
+                } else if (isSameRoute && !isExactTarget) {
+                    return {
+                        feasible: false,
+                        bm,
+                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure at ${curTimeShort || 'this time'}.`
                     };
                 }
             }

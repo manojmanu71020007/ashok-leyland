@@ -2087,6 +2087,29 @@
             }
         }
 
+        function normalizeBm(bm) {
+            return String(bm || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
+        function normalizeRoute(route) {
+            if (!route) return '';
+            return String(route)
+                .toUpperCase()
+                .replace(/^ROUTE\s*/i, '')
+                .replace(/[^A-Z0-9]/g, '');
+        }
+
+        function findAllocatedDutyForBm(bm, duties = null) {
+            if (!bm) return null;
+            const target = normalizeBm(bm);
+            if (!target) return null;
+            const list = duties || loadAllocatedDuties();
+            return (list || []).find(d => {
+                const ids = [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId];
+                return ids.some(id => id && normalizeBm(id) === target);
+            }) || null;
+        }
+
         let allocatedDuties = loadAllocatedDuties();
 
         let toastTimer = null;
@@ -2742,23 +2765,35 @@
                 return { feasible: false, bm: key, reason: `Bus ${key} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
+            // Always ensure fresh duties from storage
+            if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
+
             // Check if bus is already allocated to another route or duty
-            const alreadyAllocatedDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
+            const alreadyAllocatedDuty = findAllocatedDutyForBm(key, allocatedDuties);
             if (alreadyAllocatedDuty) {
-                const dutyRoute = String(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || '').toUpperCase().trim();
-                const curRoute = String(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : '')).toUpperCase().trim();
+                const dutyRoute = normalizeRoute(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || alreadyAllocatedDuty.routeId);
+                const curRoute = normalizeRoute(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : ''));
                 const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
+                const curTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : '';
 
                 const isSameRoute = curRoute && (dutyRoute === curRoute);
-                const isExactTarget = currentTargetKey && (`${dutyRoute}_${dutyTimeShort}` === currentTargetKey);
+                const isExactTarget = isSameRoute && curTimeShort && (dutyTimeShort === curTimeShort);
 
-                if (isAllocatedDuty || isSameRoute || isExactTarget) {
-                    // This bus is officially allocated to this route/duty (via AD portal or Recommending portal) — fully eligible for this departure!
-                } else {
+                if (isAllocatedDuty || isExactTarget) {
+                    // This bus is officially allocated to this exact duty/departure — fully eligible!
+                } else if (!isSameRoute && dutyRoute) {
+                    // Strictly exclude: bus is already allocated to a DIFFERENT route!
                     return {
                         feasible: false,
                         bm: key,
-                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift}).`
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes.`
+                    };
+                } else if (isSameRoute && !isExactTarget && !isAllocatedDuty) {
+                    // Bus is already allocated to a different time slot on this route
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure at ${curTimeShort || 'this time'}.`
                     };
                 }
             }
@@ -2850,6 +2885,7 @@
         }
 
         function allocateBus(routeObj, departureTime) {
+            allocatedDuties = loadAllocatedDuties();
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
             const depTimeClean = (departureTime || "13:10").trim();
@@ -2884,7 +2920,11 @@
             const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
 
             // Check if this specific duty already has a bus officially allocated
-            const existingDuty = (allocatedDuties || []).find(d => d.routeCode === routeCode && (d.departureTime || '').substring(0, 5) === depShort);
+            const existingDuty = (allocatedDuties || []).find(d => {
+                const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                const curRoute = normalizeRoute(routeCode);
+                return dRoute === curRoute && (d.departureTime || '').substring(0, 5) === depShort;
+            });
             if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
@@ -3071,8 +3111,19 @@
             function addCandidate(bm, role, isDuty = false) {
                 if (!bm) return;
                 const key = String(bm).toUpperCase().trim();
-                if (seenBms.has(key)) return;
-                seenBms.add(key);
+                const normKey = normalizeBm(key);
+                if (!normKey || seenBms.has(normKey)) return;
+                seenBms.add(normKey);
+
+                // Strict cross-route exclusion: if this bus is already allocated to ANY other route, NEVER show it!
+                const existingAnyDuty = findAllocatedDutyForBm(key, allocatedDuties);
+                if (existingAnyDuty) {
+                    const dutyRoute = normalizeRoute(existingAnyDuty.routeCode || existingAnyDuty.busNumber || existingAnyDuty.routeId);
+                    const curRoute = normalizeRoute(routeCode);
+                    if (dutyRoute && curRoute && dutyRoute !== curRoute) {
+                        return; // Strictly exclude: allocated to another route!
+                    }
+                }
 
                 const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, isDuty);
                 if (feas && feas.feasible) {
@@ -3082,10 +3133,11 @@
                     const regNo = getBusRegNo(key);
                     const surplus = liveSoc - reqSoc;
 
-                    const existingDuty = (allocatedDuties || []).find(d => 
-                        String(d.bm || d.bmNumber || '').toUpperCase().trim() === key && 
-                        String(d.routeCode || d.busNumber || '').toUpperCase().trim() === routeCode.toUpperCase()
-                    );
+                    const existingDuty = (allocatedDuties || []).find(d => {
+                        const isMatch = [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normKey);
+                        const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                        return isMatch && dRoute === normalizeRoute(routeCode);
+                    });
                     const isCommitted = isDuty || !!existingDuty;
 
                     candidates.push({
@@ -3116,8 +3168,9 @@
 
             // 0. Buses officially allocated to this route (via AD portal or Recommending portal)
             (allocatedDuties || []).forEach(d => {
-                const dRoute = String(d.routeCode || d.busNumber || d.routeId || "").toUpperCase().trim();
-                if (dRoute === routeCode.toUpperCase()) {
+                const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                const curRoute = normalizeRoute(routeCode);
+                if (dRoute && curRoute && dRoute === curRoute) {
                     const bm = String(d.bm || d.bmNumber || d.uniqueId || "").toUpperCase().trim();
                     if (bm) {
                         const dTime = (d.departureTime || '').substring(0, 5);
@@ -5405,14 +5458,23 @@
                         const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
 
                         // Check if this bus is already allocated
-                        const existingIndex = allocatedDuties.findIndex(d => String(d.bm).toUpperCase() === String(alloc.bm).toUpperCase());
-                        const existingDuty = existingIndex >= 0 ? allocatedDuties[existingIndex] : null;
-
-                        if (existingDuty && existingDuty.routeCode === routeObj.code && existingDuty.departureTime === departureTime) {
-                            showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
-                            scrollToAllocatedDuty(existingDuty.id);
-                            return;
+                        const existingDuty = findAllocatedDutyForBm(alloc.bm, allocatedDuties);
+                        if (existingDuty) {
+                            const exRoute = normalizeRoute(existingDuty.routeCode || existingDuty.busNumber || existingDuty.routeId);
+                            const curRoute = normalizeRoute(routeObj.code);
+                            if (exRoute && curRoute && exRoute !== curRoute) {
+                                showAllocationToast(`⚠️ Bus ${alloc.bm} is already allocated to Route ${existingDuty.routeCode || existingDuty.busNumber} at ${existingDuty.departureTime}. It cannot be allocated to Route ${routeObj.code}!`, "error");
+                                return;
+                            }
+                            if (existingDuty.departureTime === departureTime) {
+                                showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
+                                scrollToAllocatedDuty(existingDuty.id);
+                                return;
+                            }
                         }
+                        const existingIndex = allocatedDuties.findIndex(d => {
+                            return [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normalizeBm(alloc.bm));
+                        });
 
                         const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
                         const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
