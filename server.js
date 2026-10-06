@@ -2567,18 +2567,13 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/ad" || pathname === "/ad.html") {
-        sendFile(res, path.join(BASE_DIR, "ad.html"), "text/html");
+    if (pathname === "/schedulling" || pathname === "/schedulling.html" || pathname === "/scheduling" || pathname === "/scheduling.html" || pathname === "/ad" || pathname === "/ad.html") {
+        sendFile(res, path.join(BASE_DIR, "schedulling.html"), "text/html");
         return;
     }
 
-    if (pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
-        sendFile(res, path.join(BASE_DIR, "recommending.html"), "text/html");
-        return;
-    }
-
-    if (pathname === "/admin" || pathname === "/admin.html") {
-        sendFile(res, path.join(BASE_DIR, "recommending.html"), "text/html");
+    if (pathname === "/admin" || pathname === "/admin.html" || pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
+        sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
         return;
     }
 
