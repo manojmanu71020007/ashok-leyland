@@ -737,6 +737,32 @@
             return Math.round(soc * 1.42);
         }
 
+                function getTimeCategory(timeStr) {
+            const depMin = timeToMinutes(timeStr || "12:00");
+            const departHours = depMin / 60;
+            if (departHours >= 5 && departHours < 7) {
+                return { key: "NORMAL", label: "Normal (05:00–07:00)", isPeak: false };
+            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
+                return { key: "EXTREME_PEAK", label: "Extreme Peak (07:00–10:00 & 16:00–20:00)", isPeak: true };
+            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
+                return { key: "PEAK", label: "Peak (10:00–16:00 & 20:00–23:00)", isPeak: true };
+            }
+            return { key: "NORMAL", label: "Normal (Off-Peak)", isPeak: false };
+        }
+
+                function getTimeCategory(timeStr) {
+            const depMin = timeToMinutes(timeStr || "12:00");
+            const departHours = depMin / 60;
+            if (departHours >= 5 && departHours < 7) {
+                return { key: "NORMAL", label: "Normal (05:00–07:00)", isPeak: false };
+            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
+                return { key: "EXTREME_PEAK", label: "Extreme Peak (07:00–10:00 & 16:00–20:00)", isPeak: true };
+            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
+                return { key: "PEAK", label: "Peak (10:00–16:00 & 20:00–23:00)", isPeak: true };
+            }
+            return { key: "NORMAL", label: "Normal (Off-Peak)", isPeak: false };
+        }
+
         function timeToMinutes(tStr) {
             if (!tStr) return 720;
             const p = tStr.split(":");
@@ -909,23 +935,12 @@
                 return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${key}.` };
             }
 
-            // Complex route requirement: ONLY Category A buses can be allocated!
-            if (isComplexRoute && busCat !== "A") {
-                return {
-                    feasible: false,
-                    bm: key,
-                    liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reason: `Bus ${key} is Category ${busCat}. Complex route strictly requires Category A bus only.`
-                };
-            }
-
+            // 1. HARD BATTERY CONSTRAINT FIRST:
+            // Only buses having manual/live SoC >= required (estimated) SoC can travel the route length!
             const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
                 ? targetReqSoc
                 : getRequiredSingleChargeSoc(routeDist);
 
-            // Bus is feasible if its manually updated live battery SoC meets or exceeds the required level
             if (liveSoc < reqSoc) {
                 return {
                     feasible: false,
@@ -935,6 +950,32 @@
                     busCategory: busCat,
                     reqSoc,
                     reason: `Bus ${key} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                };
+            }
+
+            // 2. CATEGORY ASSIGNMENT CONSTRAINTS SECOND:
+            // For Peak Time category and Complex route, ONLY Category A bus has to be assigned!
+            let isPeak = false;
+            let timeCatLabel = "Peak";
+            if (currentTargetKey && currentTargetKey.includes('_')) {
+                const tInfo = getTimeCategory(currentTargetKey.split('_')[1]);
+                isPeak = tInfo.isPeak;
+                timeCatLabel = tInfo.label;
+            }
+
+            const requiresCatA = isComplexRoute || isPeak;
+            if (requiresCatA && busCat !== "A") {
+                const condDesc = (isComplexRoute && isPeak)
+                    ? "Complex route during Peak Time category"
+                    : (isComplexRoute ? "Complex route" : `Peak Time category (${timeCatLabel})`);
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm,
+                    busCategory: busCat,
+                    reqSoc,
+                    reason: `Bus ${key} is Category ${busCat}. ${condDesc} strictly requires Category A bus only.`
                 };
             }
 
@@ -993,11 +1034,19 @@
                 return dRoute === curRoute && (d.departureTime || '').substring(0, 5) === depShort;
             });
 
+            const timeCatInfo = getTimeCategory(depShort);
+            const isPeakTime = timeCatInfo.isPeak;
+            const requiresCatA = isComplexRoute || isPeakTime;
+
             if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
 
-                if (!isComplexRoute || busCat === "A") {
+                if (liveSoc < reqSoc) {
+                    swapLog.push(`Previously allocated bus ${existingDuty.bm} has insufficient battery (${liveSoc}% SoC < ${reqSoc}% required). Re-evaluating duty.`);
+                } else if (requiresCatA && busCat !== "A") {
+                    swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: ${isComplexRoute ? 'Complex route' : 'Peak Time category'} strictly requires Category A buses.`);
+                } else {
                     return {
                         allocated: {
                             bm: existingDuty.bm,
@@ -1023,8 +1072,6 @@
                         isComplexRoute,
                         complexity
                     };
-                } else {
-                    swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: Complex route strictly requires Category A buses.`);
                 }
             }
 
@@ -1395,12 +1442,15 @@
             }
 
             const allowedMatrix = {
-                simple: { NORMAL: ["A", "B", "C"], PEAK: ["A", "B"], EXTREME_PEAK: ["A", "B"] },
+                simple: { NORMAL: ["A", "B", "C"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
                 moderate: { NORMAL: ["A", "B"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
             };
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
-            const isMatrixCompliant = isComplexRoute ? (busCategory === "A") : allowedCategories.includes(busCategory);
+            const timeCatInfo = getTimeCategory(departure);
+            const isPeakTime = timeCatInfo.isPeak;
+            const requiresCatA = isComplexRoute || isPeakTime;
+            const isMatrixCompliant = requiresCatA ? (busCategory === "A") : allowedCategories.includes(busCategory);
 
             if (socResult) socResult.textContent = `${liveSoc}%`;
             if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
@@ -1422,8 +1472,8 @@
 
             if (matrixStatusRule) {
                 matrixStatusRule.textContent = isMatrixCompliant
-                    ? `✅ Allowed (Cat ${isComplexRoute ? 'A' : allowedCategories.join('/')})`
-                    : `⚠️ Required Cat ${isComplexRoute ? 'A' : allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+                    ? `✅ Allowed (Cat ${requiresCatA ? 'A' : allowedCategories.join('/')})`
+                    : `⚠️ Required Cat ${requiresCatA ? 'A' : allowedCategories.join('/')} (Current: Cat ${busCategory})`;
                 matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
             }
 
