@@ -1812,6 +1812,56 @@
         // ── 2. Background Data Sync (Non-blocking) ──
         loadData();
 
+        // Cross-tab real-time sync with Charging Portal
+        async function refreshBusStatesSilently() {
+            try {
+                const res = await fetch("/api/bus-state");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.state) {
+                        let changed = false;
+                        for (const [bm, st] of Object.entries(data.state)) {
+                            const upperBm = String(bm).toUpperCase();
+                            const newSoc = Number(st.soc);
+                            if (Number.isFinite(newSoc)) {
+                                if (!busStates[upperBm] || busStates[upperBm].soc !== newSoc) {
+                                    changed = true;
+                                    if (!busStates[upperBm]) busStates[upperBm] = {};
+                                    busStates[upperBm].soc = newSoc;
+                                    busStates[upperBm].fullDutyDistanceKm = Math.round(newSoc * 1.42);
+                                    localStorage.setItem("depot_bus_soc_" + upperBm, String(newSoc));
+                                }
+                            }
+                        }
+                        syncLocalStorageBusStates();
+                        if (changed) {
+                            await recommend();
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // Silent 3-second polling ensures immediate reflection from Charging Portal
+        setInterval(refreshBusStatesSilently, 3000);
+
+        try {
+            const bc = new BroadcastChannel('depot_soc_sync');
+            bc.onmessage = async (ev) => {
+                if (ev && ev.data && ev.data.bm) {
+                    const uBm = String(ev.data.bm).toUpperCase();
+                    const nSoc = Number(ev.data.soc);
+                    if (!busStates[uBm]) busStates[uBm] = {};
+                    busStates[uBm].soc = nSoc;
+                    busStates[uBm].fullDutyDistanceKm = Math.round(nSoc * 1.42);
+                    localStorage.setItem("depot_bus_soc_" + uBm, String(nSoc));
+                    syncLocalStorageBusStates();
+                    await recommend();
+                }
+            };
+        } catch(e) {}
+
+
         // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
         window.addEventListener('storage', async (e) => {
             if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {

@@ -814,24 +814,27 @@
         }
 
         const STATIC_BUS_CATEGORIES = {
-    "BM221":"C","BM304":"C","BM088":"C","BM057":"C","BM224":"C","BM218":"C","BM296":"C","BM082":"C","BM012":"C","BM225":"C",
-    "BM260":"C","BM288":"C","BM005":"C","BM185":"C","BM032":"C","BM068":"C","BM004":"C","BM024":"C","BM261":"C","BM227":"C",
-    "BM002":"C","BM119":"C","BM208":"B","BM204":"B","BM038":"B","BM001":"B","BM010":"B","BM298":"B","BM238":"B","BM003":"B",
-    "BM265":"B","BM283":"B","BM086":"B","BM081":"B","BM285":"B","BM116":"B","BM257":"B","BM205":"B","BM183":"B","BM062":"B",
-    "BM259":"B","BM075":"B","BM212":"B","BM213":"B","BM245":"B","BM289":"B","BM271":"B","BM207":"B","BM200":"B","BM290":"B",
-    "BM210":"B","BM157":"B","BM300":"B","BM199":"B","BM191":"B","BM058":"B","BM278":"B","BM292":"B","BM202":"B","BM220":"B",
-    "BM267":"B","BM217":"B","BM174":"B","BM020":"B","BM153":"B","BM277":"B","BM291":"B","BM151":"B","BM295":"B","BM033":"B",
-    "BM124":"B","BM275":"B","BM216":"B","BM052":"B","BM054":"B","BM215":"B","BM219":"B","BM198":"B","BM222":"B","BM269":"B",
-    "BM187":"B","BM019":"A","BM201":"A","BM206":"A","BM294":"A","BM287":"A","BM107":"A","BM209":"A","BM080":"A","BM268":"A",
-    "BM240":"A","BM255":"A","BM276":"A","BM303":"A","BM152":"A","BM281":"A","BM274":"A","BM253":"A","BM263":"A","BM279":"A",
-    "BM249":"A","BM286":"A","BM193":"A","BM056":"A","BM297":"A","BM214":"A","BM250":"A","BM197":"A","BM284":"A","BM258":"A",
-    "BM280":"A","BM203":"A","BM272":"A","BM256":"A","BM282":"A","BM248":"A","BM293":"A","BM299":"A","BM264":"A","BM223":"A",
-    "BM239":"A","BM273":"A"
-};
-let busCategoriesMap = new Map();
+            "BM221":"C","BM304":"C","BM088":"C","BM057":"C","BM224":"C","BM218":"C","BM296":"C","BM082":"C","BM012":"C","BM225":"C",
+            "BM260":"C","BM288":"C","BM005":"C","BM185":"C","BM032":"C","BM068":"C","BM004":"C","BM024":"C","BM261":"C","BM227":"C",
+            "BM002":"C","BM119":"C","BM208":"B","BM204":"B","BM038":"B","BM001":"B","BM010":"B","BM298":"B","BM238":"B","BM003":"B",
+            "BM265":"B","BM283":"B","BM086":"B","BM081":"B","BM285":"B","BM116":"B","BM257":"B","BM205":"B","BM183":"B","BM062":"B",
+            "BM259":"B","BM075":"B","BM212":"B","BM213":"B","BM245":"B","BM289":"B","BM271":"B","BM207":"B","BM200":"B","BM290":"B",
+            "BM210":"B","BM157":"B","BM300":"B","BM199":"B","BM191":"B","BM058":"B","BM278":"B","BM292":"B","BM202":"B","BM220":"B",
+            "BM267":"B","BM217":"B","BM174":"B","BM020":"B","BM153":"B","BM277":"B","BM291":"B","BM151":"B","BM295":"B","BM033":"B",
+            "BM124":"B","BM275":"B","BM216":"B","BM052":"B","BM054":"B","BM215":"B","BM219":"B","BM198":"B","BM222":"B","BM269":"B",
+            "BM187":"B","BM019":"A","BM201":"A","BM206":"A","BM294":"A","BM287":"A","BM107":"A","BM209":"A","BM080":"A","BM268":"A",
+            "BM240":"A","BM255":"A","BM276":"A","BM303":"A","BM152":"A","BM281":"A","BM274":"A","BM253":"A","BM263":"A","BM279":"A",
+            "BM249":"A","BM286":"A","BM193":"A","BM056":"A","BM297":"A","BM214":"A","BM250":"A","BM197":"A","BM284":"A","BM258":"A",
+            "BM280":"A","BM203":"A","BM272":"A","BM256":"A","BM282":"A","BM248":"A","BM293":"A","BM299":"A","BM264":"A","BM223":"A",
+            "BM239":"A","BM273":"A"
+        };
+        let busCategoriesMap = new Map();
 
         function getBusCategory(bm, liveSoc) {
             const key = String(bm || "").toUpperCase().trim();
+            if (STATIC_BUS_CATEGORIES[key]) {
+                return STATIC_BUS_CATEGORIES[key];
+            }
             if (busCategoriesMap && busCategoriesMap.has(key)) {
                 return busCategoriesMap.get(key);
             }
@@ -842,9 +845,7 @@ let busCategoriesMap = new Map();
                 const r = routes.find(x => String(x.bmNumber || x.uniqueId || "").toUpperCase().trim() === key);
                 if (r && r.busCategory) return String(r.busCategory).toUpperCase();
             }
-            const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
-            const range = calculateFullDutyDistance(soc);
-            return range > 120 ? "A" : (range >= 106 ? "B" : "C");
+            return "B";
         }
 
         function getRouteComplexity(routeObj, matchedSched) {
@@ -1810,6 +1811,56 @@ let busCategoriesMap = new Map();
 
         // ── 2. Background Data Sync (Non-blocking) ──
         loadData();
+
+        // Cross-tab real-time sync with Charging Portal
+        async function refreshBusStatesSilently() {
+            try {
+                const res = await fetch("/api/bus-state");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.state) {
+                        let changed = false;
+                        for (const [bm, st] of Object.entries(data.state)) {
+                            const upperBm = String(bm).toUpperCase();
+                            const newSoc = Number(st.soc);
+                            if (Number.isFinite(newSoc)) {
+                                if (!busStates[upperBm] || busStates[upperBm].soc !== newSoc) {
+                                    changed = true;
+                                    if (!busStates[upperBm]) busStates[upperBm] = {};
+                                    busStates[upperBm].soc = newSoc;
+                                    busStates[upperBm].fullDutyDistanceKm = Math.round(newSoc * 1.42);
+                                    localStorage.setItem("depot_bus_soc_" + upperBm, String(newSoc));
+                                }
+                            }
+                        }
+                        syncLocalStorageBusStates();
+                        if (changed) {
+                            await recommend();
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // Silent 3-second polling ensures immediate reflection from Charging Portal
+        setInterval(refreshBusStatesSilently, 3000);
+
+        try {
+            const bc = new BroadcastChannel('depot_soc_sync');
+            bc.onmessage = async (ev) => {
+                if (ev && ev.data && ev.data.bm) {
+                    const uBm = String(ev.data.bm).toUpperCase();
+                    const nSoc = Number(ev.data.soc);
+                    if (!busStates[uBm]) busStates[uBm] = {};
+                    busStates[uBm].soc = nSoc;
+                    busStates[uBm].fullDutyDistanceKm = Math.round(nSoc * 1.42);
+                    localStorage.setItem("depot_bus_soc_" + uBm, String(nSoc));
+                    syncLocalStorageBusStates();
+                    await recommend();
+                }
+            };
+        } catch(e) {}
+
 
         // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
         window.addEventListener('storage', async (e) => {

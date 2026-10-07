@@ -2602,6 +2602,16 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname === "/charging" || pathname === "/charging.html") {
+        sendStaticFile(res, "public/charging.html");
+        return;
+    }
+
+    if (pathname === "/cleaning" || pathname === "/cleaning.html") {
+        sendStaticFile(res, "public/cleaning.html");
+        return;
+    }
+
     if (pathname === "/bus-details.html" || pathname === "/public/bus-details.html") {
         sendStaticFile(res, "public/bus-details.html");
         return;
