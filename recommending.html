@@ -1612,10 +1612,10 @@
             </div>
             <div class="topbar-actions">
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-                    <button id="locked-buses-topbar-btn" class="locked-buses-topbar-btn" type="button" title="View all locked buses and their reasons">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>Locked Buses</span>
-                        <span id="topbar-locked-count" class="locked-badge-count">0</span>
+                    <button id="locked-buses-topbar-btn" class="locked-buses-topbar-btn" type="button" title="View all locked buses and their reasons" onclick="openLockedBusesModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span style="pointer-events:none;">Locked Buses</span>
+                        <span id="topbar-locked-count" class="locked-badge-count" style="pointer-events:none;">0</span>
                     </button>
                     <div class="live-chip">Admin Workspace</div>
                     <button id="logout-btn" class="logout-btn" type="button" title="Sign out and return to login">
@@ -1962,7 +1962,7 @@
         </div>
 
         <!-- Locked Buses Directory Modal Dialog -->
-        <div id="locked-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
+        <div id="locked-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeLockedBusesModal()">
             <div class="modal-dialog" style="max-width:920px;" role="dialog" aria-modal="true" aria-labelledby="locked-buses-modal-title">
                 <div class="modal-header">
                     <div>
@@ -1975,7 +1975,7 @@
                             Buses currently isolated under cleaning or charging protocols with reasons, timestamps, and isolation status.
                         </p>
                     </div>
-                    <button type="button" id="close-locked-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+                    <button type="button" id="close-locked-modal-btn" class="modal-close-btn" aria-label="Close dialog" onclick="closeLockedBusesModal()">✕</button>
                 </div>
 
                 <div class="modal-search-wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; padding:12px 24px; border-bottom:1px solid var(--line);">
@@ -2654,7 +2654,10 @@ let busCategoriesMap = new Map();
         const LOCKED_KEY = 'depot_locked_buses';
 
         function _getLockedBuses() {
-            try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+            try {
+                const parsed = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch { return []; }
         }
 
         function getBusLockInfo(routeOrBm) {
@@ -4830,24 +4833,39 @@ let busCategoriesMap = new Map();
 
         // ── Locked Buses Modal Implementation ───────────────────────
         function openLockedBusesModal() {
-            const backdrop = document.getElementById("locked-buses-modal-backdrop");
-            const searchInput = document.getElementById("locked-bus-search-input");
-            if (!backdrop) return;
-            if (searchInput) searchInput.value = "";
-            renderLockedBusesModalContent();
-            backdrop.style.display = "flex";
-            backdrop.setAttribute("aria-hidden", "false");
-            document.body.style.overflow = "hidden";
-            setTimeout(() => { if (searchInput) searchInput.focus(); }, 120);
+            try {
+                const backdrop = document.getElementById("locked-buses-modal-backdrop");
+                const searchInput = document.getElementById("locked-bus-search-input");
+                if (!backdrop) return;
+                if (searchInput) searchInput.value = "";
+                backdrop.style.display = "flex";
+                backdrop.setAttribute("aria-hidden", "false");
+                document.body.style.overflow = "hidden";
+                try {
+                    renderLockedBusesModalContent("");
+                } catch (renderErr) {
+                    console.error("Error rendering locked buses content:", renderErr);
+                }
+                setTimeout(() => { if (searchInput) searchInput.focus(); }, 120);
+            } catch (err) {
+                console.error("Error in openLockedBusesModal:", err);
+            }
         }
 
         function closeLockedBusesModal() {
-            const backdrop = document.getElementById("locked-buses-modal-backdrop");
-            if (!backdrop) return;
-            backdrop.style.display = "none";
-            backdrop.setAttribute("aria-hidden", "true");
-            document.body.style.overflow = "";
+            try {
+                const backdrop = document.getElementById("locked-buses-modal-backdrop");
+                if (!backdrop) return;
+                backdrop.style.display = "none";
+                backdrop.setAttribute("aria-hidden", "true");
+                document.body.style.overflow = "";
+            } catch (err) {
+                console.error("Error in closeLockedBusesModal:", err);
+            }
         }
+
+        window.openLockedBusesModal = openLockedBusesModal;
+        window.closeLockedBusesModal = closeLockedBusesModal;
 
         function unlockBusFromAdmin(bm) {
             if (!bm) return;
@@ -4863,6 +4881,8 @@ let busCategoriesMap = new Map();
             renderLockedBusesModalContent(document.getElementById("locked-bus-search-input")?.value || "");
             recommend();
         }
+
+        window.unlockBusFromAdmin = unlockBusFromAdmin;
 
         function renderLockedBusesModalContent(searchQuery = "") {
             const rawLocked = _getLockedBuses();
@@ -5078,6 +5098,28 @@ let busCategoriesMap = new Map();
                     </table>
                 </div>
             `;
+        }
+
+        function initLockedBusesListeners() {
+            const btn = document.getElementById("locked-buses-topbar-btn");
+            if (btn) btn.addEventListener("click", openLockedBusesModal);
+            const closeBtn = document.getElementById("close-locked-modal-btn");
+            if (closeBtn) closeBtn.addEventListener("click", closeLockedBusesModal);
+            const backdrop = document.getElementById("locked-buses-modal-backdrop");
+            if (backdrop) backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) closeLockedBusesModal();
+            });
+            const searchInput = document.getElementById("locked-bus-search-input");
+            if (searchInput) {
+                searchInput.addEventListener("input", () => {
+                    renderLockedBusesModalContent(searchInput.value);
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initLockedBusesListeners);
+        } else {
+            initLockedBusesListeners();
         }
 
         function updateAllocationPanel() {

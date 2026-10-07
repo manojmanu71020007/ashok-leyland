@@ -998,6 +998,201 @@
             line-height: 1.45;
         }
 
+        /* Clickable KPI for Buses Available for Departure */
+        .kpi-clickable {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            user-select: none;
+            border-left: 4px solid #0284c7 !important;
+            background: #f0f9ff !important;
+        }
+        .kpi-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.2);
+            border-color: #0284c7;
+            background: #e0f2fe !important;
+        }
+        .kpi-action-hint {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 5px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 2px 7px;
+            border-radius: 999px;
+            border: 1px solid #bae6fd;
+            transition: background 0.15s ease;
+        }
+        .kpi-clickable:hover .kpi-action-hint {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
+
+        /* Available Buses Dropdown / List Container */
+        .available-buses-container {
+            margin-top: 14px;
+            margin-bottom: 14px;
+            border: 1.5px solid #bae6fd;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 18px rgba(2, 132, 199, 0.12);
+            overflow: hidden;
+            animation: fadeIn 0.2s ease;
+        }
+        .available-buses-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-bottom: 1px solid #bae6fd;
+        }
+        .btn-close-avail {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-close-avail:hover {
+            background: #cbd5e1;
+            color: #0f172a;
+        }
+        .available-buses-list {
+            max-height: 320px;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+        }
+        .avail-bus-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            cursor: pointer;
+            transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .avail-bus-card:hover {
+            border-color: #0284c7;
+            background: #f0f9ff;
+            transform: translateX(3px);
+            box-shadow: 0 3px 10px rgba(2, 132, 199, 0.14);
+        }
+        .avail-bus-card.selected {
+            border: 2px solid #16a34a;
+            background: #f0fdf4;
+            box-shadow: 0 3px 12px rgba(22, 163, 74, 0.18);
+        }
+        .avail-bus-card-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+        .avail-bus-title-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .avail-bus-bm {
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .avail-bus-reg {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .avail-bus-sub {
+            font-size: 0.75rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .avail-bus-card-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .avail-bus-metrics {
+            text-align: right;
+        }
+        .avail-bus-soc {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #16a34a;
+        }
+        .avail-bus-range {
+            font-size: 0.72rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .avail-bus-select-btn {
+            padding: 6px 12px;
+            border-radius: 7px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            border: 1px solid #bae6fd;
+            background: #e0f2fe;
+            color: #0369a1;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .avail-bus-select-btn:hover {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
+        .avail-bus-card.selected .avail-bus-select-btn {
+            background: #16a34a;
+            color: #ffffff;
+            border-color: #15803d;
+        }
+        .cat-pill {
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .cat-pill-a {
+            background: #dcfce7;
+            color: #15803d;
+            border: 1px solid #86efac;
+        }
+        .cat-pill-b {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+        .cat-pill-c {
+            background: #fef3c7;
+            color: #b45309;
+            border: 1px solid #fde68a;
+        }
+
         /* Selected route trips duty banner */
         .selected-route-trips-banner {
             margin-top: 10px;
@@ -1417,10 +1612,10 @@
             </div>
             <div class="topbar-actions">
                 <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
-                    <button id="locked-buses-topbar-btn" class="locked-buses-topbar-btn" type="button" title="View all locked buses and their reasons">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        <span>Locked Buses</span>
-                        <span id="topbar-locked-count" class="locked-badge-count">0</span>
+                    <button id="locked-buses-topbar-btn" class="locked-buses-topbar-btn" type="button" title="View all locked buses and their reasons" onclick="openLockedBusesModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span style="pointer-events:none;">Locked Buses</span>
+                        <span id="topbar-locked-count" class="locked-badge-count" style="pointer-events:none;">0</span>
                     </button>
                     <div class="live-chip">Admin Workspace</div>
                     <button id="logout-btn" class="logout-btn" type="button" title="Sign out and return to login">
@@ -1445,9 +1640,9 @@
                     </label>
                     <label>
                         Scheduled Departure Time (from dataset)
-                        <select id="scheduled-time-select" disabled style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Auto-synced from selected route timetable"><option value="">Loading timetable schedules...</option></select>
+                        <select id="scheduled-time-select" title="Select scheduled timetable departure"><option value="">Loading timetable schedules...</option></select>
                     </label>
-                    <label>Departure time<input id="departure" type="time" value="13:10" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Scheduled departure time fixed by selected timetable"></label>
+                    <label>Departure time<input id="departure" type="time" value="13:10" title="Select or enter departure time"></label>
                     <label class="wide">Schedule distance (km)<input id="distance" type="number" min="1" value="28.7" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Schedule distance is fixed based on route GTFS data"></label>
                 </div>
 
@@ -1514,9 +1709,30 @@
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
                     <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
-                    <div class="kpi"><strong id="bus-departure">0</strong><span>Buses available for departure</span></div>
+                    <div class="kpi kpi-clickable" id="kpi-bus-departure" title="Click to view list of buses available for departure">
+                        <strong id="bus-departure">0</strong>
+                        <span>Buses available for departure</span>
+                        <span class="kpi-action-hint">👆 Click to view buses</span>
+                    </div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
                     <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
+                </div>
+
+                <!-- ── Interactive Dropdown / List for Buses Available for Departure ── -->
+                <div id="available-buses-container" class="available-buses-container" style="display:none;">
+                    <div class="available-buses-header">
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="font-size:1.15rem;">🚌</span>
+                            <div>
+                                <strong id="available-buses-title" style="font-size:0.86rem;color:#0f172a;display:block;">Buses Available for Departure</strong>
+                                <span id="available-buses-sub" style="font-size:0.73rem;color:#64748b;">Click a bus to select and view full allocation details</span>
+                            </div>
+                        </div>
+                        <button type="button" id="btn-close-available-buses" class="btn-close-avail" title="Close list">✕</button>
+                    </div>
+                    <div id="available-buses-list" class="available-buses-list">
+                        <!-- Populated dynamically -->
+                    </div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
@@ -1746,7 +1962,7 @@
         </div>
 
         <!-- Locked Buses Directory Modal Dialog -->
-        <div id="locked-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;">
+        <div id="locked-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeLockedBusesModal()">
             <div class="modal-dialog" style="max-width:920px;" role="dialog" aria-modal="true" aria-labelledby="locked-buses-modal-title">
                 <div class="modal-header">
                     <div>
@@ -1759,7 +1975,7 @@
                             Buses currently isolated under cleaning or charging protocols with reasons, timestamps, and isolation status.
                         </p>
                     </div>
-                    <button type="button" id="close-locked-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+                    <button type="button" id="close-locked-modal-btn" class="modal-close-btn" aria-label="Close dialog" onclick="closeLockedBusesModal()">✕</button>
                 </div>
 
                 <div class="modal-search-wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; padding:12px 24px; border-bottom:1px solid var(--line);">
@@ -2091,6 +2307,22 @@
 
         let directionalRoutes = [...CORRIDOR_ROUTES];
         let datasetSchedules = [];
+        const STATIC_BUS_CATEGORIES = {
+    "BM221":"C","BM304":"C","BM088":"C","BM057":"C","BM224":"C","BM218":"C","BM296":"C","BM082":"C","BM012":"C","BM225":"C",
+    "BM260":"C","BM288":"C","BM005":"C","BM185":"C","BM032":"C","BM068":"C","BM004":"C","BM024":"C","BM261":"C","BM227":"C",
+    "BM002":"C","BM119":"C","BM208":"B","BM204":"B","BM038":"B","BM001":"B","BM010":"B","BM298":"B","BM238":"B","BM003":"B",
+    "BM265":"B","BM283":"B","BM086":"B","BM081":"B","BM285":"B","BM116":"B","BM257":"B","BM205":"B","BM183":"B","BM062":"B",
+    "BM259":"B","BM075":"B","BM212":"B","BM213":"B","BM245":"B","BM289":"B","BM271":"B","BM207":"B","BM200":"B","BM290":"B",
+    "BM210":"B","BM157":"B","BM300":"B","BM199":"B","BM191":"B","BM058":"B","BM278":"B","BM292":"B","BM202":"B","BM220":"B",
+    "BM267":"B","BM217":"B","BM174":"B","BM020":"B","BM153":"B","BM277":"B","BM291":"B","BM151":"B","BM295":"B","BM033":"B",
+    "BM124":"B","BM275":"B","BM216":"B","BM052":"B","BM054":"B","BM215":"B","BM219":"B","BM198":"B","BM222":"B","BM269":"B",
+    "BM187":"B","BM019":"A","BM201":"A","BM206":"A","BM294":"A","BM287":"A","BM107":"A","BM209":"A","BM080":"A","BM268":"A",
+    "BM240":"A","BM255":"A","BM276":"A","BM303":"A","BM152":"A","BM281":"A","BM274":"A","BM253":"A","BM263":"A","BM279":"A",
+    "BM249":"A","BM286":"A","BM193":"A","BM056":"A","BM297":"A","BM214":"A","BM250":"A","BM197":"A","BM284":"A","BM258":"A",
+    "BM280":"A","BM203":"A","BM272":"A","BM256":"A","BM282":"A","BM248":"A","BM293":"A","BM299":"A","BM264":"A","BM223":"A",
+    "BM239":"A","BM273":"A"
+};
+let busCategoriesMap = new Map();
         let currentlyAllocatedBus = null;
         let currentScheduleMatch = null;
         let recommendClicked = false;
@@ -2390,12 +2622,18 @@
 
         function getBusSocByBm(bm) {
             if (!bm) return 0;
-            const localSoc = localStorage.getItem("depot_bus_soc_" + bm);
+            const key = String(bm).toUpperCase().trim();
+            const localSoc = localStorage.getItem("depot_bus_soc_" + bm) || localStorage.getItem("depot_bus_soc_" + key);
             if (localSoc !== null) {
                 const val = Number(localSoc);
                 if (Number.isFinite(val)) return val;
             }
-            const state = busStates[bm] || {};
+            // Check if SoC was recorded when this bus was allocated in allocatedDuties
+            const existingDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
+            if (existingDuty && Number.isFinite(Number(existingDuty.soc)) && Number(existingDuty.soc) > 0) {
+                return Number(existingDuty.soc);
+            }
+            const state = busStates[bm] || busStates[key] || {};
             if (Number.isFinite(Number(state.soc))) return Number(state.soc);
             return 0;
         }
@@ -2416,7 +2654,10 @@
         const LOCKED_KEY = 'depot_locked_buses';
 
         function _getLockedBuses() {
-            try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+            try {
+                const parsed = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch { return []; }
         }
 
         function getBusLockInfo(routeOrBm) {
@@ -2498,48 +2739,100 @@
             return _isBusLocked(bm);
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null) {
+        function getBusCategory(bm, liveSoc) {
+            if (!bm) return "C";
+            const key = String(bm).toUpperCase().trim();
+            if (busCategoriesMap && busCategoriesMap.has(key)) {
+                return busCategoriesMap.get(key);
+            }
+            if (busStates && busStates[key] && busStates[key].busCategory) {
+                return String(busStates[key].busCategory).toUpperCase();
+            }
+            if (busStates) {
+                for (const k in busStates) {
+                    if (k.toUpperCase().trim() === key && busStates[k].busCategory) {
+                        return String(busStates[k].busCategory).toUpperCase();
+                    }
+                }
+            }
+            if (Array.isArray(routes)) {
+                const r = routes.find(x => String(x.bmNumber || x.uniqueId || "").toUpperCase().trim() === key);
+                if (r && r.busCategory) return String(r.busCategory).toUpperCase();
+            }
+            const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
+            const range = calculateFullDutyDistance(soc);
+            return range > 120 ? "A" : (range >= 106 ? "B" : "C");
+        }
+
+        function getRouteComplexity(routeObj, matchedSched) {
+            if (matchedSched && matchedSched.category) {
+                const scLower = String(matchedSched.category).toLowerCase();
+                if (scLower.includes("comp")) return "complex";
+                if (scLower.includes("mod")) return "moderate";
+                if (scLower.includes("stand") || scLower.includes("simp")) return "simple";
+            }
+            const rCode = String(routeObj?.code || routeObj?.routeCode || "").toUpperCase();
+            if (rCode && Array.isArray(datasetSchedules)) {
+                const scheds = datasetSchedules.filter(s => String(s.route || "").toUpperCase() === rCode);
+                const compSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("comp"));
+                if (compSched) return "complex";
+                const modSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("mod"));
+                if (modSched) return "moderate";
+                const standSched = scheds.find(s => s.category && (String(s.category).toLowerCase().includes("stand") || String(s.category).toLowerCase().includes("simp")));
+                if (standSched) return "simple";
+            }
+            const dist = Number(routeObj?.distKm || routeObj?.distanceKm || 0);
+            if (dist >= 20) return "complex";
+            if (dist >= 10) return "moderate";
+            return "simple";
+        }
+
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
-            const lockInfo = getBusLockInfo(bm);
+            const key = String(bm).toUpperCase().trim();
+            const lockInfo = getBusLockInfo(key);
             if (lockInfo) {
-                return { feasible: false, bm, reason: `Bus ${bm} is ${lockInfo.reason.toLowerCase()}.` };
+                return { feasible: false, bm: key, reason: `Bus ${key} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
             // Always ensure fresh duties from storage
             if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
 
-            // Check if bus is already allocated to another duty in the Allocated Buses region
-            const alreadyAllocatedDuty = findAllocatedDutyForBm(bm, allocatedDuties);
+            // Check if bus is already allocated to another route or duty
+            const alreadyAllocatedDuty = findAllocatedDutyForBm(key, allocatedDuties);
             if (alreadyAllocatedDuty) {
                 const dutyRoute = normalizeRoute(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || alreadyAllocatedDuty.routeId);
-                const curRoute = normalizeRoute(currentTargetKey ? currentTargetKey.split('_')[0] : '');
+                const curRoute = normalizeRoute(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : ''));
                 const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
                 const curTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : '';
 
                 const isSameRoute = curRoute && (dutyRoute === curRoute);
                 const isExactTarget = isSameRoute && curTimeShort && (dutyTimeShort === curTimeShort);
 
-                if (isExactTarget) {
-                    // This bus is the one already allocated to this specific duty
+                if (isAllocatedDuty || isExactTarget) {
+                    // This bus is officially allocated to this exact duty/departure — fully eligible!
                 } else if (!isSameRoute && dutyRoute) {
+                    // Strictly exclude: bus is already allocated to a DIFFERENT route!
                     return {
                         feasible: false,
-                        bm,
-                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes.`
+                        bm: key,
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes.`
                     };
-                } else if (isSameRoute && !isExactTarget) {
+                } else if (isSameRoute && !isExactTarget && !isAllocatedDuty) {
+                    // Bus is already allocated to a different time slot on this route
                     return {
                         feasible: false,
-                        bm,
-                        reason: `Bus ${bm} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure at ${curTimeShort || 'this time'}.`
+                        bm: key,
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure at ${curTimeShort || 'this time'}.`
                     };
                 }
             }
 
-            const liveSoc = getBusSocByBm(bm);
+            const liveSoc = getBusSocByBm(key);
             const fullDutyKm = calculateFullDutyDistance(liveSoc);
-            const state = busStates[bm] || {};
+            const busCat = getBusCategory(key, liveSoc);
+            const state = busStates[key] || {};
             const condition = state.condition || "Good";
             const driver = state.driver || "Driver Assigned";
 
@@ -2548,38 +2841,67 @@
             const maintChecked = document.getElementById("maintenance") ? document.getElementById("maintenance").checked : true;
 
             if (condition === "Not Good" || !maintChecked) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} flagged for maintenance inspection.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} flagged for maintenance inspection.` };
             }
 
             if (driver.toLowerCase().includes("no")) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `No driver currently assigned to bus ${bm}.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${key}.` };
             }
 
             if (!interiorChecked || !exteriorChecked) {
-                return { feasible: false, bm, liveSoc, fullDutyKm, reason: `Bus ${bm} pending interior/exterior cleaning clearance.` };
+                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} pending interior/exterior cleaning clearance.` };
             }
 
+            // 1. HARD BATTERY CONSTRAINT FIRST:
+            // Only buses having manual/live SoC >= required (estimated) SoC can travel the route length!
             const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
                 ? targetReqSoc
                 : getRequiredSingleChargeSoc(routeDist);
 
-            // Bus is feasible if its manually updated live battery SoC meets or exceeds the required level
             if (liveSoc < reqSoc) {
                 return {
                     feasible: false,
-                    bm,
+                    bm: key,
                     liveSoc,
                     fullDutyKm,
+                    busCategory: busCat,
                     reqSoc,
-                    reason: `Bus ${bm} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                    reason: `Bus ${key} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                };
+            }
+
+            // 2. CATEGORY ASSIGNMENT CONSTRAINTS SECOND:
+            // For Peak Time category and Complex route, ONLY Category A bus has to be assigned!
+            let isPeak = false;
+            let timeCatLabel = "Peak";
+            if (currentTargetKey && currentTargetKey.includes('_')) {
+                const tInfo = getTimeCategory(currentTargetKey.split('_')[1]);
+                isPeak = tInfo.isPeak;
+                timeCatLabel = tInfo.label;
+            }
+
+            const requiresCatA = isComplexRoute || isPeak;
+            if (requiresCatA && busCat !== "A") {
+                const condDesc = (isComplexRoute && isPeak)
+                    ? "Complex route during Peak Time category"
+                    : (isComplexRoute ? "Complex route" : `Peak Time category (${timeCatLabel})`);
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm,
+                    busCategory: busCat,
+                    reqSoc,
+                    reason: `Bus ${key} is Category ${busCat}. ${condDesc} strictly requires Category A bus only.`
                 };
             }
 
             return {
                 feasible: true,
-                bm,
+                bm: key,
                 liveSoc,
                 fullDutyKm,
+                busCategory: busCat,
                 reqSoc,
                 condition,
                 driver,
@@ -2607,6 +2929,7 @@
         }
 
         function allocateBus(routeObj, departureTime) {
+            allocatedDuties = loadAllocatedDuties();
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
             const depTimeClean = (departureTime || "13:10").trim();
@@ -2614,7 +2937,7 @@
             const depMin = timeToMinutes(depShort);
             const currentTargetKey = `${routeCode}_${depShort}`;
 
-            const routeSchedules = datasetSchedules.filter(s => s.route === routeCode);
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
             let matchedSched = null;
 
             if (routeSchedules.length > 0) {
@@ -2628,6 +2951,9 @@
                 }
             }
 
+            const complexity = getRouteComplexity(routeObj, matchedSched);
+            const isComplexRoute = (complexity === "complex");
+
             const targetShift = (matchedSched && matchedSched.shift)
                 ? matchedSched.shift
                 : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
@@ -2636,39 +2962,58 @@
             let swapLog = [];
 
             const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
-            const maxAllowedSoc = reqSoc + 3;
 
             // Check if this specific duty already has a bus officially allocated
-            const existingDuty = (allocatedDuties || []).find(d => d.routeCode === routeCode && (d.departureTime || '').substring(0, 5) === depShort);
+            const existingDuty = (allocatedDuties || []).find(d => {
+                const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                const curRoute = normalizeRoute(routeCode);
+                return dRoute === curRoute && (d.departureTime || '').substring(0, 5) === depShort;
+            });
+            const timeCatInfo = getTimeCategory(depShort);
+            const isPeakTime = timeCatInfo.isPeak;
+            const requiresCatA = isComplexRoute || isPeakTime;
+
             if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
-                return {
-                    allocated: {
-                        bm: existingDuty.bm,
-                        regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
-                        liveSoc: liveSoc,
-                        fullDutyKm: calculateFullDutyDistance(liveSoc),
-                        shift: existingDuty.shift || targetShift,
+                const busCat = getBusCategory(existingDuty.bm, liveSoc);
+
+                if (liveSoc < reqSoc) {
+                    swapLog.push(`Previously allocated bus ${existingDuty.bm} has insufficient battery (${liveSoc}% SoC < ${reqSoc}% required). Re-evaluating duty.`);
+                } else if (requiresCatA && busCat !== "A") {
+                    swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: ${isComplexRoute ? 'Complex route' : 'Peak Time slot'} strictly requires Category A buses.`);
+                } else {
+                    return {
+                        allocated: {
+                            bm: existingDuty.bm,
+                            regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
+                            liveSoc: liveSoc,
+                            fullDutyKm: calculateFullDutyDistance(liveSoc),
+                            shift: existingDuty.shift || targetShift,
+                            departureTime: depTimeClean,
+                            allocType: existingDuty.allocType || "Committed Duty Allocation",
+                            routeCode: routeCode,
+                            busShortName: routeCode,
+                            busCategory: busCat,
+                            reqSoc: reqSoc,
+                            isCommitted: true,
+                            isComplexRoute: isComplexRoute,
+                            reason: `Bus ${existingDuty.bm} (Category ${busCat}) is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
+                        },
+                        matchedSched,
+                        swapLog: [],
+                        shift: targetShift,
                         departureTime: depTimeClean,
-                        allocType: existingDuty.allocType || "Committed Duty Allocation",
-                        routeCode: routeCode,
-                        busShortName: routeCode,
-                        reqSoc: reqSoc,
-                        isCommitted: true,
-                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean} (${existingDuty.shift || targetShift}). It is locked and unavailable for other routes and times.`
-                    },
-                    matchedSched,
-                    swapLog: [],
-                    shift: targetShift,
-                    departureTime: depTimeClean,
-                    reqSoc
-                };
+                        reqSoc,
+                        isComplexRoute,
+                        complexity
+                    };
+                }
             }
 
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
 
                 if (primaryEval.feasible) {
                     const surplus = primaryEval.liveSoc - reqSoc;
@@ -2680,7 +3025,8 @@
                         allocType: `Primary Bus (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `Primary bus ${primaryBm} scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
+                        isComplexRoute: isComplexRoute,
+                        reason: `Primary bus ${primaryBm} (Category ${primaryEval.busCategory}) scheduled for ${matchedSched.outTime || depTimeClean} on Route ${routeCode} in ${targetShift} (${matchedSched.scheduleId}). Live battery SoC (${primaryEval.liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${primaryEval.fullDutyKm} km Full Duty Distance for ${routeDist.toFixed(1)} km route.`
                     });
                 } else {
                     swapLog.push(`Primary bus ${primaryBm} (${targetShift}) ineligible: ${primaryEval.reason}`);
@@ -2688,7 +3034,7 @@
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
                         if (swapEval.feasible) {
                             const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
@@ -2699,7 +3045,8 @@
                                 allocType: `Swapped Bus (${targetShift})`,
                                 routeCode: routeCode,
                                 busShortName: routeCode,
-                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
+                                isComplexRoute: isComplexRoute,
+                                reason: `Primary bus ${primaryBm} disqualified (${primaryEval.reason}). Allocated designated swap bus ${swapBm} (Category ${swapEval.busCategory}) for ${targetShift} with ${swapEval.liveSoc}% SoC satisfying required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%).`
                             });
                         } else {
                             swapLog.push(`Designated swap bus ${swapBm} ineligible: ${swapEval.reason}`);
@@ -2710,12 +3057,12 @@
 
             // 3. Fallback: Search available fleet buses in the SAME shift with optimal battery state
             if (!allocated) {
-                const sameShiftCandidates = routes
+                const sameShiftCandidates = (routes || [])
                     .filter(b => {
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -2730,15 +3077,16 @@
                         allocType: `Shift Pool Allocation (${targetShift})`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
+                        isComplexRoute: isComplexRoute,
+                        reason: `Designated candidate buses unavailable (${swapLog.join("; ")}). Allocated ${targetShift} vehicle ${bestShiftBus.bm} (Category ${bestShiftBus.busCategory}) meeting required Single Charge Operation level (${bestShiftBus.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestShiftBus.fullDutyKm} km range).`
                     });
                 }
             }
 
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
-                const eligibleReserves = routes
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc))
+                const eligibleReserves = (routes || [])
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
                     .filter(e => e.feasible)
                     .sort((a, b) => (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc));
 
@@ -2753,7 +3101,8 @@
                         allocType: `Depot Reserve Fleet Allocation`,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
+                        isComplexRoute: isComplexRoute,
+                        reason: `No assigned buses for ${targetShift} available (${swapLog.join("; ")}). Allocated depot reserve bus ${bestReserve.bm} (Category ${bestReserve.busCategory}) meeting required Single Charge Operation level (${bestReserve.liveSoc}% SoC vs ${reqSoc}% required; surplus: +${surplus}%, ${bestReserve.fullDutyKm} km Full Duty Range).`
                     });
                 }
             }
@@ -2762,12 +3111,301 @@
                 allocated.routeCode = routeCode;
                 allocated.busShortName = routeCode;
                 allocated.reqSoc = reqSoc;
+                allocated.busCategory = allocated.busCategory || getBusCategory(allocated.bm, allocated.liveSoc);
+            } else if (isComplexRoute) {
+                swapLog.push("Route is Complex: Strictly Category A buses are eligible. No Category A bus with sufficient SoC available.");
             }
 
-            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc };
+            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
         }
 
         const autoAllocateBus = allocateBus;
+
+        function getBusesAvailableForDeparture(routeObj, departureTime) {
+            // Always sync fresh storage data first
+            allocatedDuties = loadAllocatedDuties();
+            syncLocalStorageBusStates();
+
+            if (!routeObj) {
+                const selectedRouteId = routeSelect ? routeSelect.value : "";
+                routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            }
+            const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
+            const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
+            const depTimeClean = (departureTime || document.getElementById("departure")?.value || "13:10").trim();
+            const depShort = depTimeClean.substring(0, 5);
+            const depMin = timeToMinutes(depShort);
+            const currentTargetKey = `${routeCode}_${depShort}`;
+
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
+            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+            if (!matchedSched && routeSchedules.length > 0) {
+                matchedSched = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+            }
+
+            const complexity = getRouteComplexity(routeObj, matchedSched);
+            const isComplexRoute = (complexity === "complex");
+            const targetShift = (matchedSched && matchedSched.shift)
+                ? matchedSched.shift
+                : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
+
+            const candidates = [];
+            const seenBms = new Set();
+
+            function addCandidate(bm, role, isDuty = false) {
+                if (!bm) return;
+                const key = String(bm).toUpperCase().trim();
+                const normKey = normalizeBm(key);
+                if (!normKey || seenBms.has(normKey)) return;
+                seenBms.add(normKey);
+
+                // Strict cross-route exclusion: if this bus is already allocated to ANY other route, NEVER show it!
+                const existingAnyDuty = findAllocatedDutyForBm(key, allocatedDuties);
+                if (existingAnyDuty) {
+                    const dutyRoute = normalizeRoute(existingAnyDuty.routeCode || existingAnyDuty.busNumber || existingAnyDuty.routeId);
+                    const curRoute = normalizeRoute(routeCode);
+                    if (dutyRoute && curRoute && dutyRoute !== curRoute) {
+                        return; // Strictly exclude: allocated to another route!
+                    }
+                }
+
+                const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, isDuty);
+                if (feas && feas.feasible) {
+                    const liveSoc = feas.liveSoc;
+                    const fullDutyKm = feas.fullDutyKm;
+                    const busCat = feas.busCategory || getBusCategory(key, liveSoc);
+                    const regNo = getBusRegNo(key);
+                    const surplus = liveSoc - reqSoc;
+
+                    const existingDuty = (allocatedDuties || []).find(d => {
+                        const isMatch = [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normKey);
+                        const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                        return isMatch && dRoute === normalizeRoute(routeCode);
+                    });
+                    const isCommitted = isDuty || !!existingDuty;
+
+                    candidates.push({
+                        bm: key,
+                        regNo: regNo,
+                        liveSoc: liveSoc,
+                        fullDutyKm: fullDutyKm,
+                        busCategory: busCat,
+                        reqSoc: reqSoc,
+                        surplus: surplus,
+                        role: role,
+                        shift: (existingDuty && existingDuty.shift) || targetShift,
+                        departureTime: (existingDuty && existingDuty.departureTime) || depTimeClean,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        scheduleId: (existingDuty && existingDuty.scheduleId) || (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
+                        isCommitted: isCommitted,
+                        isComplexRoute: isComplexRoute,
+                        allocType: isCommitted ? "Committed Duty Allocation" : role,
+                        condition: feas.condition || "Good",
+                        driver: feas.driver || "Assigned",
+                        reason: isCommitted
+                            ? `Bus ${key} (Category ${busCat}) is officially allocated to Route ${routeCode} (${(existingDuty && existingDuty.shift) || targetShift}) at ${(existingDuty && existingDuty.departureTime) || depTimeClean}. Battery SoC: ${liveSoc}%, ${fullDutyKm} km Full Duty Range.`
+                            : `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
+                    });
+                }
+            }
+
+            // 0. Buses officially allocated to this route (via AD portal or Recommending portal)
+            (allocatedDuties || []).forEach(d => {
+                const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                const curRoute = normalizeRoute(routeCode);
+                if (dRoute && curRoute && dRoute === curRoute) {
+                    const bm = String(d.bm || d.bmNumber || d.uniqueId || "").toUpperCase().trim();
+                    if (bm) {
+                        const dTime = (d.departureTime || '').substring(0, 5);
+                        const role = (dTime === depShort)
+                            ? `🔒 Currently Allocated to ${routeCode} (${d.shift || targetShift})`
+                            : `🔒 Allocated to ${routeCode} @ ${d.departureTime} (${d.shift || targetShift})`;
+                        addCandidate(bm, role, true);
+                    }
+                }
+            });
+
+            // 1. Primary & swap bus for this departure schedule
+            if (matchedSched) {
+                if (matchedSched.fixBm) addCandidate(matchedSched.fixBm, `Primary Bus (${targetShift})`);
+                if (matchedSched.swapBm) addCandidate(matchedSched.swapBm, `Designated Swap Bus (${targetShift})`);
+            }
+
+            // 2. Other schedules on this route
+            routeSchedules.forEach(s => {
+                if (s.fixBm) addCandidate(s.fixBm, `Route Scheduled Bus (${s.shift || targetShift})`);
+                if (s.swapBm) addCandidate(s.swapBm, `Route Swap Bus (${s.shift || targetShift})`);
+            });
+
+            // 3. Vehicles assigned to this route
+            (routes || []).forEach(r => {
+                const rBusNum = String(r.busNumber || r.routeShortName || "").toUpperCase();
+                if (rBusNum === routeCode.toUpperCase()) {
+                    const bm = String(r.bmNumber || r.uniqueId || "").toUpperCase().trim();
+                    if (bm) addCandidate(bm, `Route Assigned Vehicle`);
+                }
+            });
+
+            // Only buses designated to this specific route are shown as available for departure on this route
+            // Depot reserve fleet is reserved for auto-allocation fallback when route-designated buses have insufficient battery
+
+            // Sort: Committed / Allocated first, then primary, then smallest surplus
+            candidates.sort((a, b) => {
+                if (a.isCommitted !== b.isCommitted) return a.isCommitted ? -1 : 1;
+                const isPrimaryA = a.role.toLowerCase().includes("primary");
+                const isPrimaryB = b.role.toLowerCase().includes("primary");
+                if (isPrimaryA !== isPrimaryB) return isPrimaryA ? -1 : 1;
+                return a.surplus - b.surplus;
+            });
+
+            return candidates;
+        }
+
+        function toggleAvailableBusesList(forceOpen = null) {
+            const container = document.getElementById("available-buses-container");
+            if (!container) return;
+            const shouldOpen = (forceOpen !== null) ? forceOpen : (container.style.display === "none");
+            if (shouldOpen) {
+                container.style.display = "block";
+                renderAvailableBusesForDeparture();
+                container.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            } else {
+                container.style.display = "none";
+            }
+        }
+
+        function renderAvailableBusesForDeparture() {
+            const listEl = document.getElementById("available-buses-list");
+            const titleEl = document.getElementById("available-buses-title");
+            const subEl = document.getElementById("available-buses-sub");
+            if (!listEl) return;
+
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const depTime = (document.getElementById("departure")?.value || "13:10").trim();
+            const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
+
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
+            const depShort = depTime.substring(0, 5);
+            const depMin = timeToMinutes(depShort);
+            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+            if (!matchedSched && routeSchedules.length > 0) {
+                matchedSched = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+            }
+
+            const complexity = getRouteComplexity(routeObj, matchedSched);
+            const isComplexRoute = (complexity === "complex");
+            const reqSoc = getRequiredSingleChargeSoc(routeObj ? routeObj.distKm : 28.7, matchedSched);
+
+            if (titleEl) titleEl.textContent = `Buses Available for Departure (${routeCode} @ ${depTime})`;
+            if (subEl) {
+                subEl.textContent = isComplexRoute
+                    ? `Complex Route: Strictly Category A buses eligible (Requires ≥ ${reqSoc}% SoC)`
+                    : `Route ${routeCode}: Requires ≥ ${reqSoc}% SoC for Single Charge Operation`;
+            }
+
+            const availableBuses = getBusesAvailableForDeparture(routeObj, depTime);
+
+            if (availableBuses.length === 0) {
+                listEl.innerHTML = `
+                    <div style="padding:14px;text-align:center;color:#991b1b;background:#fef2f2;border-radius:8px;font-size:0.84rem;line-height:1.5;">
+                        <div style="font-weight:700;margin-bottom:4px;">⚠️ No eligible buses currently available for departure</div>
+                        <div style="font-size:0.78rem;color:#7f1d1d;">
+                            ${isComplexRoute
+                                ? `Route <strong>${escapeHtml(routeCode)}</strong> is classified as <strong>Complex</strong> and strictly requires <strong>Category A</strong> buses with at least <strong>${reqSoc}% SoC</strong>.`
+                                : `No buses currently have at least <strong>${reqSoc}% SoC</strong> required for Route ${escapeHtml(routeCode)}.`}
+                            <br>Update battery SoC in the Charging Portal to allocate vehicles.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = availableBuses.map((bus) => {
+                const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
+                const isCommitted = !!bus.isCommitted;
+                const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
+
+                return `
+                    <div class="avail-bus-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}" role="button" tabindex="0">
+                        <div class="avail-bus-card-left">
+                            <div class="avail-bus-title-row">
+                                <span class="avail-bus-bm">🚌 ${escapeHtml(bus.bm)}</span>
+                                ${bus.regNo ? `<span class="avail-bus-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
+                                <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                                ${isCommitted ? '<span style="font-size:0.68rem;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;font-weight:700;">🔒 Currently Allocated</span>' : ''}
+                            </div>
+                            <div class="avail-bus-sub">
+                                <span>${escapeHtml(bus.role || 'Designated Bus')}</span>
+                                <span>•</span>
+                                <span>Req: ${bus.reqSoc}%</span>
+                                <span>•</span>
+                                <span style="color:#16a34a;font-weight:700;">Surplus: +${bus.surplus}%</span>
+                            </div>
+                        </div>
+                        <div class="avail-bus-card-right">
+                            <div class="avail-bus-metrics">
+                                <div class="avail-bus-soc">⚡ ${bus.liveSoc}% SoC</div>
+                                <div class="avail-bus-range">📏 ${bus.fullDutyKm} km Range</div>
+                            </div>
+                            <button type="button" class="avail-bus-select-btn" data-bm="${escapeHtml(bus.bm)}">
+                                ${isSelected ? '✓ Selected' : 'Select Bus ➔'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            // Attach click events
+            listEl.querySelectorAll(".avail-bus-card").forEach(card => {
+                card.addEventListener("click", () => {
+                    const bm = card.dataset.bm;
+                    const bus = availableBuses.find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
+                    if (bus) selectBusForDeparture(bus);
+                });
+            });
+        }
+
+        function selectBusForDeparture(bus) {
+            if (!bus) return;
+            currentlyAllocatedBus = bus;
+
+            // Render and display the candidate bus card with full details
+            renderAllocatedCard({
+                allocated: bus,
+                matchedSched: currentScheduleMatch,
+                shift: bus.shift,
+                departureTime: bus.departureTime,
+                reqSoc: bus.reqSoc
+            });
+
+            const card = document.getElementById("auto-allocated-card");
+            if (card) {
+                card.style.display = "block";
+                card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+
+            // Update banner
+            updateSelectedBusDutyBanner();
+
+            // Update Allocation result panel rules & KPIs
+            recommend();
+
+            // Refresh available buses list to mark selected item
+            renderAvailableBusesForDeparture();
+
+            showAllocationToast(`✅ Selected Bus ${bus.bm} (${bus.regNo || ''}) for Route ${bus.routeCode} at ${bus.departureTime}`, "success");
+        }
 
         function renderAllocatedCard(result) {
             const card = document.getElementById("auto-allocated-card");
@@ -2801,6 +3439,9 @@
             const shiftName = alloc.shift || (result && result.shift) || "Regular Shift";
             const reqSocVal = (alloc.reqSoc !== undefined && alloc.reqSoc !== null) ? alloc.reqSoc : (result && result.reqSoc ? result.reqSoc : "—");
             const surplusVal = (Number.isFinite(alloc.liveSoc) && Number.isFinite(reqSocVal)) ? (alloc.liveSoc - reqSocVal) : 0;
+            const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
+            const catClass = busCat === 'A' ? 'cat-pill-a' : (busCat === 'B' ? 'cat-pill-b' : 'cat-pill-c');
+
             const routeDistVal = (() => {
                 const selectedRouteId = routeSelect ? routeSelect.value : "";
                 const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
@@ -2821,6 +3462,7 @@
             card.innerHTML = `
                 <div class="auto-alloc-header">
                     <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
+                    <span class="cat-pill ${catClass}" style="font-size:0.75rem;padding:3px 9px;">Category ${escapeHtml(busCat)}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
                     <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus"))}</span>
                 </div>
@@ -2863,6 +3505,10 @@
                             <span class="metric-label">Driver Status</span>
                             <strong id="alloc-driver" class="metric-val">${escapeHtml(alloc.driver || "Assigned")}</strong>
                         </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Bus Tier</span>
+                            <strong class="metric-val" style="color:${busCat === 'A' ? '#16a34a' : (busCat === 'B' ? '#2563eb' : '#d97706')};">Category ${escapeHtml(busCat)}</strong>
+                        </div>
                     </div>
                     <div id="alloc-reason-text" class="auto-alloc-reason">
                         <strong>Allocation Rationale:</strong> ${escapeHtml(alloc.reason)}
@@ -2876,7 +3522,21 @@
         function updateRouteKpis(routeObj, departureTime) {
             const routeCodeVal = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDistKmVal = routeObj ? Number(routeObj.distKm || 28.7) : 28.7;
-            const reqSocForRoute = getRequiredSingleChargeSoc(routeDistKmVal, currentScheduleMatch);
+            const depTimeClean = (departureTime || document.getElementById("departure")?.value || "13:10").trim();
+            const depShort = depTimeClean.substring(0, 5);
+            const depMin = timeToMinutes(depShort);
+
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCodeVal.toUpperCase());
+            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+            if (!matchedSched && routeSchedules.length > 0) {
+                matchedSched = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+            }
+            const complexity = getRouteComplexity(routeObj, matchedSched);
+            const isComplexRoute = (complexity === "complex");
 
             // Collect all unique BM numbers designated for this particular route only
             const routeDesignatedBms = new Set();
@@ -2896,17 +3556,9 @@
 
             const totalBusesForRoute = routeDesignatedBms.size > 0 ? routeDesignatedBms.size : 7;
 
-            // Calculate how many buses are available for departure on this particular route only
-            let busesAvailableForDeparture = 0;
-            const targetDepShort = (departureTime || "13:10").substring(0, 5);
-            const currentTargetKey = `${routeCodeVal}_${targetDepShort}`;
-
-            routeDesignatedBms.forEach(bm => {
-                const feas = evaluateBusFeasibility(bm, "Candidate", routeDistKmVal, currentTargetKey, reqSocForRoute);
-                if (feas && feas.feasible) {
-                    busesAvailableForDeparture++;
-                }
-            });
+            // Compute available buses for departure (on complex routes, strictly Category A!)
+            const availableBuses = getBusesAvailableForDeparture(routeObj, depTimeClean);
+            const busesAvailableForDeparture = availableBuses.length;
 
             const busTotalEl = document.getElementById("bus-total");
             if (busTotalEl) busTotalEl.textContent = String(totalBusesForRoute);
@@ -2916,7 +3568,13 @@
             const busTotalSpan = busTotalEl ? busTotalEl.parentElement.querySelector("span") : null;
             if (busTotalSpan) busTotalSpan.textContent = `Total buses (${routeCodeVal})`;
             const busDepSpan = busDepEl ? busDepEl.parentElement.querySelector("span") : null;
-            if (busDepSpan) busDepSpan.textContent = `Buses available for departure (${routeCodeVal})`;
+            if (busDepSpan) {
+                const depTimeCat = getTimeCategory(depShort);
+                const reqCatA = isComplexRoute || depTimeCat.isPeak;
+                busDepSpan.textContent = reqCatA
+                    ? `Buses available for departure (${routeCodeVal} • Cat A & SoC ≥ ${reqSoc}%)`
+                    : `Buses available for departure (${routeCodeVal} • SoC ≥ ${reqSoc}%)`;
+            }
         }
 
         function renderRoutes(preserveManualTime = true) {
@@ -3008,9 +3666,19 @@
             const departureTime = document.getElementById("departure")?.value || "13:10";
             if (routeObj) {
                 const allocResult = allocateBus(routeObj, departureTime);
-                currentlyAllocatedBus = allocResult.allocated;
                 currentScheduleMatch = allocResult.matchedSched;
-                renderAllocatedCard(allocResult);
+                if (currentlyAllocatedBus) {
+                    renderAllocatedCard({
+                        allocated: currentlyAllocatedBus,
+                        matchedSched: currentScheduleMatch,
+                        shift: currentlyAllocatedBus.shift,
+                        departureTime: departureTime,
+                        reqSoc: currentlyAllocatedBus.reqSoc
+                    });
+                } else {
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
+                }
             }
 
             updateSelectedBusDutyBanner();
@@ -4165,24 +4833,39 @@
 
         // ── Locked Buses Modal Implementation ───────────────────────
         function openLockedBusesModal() {
-            const backdrop = document.getElementById("locked-buses-modal-backdrop");
-            const searchInput = document.getElementById("locked-bus-search-input");
-            if (!backdrop) return;
-            if (searchInput) searchInput.value = "";
-            renderLockedBusesModalContent();
-            backdrop.style.display = "flex";
-            backdrop.setAttribute("aria-hidden", "false");
-            document.body.style.overflow = "hidden";
-            setTimeout(() => { if (searchInput) searchInput.focus(); }, 120);
+            try {
+                const backdrop = document.getElementById("locked-buses-modal-backdrop");
+                const searchInput = document.getElementById("locked-bus-search-input");
+                if (!backdrop) return;
+                if (searchInput) searchInput.value = "";
+                backdrop.style.display = "flex";
+                backdrop.setAttribute("aria-hidden", "false");
+                document.body.style.overflow = "hidden";
+                try {
+                    renderLockedBusesModalContent("");
+                } catch (renderErr) {
+                    console.error("Error rendering locked buses content:", renderErr);
+                }
+                setTimeout(() => { if (searchInput) searchInput.focus(); }, 120);
+            } catch (err) {
+                console.error("Error in openLockedBusesModal:", err);
+            }
         }
 
         function closeLockedBusesModal() {
-            const backdrop = document.getElementById("locked-buses-modal-backdrop");
-            if (!backdrop) return;
-            backdrop.style.display = "none";
-            backdrop.setAttribute("aria-hidden", "true");
-            document.body.style.overflow = "";
+            try {
+                const backdrop = document.getElementById("locked-buses-modal-backdrop");
+                if (!backdrop) return;
+                backdrop.style.display = "none";
+                backdrop.setAttribute("aria-hidden", "true");
+                document.body.style.overflow = "";
+            } catch (err) {
+                console.error("Error in closeLockedBusesModal:", err);
+            }
         }
+
+        window.openLockedBusesModal = openLockedBusesModal;
+        window.closeLockedBusesModal = closeLockedBusesModal;
 
         function unlockBusFromAdmin(bm) {
             if (!bm) return;
@@ -4198,6 +4881,8 @@
             renderLockedBusesModalContent(document.getElementById("locked-bus-search-input")?.value || "");
             recommend();
         }
+
+        window.unlockBusFromAdmin = unlockBusFromAdmin;
 
         function renderLockedBusesModalContent(searchQuery = "") {
             const rawLocked = _getLockedBuses();
@@ -4415,6 +5100,28 @@
             `;
         }
 
+        function initLockedBusesListeners() {
+            const btn = document.getElementById("locked-buses-topbar-btn");
+            if (btn) btn.addEventListener("click", openLockedBusesModal);
+            const closeBtn = document.getElementById("close-locked-modal-btn");
+            if (closeBtn) closeBtn.addEventListener("click", closeLockedBusesModal);
+            const backdrop = document.getElementById("locked-buses-modal-backdrop");
+            if (backdrop) backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) closeLockedBusesModal();
+            });
+            const searchInput = document.getElementById("locked-bus-search-input");
+            if (searchInput) {
+                searchInput.addEventListener("input", () => {
+                    renderLockedBusesModalContent(searchInput.value);
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initLockedBusesListeners);
+        } else {
+            initLockedBusesListeners();
+        }
+
         function updateAllocationPanel() {
             recommend();
         }
@@ -4447,12 +5154,10 @@
             const busCatRule = document.getElementById("bus-category-rule");
             const matrixStatusRule = document.getElementById("matrix-status-rule");
 
-            // Execute allocation engine for this route, shift, time & battery state
+            // Compute matched schedule without auto-selecting candidate bus
             if (selectedRouteObj) {
                 const allocResult = allocateBus(selectedRouteObj, departure);
-                currentlyAllocatedBus = allocResult.allocated;
                 currentScheduleMatch = allocResult.matchedSched;
-                renderAllocatedCard(allocResult);
             }
 
             // Determine schedule complexity & route category:
@@ -4480,39 +5185,10 @@
                     complexity = (routeDistance >= 20 ? "complex" : (routeDistance >= 10 ? "moderate" : "simple"));
                 }
             }
+            const isComplexRoute = (complexity === "complex");
             const routeCategoryLabel = schedCat || (complexity === "simple" ? "Standard" : (complexity === "complex" ? "Complex" : "Moderate"));
 
-            const busShortName = (selectedRouteObj && (selectedRouteObj.code || selectedRouteObj.routeShortName)) || (currentlyAllocatedBus && (currentlyAllocatedBus.busShortName || currentlyAllocatedBus.busNumber)) || "500DC";
-
-            if (!currentlyAllocatedBus) {
-                if (titleEl) titleEl.textContent = `Allocation result of ${busShortName} (No eligible bus)`;
-                if (socResult) socResult.textContent = "—";
-                if (rangeResult) rangeResult.textContent = "—";
-                if (socKpi) socKpi.style.opacity = "0.4";
-                if (rangeKpi) rangeKpi.style.opacity = "0.4";
-                if (currentSocRule) currentSocRule.textContent = "—";
-                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
-                if (rangeRule) rangeRule.textContent = routeCategoryLabel;
-                if (timeRule) timeRule.textContent = "—";
-                if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
-                if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
-                updateSelectedBusDutyBanner();
-                updateRouteKpis(selectedRouteObj, departure);
-                return;
-            }
-
-            const assignedVehicle = currentlyAllocatedBus.bm;
-            const liveSoc = currentlyAllocatedBus.liveSoc;
-            const rangeValue = currentlyAllocatedBus.fullDutyKm;
-            const grossDutyDist = Math.round(liveSoc * 1.42);
-
-            if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
-            if (socKpi) socKpi.style.opacity = "1";
-            if (rangeKpi) rangeKpi.style.opacity = "1";
-
-            const busCategory = currentlyAllocatedBus.busCategory || getBusCategory(assignedVehicle, liveSoc);
-            const isComplexRoute = (complexity === "complex");
+            const busShortName = (selectedRouteObj && (selectedRouteObj.code || selectedRouteObj.routeShortName)) || "500DC";
 
             const departHours = departMinutes / 60;
             let timeCategoryKey = "NORMAL";
@@ -4534,6 +5210,57 @@
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
             };
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
+
+            // When no bus is selected yet: DO NOT show recommended candidate bus!
+            if (!currentlyAllocatedBus) {
+                const card = document.getElementById("auto-allocated-card");
+                if (card) card.style.display = "none";
+                if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
+                if (socResult) socResult.textContent = "—";
+                if (rangeResult) rangeResult.textContent = "—";
+                if (socKpi) socKpi.style.opacity = "0.6";
+                if (rangeKpi) rangeKpi.style.opacity = "0.6";
+                if (currentSocRule) currentSocRule.textContent = "—";
+                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
+                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                if (rangeRule) rangeRule.textContent = routeCategoryLabel;
+                if (timeRule) timeRule.textContent = timeCategoryLabel;
+                const totalDistanceRuleEl = document.getElementById("route-distance-rule");
+                if (totalDistanceRuleEl) {
+                    totalDistanceRuleEl.textContent = `${routeDistance.toFixed(2)} km`;
+                }
+                if (busCatRule) {
+                    busCatRule.textContent = isComplexRoute ? "Category A (Required for Complex Route)" : "—";
+                    busCatRule.style.color = isComplexRoute ? "#16a34a" : "";
+                }
+                if (matrixStatusRule) {
+                    matrixStatusRule.textContent = isComplexRoute ? "⚠️ Select an available Category A bus" : "Select an available bus";
+                    matrixStatusRule.style.color = isComplexRoute ? "#b45309" : "#64748b";
+                }
+                updateSelectedBusDutyBanner();
+                updateRouteKpis(selectedRouteObj, departure);
+                return;
+            }
+
+            // A bus has been selected! Render its details:
+            renderAllocatedCard({
+                allocated: currentlyAllocatedBus,
+                matchedSched: currentScheduleMatch,
+                shift: currentlyAllocatedBus.shift,
+                departureTime: departure,
+                reqSoc: currentlyAllocatedBus.reqSoc
+            });
+
+            const assignedVehicle = currentlyAllocatedBus.bm;
+            const liveSoc = currentlyAllocatedBus.liveSoc;
+            const rangeValue = currentlyAllocatedBus.fullDutyKm;
+            const grossDutyDist = Math.round(liveSoc * 1.42);
+
+            if (titleEl) titleEl.textContent = `Allocation result of ${assignedVehicle} (${busShortName})`;
+            if (socKpi) socKpi.style.opacity = "1";
+            if (rangeKpi) rangeKpi.style.opacity = "1";
+
+            const busCategory = currentlyAllocatedBus.busCategory || getBusCategory(assignedVehicle, liveSoc);
             const timeCatInfo = getTimeCategory(departure);
             const isPeakTime = timeCatInfo.isPeak;
             const requiresCatA = isComplexRoute || isPeakTime;
@@ -4576,16 +5303,31 @@
             // NOTE: renderRoutes() is called AFTER API data loads below, not here with empty data
 
             try {
-                const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse] = await Promise.all([
+                const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
                     fetch("/api/routes"),
                     fetch("/api/gtfs-schedules").catch(() => null),
                     fetch("/api/bus-state").catch(() => null),
                     fetch("/api/bus-assignments").catch(() => null),
-                    fetch("/api/corridor-schedules").catch(() => null)
+                    fetch("/api/corridor-schedules").catch(() => null),
+                    fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null))
                 ]);
 
                 const routesPayload = routesResponse && routesResponse.ok ? await routesResponse.json() : {};
                 routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
+
+                if (busCategoriesResponse && busCategoriesResponse.ok) {
+                    try {
+                        const bcData = await busCategoriesResponse.json();
+                        const rawBuses = Array.isArray(bcData.buses) ? bcData.buses : (bcData.buses ? Object.values(bcData.buses) : (Array.isArray(bcData) ? bcData : []));
+                        rawBuses.forEach(b => {
+                            if (b && b.bm_number && b.category) {
+                                busCategoriesMap.set(String(b.bm_number).toUpperCase().trim(), String(b.category).toUpperCase().trim());
+                            }
+                        });
+                    } catch (e) {
+                        console.warn("Could not parse bus categories:", e);
+                    }
+                }
 
                 if (busStateResponse && busStateResponse.ok) {
                     const busStatePayload = await busStateResponse.json();
@@ -4658,18 +5400,35 @@
                 renderRoutes(true);
 
                 routeSelect.addEventListener("change", async () => {
+                    currentlyAllocatedBus = null;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
                     renderRoutes(true);
                     await recommend();
+                    const availContainer = document.getElementById("available-buses-container");
+                    if (availContainer && availContainer.style.display !== "none") {
+                        renderAvailableBusesForDeparture();
+                    }
                 });
                 routeSearch.addEventListener("input", async () => {
+                    currentlyAllocatedBus = null;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
                     renderRoutes(true);
                     await recommend();
+                    const availContainer = document.getElementById("available-buses-container");
+                    if (availContainer && availContainer.style.display !== "none") {
+                        renderAvailableBusesForDeparture();
+                    }
                 });
                 if (scheduledTimeSelect) {
                     scheduledTimeSelect.addEventListener("change", async () => {
+                        currentlyAllocatedBus = null;
+                        const card = document.getElementById("auto-allocated-card");
+                        if (card) card.style.display = "none";
                         const depInput = document.getElementById("departure");
                         if (depInput && scheduledTimeSelect.value) {
                             depInput.value = scheduledTimeSelect.value;
@@ -4677,11 +5436,18 @@
                         syncScheduleTiming();
                         renderRoutes(true);
                         await recommend();
+                        const availContainer = document.getElementById("available-buses-container");
+                        if (availContainer && availContainer.style.display !== "none") {
+                            renderAvailableBusesForDeparture();
+                        }
                     });
                 }
                 const depInput = document.getElementById("departure");
                 if (depInput) {
                     const handleDeparture = async () => {
+                        currentlyAllocatedBus = null;
+                        const card = document.getElementById("auto-allocated-card");
+                        if (card) card.style.display = "none";
                         const val = depInput.value;
                         if (scheduledTimeSelect && val) {
                             const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
@@ -4705,9 +5471,27 @@
                         syncScheduleTiming();
                         renderRoutes(true);
                         await recommend();
+                        const availContainer = document.getElementById("available-buses-container");
+                        if (availContainer && availContainer.style.display !== "none") {
+                            renderAvailableBusesForDeparture();
+                        }
                     };
                     depInput.addEventListener("input", handleDeparture);
                     depInput.addEventListener("change", handleDeparture);
+                }
+
+                // ── Interactive Buses Available for Departure KPI and dropdown ──
+                const kpiBusDep = document.getElementById("kpi-bus-departure");
+                if (kpiBusDep) {
+                    kpiBusDep.addEventListener("click", () => {
+                        toggleAvailableBusesList();
+                    });
+                }
+                const btnCloseAvail = document.getElementById("btn-close-available-buses");
+                if (btnCloseAvail) {
+                    btnCloseAvail.addEventListener("click", () => {
+                        toggleAvailableBusesList(false);
+                    });
                 }
 
                 const recBtn = document.getElementById("recommend");
@@ -4727,9 +5511,20 @@
                         }
 
                         // Run bus allocation engine for this route, shift, time & battery state
-                        const allocResult = allocateBus(routeObj, departureTime);
-                        currentlyAllocatedBus = allocResult.allocated;
-                        currentScheduleMatch = allocResult.matchedSched;
+                        let allocResult = null;
+                        if (currentlyAllocatedBus) {
+                            allocResult = {
+                                allocated: currentlyAllocatedBus,
+                                matchedSched: currentScheduleMatch,
+                                shift: currentlyAllocatedBus.shift,
+                                departureTime: departureTime,
+                                reqSoc: currentlyAllocatedBus.reqSoc
+                            };
+                        } else {
+                            allocResult = allocateBus(routeObj, departureTime);
+                            currentlyAllocatedBus = allocResult.allocated;
+                            currentScheduleMatch = allocResult.matchedSched;
+                        }
                         renderAllocatedCard(allocResult);
 
                         if (!allocResult || !allocResult.allocated) {
@@ -4744,14 +5539,23 @@
                         const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
 
                         // Check if this bus is already allocated
-                        const existingIndex = allocatedDuties.findIndex(d => String(d.bm).toUpperCase() === String(alloc.bm).toUpperCase());
-                        const existingDuty = existingIndex >= 0 ? allocatedDuties[existingIndex] : null;
-
-                        if (existingDuty && existingDuty.routeCode === routeObj.code && existingDuty.departureTime === departureTime) {
-                            showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
-                            scrollToAllocatedDuty(existingDuty.id);
-                            return;
+                        const existingDuty = findAllocatedDutyForBm(alloc.bm, allocatedDuties);
+                        if (existingDuty) {
+                            const exRoute = normalizeRoute(existingDuty.routeCode || existingDuty.busNumber || existingDuty.routeId);
+                            const curRoute = normalizeRoute(routeObj.code);
+                            if (exRoute && curRoute && exRoute !== curRoute) {
+                                showAllocationToast(`⚠️ Bus ${alloc.bm} is already allocated to Route ${existingDuty.routeCode || existingDuty.busNumber} at ${existingDuty.departureTime}. It cannot be allocated to Route ${routeObj.code}!`, "error");
+                                return;
+                            }
+                            if (existingDuty.departureTime === departureTime) {
+                                showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
+                                scrollToAllocatedDuty(existingDuty.id);
+                                return;
+                            }
                         }
+                        const existingIndex = allocatedDuties.findIndex(d => {
+                            return [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normalizeBm(alloc.bm));
+                        });
 
                         const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
                         const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
@@ -4867,20 +5671,6 @@
                         renderScheduledTime();
                     });
                 });
-
-                const departureEl = document.getElementById("departure");
-                if (departureEl) {
-                    departureEl.addEventListener("input", async () => {
-                        await syncScheduleTiming();
-                        renderRoutes();
-                        await recommend();
-                    });
-                    departureEl.addEventListener("change", async () => {
-                        await syncScheduleTiming();
-                        renderRoutes();
-                        await recommend();
-                    });
-                }
 
                 // Region-specific search listeners
                 if (allocatedSearchInput) {
@@ -5057,7 +5847,57 @@
 
         loadData();
 
-        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated)
+        // Cross-tab real-time sync with Charging Portal
+        async function refreshBusStatesSilently() {
+            try {
+                const res = await fetch("/api/bus-state");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.state) {
+                        let changed = false;
+                        for (const [bm, st] of Object.entries(data.state)) {
+                            const upperBm = String(bm).toUpperCase();
+                            const newSoc = Number(st.soc);
+                            if (Number.isFinite(newSoc)) {
+                                if (!busStates[upperBm] || busStates[upperBm].soc !== newSoc) {
+                                    changed = true;
+                                    if (!busStates[upperBm]) busStates[upperBm] = {};
+                                    busStates[upperBm].soc = newSoc;
+                                    busStates[upperBm].fullDutyDistanceKm = Math.round(newSoc * 1.42);
+                                    localStorage.setItem("depot_bus_soc_" + upperBm, String(newSoc));
+                                }
+                            }
+                        }
+                        syncLocalStorageBusStates();
+                        if (changed) {
+                            await recommend();
+                        }
+                    }
+                }
+            } catch(e) {}
+        }
+
+        // Silent 3-second polling ensures immediate reflection from Charging Portal
+        setInterval(refreshBusStatesSilently, 3000);
+
+        try {
+            const bc = new BroadcastChannel('depot_soc_sync');
+            bc.onmessage = async (ev) => {
+                if (ev && ev.data && ev.data.bm) {
+                    const uBm = String(ev.data.bm).toUpperCase();
+                    const nSoc = Number(ev.data.soc);
+                    if (!busStates[uBm]) busStates[uBm] = {};
+                    busStates[uBm].soc = nSoc;
+                    busStates[uBm].fullDutyDistanceKm = Math.round(nSoc * 1.42);
+                    localStorage.setItem("depot_bus_soc_" + uBm, String(nSoc));
+                    syncLocalStorageBusStates();
+                    await recommend();
+                }
+            };
+        } catch(e) {}
+
+
+        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated, or allocated in AD portal)
         window.addEventListener('storage', (e) => {
             if (e.key === 'depot_locked_buses') {
                 renderRoutes();
@@ -5072,6 +5912,22 @@
                 allocatedDuties = loadAllocatedDuties();
                 renderRoutes();
                 recommend();
+                const availContainer = document.getElementById("available-buses-container");
+                if (availContainer && availContainer.style.display !== "none") {
+                    renderAvailableBusesForDeparture();
+                }
+            }
+        });
+
+        // Auto-sync when switching back to this tab
+        window.addEventListener('focus', () => {
+            syncLocalStorageBusStates();
+            allocatedDuties = loadAllocatedDuties();
+            renderRoutes();
+            recommend();
+            const availContainer = document.getElementById("available-buses-container");
+            if (availContainer && availContainer.style.display !== "none") {
+                renderAvailableBusesForDeparture();
             }
         });
     </script>
