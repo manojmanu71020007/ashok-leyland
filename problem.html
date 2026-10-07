@@ -3431,7 +3431,7 @@
             ].filter(Boolean).join(" ");
             const routeDist = Number(route.gtfsDistanceKm) || 0;
             const routeCat = rangeInfo.routeCategory || (routeDist >= 20 ? "COMPLEX" : (routeDist >= 10 ? "MODERATE" : "SIMPLE"));
-            const busCat = rangeInfo.busCategory || (estRange > 120 ? "A" : (estRange >= 100 ? "B" : "C"));
+            const busCat = rangeInfo.busCategory || getBusCategory(assignedVehicle, soc);
             const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
             const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
             const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
@@ -4498,7 +4498,8 @@
             if (socKpi) socKpi.style.opacity = "1";
             if (rangeKpi) rangeKpi.style.opacity = "1";
 
-            const busCategory = rangeValue > 120 ? "A" : (rangeValue >= 100 ? "B" : "C");
+            const busCategory = currentlyAllocatedBus.busCategory || getBusCategory(assignedVehicle, liveSoc);
+            const isComplexRoute = (complexity === "complex");
 
             const departHours = departMinutes / 60;
             let timeCategoryKey = "NORMAL";
@@ -4520,7 +4521,7 @@
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
             };
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
-            const isMatrixCompliant = allowedCategories.includes(busCategory);
+            const isMatrixCompliant = isComplexRoute ? (busCategory === "A") : allowedCategories.includes(busCategory);
 
             if (socResult) socResult.textContent = `${liveSoc}%`;
             if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
