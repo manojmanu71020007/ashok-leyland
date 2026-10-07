@@ -5922,11 +5922,11 @@
   },
   "BM273": {
     "status": "Active",
-    "rawStatus": "On Time",
-    "soc": 88,
+    "rawStatus": "Active",
+    "soc": 95,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-07T13:34:47.369Z",
+    "updatedAt": "2026-10-07T13:58:17.655Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -5946,12 +5946,24 @@
     "chargerBay": null,
     "socBefore": 20,
     "socAfter": 88,
-    "fullDutyDistanceKm": 111,
+    "fullDutyDistanceKm": 121,
     "lastChargedTime": null,
     "history": [
       {
         "timestamp": "2026-10-07T13:34:47.369Z",
         "soc": 88,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-07T13:54:40.928Z",
+        "soc": 88,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-07T13:58:17.655Z",
+        "soc": 95,
         "condition": "Good",
         "status": "On Time"
       }
@@ -5962,7 +5974,7 @@
     "assignedRouteId": "BM273",
     "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true
+    "blocked": false
   },
   "BUS-93": {
     "uniqueId": "BUS-93",
@@ -7565,7 +7577,6 @@
     "BM269",
     "BM271",
     "BM272",
-    "BM273",
     "BM274",
     "BM275",
     "BM276",
@@ -7774,11 +7785,11 @@
   },
   "600F": {
     "status": "Blocked",
-    "rawStatus": "On Time",
+    "rawStatus": "Active",
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-07T13:34:47.369Z",
+    "updatedAt": "2026-10-07T13:58:17.655Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -7798,12 +7809,24 @@
     "chargerBay": null,
     "socBefore": 20,
     "socAfter": 88,
-    "fullDutyDistanceKm": 111,
+    "fullDutyDistanceKm": 121,
     "lastChargedTime": null,
     "history": [
       {
         "timestamp": "2026-10-07T13:34:47.369Z",
         "soc": 88,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-07T13:54:40.928Z",
+        "soc": 88,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-07T13:58:17.655Z",
+        "soc": 95,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10827,18 +10850,18 @@
       "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 88,
+      "matrixCompliant": true,
+      "soc": 95,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 111,
-      "fullDutyDistanceKm": 111,
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM274": {
       "uniqueId": "BM274",
@@ -14469,18 +14492,18 @@
       "assignedRouteDisplay": "Route BM273 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 88,
+      "matrixCompliant": true,
+      "soc": 95,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 111,
-      "fullDutyDistanceKm": 111,
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM274": {
       "uniqueId": "BM274",
@@ -15388,7 +15411,6 @@
     "BM269",
     "BM271",
     "BM272",
-    "BM273",
     "BM274",
     "BM275",
     "BM276",
@@ -17173,19 +17195,19 @@
       "bmNumber": "BM273",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 88,
+      "matrixCompliant": true,
+      "soc": 95,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 111,
-      "fullDutyDistanceKm": 111,
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": true
+      "blocked": false
     },
     "BM274": {
       "assignedVehicle": "BM274",

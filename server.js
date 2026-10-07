@@ -2048,10 +2048,10 @@ const server = http.createServer(async (req, res) => {
                 req.on("end", () => {
                     try {
                         const payload = body ? JSON.parse(body) : {};
-                        const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
+                        const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.busNumber || payload.bm_no || payload.bmNumber || payload.routeId || "").trim();
 
                         if (!rawId) {
-                            sendJson(res, { ok: false, error: "unique_id or bus (or routeId) is required" }, 400);
+                            sendJson(res, { ok: false, error: "unique_id or bus (or routeId or busNumber) is required" }, 400);
                             return;
                         }
 
@@ -2185,7 +2185,7 @@ const server = http.createServer(async (req, res) => {
                         }
                     }
 
-                    const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.routeId || "").trim();
+                    const rawId = String(payload.unique_id || payload.uniqueId || payload.bus || payload.bus_id || payload.bus_name || payload.busNumber || payload.routeId || "").trim();
                     if (!rawId) {
                         sendJson(res, { ok: false, error: "unique_id or bus (or routeId) is required" }, 400);
                         return;
