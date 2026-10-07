@@ -2654,7 +2654,10 @@ let busCategoriesMap = new Map();
         const LOCKED_KEY = 'depot_locked_buses';
 
         function _getLockedBuses() {
-            try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
+            try {
+                const parsed = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
+                return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+            } catch { return []; }
         }
 
         function getBusLockInfo(routeOrBm) {
@@ -4879,6 +4882,8 @@ let busCategoriesMap = new Map();
             recommend();
         }
 
+        window.unlockBusFromAdmin = unlockBusFromAdmin;
+
         function renderLockedBusesModalContent(searchQuery = "") {
             const rawLocked = _getLockedBuses();
             const topbarCount = document.getElementById("topbar-locked-count");
@@ -5093,6 +5098,28 @@ let busCategoriesMap = new Map();
                     </table>
                 </div>
             `;
+        }
+
+        function initLockedBusesListeners() {
+            const btn = document.getElementById("locked-buses-topbar-btn");
+            if (btn) btn.addEventListener("click", openLockedBusesModal);
+            const closeBtn = document.getElementById("close-locked-modal-btn");
+            if (closeBtn) closeBtn.addEventListener("click", closeLockedBusesModal);
+            const backdrop = document.getElementById("locked-buses-modal-backdrop");
+            if (backdrop) backdrop.addEventListener("click", (e) => {
+                if (e.target === backdrop) closeLockedBusesModal();
+            });
+            const searchInput = document.getElementById("locked-bus-search-input");
+            if (searchInput) {
+                searchInput.addEventListener("input", () => {
+                    renderLockedBusesModalContent(searchInput.value);
+                });
+            }
+        }
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initLockedBusesListeners);
+        } else {
+            initLockedBusesListeners();
         }
 
         function updateAllocationPanel() {
