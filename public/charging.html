@@ -544,10 +544,8 @@
   </div>
 </div>
 
-<!-- ── Charging Session Details ── -->
+<!-- ── Charging & Battery SOC ── -->
 <div class="card">
-  <div class="card-title">⚡ Session Details</div>
-
   <!-- Single Charge Operation (Form 4 Transit Standard) -->
   <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
@@ -595,36 +593,6 @@
       <span class="soc-value" id="socAfterDisp">80%</span>
     </div>
     <div class="soc-bar-bg"><div class="soc-bar-fill" id="socBarAfter" style="width:80%"></div></div>
-  </div>
-
-  <!-- Start / End Time -->
-  <div class="form-group">
-    <div class="form-row">
-      <div>
-        <label>Charging Start Time</label>
-        <input type="time" id="startTime" />
-      </div>
-      <div>
-        <label>Charging End Time</label>
-        <input type="time" id="endTime" />
-      </div>
-    </div>
-  </div>
-
-  <!-- Charger ID -->
-  <div class="form-group">
-    <label>Charger / Bay</label>
-    <select id="chargerSelect">
-      <option value="">— Select charger bay —</option>
-      <option>Bay 01</option>
-      <option>Bay 02</option>
-      <option>Bay 03</option>
-      <option>Bay 04</option>
-      <option>Bay 05</option>
-      <option>Bay 06</option>
-      <option>Bay 07</option>
-      <option>Bay 08</option>
-    </select>
   </div>
 
   <!-- Charging Status -->
@@ -816,18 +784,18 @@
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const regNo = getRegNoForBm(bm);
-    const bay = document.getElementById('chargerSelect').value || 'Bay 01';
+    const bay = 'Charging Bay';
 
     if (!locked.some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'))) {
       locked.push({
         bm,
         reg: regNo,
         page: 'charging',
-        reason: `Under Fast Charging (${bay}, target 100% floor)`,
+        reason: 'Under Fast Charging (target 100% floor)',
         startTime: fullTimeStr,
         time: timeStr,
         startTimestamp: Date.now(),
-        startSoc: document.getElementById('socBefore').value || '20',
+        startSoc: document.getElementById('socBefore')?.value || '20',
         chargerBay: bay
       });
     }
@@ -850,7 +818,7 @@
 
     const socBef   = document.getElementById('socBefore').value;
     const socAft   = document.getElementById('socAfter').value;
-    const bay      = document.getElementById('chargerSelect').value || (lockEntry?.chargerBay || 'Bay 01');
+    const bay      = lockEntry?.chargerBay || 'Charging Bay';
     const status   = selectedPillValue;
     const remarks  = document.getElementById('remarks').value.trim();
 
@@ -955,7 +923,6 @@
     updateSOC('Before', '20');
     updateSOC('After',  '80');
     document.getElementById('remarks').value   = '';
-    document.getElementById('chargerSelect').value = '';
 
     showToast(`⚡ Bus ${bm} unlocked & Charging Verification Record saved! (${socAft}% SoC • ${fullDutyKm} km Full Duty)`, 'success', 4000);
   }
@@ -1200,7 +1167,7 @@
         <span class="detail-modal-val">${item.chargerBay || item.bay}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">Session Status:</span>
+        <span class="detail-modal-label">Charging Status:</span>
         <span class="detail-modal-val" style="color:#16a34a;">${item.chargingStatus || item.status}</span>
       </div>
       <div class="detail-modal-row">
@@ -1325,11 +1292,6 @@
       ];
     }
     filterBuses();
-    const now = new Date();
-    const hhmm = t => `${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`;
-    const oneHrAgo = new Date(now - 3600000);
-    document.getElementById('startTime').value = hhmm(oneHrAgo);
-    document.getElementById('endTime').value   = hhmm(now);
   }
 
   function renderDropdown(list) {
@@ -1504,7 +1466,7 @@
               </button>
               <span style="font-size:0.8rem;color:var(--muted);">${e.reg || ''}</span>
               <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#dcfce7;color:#166534;font-weight:700;">${e.startSoc || '20%'} ➔ ${e.finalSoc || '80%'}</span>
-              <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-weight:600;">${e.chargerBay || e.bay || 'Bay'}</span>
+              <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-weight:600;">${e.chargingStatus || e.status || 'Completed'}</span>
             </div>
             <span class="click-details-tag">👉 View Record ›</span>
           </div>
