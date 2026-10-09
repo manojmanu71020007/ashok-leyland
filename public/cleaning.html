@@ -494,7 +494,7 @@
   <!-- Lock / Unlock Row -->
   <div class="lock-row" id="lockRow">
     <button type="button" class="btn-lock" id="lockBtn" onclick="lockBus()">🔒 Lock Bus for Cleaning</button>
-    <button type="button" class="btn-unlock disabled" id="unlockBtn" onclick="handleUnlockAndSubmit()" style="display:none;" title="Please complete all 10 checklists to unlock and submit record">🔓 Unlock &amp; Submit Cleaning Record</button>
+    <button type="button" class="btn-unlock disabled" id="unlockBtn" onclick="handleUnlockAndSubmit()" style="display:none;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record">🔓 Unlock &amp; Submit Cleaning Record</button>
   </div>
 
   <!-- Other Lock Warning -->
@@ -502,7 +502,7 @@
 
   <!-- Checklist warning comment for 7 seconds -->
   <div id="checklistWarningText" style="display:none; margin-top:10px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:11px 16px; color:#991b1b; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;">
-    <span>⚠️ Please complete all 10 cleaning checklists before unlocking &amp; submitting this bus!</span>
+    <span>⚠️ Please complete both Interior and Exterior cleaning checklists before unlocking &amp; submitting this bus!</span>
   </div>
 
   <!-- Lock Banner for currently selected bus -->
@@ -522,16 +522,8 @@
 <div class="card">
   <div class="card-title">✅ Cleaning Checklist</div>
   <div class="checklist">
-    <div class="check-item"><input type="checkbox" id="c1" onchange="updateChecklistAndUnlockState()"><label for="c1">Interior floor swept &amp; mopped</label></div>
-    <div class="check-item"><input type="checkbox" id="c2" onchange="updateChecklistAndUnlockState()"><label for="c2">Seats wiped down (all rows)</label></div>
-    <div class="check-item"><input type="checkbox" id="c3" onchange="updateChecklistAndUnlockState()"><label for="c3">Handrails &amp; handholds sanitized</label></div>
-    <div class="check-item"><input type="checkbox" id="c4" onchange="updateChecklistAndUnlockState()"><label for="c4">Windows cleaned (interior)</label></div>
-    <div class="check-item"><input type="checkbox" id="c5" onchange="updateChecklistAndUnlockState()"><label for="c5">Driver cabin cleaned</label></div>
-    <div class="check-item"><input type="checkbox" id="c6" onchange="updateChecklistAndUnlockState()"><label for="c6">Exterior body washed</label></div>
-    <div class="check-item"><input type="checkbox" id="c7" onchange="updateChecklistAndUnlockState()"><label for="c7">Exterior windows wiped</label></div>
-    <div class="check-item"><input type="checkbox" id="c8" onchange="updateChecklistAndUnlockState()"><label for="c8">Destination board / LED display cleaned</label></div>
-    <div class="check-item"><input type="checkbox" id="c9" onchange="updateChecklistAndUnlockState()"><label for="c9">Wheel arches &amp; undercarriage rinsed</label></div>
-    <div class="check-item"><input type="checkbox" id="c10" onchange="updateChecklistAndUnlockState()"><label for="c10">Bin emptied &amp; replaced</label></div>
+    <div class="check-item"><input type="checkbox" id="c1" onchange="updateChecklistAndUnlockState()"><label for="c1">Interior Cleaning</label></div>
+    <div class="check-item"><input type="checkbox" id="c2" onchange="updateChecklistAndUnlockState()"><label for="c2">Exterior Cleaning</label></div>
   </div>
 
   <div style="margin-top: 16px;">
@@ -546,11 +538,11 @@
     <button type="button" class="btn-lock" id="actionLockBtn" onclick="lockBus()" style="display:none; width:100%; font-size:1rem; padding:14px;">
       🔒 Lock Bus for Cleaning
     </button>
-    <button type="button" class="btn-unlock disabled" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;" title="Please complete all 10 checklists to unlock and submit record">
+    <button type="button" class="btn-unlock disabled" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record">
       🔓 Unlock &amp; Submit Cleaning Record
     </button>
     <div id="actionHelperText" style="font-size:0.83rem; color:var(--muted); text-align:center;">
-      🔒 Lock the bus when washing begins. Once all 10 checklist items are checked, click Unlock to submit the Verification Record.
+      🔒 Lock the bus when washing begins. Once Interior and Exterior cleaning are checked, click Unlock to submit the Verification Record.
     </div>
   </div>
 </div>
@@ -695,7 +687,7 @@
   let sessionSelectionTs = Date.now();
 
   function checkAllChecklistsDone() {
-    const ids = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'];
+    const ids = ['c1', 'c2'];
     return ids.every(id => {
       const el = document.getElementById(id);
       return el && el.checked;
@@ -712,10 +704,10 @@
       if (!btn) return;
       if (allDone) {
         btn.classList.remove('disabled');
-        btn.title = 'All 10 checklists verified. Click to unlock bus and submit Cleaning Record.';
+        btn.title = 'Interior and Exterior cleaning verified. Click to unlock bus and submit Cleaning Record.';
       } else {
         btn.classList.add('disabled');
-        btn.title = 'Please complete all 10 checklists to unlock and submit record';
+        btn.title = 'Please complete both Interior and Exterior cleaning checks to unlock and submit record';
       }
     });
 
@@ -781,7 +773,7 @@
 
     const allDone = checkAllChecklistsDone();
     if (!allDone) {
-      showToast('⚠️ Complete all 10 checklists before unlocking & submitting this bus!', 'error', 7000);
+      showToast('⚠️ Complete both Interior and Exterior cleaning checks before unlocking & submitting this bus!', 'error', 7000);
       showChecklistWarning(7000);
       return;
     }
@@ -799,7 +791,7 @@
     const diffMins = Math.round(diffMs / 60000);
     const duration = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
 
-    const checks = ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].map(id => ({
+    const checks = ['c1', 'c2'].map(id => ({
       label: document.querySelector(`label[for="${id}"]`)?.textContent || id,
       done: document.getElementById(id)?.checked || false,
     }));
@@ -817,7 +809,7 @@
       totalDone: totalDone,
       total: checks.length,
       finalStage: 'Interior & Exterior Cleaned — Cleared for Service Dispatch',
-      tasksSummary: 'All 10 standard depot washing & sanitization checks verified',
+      tasksSummary: 'Interior & Exterior cleaning verified',
       clearanceState: '✅ Inspection Passed: Cleared for Schedule Allocation',
       remarks: remarks || 'Cleaning, sweeping, and washing completed. Vehicle returned to active fleet pool.',
       timeStr: timeStr,
@@ -841,7 +833,7 @@
     document.getElementById('searchInput').value = '';
     document.getElementById('busInfoBox').classList.remove('show');
     updateLockUI('');
-    ['c1','c2','c3','c4','c5','c6','c7','c8','c9','c10'].forEach(id => {
+    ['c1', 'c2'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.checked = false;
     });
@@ -896,7 +888,7 @@
       if (unlockBtn) unlockBtn.style.display = 'inline-flex';
       if (actionUnlockBtn) actionUnlockBtn.style.display = 'inline-flex';
 
-      lockBanner.innerHTML = `🔒 <strong>${bm}</strong> is locked for <strong>Cleaning</strong>. Complete all 10 checklists, then click Unlock &amp; Submit Cleaning Record.`;
+      lockBanner.innerHTML = `🔒 <strong>${bm}</strong> is locked for <strong>Cleaning</strong>. Complete Interior &amp; Exterior cleaning, then click Unlock &amp; Submit Cleaning Record.`;
       lockBanner.classList.add('show');
       updateChecklistAndUnlockState();
     } else {
@@ -1003,10 +995,10 @@
         startTime: fmt(t0),
         unlockTime: fmt(t1),
         duration: '35 mins',
-        totalDone: 10,
-        total: 10,
-        finalStage: 'Interior Mopping, Seat Sanitization & High-Pressure Wash Complete',
-        tasksSummary: '10 of 10 tasks verified (Floor, Seats, Handrails, Windows, LED Board)',
+        totalDone: 2,
+        total: 2,
+        finalStage: 'Interior & Exterior Cleaning Complete',
+        tasksSummary: '2 of 2 tasks verified (Interior Cleaning, Exterior Cleaning)',
         clearanceState: '✅ Inspection Passed: Cleared for Schedule Allocation',
         remarks: 'Depot 32 bay inspection signed off. No exterior scratches.',
         timeStr: t1.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
@@ -1052,7 +1044,7 @@
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">Tasks Verified:</span>
-        <span class="detail-modal-val">${item.tasksSummary || `${item.totalDone || 10} of ${item.total || 10} tasks completed`}</span>
+        <span class="detail-modal-val">${item.tasksSummary || `${item.totalDone ?? 2} of ${item.total ?? 2} tasks completed`}</span>
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">Clearance Status:</span>
