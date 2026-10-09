@@ -191,6 +191,32 @@
       box-shadow: none !important;
     }
 
+    /* ── History Button ── */
+    .btn-history {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid var(--accent);
+      background: #f0fdf4;
+      color: var(--accent-dark);
+      transition: all 0.2s;
+    }
+    .btn-history:hover {
+      background: var(--accent);
+      color: #fff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(22,163,74,0.25);
+    }
+
+    #historyModal { z-index: 10000; }
+    #processDetailModal { z-index: 10050; }
+    #ongoingModal { z-index: 10020; }
+
     /* ── Lock / Unlock Button ── */
     .lock-row {
       display: none; margin-top: 14px; gap: 10px; align-items: center; flex-wrap: wrap;
@@ -198,16 +224,16 @@
     .lock-row.show { display: flex; }
     .btn-lock {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 20px; border-radius: 10px; border: none;
-      font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      padding: 11px 22px; border-radius: 10px; border: none;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
       background: linear-gradient(135deg, #dc2626, #b91c1c);
       color: #fff; box-shadow: 0 4px 12px rgba(220,38,38,0.28);
     }
     .btn-lock:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(220,38,38,0.38); }
     .btn-unlock {
       display: inline-flex; align-items: center; gap: 8px;
-      padding: 10px 20px; border-radius: 10px; border: none;
-      font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+      padding: 11px 22px; border-radius: 10px; border: none;
+      font-size: 0.92rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
       background: linear-gradient(135deg, #16a34a, #15803d);
       color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,0.28);
     }
@@ -498,16 +524,19 @@
 
   <!-- Lock / Unlock Row -->
   <div class="lock-row" id="lockRow">
-    <button class="btn-lock" id="lockBtn" onclick="lockBus()">🔒 Lock Bus for Charging</button>
-    <button class="btn-unlock" id="unlockBtn" onclick="unlockBus()" style="display:none;">🔓 Unlock Bus</button>
+    <button type="button" class="btn-lock" id="lockBtn" onclick="lockBus()">🔒 Lock Bus for Charging</button>
+    <button type="button" class="btn-unlock" id="unlockBtn" onclick="handleUnlockAndSubmit()" style="display:none;">🔓 Unlock &amp; Submit Charging Record</button>
   </div>
+
+  <!-- Other Lock Warning -->
+  <div id="otherLockWarning" style="display:none; margin-top:10px; background:#fffbeb; border:1.5px solid #fcd34d; border-radius:10px; padding:11px 16px; color:#92400e; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;"></div>
 
   <!-- Lock Banner for currently selected bus -->
   <div class="lock-banner" id="lockBanner">
-    🔒 This bus is currently <strong style="margin:0 4px;">locked for charging</strong> — hidden from Smart Tracking &amp; Scheduling.
+    ⚡ This bus is currently <strong style="margin:0 4px;">locked for charging</strong> — complete session and click Unlock to submit record.
   </div>
 
-  <!-- Ongoing Process Buttons (Replaces "🔒 Buses Currently Locked") -->
+  <!-- Ongoing Process Buttons -->
   <div class="ongoing-bar" id="ongoingBar" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <button type="button" class="btn-ongoing btn-ongoing-charge" id="ongoingChargingBtn" onclick="openOngoingModal('charging')">
       ⚡ Ongoing Charging <span class="ongoing-badge-pill" id="ongoingChargingCount">0</span>
@@ -616,24 +645,61 @@
   </div>
 </div>
 
-<!-- ── Submit ── -->
-<div class="card" style="padding: 18px 24px;">
-  <button type="button" class="btn btn-primary disabled" id="submitBtn" onclick="handleSubmitClick()">
-    Submit Charging Record
-  </button>
-  <!-- 7-second warning comment when locked in depot operations -->
-  <div id="submitWarningText" style="display:none; margin-top:12px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:12px 16px; color:#991b1b; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;">
-    <span id="submitWarningSpan">⚠️ Cannot submit record: This bus is currently locked in depot operations! Please complete the process and unlock the bus before submitting records.</span>
+<!-- ── Bay Action & Completion ── -->
+<div class="card" id="actionCard" style="padding: 18px 24px;">
+  <div style="display:flex; flex-direction:column; gap:10px;">
+    <button type="button" class="btn-lock" id="actionLockBtn" onclick="lockBus()" style="display:none; width:100%; font-size:1rem; padding:14px;">
+      🔒 Lock Bus for Charging
+    </button>
+    <button type="button" class="btn-unlock" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;">
+      🔓 Unlock &amp; Submit Charging Record
+    </button>
+    <div id="actionHelperText" style="font-size:0.83rem; color:var(--muted); text-align:center;">
+      ⚡ Lock the bus when plugged into bay. Once charge is confirmed, click Unlock to submit the Verification Record.
+    </div>
   </div>
 </div>
 
-<!-- ── Today's Charging Records ── -->
+<!-- ── Recent Charging Records (Top 5) ── -->
 <div class="card" id="logCard">
   <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <span>📋 Today's Charging Records</span>
-    <span style="font-size:0.75rem;font-weight:600;color:var(--muted);">Click any bus number to view full charging details</span>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span>📋 Recent Charging Records</span>
+      <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:700;">Recent 5</span>
+    </div>
+    <button type="button" class="btn-history" id="historyBtn" onclick="openHistoryModal()">
+      📜 History
+    </button>
   </div>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Displaying the 5 most recent bus charging records. Click any bus to view its full Verification Record, or click History for the complete log.</p>
   <ul class="log-list" id="logList"></ul>
+  <div id="historyMoreLink" style="margin-top:14px; text-align:center; display:none;">
+    <button type="button" onclick="openHistoryModal()" style="background:none;border:none;color:var(--accent-dark);font-weight:700;font-size:0.86rem;cursor:pointer;text-decoration:underline;">
+      📜 View Complete Charging Verification History (<span id="totalHistoryCount">0</span> records) ›
+    </button>
+  </div>
+</div>
+
+<!-- ── Verification Record History Modal ── -->
+<div class="detail-modal-backdrop" id="historyModal" style="display:none;" onclick="if(event.target===this)closeHistoryModal()">
+  <div class="detail-modal-box" style="max-width: 650px;">
+    <div class="detail-modal-header">
+      <div>
+        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;">Depot Archive</span>
+        <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;">📜 Charging Verification Record History</h2>
+      </div>
+      <button type="button" class="btn" onclick="closeHistoryModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
+    </div>
+    <div style="padding: 12px 22px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; gap:10px; align-items:center;">
+      <input type="text" id="historySearchInput" placeholder="Filter history by BM number, registration, bay or date…" oninput="filterHistoryList()" style="flex:1; padding:9px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:0.88rem;" />
+      <span style="font-size:0.8rem; font-weight:700; color:var(--muted); white-space:nowrap;" id="historyModalCount">0 records</span>
+    </div>
+    <div class="detail-modal-body" id="historyModalBody" style="max-height: 440px; overflow-y: auto;"></div>
+    <div class="detail-modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+      <button type="button" class="btn" onclick="clearAllHistory()" style="background:#fee2e2; color:#991b1b; padding:8px 14px; font-size:0.82rem;">Clear History</button>
+      <button type="button" class="btn" onclick="closeHistoryModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;">Close</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── Process Details Modal ── -->
@@ -674,20 +740,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  // One-time reset requested: set/clear initial localStorage state so all buses start at 0% as of now,
-  // and never reset again so future manual updates are permanently preserved.
-  try {
-    if (!localStorage.getItem('depot_battery_reset_zero_v2')) {
-      for (let i = localStorage.length - 1; i >= 0; i--) {
-        const k = localStorage.key(i);
-        if (k && (k.startsWith('depot_bus_soc_') || k === 'smartbus_allocated_duties' || k === 'depot_charging_event')) {
-          localStorage.removeItem(k);
-        }
-      }
-      localStorage.setItem('depot_battery_reset_zero_v2', '1');
-    }
-  } catch (e) {}
-
   let allVehicles = [];
   let filteredVehicles = [];
   let sessionLogs = [];
@@ -729,23 +781,16 @@
   function isBusInCleaning(bm, reg) {
     if (!bm && !reg) return false;
     const locked = getLockedBuses();
-    const isLockedClean = locked.some(x => {
+    return locked.some(x => {
       const isClean = String(x.page || '').toLowerCase().includes('clean');
       if (!isClean) return false;
       return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)) || (x.bm && reg && isSameBusId(x.bm, reg));
     });
-    if (isLockedClean) return true;
-
-    const activeSel = localStorage.getItem('depot_active_cleaning_selection');
-    if (activeSel && (isSameBusId(activeSel, bm) || (reg && isSameBusId(activeSel, reg)))) {
-      return true;
-    }
-    return false;
   }
 
   function getAvailableVehicles() {
-    // Mutual exclusion: If a particular bus is in cleaning (locked or selected), it is NEVER in the select box of charging!
-    return allVehicles.filter(v => !isBusInCleaning(v.bm_no, v.reg_no));
+    // All buses are always available for search and select
+    return [...allVehicles];
   }
 
   function getRegNoForBm(bm) {
@@ -755,12 +800,14 @@
 
   function lockBus() {
     const bm = document.getElementById('busSelect').value;
-    if (!bm) return;
+    if (!bm) {
+      showToast('⚠️ Please select a bus first.', 'error');
+      return;
+    }
 
-    if (isBusInCleaning(bm)) {
-      showToast(`⚠️ Bus ${bm} is currently engaged in Cleaning! Cannot be selected for Charging simultaneously.`, 'error');
-      document.getElementById('busSelect').value = '';
-      filterBuses();
+    const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+    if (isBusInCleaning(bm, v?.reg_no)) {
+      showToast(`⚠️ Bus ${bm} is currently locked in Cleaning Bay! Complete cleaning first.`, 'error');
       return;
     }
 
@@ -769,7 +816,7 @@
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const regNo = getRegNoForBm(bm);
-    const bay = document.getElementById('chargerSelect').value || 'Bay 03';
+    const bay = document.getElementById('chargerSelect').value || 'Bay 01';
 
     if (!locked.some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'))) {
       locked.push({
@@ -780,71 +827,193 @@
         startTime: fullTimeStr,
         time: timeStr,
         startTimestamp: Date.now(),
-        startSoc: document.getElementById('socBefore').value || '20'
+        startSoc: document.getElementById('socBefore').value || '20',
+        chargerBay: bay
       });
     }
     setLockedBuses(locked);
-    localStorage.removeItem('depot_active_charging_selection');
     updateLockUI(bm);
     renderOngoingButtons();
     filterBuses();
-    showToast(`🔒 ${bm} locked for Charging at ${timeStr} — marked as Not Allocated`, 'error');
+    showToast(`🔒 ${bm} locked for Charging at ${timeStr}. Confirm SOC & click Unlock to submit!`, 'error');
   }
 
-  function unlockBus() {
+  async function handleUnlockAndSubmit() {
     const bm = document.getElementById('busSelect').value;
-    if (!bm) return;
-    let locked = getLockedBuses();
-    const lockEntry = locked.find(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'));
-
-    // Just unlock — do NOT save history yet. History is saved only when Submit is clicked.
-    locked = locked.filter(x => !(isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg')));
-    setLockedBuses(locked);
-    localStorage.removeItem('depot_active_charging_selection');
-
-    // Store unlock time so submitCharging() can calculate duration correctly
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const startTs = lockEntry ? (lockEntry.startTimestamp || now.getTime()) : now.getTime();
-    window._chargingUnlockData = {
-      bm, startTime: lockEntry ? (lockEntry.startTime || fullTimeStr) : fullTimeStr,
-      startTs, startSoc: lockEntry?.startSoc || null
-    };
-
-    updateLockUI(bm);
-    renderOngoingButtons();
-    filterBuses();
-    updateSubmitBtn();
-    showToast(`🔓 ${bm} unlocked from Charging. Click "Submit Charging Record" to save the record.`, 'success');
-  }
-
-  function updateLockUI(bm) {
-    const lockRow    = document.getElementById('lockRow');
-    const lockBtn    = document.getElementById('lockBtn');
-    const unlockBtn  = document.getElementById('unlockBtn');
-    const lockBanner = document.getElementById('lockBanner');
-
     if (!bm) {
-      lockRow.classList.remove('show');
-      lockBanner.classList.remove('show');
-      updateSubmitBtn();
+      showToast('⚠️ Please select a bus first.', 'error');
       return;
     }
 
-    lockRow.classList.add('show');
-    const chargLocked = isBusLockedForCharging(bm);
+    let locked = getLockedBuses();
+    const lockEntry = locked.find(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'));
 
-    lockBtn.style.display   = chargLocked ? 'none'        : 'inline-flex';
-    unlockBtn.style.display = chargLocked ? 'inline-flex' : 'none';
+    const socBef   = document.getElementById('socBefore').value;
+    const socAft   = document.getElementById('socAfter').value;
+    const bay      = document.getElementById('chargerSelect').value || (lockEntry?.chargerBay || 'Bay 01');
+    const status   = selectedPillValue;
+    const remarks  = document.getElementById('remarks').value.trim();
+
+    const now     = new Date();
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+    const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const delta   = parseInt(socAft) - parseInt(socBef);
+    const usableSoc = Math.max(0, parseInt(socAft) - 10);
+    const fullDutyKm = Math.round(usableSoc * 1.42);
+
+    const startTime = lockEntry ? (lockEntry.startTime || fullTimeStr) : fullTimeStr;
+    const startTs   = lockEntry ? (lockEntry.startTimestamp || now.getTime()) : now.getTime();
+    const diffMs    = Math.max(0, now.getTime() - startTs);
+    const diffMins  = Math.round(diffMs / 60000);
+    const durationStr = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
+
+    const historyItem = {
+      id: 'charg_' + Date.now(),
+      bm: bm,
+      reg: getRegNoForBm(bm),
+      processType: 'Depot Fast Plug-in Charging',
+      startTime: startTime,
+      unlockTime: fullTimeStr,
+      duration: durationStr,
+      startSoc: socBef + '%',
+      finalSoc: socAft + '%',
+      delta: delta,
+      socBef: socBef,
+      socAft: socAft,
+      finalStage: `Fast Charging ${status}: Charged from ${socBef}% to ${socAft}% SoC (${fullDutyKm} km Full Duty Range)`,
+      chargerBay: bay,
+      bay: bay,
+      chargingStatus: status,
+      status: status,
+      clearanceState: Number(socAft) >= 90 ? '✅ High Range Fleet Category A (Single Charge Ready)' : '✅ Feasible for Dispatch',
+      remarks: remarks || 'Fast charging completed. BMS cleared for dispatch.',
+      timeStr: timeStr,
+      dateStr: now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      fullDutyKm: fullDutyKm
+    };
+
+    // 1. Remove from locked list (unlock the bus)
+    locked = locked.filter(x => !(isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg')));
+    setLockedBuses(locked);
+
+    // 2. Add to charging history (submit verification record)
+    addChargingHistory(historyItem);
+
+    // 3. Post to /api/bus-state and localStorage
+    try {
+      await fetch('/api/bus-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          unique_id: bm,
+          bus: bm,
+          soc: parseInt(socAft),
+          status: status === 'Fault' ? 'Blocked' : 'On Time',
+          chargingStatus: status,
+          chargerBay: bay,
+          socBefore: parseInt(socBef),
+          socAfter: parseInt(socAft),
+          condition: status === 'Fault' ? 'Not Good' : 'Good',
+          operation: 'Single Charge Operation',
+          fullDutyDistanceKm: fullDutyKm,
+          remarks: remarks,
+          lastChargedTime: timeStr
+        })
+      });
+    } catch (e) {
+      console.warn('Could not post charging update to /api/bus-state:', e);
+    }
+
+    localStorage.setItem('depot_bus_soc_' + bm, socAft);
+    localStorage.setItem('depot_bus_soc_' + bm.toUpperCase(), socAft);
+    localStorage.setItem('depot_charging_event', JSON.stringify({
+      bm: bm.toUpperCase(),
+      soc: parseInt(socAft),
+      fullDutyDistanceKm: fullDutyKm,
+      operation: 'Single Charge Operation',
+      time: Date.now()
+    }));
+
+    try {
+      const bc = new BroadcastChannel('depot_soc_sync');
+      bc.postMessage({ bm: bm.toUpperCase(), soc: parseInt(socAft), time: Date.now() });
+      bc.close();
+    } catch(e) {}
+
+    // 4. Update UI
+    renderOngoingButtons();
+    renderLog();
+    filterBuses();
+
+    // 5. Reset form
+    document.getElementById('busSelect').value = '';
+    document.getElementById('searchInput').value = '';
+    document.getElementById('busInfoBox').classList.remove('show');
+    updateLockUI('');
+    document.getElementById('socBefore').value = '20';
+    document.getElementById('socAfter').value  = '80';
+    updateSOC('Before', '20');
+    updateSOC('After',  '80');
+    document.getElementById('remarks').value   = '';
+    document.getElementById('chargerSelect').value = '';
+
+    showToast(`⚡ Bus ${bm} unlocked & Charging Verification Record saved! (${socAft}% SoC • ${fullDutyKm} km Full Duty)`, 'success', 4000);
+  }
+
+  function updateLockUI(bm) {
+    const lockRow        = document.getElementById('lockRow');
+    const lockBtn        = document.getElementById('lockBtn');
+    const unlockBtn      = document.getElementById('unlockBtn');
+    const lockBanner     = document.getElementById('lockBanner');
+    const actionLockBtn   = document.getElementById('actionLockBtn');
+    const actionUnlockBtn = document.getElementById('actionUnlockBtn');
+    const otherBanner    = document.getElementById('otherLockWarning');
+
+    if (!bm) {
+      if (lockRow) lockRow.classList.remove('show');
+      if (lockBanner) lockBanner.classList.remove('show');
+      if (otherBanner) otherBanner.style.display = 'none';
+      if (actionLockBtn) actionLockBtn.style.display = 'none';
+      if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
+      return;
+    }
+
+    if (lockRow) lockRow.classList.add('show');
+
+    const chargLocked = isBusLockedForCharging(bm);
+    const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+    const cleanLocked = isBusInCleaning(bm, v?.reg_no);
+
+    if (cleanLocked && !chargLocked) {
+      if (otherBanner) {
+        otherBanner.innerHTML = `🧹 <strong>${bm}</strong> is currently locked in <strong>Cleaning Bay</strong>. Complete cleaning clearance before assigning to Charging.`;
+        otherBanner.style.display = 'flex';
+      }
+      if (lockBtn) lockBtn.style.display = 'none';
+      if (unlockBtn) unlockBtn.style.display = 'none';
+      if (actionLockBtn) actionLockBtn.style.display = 'none';
+      if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
+      if (lockBanner) lockBanner.classList.remove('show');
+      return;
+    } else {
+      if (otherBanner) otherBanner.style.display = 'none';
+    }
 
     if (chargLocked) {
-      lockBanner.innerHTML = `⚡ <strong>${bm}</strong> is locked for <strong>Charging</strong>. Vehicle is held in depot and marked as Not Allocated.`;
+      if (lockBtn) lockBtn.style.display = 'none';
+      if (actionLockBtn) actionLockBtn.style.display = 'none';
+      if (unlockBtn) unlockBtn.style.display = 'inline-flex';
+      if (actionUnlockBtn) actionUnlockBtn.style.display = 'inline-flex';
+
+      lockBanner.innerHTML = `⚡ <strong>${bm}</strong> is locked for <strong>Charging</strong>. Complete session, confirm SOC, and click Unlock &amp; Submit Charging Record.`;
       lockBanner.classList.add('show');
     } else {
+      if (lockBtn) lockBtn.style.display = 'inline-flex';
+      if (actionLockBtn) actionLockBtn.style.display = 'inline-flex';
+      if (unlockBtn) unlockBtn.style.display = 'none';
+      if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
       lockBanner.classList.remove('show');
     }
-    updateSubmitBtn();
   }
 
   function renderOngoingButtons() {
@@ -955,6 +1124,7 @@
         clearanceState: '✅ High Range Fleet Category A (Single Charge Ready)',
         remarks: 'Smooth charging cycle. Full SoC attained, ready for dispatch.',
         timeStr: t1.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+        dateStr: t1.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
         fullDutyKm: 125
       },
       {
@@ -980,6 +1150,7 @@
         clearanceState: '✅ Ready for Dispatch (Route 360K Duty)',
         remarks: 'Topped up for evening peak schedule.',
         timeStr: '03:20 PM',
+        dateStr: '02 Oct 2026',
         fullDutyKm: 121
       }
     ];
@@ -1002,7 +1173,7 @@
     document.getElementById('modalDetailBody').innerHTML = `
       <div class="detail-modal-row">
         <span class="detail-modal-label">Process Type:</span>
-        <span class="detail-modal-val" style="color:var(--accent-dark);">${item.processType}</span>
+        <span class="detail-modal-val" style="color:var(--accent-dark);">${item.processType || 'Fast Plug-in Charging'}</span>
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">⏱️ Charging Started:</span>
@@ -1010,7 +1181,7 @@
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">🏁 Charging Unlocked:</span>
-        <span class="detail-modal-val" style="color:#15803d;">${item.unlockTime}</span>
+        <span class="detail-modal-val" style="color:#15803d;font-weight:800;">${item.unlockTime}</span>
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">⏳ Total Duration:</span>
@@ -1026,11 +1197,11 @@
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">Charger Bay:</span>
-        <span class="detail-modal-val">${item.chargerBay}</span>
+        <span class="detail-modal-val">${item.chargerBay || item.bay}</span>
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">Session Status:</span>
-        <span class="detail-modal-val" style="color:#16a34a;">${item.chargingStatus}</span>
+        <span class="detail-modal-val" style="color:#16a34a;">${item.chargingStatus || item.status}</span>
       </div>
       <div class="detail-modal-row">
         <span class="detail-modal-label">Clearance State:</span>
@@ -1048,6 +1219,83 @@
     document.getElementById('processDetailModal').style.display = 'none';
   }
 
+  // ── Complete Verification History Modal ──
+  function openHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (!modal) return;
+    document.getElementById('historySearchInput').value = '';
+    filterHistoryList();
+    modal.style.display = 'flex';
+  }
+
+  function closeHistoryModal() {
+    const modal = document.getElementById('historyModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function filterHistoryList() {
+    const q = (document.getElementById('historySearchInput')?.value || '').trim().toLowerCase();
+    const records = getChargingHistory();
+    const filtered = q
+      ? records.filter(r => (r.bm || '').toLowerCase().includes(q) || (r.reg || '').toLowerCase().includes(q) || (r.unlockTime || '').toLowerCase().includes(q) || (r.chargerBay || r.bay || '').toLowerCase().includes(q) || (r.remarks || '').toLowerCase().includes(q))
+      : records;
+
+    const countEl = document.getElementById('historyModalCount');
+    if (countEl) countEl.textContent = `${filtered.length} of ${records.length} records`;
+
+    const body = document.getElementById('historyModalBody');
+    if (!body) return;
+
+    if (!filtered.length) {
+      body.innerHTML = `
+        <div style="text-align:center; padding:32px 14px; color:var(--muted);">
+          <div style="font-size:2rem; margin-bottom:8px;">📜</div>
+          <strong style="color:var(--text); font-size:1.02rem; display:block;">No Verification Records Found</strong>
+          <p style="font-size:0.85rem; margin-top:4px;">No records match your query.</p>
+        </div>
+      `;
+      return;
+    }
+
+    body.innerHTML = filtered.map(e => `
+      <div class="ongoing-item-card" style="margin-bottom:10px; cursor:pointer;" onclick="openProcessDetailModal('${e.id}')">
+        <div style="flex:1;">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <strong style="font-size:1.05rem; color:var(--text);">${e.bm}</strong>
+            <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dcfce7; color:#166534;">
+              ${e.reg || 'KA51AH'}
+            </span>
+            <span style="font-size:0.75rem; padding:2px 8px; border-radius:999px; background:#eff6ff; color:#1e40af; font-weight:700;">
+              ${e.startSoc} ➔ ${e.finalSoc}
+            </span>
+            <span style="font-size:0.75rem; padding:2px 8px; border-radius:999px; background:#f1f5f9; color:#475569; font-weight:700;">
+              ${e.chargerBay || e.bay || 'Bay'}
+            </span>
+          </div>
+          <div style="font-size:0.82rem; color:var(--muted); margin-top:4px;">
+            Completed: <strong>${e.unlockTime || e.timeStr || ''}</strong> (${e.duration || ''})
+          </div>
+          <div style="font-size:0.8rem; color:#475569; margin-top:3px;">
+            ${e.finalStage || e.remarks || ''}
+          </div>
+        </div>
+        <div>
+          <button type="button" class="click-details-tag" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')">
+            📄 View Details ›
+          </button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function clearAllHistory() {
+    if (!confirm('Are you sure you want to clear all stored Charging Verification History?')) return;
+    localStorage.setItem(CHARGING_HISTORY_KEY, '[]');
+    filterHistoryList();
+    renderLog();
+    showToast('Charging verification record history cleared.', 'error');
+  }
+
   let apiBusStates = {};
   async function loadVehicles() {
     try {
@@ -1063,8 +1311,13 @@
       const lines = text.trim().split('\n').filter(Boolean);
       allVehicles = lines.slice(1).map(line => {
         const parts = line.trim().split(',');
-        return { bm_no: parts[0] || '', reg_no: parts[2] || '', model: parts[4] || 'EiV12 AC', status: parts[6] || 'Active' };
-      });
+        return {
+          bm_no:  (parts[0] || '').trim(),
+          reg_no: (parts[2] || '').trim(),
+          model:  (parts[4] || 'ELECTRIC BUS AC EiV12').trim(),
+          status: (parts[6] || 'Active').trim()
+        };
+      }).filter(v => v.bm_no);
     } catch(e) {
       allVehicles = [
         {bm_no:'BM001',reg_no:'KA51AH4144',model:'EiV12 AC',status:'Active'},
@@ -1082,11 +1335,17 @@
   function renderDropdown(list) {
     const sel = document.getElementById('busSelect');
     const cur = sel.value;
-    sel.innerHTML = '<option value="">— Choose a bus —</option>';
+    sel.innerHTML = `<option value="">— Choose a bus (${allVehicles.length} total) —</option>`;
     list.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.bm_no;
-      opt.textContent = `${v.bm_no}  —  ${v.reg_no}`;
+      let tag = '';
+      if (isBusLockedForCharging(v.bm_no)) {
+        tag = ' [⚡ In Charging Bay]';
+      } else if (isBusInCleaning(v.bm_no, v.reg_no)) {
+        tag = ' [🔒 In Cleaning Bay]';
+      }
+      opt.textContent = `${v.bm_no}  —  ${v.reg_no}${tag}`;
       if (v.bm_no === cur) opt.selected = true;
       sel.appendChild(opt);
     });
@@ -1094,31 +1353,16 @@
 
   function filterBuses() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    const available = getAvailableVehicles();
     filteredVehicles = q
-      ? available.filter(v => v.bm_no.toLowerCase().includes(q) || v.reg_no.toLowerCase().includes(q))
-      : [...available];
+      ? allVehicles.filter(v => v.bm_no.toLowerCase().includes(q) || v.reg_no.toLowerCase().includes(q))
+      : [...allVehicles];
     renderDropdown(filteredVehicles);
 
     const curBm = document.getElementById('busSelect').value;
-    if (curBm && isBusInCleaning(curBm)) {
+    if (curBm && !filteredVehicles.some(v => isSameBusId(v.bm_no, curBm))) {
       document.getElementById('busSelect').value = '';
       document.getElementById('busInfoBox').classList.remove('show');
-      localStorage.removeItem('depot_active_charging_selection');
       updateLockUI('');
-      updateSubmitBtn();
-      showToast(`⚠️ Bus ${curBm} is currently in Cleaning and was removed from selection.`, 'error');
-    } else if (filteredVehicles.length === 1 && q) {
-      document.getElementById('busSelect').value = filteredVehicles[0].bm_no;
-      onBusSelected();
-    } else {
-      if (curBm && !filteredVehicles.some(v => v.bm_no === curBm)) {
-        document.getElementById('busSelect').value = '';
-        document.getElementById('busInfoBox').classList.remove('show');
-        localStorage.removeItem('depot_active_charging_selection');
-        updateLockUI('');
-        updateSubmitBtn();
-      }
     }
   }
 
@@ -1127,24 +1371,11 @@
     const box = document.getElementById('busInfoBox');
     if (!bm) {
       box.classList.remove('show');
-      localStorage.removeItem('depot_active_charging_selection');
       updateLockUI('');
-      updateSubmitBtn();
       return;
     }
 
-    if (isBusInCleaning(bm)) {
-      showToast(`⚠️ Bus ${bm} is currently engaged in Cleaning. Mutual exclusion enforced.`, 'error');
-      document.getElementById('busSelect').value = '';
-      box.classList.remove('show');
-      localStorage.removeItem('depot_active_charging_selection');
-      filterBuses();
-      return;
-    }
-
-    localStorage.setItem('depot_active_charging_selection', bm);
-
-    const v = allVehicles.find(x => x.bm_no === bm);
+    const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
     if (!v) { box.classList.remove('show'); return; }
 
     document.getElementById('infoBM').textContent    = v.bm_no;
@@ -1152,7 +1383,6 @@
     document.getElementById('infoModel').textContent = v.model;
     box.classList.add('show');
     updateLockUI(bm);
-    updateSubmitBtn();
 
     const key = String(bm).toUpperCase().trim();
     const existingSoc = localStorage.getItem('depot_bus_soc_' + bm) || localStorage.getItem('depot_bus_soc_' + key);
@@ -1166,66 +1396,6 @@
     const nextSoc = Math.min(100, Math.max(cur, 80));
     document.getElementById('socAfter').value = nextSoc;
     updateSOC('After', nextSoc);
-  }
-
-  function updateSubmitBtn() {
-    const bm = document.getElementById('busSelect').value;
-    const submitBtn = document.getElementById('submitBtn');
-    const warnEl = document.getElementById('submitWarningText');
-    if (!submitBtn) return;
-
-    if (!bm) {
-      submitBtn.classList.add('disabled');
-      submitBtn.title = 'Please select a bus';
-      if (warnEl) warnEl.style.display = 'none';
-      return;
-    }
-
-    const lockInfo = getBusLockInfo(bm);
-    if (lockInfo) {
-      submitBtn.classList.add('disabled');
-      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
-      submitBtn.title = `Bus ${bm} is currently locked for ${isClean ? 'Cleaning' : 'Charging'}. Unlock before submitting records.`;
-    } else {
-      submitBtn.classList.remove('disabled');
-      submitBtn.title = 'Click to submit charging record';
-      if (warnEl) warnEl.style.display = 'none';
-    }
-  }
-
-  function handleSubmitClick() {
-    const bm = document.getElementById('busSelect').value;
-    if (!bm) {
-      showToast('⚠️ Please select a bus first.', 'error', 3000);
-      return;
-    }
-
-    const lockInfo = getBusLockInfo(bm);
-    if (lockInfo) {
-      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
-      if (isClean) {
-        const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for Cleaning! Please complete cleaning clearance first.`;
-        showToast(msg, 'error', 7000);
-        showSubmitWarning(msg, 7000);
-        return;
-      }
-      // If locked for Charging: automatically complete & unlock as part of submitting!
-      unlockBus();
-    }
-
-    submitCharging();
-  }
-
-  function showSubmitWarning(msg, duration = 7000) {
-    const warnEl = document.getElementById('submitWarningText');
-    const warnSpan = document.getElementById('submitWarningSpan');
-    if (!warnEl) return;
-    if (warnSpan && msg) warnSpan.textContent = msg;
-    warnEl.style.display = 'flex';
-    clearTimeout(warnEl._timer);
-    warnEl._timer = setTimeout(() => {
-      warnEl.style.display = 'none';
-    }, duration);
   }
 
   function updateSOC(which, val) {
@@ -1269,7 +1439,6 @@
     document.getElementById('chargingStatus').value = value;
   }
 
-  
   async function quickUpdateSOC() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) {
@@ -1280,7 +1449,6 @@
     const usableSoc = Math.max(0, val - 10);
     const fullDutyKm = Math.round(usableSoc * 1.42);
 
-    // Save to localStorage immediately
     localStorage.setItem('depot_bus_soc_' + bm, String(val));
     localStorage.setItem('depot_bus_soc_' + bm.toUpperCase(), String(val));
     localStorage.setItem('depot_charging_event', JSON.stringify({
@@ -1290,7 +1458,6 @@
       time: Date.now()
     }));
 
-    // Post to server
     try {
       await fetch('/api/bus-state', {
         method: 'POST',
@@ -1307,7 +1474,6 @@
       });
     } catch(e) {}
 
-    // Broadcast across tabs
     try {
       const bc = new BroadcastChannel('depot_soc_sync');
       bc.postMessage({ bm: bm.toUpperCase(), soc: val, time: Date.now() });
@@ -1317,168 +1483,41 @@
     showToast(`⚡ Manual SOC updated: ${bm} is now ${val}% (${fullDutyKm} km Full Duty Range). Synced to Scheduling page!`, 'success');
   }
 
-  async function submitCharging() {
-    const bm       = document.getElementById('busSelect').value;
-    const socBef   = document.getElementById('socBefore').value;
-    const socAft   = document.getElementById('socAfter').value;
-    const startT   = document.getElementById('startTime').value;
-    const endT     = document.getElementById('endTime').value;
-    const bay      = document.getElementById('chargerSelect').value || 'N/A';
-    const status   = selectedPillValue;
-    const remarks  = document.getElementById('remarks').value.trim();
-    if (!bm) return;
-
-    const lockInfo = getBusLockInfo(bm);
-    if (lockInfo) {
-      const isClean = String(lockInfo.page || '').toLowerCase().includes('clean');
-      const pageName = isClean ? 'Cleaning' : 'Charging';
-      const msg = `⚠️ Cannot submit record: Bus ${bm} is currently locked for ${pageName}! Please complete the process and unlock the bus before submitting records.`;
-      showToast(msg, 'error', 7000);
-      showSubmitWarning(msg, 7000);
-      return;
-    }
-
-    // Read the exact real current clock time (submit time)
-    const now     = new Date();
-    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    const delta   = parseInt(socAft) - parseInt(socBef);
-    const usableSoc = Math.max(0, parseInt(socAft) - 10);
-    const fullDutyKm = Math.round(usableSoc * 1.42);
-
-    // Use unlock data if bus was previously locked+unlocked; otherwise use manual time fields
-    const unlockData = window._chargingUnlockData && window._chargingUnlockData.bm === bm ? window._chargingUnlockData : null;
-
-    let formattedStartTime = unlockData ? unlockData.startTime : fullTimeStr;
-    let formattedEndTime = fullTimeStr;
-    let durationStr = 'Completed in bay';
-
-    if (unlockData) {
-      const diffMs = Math.max(0, now.getTime() - unlockData.startTs);
-      const diffMins = Math.round(diffMs / 60000);
-      durationStr = diffMins < 1 ? 'Just finished (<1 min)' : (diffMins >= 60 ? `${Math.floor(diffMins / 60)} hr ${diffMins % 60} mins` : `${diffMins} mins`);
-    } else if (startT && endT) {
-      const [sh, sm] = startT.split(':').map(Number);
-      const [eh, em] = endT.split(':').map(Number);
-      let diff = (eh * 60 + em) - (sh * 60 + sm);
-      if (diff < 0) diff += 24 * 60;
-      durationStr = diff < 1 ? 'Just finished (<1 min)' : (diff >= 60 ? `${Math.floor(diff/60)} hr ${diff%60} mins` : `${diff} mins`);
-
-      const fmt12 = (h, m) => {
-        const h12 = ((h % 12) || 12).toString().padStart(2, '00');
-        const ampm = h >= 12 ? 'PM' : 'AM';
-        return `${h12}:${String(m).padStart(2, '0')} ${ampm}, today`;
-      };
-      formattedStartTime = fmt12(sh, sm);
-      formattedEndTime = fmt12(eh, em);
-    }
-
-
-    const historyItem = {
-      id: 'charg_' + Date.now(),
-      bm: bm,
-      reg: getRegNoForBm(bm),
-      processType: 'Depot Fast Plug-in Charging',
-      startTime: formattedStartTime,
-      unlockTime: formattedEndTime,
-      duration: durationStr,
-      startSoc: socBef + '%',
-      finalSoc: socAft + '%',
-      delta: delta,
-      socBef: socBef,
-      socAft: socAft,
-      finalStage: `Fast Charging ${status}: Charged from ${socBef}% to ${socAft}% SoC (${fullDutyKm} km Full Duty Range)`,
-      chargerBay: bay,
-      bay: bay,
-      chargingStatus: status,
-      status: status,
-      clearanceState: Number(socAft) >= 90 ? '✅ High Range Fleet Category A (Single Charge Ready)' : '✅ Feasible for Dispatch',
-      remarks: remarks || 'Fast charging completed. BMS cleared for dispatch.',
-      timeStr: timeStr,
-      fullDutyKm: fullDutyKm
-    };
-
-    addChargingHistory(historyItem);
-    renderOngoingButtons();
-    renderLog();
-
-    try {
-      await fetch('/api/bus-state', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          unique_id: bm,
-          bus: bm,
-          soc: parseInt(socAft),
-          status: status === 'Completed' ? 'On Time' : (status === 'Partial' ? 'On Time' : 'Blocked'),
-          chargingStatus: status,
-          chargerBay: bay,
-          socBefore: parseInt(socBef),
-          socAfter: parseInt(socAft),
-          condition: status === 'Fault' ? 'Not Good' : 'Good',
-          operation: 'Single Charge Operation',
-          fullDutyDistanceKm: fullDutyKm,
-          remarks: remarks,
-          lastChargedTime: timeStr
-        })
-      });
-    } catch (e) {
-      console.warn('Could not post charging update to /api/bus-state:', e);
-    }
-
-    localStorage.setItem('depot_bus_soc_' + bm, socAft);
-    localStorage.setItem('depot_bus_soc_' + bm.toUpperCase(), socAft);
-    localStorage.setItem('depot_charging_event', JSON.stringify({
-      bm: bm.toUpperCase(),
-      soc: parseInt(socAft),
-      fullDutyDistanceKm: fullDutyKm,
-      operation: 'Single Charge Operation',
-      time: Date.now()
-    }));
-
-    try {
-      const bc = new BroadcastChannel('depot_soc_sync');
-      bc.postMessage({ bm: bm.toUpperCase(), soc: parseInt(socAft), time: Date.now() });
-      bc.close();
-    } catch(e) {}
-
-    document.getElementById('busSelect').value = '';
-    document.getElementById('searchInput').value = '';
-    document.getElementById('busInfoBox').classList.remove('show');
-    localStorage.removeItem('depot_active_charging_selection');
-    updateLockUI('');
-    filterBuses();
-    document.getElementById('socBefore').value = '20';
-    document.getElementById('socAfter').value  = '80';
-    updateSOC('Before', '20');
-    updateSOC('After',  '80');
-    document.getElementById('remarks').value   = '';
-    document.getElementById('chargerSelect').value = '';
-    window._chargingUnlockData = null;
-    updateSubmitBtn();
-
-    showToast(`⚡ Charging record saved for ${bm}: ${socAft}% SoC • Full Duty Distance: ${fullDutyKm} km (Single Charge Operation)`, 'success');
-  }
-
   function renderLog() {
     const card = document.getElementById('logCard');
     const list  = document.getElementById('logList');
     const records = getChargingHistory();
     if (!records.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
-    list.innerHTML = records.map(e => `
+
+    // Show only 5 buses in recent charging records
+    const recentRecords = records.slice(0, 5);
+
+    list.innerHTML = recentRecords.map(e => `
       <li class="log-item" onclick="openProcessDetailModal('${e.id}')" title="Click to view full charging details for ${e.bm}">
         <div class="log-dot ${e.status === 'Completed' || e.chargingStatus === 'Completed' ? 'charged' : 'partial'}"></div>
         <div style="flex:1;">
           <div class="log-text" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-            <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
-              ⚡ ${e.bm}
-            </button>
-            <span class="click-details-tag">👉 Click for Details ›</span>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
+                ⚡ ${e.bm}
+              </button>
+              <span style="font-size:0.8rem;color:var(--muted);">${e.reg || ''}</span>
+              <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#dcfce7;color:#166534;font-weight:700;">${e.startSoc || '20%'} ➔ ${e.finalSoc || '80%'}</span>
+              <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-weight:600;">${e.chargerBay || e.bay || 'Bay'}</span>
+            </div>
+            <span class="click-details-tag">👉 View Record ›</span>
           </div>
         </div>
       </li>
     `).join('');
+
+    const countEl = document.getElementById('totalHistoryCount');
+    if (countEl) countEl.textContent = records.length;
+    const moreWrap = document.getElementById('historyMoreLink');
+    if (moreWrap) {
+      moreWrap.style.display = records.length > 5 ? 'block' : 'none';
+    }
   }
 
   function showToast(msg, type = '', duration = 3200) {
@@ -1491,25 +1530,19 @@
   }
 
   window.addEventListener('storage', (e) => {
-    if (e.key === LOCKED_KEY || e.key === 'depot_active_cleaning_selection' || e.key === CHARGING_HISTORY_KEY) {
+    if (e.key === LOCKED_KEY || e.key === CHARGING_HISTORY_KEY) {
       filterBuses();
       renderOngoingButtons();
       renderLog();
       const curBm = document.getElementById('busSelect').value;
       if (curBm) updateLockUI(curBm);
-      updateSubmitBtn();
     }
-  });
-
-  window.addEventListener('beforeunload', () => {
-    localStorage.removeItem('depot_active_charging_selection');
   });
 
   // ── Init ──
   loadVehicles().then(() => {
     renderOngoingButtons();
     renderLog();
-    updateSubmitBtn();
   });
 </script>
 </body>
