@@ -1709,7 +1709,7 @@
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
                     <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
-                    <div class="kpi kpi-clickable" id="kpi-bus-departure" title="Click to view list of buses available for departure">
+                    <div class="kpi kpi-clickable" id="kpi-bus-departure" onclick="toggleAvailableBusesList()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleAvailableBusesList()" title="Click to view list of buses available for departure">
                         <strong id="bus-departure">0</strong>
                         <span>Buses available for departure</span>
                         <span class="kpi-action-hint">👆 Click to view buses</span>
@@ -1728,7 +1728,7 @@
                                 <span id="available-buses-sub" style="font-size:0.73rem;color:#64748b;">Click a bus to select and view full allocation details</span>
                             </div>
                         </div>
-                        <button type="button" id="btn-close-available-buses" class="btn-close-avail" title="Close list">✕</button>
+                        <button type="button" id="btn-close-available-buses" class="btn-close-avail" onclick="toggleAvailableBusesList(false)" title="Close list">✕</button>
                     </div>
                     <div id="available-buses-list" class="available-buses-list">
                         <!-- Populated dynamically -->
@@ -1755,14 +1755,14 @@
                     <span class="section-switch-sub">Click a section below to toggle and inspect details:</span>
                 </div>
                 <div class="section-switch-quick-actions">
-                    <button type="button" id="btn-toggle-all-sections" class="btn-util-toggle" title="Show or collapse all sections simultaneously">
+                    <button type="button" id="btn-toggle-all-sections" class="btn-util-toggle" onclick="toggleAllFleetSections()" title="Show or collapse all sections simultaneously">
                         <span id="btn-toggle-all-icon">⊞</span> <span id="btn-toggle-all-text">Show All Sections</span>
                     </button>
                 </div>
             </div>
 
             <div class="section-switch-buttons" role="tablist" aria-label="Fleet Views">
-                <button type="button" class="section-nav-btn btn-view-allocated" id="btn-tab-allocated" data-target="view-panel-allocated" role="tab" aria-selected="false" aria-controls="view-panel-allocated">
+                <button type="button" class="section-nav-btn btn-view-allocated" id="btn-tab-allocated" onclick="toggleFleetSection('allocated')" data-target="view-panel-allocated" role="tab" aria-selected="false" aria-controls="view-panel-allocated">
                     <div class="btn-nav-main">
                         <span class="btn-nav-icon">✅</span>
                         <div class="btn-nav-meta">
@@ -1776,7 +1776,7 @@
                     </div>
                 </button>
 
-                <button type="button" class="section-nav-btn btn-view-not-allocated" id="btn-tab-not-allocated" data-target="view-panel-not-allocated" role="tab" aria-selected="false" aria-controls="view-panel-not-allocated">
+                <button type="button" class="section-nav-btn btn-view-not-allocated" id="btn-tab-not-allocated" onclick="toggleFleetSection('not-allocated')" data-target="view-panel-not-allocated" role="tab" aria-selected="false" aria-controls="view-panel-not-allocated">
                     <div class="btn-nav-main">
                         <span class="btn-nav-icon">⛔</span>
                         <div class="btn-nav-meta">
@@ -1790,7 +1790,7 @@
                     </div>
                 </button>
 
-                <button type="button" class="section-nav-btn btn-view-scheduled" id="btn-tab-scheduled" data-target="view-panel-scheduled" role="tab" aria-selected="false" aria-controls="view-panel-scheduled">
+                <button type="button" class="section-nav-btn btn-view-scheduled" id="btn-tab-scheduled" onclick="toggleFleetSection('scheduled')" data-target="view-panel-scheduled" role="tab" aria-selected="false" aria-controls="view-panel-scheduled">
                     <div class="btn-nav-main">
                         <span class="btn-nav-icon">🕒</span>
                         <div class="btn-nav-meta">
@@ -2135,116 +2135,183 @@
         }
 
         // ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time) ──
-        function initSectionViewSwitcher() {
-            const btnAllocated = document.getElementById("btn-tab-allocated");
-            const btnNotAllocated = document.getElementById("btn-tab-not-allocated");
-            const btnScheduled = document.getElementById("btn-tab-scheduled");
-            const btnToggleAll = document.getElementById("btn-toggle-all-sections");
+        function getSectionPanelMap() {
+            return {
+                "allocated": {
+                    btn: document.getElementById("btn-tab-allocated"),
+                    panel: document.getElementById("view-panel-allocated")
+                },
+                "not-allocated": {
+                    btn: document.getElementById("btn-tab-not-allocated"),
+                    panel: document.getElementById("view-panel-not-allocated")
+                },
+                "scheduled": {
+                    btn: document.getElementById("btn-tab-scheduled"),
+                    panel: document.getElementById("view-panel-scheduled")
+                }
+            };
+        }
+
+        let allFleetSectionsExpanded = false;
+
+        function openFleetSection(sectionKey, shouldScroll = false) {
+            allFleetSectionsExpanded = false;
             const btnToggleAllText = document.getElementById("btn-toggle-all-text");
             const btnToggleAllIcon = document.getElementById("btn-toggle-all-icon");
+            if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
+            if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
 
-            const panelAllocated = document.getElementById("view-panel-allocated");
-            const panelNotAllocated = document.getElementById("view-panel-not-allocated");
-            const panelScheduled = document.getElementById("view-panel-scheduled");
+            const panelMap = getSectionPanelMap();
+            Object.entries(panelMap).forEach(([key, item]) => {
+                if (!item.panel || !item.btn) return;
+                if (key === sectionKey) {
+                    item.panel.style.display = "block";
+                    item.btn.classList.add("active");
+                    item.btn.setAttribute("aria-selected", "true");
+                    const chevron = item.btn.querySelector(".btn-nav-chevron");
+                    if (chevron) chevron.textContent = "▲";
+                } else {
+                    item.panel.style.display = "none";
+                    item.btn.classList.remove("active");
+                    item.btn.setAttribute("aria-selected", "false");
+                    const chevron = item.btn.querySelector(".btn-nav-chevron");
+                    if (chevron) chevron.textContent = "▼";
+                }
+            });
 
-            const panelMap = {
-                "allocated": { btn: btnAllocated, panel: panelAllocated },
-                "not-allocated": { btn: btnNotAllocated, panel: panelNotAllocated },
-                "scheduled": { btn: btnScheduled, panel: panelScheduled }
-            };
+            // Ensure content is populated for the opened panel
+            try {
+                if (sectionKey === "allocated" && typeof renderAllocatedList === "function") {
+                    renderAllocatedList(lastAllocatedRoutes);
+                } else if (sectionKey === "not-allocated" && typeof renderNotAllocatedList === "function") {
+                    renderNotAllocatedList(lastNotAllocatedRoutes);
+                } else if (sectionKey === "scheduled" && typeof renderScheduledTime === "function") {
+                    renderScheduledTime();
+                }
+            } catch (renderErr) {
+                console.warn("Could not re-render section on open:", renderErr);
+            }
 
-            let allExpanded = false;
+            if (shouldScroll && panelMap[sectionKey]?.panel) {
+                panelMap[sectionKey].panel.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+        }
 
-            window.openFleetSection = function(sectionKey, shouldScroll = false) {
-                allExpanded = false;
-                if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
-                if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
+        let lastToggleSectionTime = 0;
+        let lastToggleSectionKey = "";
+        function toggleFleetSection(sectionKey) {
+            const now = Date.now();
+            if (sectionKey === lastToggleSectionKey && now - lastToggleSectionTime < 200) {
+                return;
+            }
+            lastToggleSectionTime = now;
+            lastToggleSectionKey = sectionKey;
 
-                Object.entries(panelMap).forEach(([key, item]) => {
-                    if (!item.panel || !item.btn) return;
-                    if (key === sectionKey) {
-                        item.panel.style.display = "block";
+            const panelMap = getSectionPanelMap();
+            const item = panelMap[sectionKey];
+            if (!item || !item.panel) return;
+
+            if (allFleetSectionsExpanded) {
+                openFleetSection(sectionKey);
+                return;
+            }
+
+            const isCurrentlyOpen = item.panel.style.display === "block" ||
+                (!item.panel.style.display && window.getComputedStyle(item.panel).display === "block");
+            if (isCurrentlyOpen) {
+                item.panel.style.display = "none";
+                if (item.btn) {
+                    item.btn.classList.remove("active");
+                    item.btn.setAttribute("aria-selected", "false");
+                    const chevron = item.btn.querySelector(".btn-nav-chevron");
+                    if (chevron) chevron.textContent = "▼";
+                }
+            } else {
+                openFleetSection(sectionKey);
+            }
+        }
+
+        let lastToggleAllTime = 0;
+        function toggleAllFleetSections() {
+            const now = Date.now();
+            if (now - lastToggleAllTime < 200) {
+                return;
+            }
+            lastToggleAllTime = now;
+
+            allFleetSectionsExpanded = !allFleetSectionsExpanded;
+            const btnToggleAllText = document.getElementById("btn-toggle-all-text");
+            const btnToggleAllIcon = document.getElementById("btn-toggle-all-icon");
+            const panelMap = getSectionPanelMap();
+
+            if (allFleetSectionsExpanded) {
+                Object.values(panelMap).forEach(item => {
+                    if (item.panel) item.panel.style.display = "block";
+                    if (item.btn) {
                         item.btn.classList.add("active");
                         item.btn.setAttribute("aria-selected", "true");
                         const chevron = item.btn.querySelector(".btn-nav-chevron");
                         if (chevron) chevron.textContent = "▲";
-                    } else {
-                        item.panel.style.display = "none";
-                        item.btn.classList.remove("active");
-                        item.btn.setAttribute("aria-selected", "false");
-                        const chevron = item.btn.querySelector(".btn-nav-chevron");
-                        if (chevron) chevron.textContent = "▼";
                     }
                 });
+                if (btnToggleAllText) btnToggleAllText.textContent = "Collapse View";
+                if (btnToggleAllIcon) btnToggleAllIcon.textContent = "✕";
 
-                if (shouldScroll && panelMap[sectionKey]?.panel) {
-                    panelMap[sectionKey].panel.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-            };
-
-            window.toggleFleetSection = function(sectionKey) {
-                const item = panelMap[sectionKey];
-                if (!item || !item.panel) return;
-
-                if (allExpanded) {
-                    openFleetSection(sectionKey);
-                    return;
-                }
-
-                const isCurrentlyOpen = item.panel.style.display === "block";
-                if (isCurrentlyOpen) {
-                    item.panel.style.display = "none";
+                // Ensure data rendered across all panels
+                try {
+                    if (typeof renderAllocatedList === "function") renderAllocatedList(lastAllocatedRoutes);
+                    if (typeof renderNotAllocatedList === "function") renderNotAllocatedList(lastNotAllocatedRoutes);
+                    if (typeof renderScheduledTime === "function") renderScheduledTime();
+                } catch (e) {}
+            } else {
+                Object.values(panelMap).forEach(item => {
+                    if (item.panel) item.panel.style.display = "none";
                     if (item.btn) {
                         item.btn.classList.remove("active");
                         item.btn.setAttribute("aria-selected", "false");
                         const chevron = item.btn.querySelector(".btn-nav-chevron");
                         if (chevron) chevron.textContent = "▼";
                     }
-                } else {
-                    openFleetSection(sectionKey);
-                }
-            };
+                });
+                if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
+                if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
+            }
+        }
 
-            if (btnAllocated) {
+        // Expose globally on window so inline onclick handlers always work immediately
+        window.openFleetSection = openFleetSection;
+        window.toggleFleetSection = toggleFleetSection;
+        window.toggleAllFleetSections = toggleAllFleetSections;
+
+        function initSectionViewSwitcher() {
+            const btnAllocated = document.getElementById("btn-tab-allocated");
+            const btnNotAllocated = document.getElementById("btn-tab-not-allocated");
+            const btnScheduled = document.getElementById("btn-tab-scheduled");
+            const btnToggleAll = document.getElementById("btn-toggle-all-sections");
+
+            if (btnAllocated && !btnAllocated._bound) {
+                btnAllocated._bound = true;
                 btnAllocated.addEventListener("click", () => toggleFleetSection("allocated"));
             }
-            if (btnNotAllocated) {
+            if (btnNotAllocated && !btnNotAllocated._bound) {
+                btnNotAllocated._bound = true;
                 btnNotAllocated.addEventListener("click", () => toggleFleetSection("not-allocated"));
             }
-            if (btnScheduled) {
+            if (btnScheduled && !btnScheduled._bound) {
+                btnScheduled._bound = true;
                 btnScheduled.addEventListener("click", () => toggleFleetSection("scheduled"));
             }
-
-            if (btnToggleAll) {
-                btnToggleAll.addEventListener("click", () => {
-                    allExpanded = !allExpanded;
-                    if (allExpanded) {
-                        Object.values(panelMap).forEach(item => {
-                            if (item.panel) item.panel.style.display = "block";
-                            if (item.btn) {
-                                item.btn.classList.add("active");
-                                item.btn.setAttribute("aria-selected", "true");
-                                const chevron = item.btn.querySelector(".btn-nav-chevron");
-                                if (chevron) chevron.textContent = "▲";
-                            }
-                        });
-                        if (btnToggleAllText) btnToggleAllText.textContent = "Collapse View";
-                        if (btnToggleAllIcon) btnToggleAllIcon.textContent = "✕";
-                    } else {
-                        Object.values(panelMap).forEach(item => {
-                            if (item.panel) item.panel.style.display = "none";
-                            if (item.btn) {
-                                item.btn.classList.remove("active");
-                                item.btn.setAttribute("aria-selected", "false");
-                                const chevron = item.btn.querySelector(".btn-nav-chevron");
-                                if (chevron) chevron.textContent = "▼";
-                            }
-                        });
-                        if (btnToggleAllText) btnToggleAllText.textContent = "Show All Sections";
-                        if (btnToggleAllIcon) btnToggleAllIcon.textContent = "⊞";
-                    }
-                });
+            if (btnToggleAll && !btnToggleAll._bound) {
+                btnToggleAll._bound = true;
+                btnToggleAll.addEventListener("click", toggleAllFleetSections);
             }
+        }
+
+        // Initialize immediately and also on DOMContentLoaded
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initSectionViewSwitcher);
+        } else {
+            initSectionViewSwitcher();
         }
 
         function scrollToAllocatedDuty(dutyId) {
@@ -3267,18 +3334,46 @@ let busCategoriesMap = new Map();
             return candidates;
         }
 
+        let lastToggleAvailTime = 0;
         function toggleAvailableBusesList(forceOpen = null) {
+            const now = Date.now();
+            if (forceOpen === null && now - lastToggleAvailTime < 200) {
+                return;
+            }
+            lastToggleAvailTime = now;
+
             const container = document.getElementById("available-buses-container");
             if (!container) return;
-            const shouldOpen = (forceOpen !== null) ? forceOpen : (container.style.display === "none");
+            const isHidden = !container.style.display || container.style.display === "none" || window.getComputedStyle(container).display === "none";
+            const shouldOpen = (forceOpen !== null) ? forceOpen : isHidden;
             if (shouldOpen) {
                 container.style.display = "block";
-                renderAvailableBusesForDeparture();
+                try {
+                    renderAvailableBusesForDeparture();
+                } catch (err) {
+                    console.warn("Could not render available buses:", err);
+                }
                 container.scrollIntoView({ behavior: "smooth", block: "nearest" });
             } else {
                 container.style.display = "none";
             }
         }
+        window.toggleAvailableBusesList = toggleAvailableBusesList;
+
+        function selectBusForDepartureByBm(bm) {
+            if (!bm) return;
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = (Array.isArray(directionalRoutes) && directionalRoutes.length)
+                ? (directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0])
+                : null;
+            const depTime = (document.getElementById("departure")?.value || "13:10").trim();
+            const availableBuses = getBusesAvailableForDeparture(routeObj, depTime);
+            const bus = availableBuses.find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
+            if (bus) {
+                selectBusForDeparture(bus);
+            }
+        }
+        window.selectBusForDepartureByBm = selectBusForDepartureByBm;
 
         function renderAvailableBusesForDeparture() {
             const listEl = document.getElementById("available-buses-list");
@@ -3287,7 +3382,9 @@ let busCategoriesMap = new Map();
             if (!listEl) return;
 
             const selectedRouteId = routeSelect ? routeSelect.value : "";
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = (Array.isArray(directionalRoutes) && directionalRoutes.length)
+                ? (directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0])
+                : null;
             const depTime = (document.getElementById("departure")?.value || "13:10").trim();
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
 
@@ -3337,7 +3434,7 @@ let busCategoriesMap = new Map();
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
 
                 return `
-                    <div class="avail-bus-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}" role="button" tabindex="0">
+                    <div class="avail-bus-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}" role="button" tabindex="0" onclick="selectBusForDepartureByBm('${escapeHtml(bus.bm)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectBusForDepartureByBm('${escapeHtml(bus.bm)}');}">
                         <div class="avail-bus-card-left">
                             <div class="avail-bus-title-row">
                                 <span class="avail-bus-bm">🚌 ${escapeHtml(bus.bm)}</span>
@@ -3358,7 +3455,7 @@ let busCategoriesMap = new Map();
                                 <div class="avail-bus-soc">⚡ ${bus.liveSoc}% SoC</div>
                                 <div class="avail-bus-range">📏 ${bus.fullDutyKm} km Range</div>
                             </div>
-                            <button type="button" class="avail-bus-select-btn" data-bm="${escapeHtml(bus.bm)}">
+                            <button type="button" class="avail-bus-select-btn" data-bm="${escapeHtml(bus.bm)}" onclick="event.stopPropagation(); selectBusForDepartureByBm('${escapeHtml(bus.bm)}');">
                                 ${isSelected ? '✓ Selected' : 'Select Bus ➔'}
                             </button>
                         </div>
@@ -3366,8 +3463,10 @@ let busCategoriesMap = new Map();
                 `;
             }).join("");
 
-            // Attach click events
+            // Attach click events to card
             listEl.querySelectorAll(".avail-bus-card").forEach(card => {
+                if (card._bound) return;
+                card._bound = true;
                 card.addEventListener("click", () => {
                     const bm = card.dataset.bm;
                     const bus = availableBuses.find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
@@ -5304,7 +5403,7 @@ let busCategoriesMap = new Map();
 
             try {
                 const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
-                    fetch("/api/routes"),
+                    fetch("/api/routes").catch(() => null),
                     fetch("/api/gtfs-schedules").catch(() => null),
                     fetch("/api/bus-state").catch(() => null),
                     fetch("/api/bus-assignments").catch(() => null),
@@ -5482,13 +5581,15 @@ let busCategoriesMap = new Map();
 
                 // ── Interactive Buses Available for Departure KPI and dropdown ──
                 const kpiBusDep = document.getElementById("kpi-bus-departure");
-                if (kpiBusDep) {
+                if (kpiBusDep && !kpiBusDep.getAttribute("onclick") && !kpiBusDep._bound) {
+                    kpiBusDep._bound = true;
                     kpiBusDep.addEventListener("click", () => {
                         toggleAvailableBusesList();
                     });
                 }
                 const btnCloseAvail = document.getElementById("btn-close-available-buses");
-                if (btnCloseAvail) {
+                if (btnCloseAvail && !btnCloseAvail.getAttribute("onclick") && !btnCloseAvail._bound) {
+                    btnCloseAvail._bound = true;
                     btnCloseAvail.addEventListener("click", () => {
                         toggleAvailableBusesList(false);
                     });
