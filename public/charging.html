@@ -546,21 +546,7 @@
 
 <!-- ── Charging & Battery SOC ── -->
 <div class="card">
-  <!-- Single Charge Operation (Form 4 Transit Standard) -->
-  <div style="background:#f0fdf4; border:1.5px solid #86efac; border-radius:12px; padding:14px 18px; margin-bottom:18px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-      <div>
-        <span style="font-size:0.75rem; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:0.06em; display:block;">Dispatch Regulatory Standard</span>
-        <strong style="color:#14532d; font-size:1.02rem;">⚡ Single Charge Operation (Form 4 Standard)</strong>
-        <span style="font-size:0.78rem; color:#166534; display:block; margin-top:2px;">Runs full operational duty on single depot charge without en-route top-up</span>
-      </div>
-      <div style="text-align:right;">
-        <span style="font-size:0.75rem; font-weight:800; color:#15803d; text-transform:uppercase; letter-spacing:0.06em; display:block;">Full Duty Distance</span>
-        <strong id="chargingFullDutyDist" style="color:#15803d; font-size:1.35rem; font-weight:900;">99 km</strong>
-        <span id="chargingFullDutySub" style="font-size:0.78rem; color:#166534; font-weight:600; display:block;">(usable @ 80% SoC • 10% reserve)</span>
-      </div>
-    </div>
-  </div>
+  <div class="card-title">⚡ Battery SOC</div>
 
   <!-- SOC Before -->
   <div class="form-group">
@@ -1383,14 +1369,6 @@
       if (sAft && sAft.value != cleanVal) sAft.value = cleanVal;
       const sAftNum = document.getElementById('socAfterNum');
       if (sAftNum && sAftNum.value != cleanVal) sAftNum.value = cleanVal;
-
-      const usableSoc = Math.max(0, parseInt(val) - 10);
-      const fullDutyKm = Math.round(usableSoc * 1.42);
-      const totalDutyKm = Math.round(parseInt(val) * 1.42);
-      const distEl = document.getElementById('chargingFullDutyDist');
-      const subEl = document.getElementById('chargingFullDutySub');
-      if (distEl) distEl.textContent = `${fullDutyKm} km`;
-      if (subEl) subEl.textContent = `(${fullDutyKm} km usable • ${totalDutyKm} km max @ ${val}% SoC)`;
     }
   }
 
