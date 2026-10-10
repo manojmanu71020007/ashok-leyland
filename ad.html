@@ -695,29 +695,43 @@
         .allocation-toast.error   { background: linear-gradient(135deg, #7f1d1d, #991b1b); color: #fef2f2; border: 1px solid #dc2626; }
         .allocation-toast.info    { background: linear-gradient(135deg, #0c4a6e, #075985); color: #f0f9ff; border: 1px solid #0284c7; }
     </style>
+    <script src="i18n.js"></script>
 </head>
 <body>
     <main class="shell">
         <header class="topbar">
             <div>
-                <div class="eyebrow">BMTC Depot 32 • Chandapura</div>
-                <h1>Smart Bus Allocation</h1>
-                <p class="subtitle">Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC.</p>
+                <div class="eyebrow" data-i18n="depot_chandapura_eyebrow">BMTC Depot 32 • Chandapura</div>
+                <h1 data-i18n="smart_allocation_title">Smart Bus Allocation</h1>
+                <p class="subtitle" data-i18n="smart_allocation_subtitle">Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
+                <div class="lang-selector-wrap" id="lang-selector-wrap">
+                    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+                    <select id="lang-select" class="lang-select" aria-label="Select Language">
+                        <option value="en">English</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                    </select>
+                </div>
+                <a href="/admin.html" class="btn-back-hub" style="display:inline-flex;align-items:center;gap:6px;background:#ffffff;border:1.5px solid #c2d5de;border-radius:999px;padding:6px 14px;font-size:0.84rem;font-weight:700;color:#0880a8;text-decoration:none;box-shadow:0 2px 6px rgba(0,0,0,0.05);" data-i18n="nav_back_admin">Return to Admin Hub</a>
             </div>
         </header>
 
         <div class="grid">
             <!-- ── Column 1: Schedule Requirement ── -->
             <section class="panel">
-                <h2>Schedule requirement</h2>
-                <p class="panel-note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
+                <h2 data-i18n="panel_schedule_req_title">Schedule requirement</h2>
+                <p class="panel-note" data-i18n="panel_schedule_req_note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
                 <div class="fields">
-                    <label class="wide">
+                    <label class="wide" data-i18n="label_search_route">
                         Search Route (Origin ➔ Destination)
-                        <input id="route-search" class="route-search" type="text" placeholder="Search route by origin or destination (e.g. Chandapura, Anekal, Hoskote, KBS...)" autocomplete="off" />
+                        <input id="route-search" class="route-search" type="text" placeholder="Search route by origin or destination (e.g. Chandapura, Anekal, Hoskote, KBS...)" autocomplete="off" data-i18n-placeholder="placeholder_search_route" />
                     </label>
                     <label class="wide">
-                        Select Bus Route (Origin ➔ Destination) <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">9 Routes available</span></span>
+                        <span data-i18n="label_select_bus_route">Select Bus Route (Origin ➔ Destination)</span> <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">9 Routes available</span></span>
                         <select id="route-select">
                             <option value="356Z" selected>Chandapura ➔ Anekal (356Z)</option>
                             <option value="360K">Chandapura ➔ Kempegowda Bus Station (360K)</option>
@@ -731,24 +745,24 @@
                         </select>
                     </label>
                     <label>
-                        Scheduled Departure Time (from dataset)
+                        <span data-i18n="label_time_slot">Scheduled Departure Time (from dataset)</span>
                         <select id="scheduled-time-select">
                             <option value="13:10" selected>13:10:00 (Schedule General - Regular Shift)</option>
                         </select>
                     </label>
                     <label class="departure-field-wrap">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                            <span>Departure time</span>
-                            <span id="manual-override-badge" class="manual-override-badge" style="display:none;">⚠️ Manual Over-ride</span>
+                            <span data-i18n="label_departure_time">Departure time</span>
+                            <span id="manual-override-badge" class="manual-override-badge" style="display:none;" data-i18n="manual_override_badge">⚠️ Manual Over-ride</span>
                         </div>
                         <input id="departure" type="time" value="13:10">
                         <div id="manual-override-hint" class="manual-override-hint" style="display:none;">
-                            <span>⚠️ Manual Over-ride: Time modified from scheduled timetable</span>
-                            <button type="button" id="btn-reset-time" class="btn-reset-time" onclick="resetToScheduledTime()">Reset to Timetable</button>
+                            <span data-i18n="manual_override_hint_text">⚠️ Manual Over-ride: Time modified from scheduled timetable</span>
+                            <button type="button" id="btn-reset-time" class="btn-reset-time" onclick="resetToScheduledTime()" data-i18n="btn_reset_auto">Reset to Timetable</button>
                         </div>
                     </label>
                     <label class="wide">
-                        Schedule distance (km)
+                        <span data-i18n="label_route_length">Schedule distance (km)</span>
                         <input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data">
                     </label>
                 </div>
@@ -759,8 +773,8 @@
                         <div class="candidate-buses-title-wrap">
                             <span class="candidate-title-icon">🚌</span>
                             <div>
-                                <h3 class="candidate-buses-title" id="candidate-buses-title">Candidate Buses (2 to 3 Buses Available)</h3>
-                                <p class="candidate-buses-sub" id="candidate-buses-sub">Select one of the 2–3 eligible candidate buses for this departure</p>
+                                <h3 class="candidate-buses-title" id="candidate-buses-title" data-i18n="candidate_buses_title">Candidate Buses (2 to 3 Buses Available)</h3>
+                                <p class="candidate-buses-sub" id="candidate-buses-sub" data-i18n="candidate_buses_sub">Select one of the 2–3 eligible candidate buses for this departure</p>
                             </div>
                         </div>
                         <span class="candidate-count-badge" id="candidate-count-badge">3 Candidates Ready</span>
@@ -785,18 +799,18 @@
                     </div>
                 </div>
 
-                <button id="recommend" class="btn-allocate">⚡ Allocate Bus</button>
+                <button id="recommend" class="btn-allocate" data-i18n="btn_commit_allocation">⚡ Allocate Bus</button>
             </section>
 
             <!-- ── Column 2: Allocation Result ── -->
             <aside class="panel">
-                <h2 id="allocation-title">Allocation result</h2>
-                <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
+                <h2 id="allocation-title" data-i18n="panel_allocated_title">Allocation result</h2>
+                <p class="panel-note" data-i18n="panel_allocated_note">Live telemetry and manual inspection checks confirm this bus can complete the duty.</p>
                 <div class="kpis">
-                    <div class="kpi" id="kpi-cand-count"><strong id="cand-kpi-count">3</strong><span>Candidate buses available</span></div>
-                    <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
-                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
-                    <div class="kpi" id="kpi-total-dist"><strong id="kpi-route-dist">28.7 km</strong><span>Route Distance</span></div>
+                    <div class="kpi" id="kpi-cand-count"><strong id="cand-kpi-count">3</strong><span data-i18n="candidate_buses_title">Candidate buses available</span></div>
+                    <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span data-i18n="kpi_battery_soc">Selected bus SOC</span></div>
+                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span data-i18n="kpi_est_range">Full Duty Distance (Single Charge)</span></div>
+                    <div class="kpi" id="kpi-total-dist"><strong id="kpi-route-dist">28.7 km</strong><span data-i18n="label_route_length">Route Distance</span></div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
@@ -1568,15 +1582,15 @@
 
                         <div class="cand-metrics-grid">
                             <div class="cand-metric">
-                                <span class="cand-metric-lbl">Battery SoC</span>
+                                <span class="cand-metric-lbl" data-i18n="kpi_battery_soc">Battery SoC</span>
                                 <strong class="cand-metric-val" style="color:#15803d;">⚡ ${bus.liveSoc}%</strong>
                             </div>
                             <div class="cand-metric">
-                                <span class="cand-metric-lbl">Duty Range</span>
+                                <span class="cand-metric-lbl" data-i18n="kpi_est_range">Duty Range</span>
                                 <strong class="cand-metric-val">📏 ${bus.fullDutyKm} km</strong>
                             </div>
                             <div class="cand-metric">
-                                <span class="cand-metric-lbl">Surplus</span>
+                                <span class="cand-metric-lbl" data-i18n="kpi_buffer_dist">Surplus</span>
                                 <strong class="cand-metric-val" style="color:#0369a1;">+${bus.surplus}%</strong>
                             </div>
                         </div>
@@ -1590,6 +1604,7 @@
                     </div>
                 `;
             }).join("");
+            if (window.i18n) window.i18n.translatePage();
         }
 
         function selectCandidateBus(bm) {

@@ -431,21 +431,36 @@
             border-color: #9ca3af;
         }
     </style>
+    <script src="i18n.js"></script>
 </head>
 <body>
 <main class="page-wrapper">
 
+    <!-- ── Language Selector Header ── -->
+    <div style="width:100%;display:flex;justify-content:flex-end;margin-bottom:14px;">
+        <div class="lang-selector-wrap" id="lang-selector-wrap">
+            <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+            <select id="lang-select" class="lang-select" aria-label="Select Language">
+                <option value="en">English</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+            </select>
+        </div>
+    </div>
+
     <!-- ── Quick Access Portal Tiles ── -->
     <div style="width:100%;margin-bottom:22px;">
-        <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;text-align:center;">Quick Access Portal</p>
+        <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;text-align:center;" data-i18n="quick_access_portal">Quick Access Portal</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:12px;">
             <a href="/public/charging.html" style="text-decoration:none;">
                 <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">⚡</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">Charging</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;">Log sessions</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_charging">Charging</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_charging_sub">Log sessions</div>
                 </div>
             </a>
             <a href="/public/cleaning.html" style="text-decoration:none;">
@@ -453,8 +468,8 @@
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🧹</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">Cleaning</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;">Status record</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_cleaning">Cleaning</div>
+                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_cleaning_sub">Status record</div>
                 </div>
             </a>
             <a href="/scheduling" style="text-decoration:none;">
@@ -462,8 +477,8 @@
                      onmouseover="this.style.background='rgba(14,165,233,0.22)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🎯</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;">Scheduling</div>
-                    <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;">Smart allocation</div>
+                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_scheduling">Scheduling</div>
+                    <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_scheduling_sub">Smart allocation</div>
                 </div>
             </a>
         </div>
@@ -474,16 +489,16 @@
 
         <!-- Tab switcher -->
         <div class="tab-row" role="tablist">
-            <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')">Sign In</button>
-            <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')">Sign Up</button>
+            <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')" data-i18n="tab_signin">Sign In</button>
+            <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')" data-i18n="tab_signup">Sign Up</button>
         </div>
 
         <!-- ══════════════════════════════════════════ LOGIN PANEL ══════════════════════════════════════════ -->
         <div class="panel active" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
             <div class="card-header">
                 <div class="logo">🔐</div>
-                <h2>Welcome Back</h2>
-                <p>Sign in to your account to continue</p>
+                <h2 data-i18n="login_title">Welcome Back</h2>
+                <p data-i18n="login_sub">Sign in to your account to continue</p>
             </div>
             <div class="card-body">
 
@@ -499,35 +514,35 @@
                         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         <path fill="none" d="M0 0h48v48H0z"/>
                     </svg>
-                    Continue with Google
+                    <span data-i18n="btn_google_signin">Continue with Google</span>
                 </button>
 
-                <div class="divider">or sign in with email</div>
+                <div class="divider" data-i18n="divider_email">or sign in with email</div>
 
                 <form id="form-login" novalidate>
                     <div class="form-group">
-                        <label for="login-email">Email Address</label>
+                        <label for="login-email" data-i18n="label_email">Email Address</label>
                         <div class="input-wrap">
                             <input type="email" id="login-email" name="email"
-                                   placeholder="Enter your email" autocomplete="username" required />
+                                   placeholder="Enter your email" autocomplete="username" required data-i18n-placeholder="placeholder_email" />
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="login-password">Password</label>
+                        <label for="login-password" data-i18n="label_password">Password</label>
                         <div class="input-wrap">
                             <input type="password" id="login-password" name="password"
-                                   placeholder="Enter your password" autocomplete="current-password" required />
+                                   placeholder="Enter your password" autocomplete="current-password" required data-i18n-placeholder="placeholder_password" />
                             <button class="toggle-password" type="button" data-target="login-password" aria-label="Show password">👁️</button>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <a href="/index.html" class="secondary-link" id="ignoreOption">Ignore</a>
-                        <a href="#" class="forgot-link" id="forgot-link">Forgot Password?</a>
+                        <a href="#" class="forgot-link" id="forgot-link" data-i18n="link_forgot_password">Forgot Password?</a>
                     </div>
 
-                    <button type="submit" class="primary-btn" id="btn-login">Sign In</button>
+                    <button type="submit" class="primary-btn" id="btn-login" data-i18n="btn_login_submit">Sign In</button>
                 </form>
 
                 <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
@@ -538,8 +553,8 @@
         <div class="panel" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup">
             <div class="card-header">
                 <div class="logo">🚀</div>
-                <h2>Create Account</h2>
-                <p>Sign up to get started</p>
+                <h2 data-i18n="signup_title">Create Account</h2>
+                <p data-i18n="signup_sub">Register for system access</p>
             </div>
             <div class="card-body">
 
@@ -555,10 +570,10 @@
                         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         <path fill="none" d="M0 0h48v48H0z"/>
                     </svg>
-                    Sign up with Google
+                    <span data-i18n="btn_signup_submit">Create Account</span>
                 </button>
 
-                <div class="divider">or create account with email</div>
+                <div class="divider" data-i18n="divider_email">or sign in with email</div>
 
                 <!-- ℹ️ Info box: Google account required -->
                 <div class="alert alert-info show" style="margin-bottom:14px;">
@@ -568,15 +583,15 @@
 
                 <form id="form-signup" novalidate>
                     <div class="form-group">
-                        <label for="signup-name">Full Name</label>
+                        <label for="signup-name" data-i18n="label_full_name">Full Name</label>
                         <div class="input-wrap">
                             <input type="text" id="signup-name" name="name"
-                                   placeholder="Your full name" autocomplete="name" required />
+                                   placeholder="Your full name" autocomplete="name" required data-i18n-placeholder="placeholder_full_name" />
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="signup-email">Google Email Address</label>
+                        <label for="signup-email" data-i18n="label_email">Google Email Address</label>
                         <div class="input-wrap">
                             <input type="email" id="signup-email" name="email"
                                    placeholder="yourname@gmail.com" autocomplete="email" required />
@@ -584,7 +599,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="signup-password">Create Password</label>
+                        <label for="signup-password" data-i18n="label_password">Create Password</label>
                         <div class="input-wrap">
                             <input type="password" id="signup-password" name="password"
                                    placeholder="Min 8 characters" autocomplete="new-password" required />
@@ -595,15 +610,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="signup-confirm">Confirm Password</label>
+                        <label for="signup-confirm" data-i18n="label_confirm_password">Confirm Password</label>
                         <div class="input-wrap">
                             <input type="password" id="signup-confirm" name="confirm"
-                                   placeholder="Re-enter your password" autocomplete="new-password" required />
+                                   placeholder="Re-enter your password" autocomplete="new-password" required data-i18n-placeholder="placeholder_confirm_password" />
                             <button class="toggle-password" type="button" data-target="signup-confirm" aria-label="Show password">👁️</button>
                         </div>
                     </div>
 
-                    <button type="submit" class="primary-btn" id="btn-signup">Create Account</button>
+                    <button type="submit" class="primary-btn" id="btn-signup" data-i18n="btn_signup_submit">Create Account</button>
                 </form>
 
                 <div class="footer-note">By signing up, you agree to our terms and privacy policy.</div>

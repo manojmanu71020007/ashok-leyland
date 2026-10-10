@@ -4,14 +4,27 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fleet Dashboard</title>
+  <script src="/i18n.js"></script>
 </head>
-<body>
-  <h2>Fleet Overview</h2>
+<body style="font-family:system-ui,sans-serif;padding:24px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+    <h2 style="margin:0;" data-i18n="fleet_overview">Fleet Overview</h2>
+    <div class="lang-selector-wrap" id="lang-selector-wrap">
+      <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+      <select id="lang-select" class="lang-select" aria-label="Select Language">
+        <option value="en">English</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+      </select>
+    </div>
+  </div>
   <table>
     <thead>
       <tr>
-        <th>Bus ID</th>
-        <th>Route</th>
+        <th data-i18n="th_bus_id">Bus ID</th>
+        <th data-i18n="th_route">Route</th>
       </tr>
     </thead>
     <tbody>

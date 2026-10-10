@@ -124,13 +124,26 @@
       color: #93c5fd;
     }
   </style>
+  <script src="/i18n.js"></script>
 </head>
 <body>
   <div class="container">
-    <a href="/problem.html" class="back-link">&#8592; Back to Scheduling Dashboard</a>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+      <a href="/problem.html" class="back-link" style="margin-bottom:0;" data-i18n="nav_back_admin">&#8592; Back to Scheduling Dashboard</a>
+      <div class="lang-selector-wrap" id="lang-selector-wrap">
+        <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+        <select id="lang-select" class="lang-select" aria-label="Select Language">
+          <option value="en">English</option>
+          <option value="kn">ಕನ್ನಡ (Kannada)</option>
+          <option value="hi">हिन्दी (Hindi)</option>
+          <option value="te">తెలుగు (Telugu)</option>
+          <option value="ta">தமிழ் (Tamil)</option>
+        </select>
+      </div>
+    </div>
 
     <div class="header">
-      <h1 id="pageHeading">Bus SoC &amp; Battery Analytics</h1>
+      <h1 id="pageHeading" data-i18n="analytics_page_title">Bus Battery &amp; Telemetry Analytics</h1>
       <div class="view-switcher" aria-label="Chart view switcher">
         <button class="view-btn active" data-view="macro">Macro View (30-Day)</button>
         <button class="view-btn" data-view="micro">Micro View (Live)</button>

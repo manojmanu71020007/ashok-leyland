@@ -2603,6 +2603,11 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname === "/i18n.js") {
+        sendFile(res, path.join(BASE_DIR, "i18n.js"), "application/javascript; charset=utf-8");
+        return;
+    }
+
     if (pathname === "/charging" || pathname === "/charging.html") {
         sendStaticFile(res, "public/charging.html");
         return;

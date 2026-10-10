@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Tracking System</title>
     <link rel="stylesheet" href="style.css">
+    <script src="i18n.js"></script>
 </head>
 <body>
 
@@ -13,10 +14,20 @@
         <div class="topnav-inner">
             <a class="topnav-brand" href="/index.html">
                 <span class="topnav-icon">🚍</span>
-                <span>Ashok Leyland BTS</span>
+                <span data-i18n="brand_name">Ashok Leyland BTS</span>
             </a>
-            <div class="topnav-links">
-                <a href="/login.html" class="topnav-link topnav-link--cta">🔐 Login</a>
+            <div class="topnav-links" style="display:flex;align-items:center;gap:12px;">
+                <div class="lang-selector-wrap" id="lang-selector-wrap">
+                    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+                    <select id="lang-select" class="lang-select" aria-label="Select Language">
+                        <option value="en">English</option>
+                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                        <option value="hi">हिन्दी (Hindi)</option>
+                        <option value="te">తెలుగు (Telugu)</option>
+                        <option value="ta">தமிழ் (Tamil)</option>
+                    </select>
+                </div>
+                <a href="/login.html" class="topnav-link topnav-link--cta" data-i18n="nav_login">🔐 Login</a>
             </div>
         </div>
     </nav>
@@ -24,46 +35,46 @@
     <div class="container">
         <header>
             <div class="header-icon">📍</div>
-            <h1>Bus Tracking System</h1>
-            <p>Find and Track Buses in Real-Time across Bangalore</p>
+            <h1 data-i18n="tracking_title">Bus Tracking System</h1>
+            <p data-i18n="tracking_subtitle">Find and Track Buses in Real-Time across Bangalore</p>
         </header>
 
         <section class="search-section" aria-label="Search buses">
             <div class="input-group">
-                <label for="bus-number">🔢 Bus Number</label>
-                <input type="text" id="bus-number" placeholder="401-A">
+                <label for="bus-number" data-i18n="label_bus_number">🔢 Bus Number</label>
+                <input type="text" id="bus-number" placeholder="401-A" data-i18n-placeholder="placeholder_bus_number">
             </div>
             <div class="optional-fields">
-                <span class="optional-badge">Optional</span>
+                <span class="optional-badge" data-i18n="badge_optional">Optional</span>
                 <div class="optional-inputs">
                     <div class="input-group">
-                        <label for="origin">📍 Origin</label>
-                        <input type="text" id="origin" placeholder="Enter starting point">
+                        <label for="origin" data-i18n="label_origin">📍 Origin</label>
+                        <input type="text" id="origin" placeholder="Enter starting point" data-i18n-placeholder="placeholder_origin">
                     </div>
                     <div class="input-group">
-                        <label for="destination">🏁 Destination</label>
-                        <input type="text" id="destination" placeholder="Enter destination">
+                        <label for="destination" data-i18n="label_destination">🏁 Destination</label>
+                        <input type="text" id="destination" placeholder="Enter destination" data-i18n-placeholder="placeholder_destination">
                     </div>
                 </div>
             </div>
             <div class="search-actions">
-                <button id="search-btn" class="btn-search">🔍 Search Buses</button>
-                <button id="show-all-btn" class="btn-secondary">🚌 Show All Buses</button>
+                <button id="search-btn" class="btn-search" data-i18n="btn_search_buses">🔍 Search Buses</button>
+                <button id="show-all-btn" class="btn-secondary" data-i18n="btn_show_all_buses">🚌 Show All Buses</button>
             </div>
         </section>
 
         <!-- Locked Buses Banner -->
         <div id="locked-tracking-banner" style="display:none;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 18px;margin-bottom:16px;gap:12px;align-items:center;flex-wrap:wrap;">
-            <strong style="color:#991b1b;font-size:0.88rem;">🔒 Locked Buses (Cleaning / Charging) — Excluded from live tracking:</strong>
+            <strong style="color:#991b1b;font-size:0.88rem;" data-i18n="locked_tracking_banner_title">🔒 Locked Buses (Cleaning / Charging) — Excluded from live tracking:</strong>
             <div id="locked-tracking-chips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
         </div>
 
         <!-- Available Buses -->
         <div class="section-heading">
-            <h3>🚌 Available Buses</h3>
+            <h3 data-i18n="heading_available_buses">🚌 Available Buses</h3>
             <div class="live-indicator">
                 <span class="live-dot"></span>
-                <span>Live</span>
+                <span data-i18n="live_indicator">Live</span>
             </div>
         </div>
         <div id="buses-list" class="bus-list">
@@ -77,18 +88,18 @@
         <!-- Bus & Route Details -->
         <div class="details-container">
             <section id="bus-details" class="details-section">
-                <h3>📋 Bus Details</h3>
+                <h3 data-i18n="heading_bus_details">📋 Bus Details</h3>
                 <div id="selected-bus-info" class="empty-state">
                     <span class="empty-icon">🚌</span>
-                    <p>Select a bus card above to view its details</p>
+                    <p data-i18n="empty_select_bus">Select a bus card above to view its details</p>
                 </div>
             </section>
 
             <section id="route-details" class="details-section">
-                <h3>🚏 Route Details</h3>
+                <h3 data-i18n="heading_route_details">🚏 Route Details</h3>
                 <div id="route-stops-list" class="empty-state">
                     <span class="empty-icon">🗺️</span>
-                    <p>Route stops will appear here once you select a bus</p>
+                    <p data-i18n="empty_route_stops">Route stops will appear here once you select a bus</p>
                 </div>
             </section>
         </div>
@@ -96,8 +107,8 @@
         <!-- Map -->
         <section class="map-section" aria-label="Route map">
             <div class="section-heading">
-                <h3>🗺️ Route Map</h3>
-                <span class="map-hint">Click a bus card to plot its route</span>
+                <h3 data-i18n="heading_route_map">🗺️ Route Map</h3>
+                <span class="map-hint" data-i18n="map_hint">Click a bus card to plot its route</span>
             </div>
             <div id="map"></div>
         </section>
@@ -106,11 +117,11 @@
     <!-- ── Footer ── -->
     <footer class="site-footer">
         <div class="site-footer-inner">
-            <span>🚍 <strong>Ashok Leyland Bus Tracking System</strong></span>
+            <span>🚍 <strong data-i18n="footer_title">Ashok Leyland Bus Tracking System</strong></span>
             <span class="footer-sep">·</span>
-            <span>Real-time fleet tracking for Bangalore</span>
+            <span data-i18n="footer_subtitle">Real-time fleet tracking for Bangalore</span>
             <span class="footer-sep">·</span>
-            <a href="/login.html" class="footer-link">Login / Admin</a>
+            <a href="/login.html" class="footer-link" data-i18n="footer_link_login">Login / Admin</a>
         </div>
     </footer>
 

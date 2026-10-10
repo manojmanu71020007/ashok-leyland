@@ -441,51 +441,64 @@
       text-align: right;
     }
   </style>
+  <script src="/i18n.js"></script>
 </head>
 <body>
 
-<a href="/login.html" class="back-link">← Back to Portal</a>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+  <a href="/login.html" class="back-link" style="margin-bottom:0;" data-i18n="nav_back_portal">← Back to Portal</a>
+  <div class="lang-selector-wrap" id="lang-selector-wrap">
+    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+    <select id="lang-select" class="lang-select" aria-label="Select Language">
+      <option value="en">English</option>
+      <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      <option value="hi">हिन्दी (Hindi)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="ta">தமிழ் (Tamil)</option>
+    </select>
+  </div>
+</div>
 
 <div class="header">
   <div class="header-icon">🧹</div>
   <div>
-    <h1>Cleaning Log</h1>
-    <p>Record bus cleaning status — Depot 32 / Chandapura</p>
+    <h1 data-i18n="cln_page_title">Cleaning Log</h1>
+    <p data-i18n="cln_page_sub">Record bus cleaning status — Depot 32 / Chandapura</p>
   </div>
 </div>
 
 <!-- ── Bus Selection ── -->
 <div class="card">
-  <div class="card-title">🚌 Select Bus</div>
+  <div class="card-title" data-i18n="card_title_select_bus">🚌 Select Bus</div>
 
   <!-- Search -->
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="text" id="searchInput" placeholder="Search by BM number or Registration No…" oninput="filterBuses()" autocomplete="off" />
+    <input type="text" id="searchInput" placeholder="Search by BM number or Registration No…" data-i18n-placeholder="placeholder_search_bm" oninput="filterBuses()" autocomplete="off" />
   </div>
 
   <!-- Dropdown -->
   <select id="busSelect" onchange="onBusSelected()">
-    <option value="">— Choose a bus —</option>
+    <option value="" data-i18n="option_choose_bus">— Choose a bus —</option>
   </select>
 
   <!-- Bus Info -->
   <div class="bus-info-box" id="busInfoBox">
     <div class="bus-info-grid">
       <div class="info-item">
-        <label>BM Number</label>
+        <label data-i18n="label_bm_number">BM Number</label>
         <span id="infoBM">—</span>
       </div>
       <div class="info-item">
-        <label>Registration No.</label>
+        <label data-i18n="label_reg_no">Registration No.</label>
         <span id="infoReg">—</span>
       </div>
       <div class="info-item">
-        <label>Model</label>
+        <label data-i18n="label_model">Model</label>
         <span id="infoModel">—</span>
       </div>
       <div class="info-item">
-        <label>Status</label>
+        <label data-i18n="label_status">Status</label>
         <span><span class="badge badge-active" id="infoStatus">Active</span></span>
       </div>
     </div>
@@ -493,8 +506,8 @@
 
   <!-- Lock / Unlock Row -->
   <div class="lock-row" id="lockRow">
-    <button type="button" class="btn-lock" id="lockBtn" onclick="lockBus()">🔒 Lock Bus for Cleaning</button>
-    <button type="button" class="btn-unlock disabled" id="unlockBtn" onclick="handleUnlockAndSubmit()" style="display:none;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record">🔓 Unlock &amp; Submit Cleaning Record</button>
+    <button type="button" class="btn-lock" id="lockBtn" onclick="lockBus()" data-i18n="btn_lock_bus_cleaning">🔒 Lock Bus for Cleaning</button>
+    <button type="button" class="btn-unlock disabled" id="unlockBtn" onclick="handleUnlockAndSubmit()" style="display:none;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record" data-i18n="btn_unlock_bus_cleaning">🔓 Unlock &amp; Submit Cleaning Record</button>
   </div>
 
   <!-- Other Lock Warning -->
