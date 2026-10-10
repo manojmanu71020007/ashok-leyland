@@ -972,7 +972,18 @@
         document.querySelectorAll("[data-i18n]").forEach(el => {
             const key = el.getAttribute("data-i18n");
             if (key && TRANSLATIONS[key]) {
-                el.textContent = t(key, targetLang, el.textContent);
+                const translated = t(key, targetLang, el.textContent);
+                if (el.children.length === 0) {
+                    el.textContent = translated;
+                } else {
+                    // Only update the first non-empty text node to preserve child inputs, buttons, etc.
+                    for (const node of el.childNodes) {
+                        if (node.nodeType === 3 && node.nodeValue.trim()) {
+                            node.nodeValue = translated;
+                            break;
+                        }
+                    }
+                }
             }
         });
 
