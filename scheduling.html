@@ -2094,7 +2094,9 @@
 
             const busShortName = (allocatedBus && allocatedBus.bm) || (routeObj && (routeObj.code || routeObj.routeShortName)) || "500DC";
             const timeCatInfo = getTimeCategory(departure);
+            const timeCategoryKey = timeCatInfo.key;
             const timeCategoryLabel = timeCatInfo.label;
+            const isPeakTime = timeCatInfo.isPeak;
             if (timeRule) timeRule.textContent = timeCategoryLabel;
 
             if (!allocatedBus) {
@@ -2124,29 +2126,12 @@
             const busCategory = allocatedBus.busCategory || getBusCategory(assignedVehicle, liveSoc);
             const isComplexRoute = (complexity === "complex");
 
-            const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
-            const departHours = departMinutes / 60;
-            let timeCategoryKey = "NORMAL";
-            let timeCategoryLabel = "Normal (Off-Peak)";
-            if (departHours >= 5 && departHours < 7) {
-                timeCategoryKey = "NORMAL";
-                timeCategoryLabel = "Normal (05:00–07:00)";
-            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
-                timeCategoryKey = "EXTREME_PEAK";
-                timeCategoryLabel = "Extreme Peak (07:00–10:00 & 16:00–20:00)";
-            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
-                timeCategoryKey = "PEAK";
-                timeCategoryLabel = "Peak (10:00–16:00 & 20:00–23:00)";
-            }
-
             const allowedMatrix = {
                 simple: { NORMAL: ["A", "B", "C"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
                 moderate: { NORMAL: ["A", "B"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
             };
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
-            const timeCatInfo = getTimeCategory(departure);
-            const isPeakTime = timeCatInfo.isPeak;
             const requiresCatA = isComplexRoute || isPeakTime;
             const isMatrixCompliant = requiresCatA ? (busCategory === "A") : allowedCategories.includes(busCategory);
 
