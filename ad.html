@@ -2093,6 +2093,9 @@
             const routeCategoryLabel = schedCat || (complexity === "simple" ? "Standard" : (complexity === "complex" ? "Complex" : "Moderate"));
 
             const busShortName = (allocatedBus && allocatedBus.bm) || (routeObj && (routeObj.code || routeObj.routeShortName)) || "500DC";
+            const timeCatInfo = getTimeCategory(departure);
+            const timeCategoryLabel = timeCatInfo.label;
+            if (timeRule) timeRule.textContent = timeCategoryLabel;
 
             if (!allocatedBus) {
                 if (titleEl) titleEl.textContent = `Allocation result of ${busShortName} (No eligible bus)`;
@@ -2104,7 +2107,6 @@
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = routeCategoryLabel;
-                if (timeRule) timeRule.textContent = "—";
                 if (busCatRule) { busCatRule.textContent = "—"; busCatRule.style.color = ""; }
                 if (matrixStatusRule) { matrixStatusRule.textContent = "—"; matrixStatusRule.style.color = ""; }
                 return;
