@@ -3,6 +3,7 @@ const https = require("https");
 const fs = require("fs");
 const path = require("path");
 const zlib = require("zlib");
+const socLogger = require("./soc_logger");
 
 const PORT = process.env.PORT || 3000;
 const PYTHON_API_BASE = "http://localhost:8000";
@@ -1635,39 +1636,8 @@ function getBusMicroData(rawBusId) {
 
 function getBusMacroData(rawBusId) {
     const { currentSoc, routeDistanceKm, uniqueId, busNumber } = resolveBusAndRoute(rawBusId);
-    const now = new Date();
-    const logs = [];
     const idToUse = uniqueId || busNumber;
-
-    for (let offset = 29; offset >= 0; offset--) {
-        const date = new Date(now.getTime() - offset * 24 * 3600 * 1000);
-        const stamp = date.toISOString().split("T")[0] + "T14:30:00.000Z";
-        const slot = (offset % 3 === 0) ? "PEAK" : "NORMAL";
-        const km = routeDistanceKm;
-        const durationHours = Number((routeDistanceKm / 22 + (offset % 3) * 0.1).toFixed(2));
-
-        let startSoc, endSoc;
-        if (offset === 0) {
-            endSoc = currentSoc;
-            startSoc = Math.min(100, Number((currentSoc + Math.min(30, routeDistanceKm * 0.55)).toFixed(1)));
-        } else {
-            const seed = (Math.abs(offset * 7 + 13) % 5);
-            startSoc = Math.min(100, Number((98 - seed * 1.5).toFixed(1)));
-            const drain = Number((routeDistanceKm * 0.55 + seed * 1.2).toFixed(1));
-            endSoc = Math.max(15, Number((startSoc - drain).toFixed(1)));
-        }
-
-        logs.push({
-            timestamp: stamp,
-            slot,
-            soc_start: startSoc,
-            soc_end: endSoc,
-            km,
-            duration_hours: durationHours,
-            bus_id: idToUse
-        });
-    }
-    return logs;
+    return socLogger.getMacroTrendWithRealHistory(idToUse, currentSoc, routeDistanceKm);
 }
 
 function getBusTasks(busIdentifier, routeIdParam, scheduleIdParam) {
@@ -1944,6 +1914,48 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    const socHistoryMatch = pathname.match(/^\/api\/bus\/([^/]+)\/soc-history$/);
+    if (socHistoryMatch) {
+        try {
+            const busIdParam = decodeURIComponent(socHistoryMatch[1]);
+            const dateParam = (requestUrl.searchParams.get("date") || "").trim();
+            const daysParam = parseInt(requestUrl.searchParams.get("days") || "30", 10);
+            const summaries = socLogger.getBusDailySummaries(busIdParam, daysParam);
+            const dayDetails = dateParam ? socLogger.getBusDateDetails(busIdParam, dateParam) : null;
+            sendJson(res, {
+                ok: true,
+                busId: busIdParam,
+                summaries,
+                selectedDate: dateParam || null,
+                dayDetails
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load SoC history", details: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/soc-dates") {
+        try {
+            const dates = socLogger.getAvailableDates();
+            sendJson(res, { ok: true, dates });
+        } catch (error) {
+            sendJson(res, { ok: false, error: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/soc-daily-log") {
+        try {
+            const dateParam = (requestUrl.searchParams.get("date") || new Date().toISOString().split("T")[0]).trim();
+            const summaries = socLogger.getAllSummariesForDate(dateParam);
+            sendJson(res, { ok: true, date: dateParam, summaries });
+        } catch (error) {
+            sendJson(res, { ok: false, error: error.message }, 500);
+        }
+        return;
+    }
+
     const summaryMatch = pathname.match(/^\/api\/bus\/([^/]+)\/summary$/);
     if (summaryMatch) {
         try {
@@ -2099,6 +2111,18 @@ const server = http.createServer(async (req, res) => {
                         swapBusAssignments(currentState);
                         saveBusState(currentState);
 
+                        // Persistent Daily SoC Logging
+                        socLogger.logSocUpdate({
+                            busId: uniqueId,
+                            soc: updatedEntry.soc,
+                            condition: updatedEntry.condition,
+                            status: updatedEntry.status,
+                            driver: updatedEntry.driver,
+                            routeId: (currentState._assignments || {})[uniqueId] || defaultRouteId,
+                            routeShortName: busShortName,
+                            timestamp: updatedEntry.updatedAt
+                        });
+
                         // Forward to Python backend for micro/macro tracking
                         const pythonIds = new Set([uniqueId, busShortName]);
                         if (defaultRouteId) pythonIds.add(defaultRouteId);
@@ -2235,6 +2259,18 @@ const server = http.createServer(async (req, res) => {
                     // Run the unique-id bus swap engine
                     swapBusAssignments(currentState);
                     saveBusState(currentState);
+
+                    // Persistent Daily SoC Logging
+                    socLogger.logSocUpdate({
+                        busId: uniqueId,
+                        soc: updatedEntry.soc,
+                        condition: updatedEntry.condition,
+                        status: updatedEntry.status,
+                        driver: updatedEntry.driver,
+                        routeId: (currentState._assignments || {})[uniqueId] || defaultRouteId,
+                        routeShortName: busShortName,
+                        timestamp: updatedEntry.updatedAt
+                    });
 
                     // Forward to Python backend (for micro/macro charts)
                     const pythonIds = new Set([uniqueId, busShortName]);

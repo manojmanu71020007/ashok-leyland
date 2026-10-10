@@ -178,6 +178,58 @@
       </div>
       <p id="status" class="status">Loading analytics&#8230;</p>
     </div>
+
+    <!-- Daily SoC History Card -->
+    <div class="card" style="margin-top: 20px;" id="historyCard">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <div>
+          <h2 style="margin:0; font-size:1.25rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+            <span>📅 Daily State of Charge (SoC) History</span>
+            <span id="historyBadge" style="font-size:0.75rem; background:rgba(34, 197, 94, 0.2); color:#4ade80; border:1px solid rgba(34, 197, 94, 0.4); padding:2px 8px; border-radius:12px; font-weight:700;">0 Days Tracked</span>
+          </h2>
+          <p style="margin:4px 0 0; font-size:0.82rem; color:var(--muted);">
+            Persistent daily battery telemetry recorded in local storage for this vehicle.
+          </p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button id="refreshHistoryBtn" style="background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 14px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
+            🔄 Refresh Logs
+          </button>
+        </div>
+      </div>
+
+      <div id="historyTableContainer" style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:0.86rem; text-align:left;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border); color:var(--muted);">
+              <th style="padding:10px 12px;">Date</th>
+              <th style="padding:10px 12px;">Start SoC</th>
+              <th style="padding:10px 12px;">End / Latest SoC</th>
+              <th style="padding:10px 12px;">Min - Max Range</th>
+              <th style="padding:10px 12px;">Updates Count</th>
+              <th style="padding:10px 12px;">Condition</th>
+              <th style="padding:10px 12px;">Details</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td colspan="7" style="padding:24px; text-align:center; color:var(--muted);">Loading daily SoC records&#8230;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Detail Drawer for inspecting timestamps -->
+      <div id="dayDetailModal" style="display:none; margin-top:16px; padding:16px; background:rgba(15,23,42,0.9); border:1px solid var(--border); border-radius:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <h3 id="dayDetailTitle" style="margin:0; font-size:0.98rem; font-weight:700; color:#93c5fd;">Detailed Timestamps</h3>
+          <button id="closeDayDetailBtn" style="background:none; border:none; color:var(--muted); font-size:1.1rem; cursor:pointer; font-weight:700;">✕ Close</button>
+        </div>
+        <div id="dayDetailContent" style="max-height:240px; overflow-y:auto;">
+          <!-- Items will render here -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -304,7 +356,14 @@
             borderColor: "#3b82f6",
             backgroundColor: "rgba(59, 130, 246, 0.2)",
             borderWidth: 2.5,
-            pointRadius: 3,
+            pointRadius: (ctx) => {
+              const item = data[ctx.dataIndex];
+              return item && item.is_real ? 5 : 2.5;
+            },
+            pointBackgroundColor: (ctx) => {
+              const item = data[ctx.dataIndex];
+              return item && item.is_real ? "#22c55e" : "#3b82f6";
+            },
             fill: true,
             tension: 0.25
           }]
@@ -317,7 +376,11 @@
             legend: { display: true },
             tooltip: {
               callbacks: {
-                label: (ctx) => `Battery SoC: ${ctx.parsed.y}% (${assignedRouteDisplay || 'Assigned Route'})`
+                label: (ctx) => {
+                  const item = data[ctx.dataIndex];
+                  const realTag = item && item.is_real ? " ✓ [Real Daily Log]" : "";
+                  return `Battery SoC: ${ctx.parsed.y}%${realTag} (${assignedRouteDisplay || 'Assigned Route'})`;
+                }
               }
             }
           },
@@ -458,11 +521,171 @@
     }
 
     // -----------------------------------------------------------------------
+    // Daily SoC History Table & Inspection
+    // -----------------------------------------------------------------------
+    async function loadSocHistory() {
+      const busKey = physicalBusName || searchKey;
+      const tbody = document.getElementById("historyTableBody");
+      const badge = document.getElementById("historyBadge");
+
+      try {
+        const res = await fetch(`/api/bus/${encodeURIComponent(busKey)}/soc-history?days=30`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const summaries = Array.isArray(json.summaries) ? json.summaries : [];
+
+        badge.textContent = `${summaries.length} Day${summaries.length === 1 ? '' : 's'} Tracked`;
+
+        if (summaries.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="7" style="padding:24px; text-align:center; color:var(--muted);">
+                No historical daily SoC records stored yet for vehicle <strong>${escapeHtml(busKey)}</strong>. Records will appear as telemetry arrives.
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        // Sort descending (latest day first)
+        const sorted = [...summaries].sort((a, b) => b.date.localeCompare(a.date));
+
+        tbody.innerHTML = sorted.map(item => {
+          const dateObj = new Date(item.date + "T12:00:00Z");
+          const dateFmt = dateObj.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          const isGood = item.condition === "Good";
+          const condColor = isGood ? "#22c55e" : "#ef4444";
+          
+          const startColor = item.startSoc >= 60 ? "#22c55e" : (item.startSoc >= 30 ? "#eab308" : "#ef4444");
+          const endColor = item.endSoc >= 60 ? "#22c55e" : (item.endSoc >= 30 ? "#eab308" : "#ef4444");
+
+          return `
+            <tr style="border-bottom:1px solid rgba(148, 163, 184, 0.1); transition:background 0.15s;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+              <td style="padding:12px; font-weight:700; color:#f1f5f9;">
+                ${dateFmt}
+                <div style="font-size:0.75rem; color:var(--muted); font-weight:normal;">${item.date}</div>
+              </td>
+              <td style="padding:12px;">
+                <span style="display:inline-block; padding:2px 8px; border-radius:6px; font-weight:700; background:rgba(255,255,255,0.05); color:${startColor};">
+                  ${Math.round(item.startSoc)}%
+                </span>
+              </td>
+              <td style="padding:12px;">
+                <span style="display:inline-block; padding:2px 8px; border-radius:6px; font-weight:700; background:rgba(255,255,255,0.05); color:${endColor};">
+                  ${Math.round(item.endSoc)}%
+                </span>
+              </td>
+              <td style="padding:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:0.8rem; color:#94a3b8;">${Math.round(item.minSoc)}% - ${Math.round(item.maxSoc)}%</span>
+                  <div style="flex:1; max-width:80px; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                    <div style="width:${Math.max(10, item.endSoc)}%; height:100%; background:${endColor}; border-radius:3px;"></div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:12px; color:#cbd5e1; font-weight:600;">
+                ${item.count || 1} update${(item.count || 1) === 1 ? '' : 's'}
+              </td>
+              <td style="padding:12px;">
+                <span style="display:inline-flex; align-items:center; gap:4px; font-size:0.8rem; font-weight:600; color:${condColor};">
+                  ● ${item.condition || 'Good'}
+                </span>
+              </td>
+              <td style="padding:12px;">
+                <button type="button" onclick="inspectDayDetails('${item.date}')" style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); color:#93c5fd; padding:4px 10px; border-radius:6px; font-size:0.78rem; font-weight:700; cursor:pointer;">
+                  🔍 Logs
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join("");
+
+      } catch (err) {
+        console.warn("Failed to load SoC history:", err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="padding:18px; text-align:center; color:#ef4444;">
+              Failed to load daily history: ${err.message}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    window.inspectDayDetails = async function(dateStr) {
+      const busKey = physicalBusName || searchKey;
+      const modal = document.getElementById("dayDetailModal");
+      const title = document.getElementById("dayDetailTitle");
+      const content = document.getElementById("dayDetailContent");
+
+      modal.style.display = "block";
+      title.textContent = `Detailed Timestamps for ${dateStr} (Bus ${busKey})`;
+      content.innerHTML = `<p style="color:var(--muted); margin:8px 0;">Loading log entries for ${dateStr}...</p>`;
+
+      try {
+        const res = await fetch(`/api/bus/${encodeURIComponent(busKey)}/soc-history?date=${encodeURIComponent(dateStr)}`);
+        const json = await res.json();
+        const logs = Array.isArray(json.dayDetails) ? json.dayDetails : [];
+
+        if (logs.length === 0) {
+          content.innerHTML = `<p style="color:var(--muted); margin:8px 0;">No individual telemetry timestamp points found for this date.</p>`;
+          return;
+        }
+
+        content.innerHTML = `
+          <table style="width:100%; border-collapse:collapse; font-size:0.8rem; text-align:left;">
+            <thead>
+              <tr style="color:var(--muted); border-bottom:1px solid rgba(255,255,255,0.1);">
+                <th style="padding:6px 8px;">Time</th>
+                <th style="padding:6px 8px;">SoC (%)</th>
+                <th style="padding:6px 8px;">Condition</th>
+                <th style="padding:6px 8px;">Status</th>
+                <th style="padding:6px 8px;">Driver</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.map(l => {
+                const t = new Date(l.timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+                const isGood = l.condition === "Good";
+                const socCol = l.soc >= 60 ? "#22c55e" : (l.soc >= 30 ? "#eab308" : "#ef4444");
+                return `
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:6px 8px; color:#cbd5e1; font-family:monospace;">${t}</td>
+                    <td style="padding:6px 8px; font-weight:700; color:${socCol};">${Math.round(l.soc)}%</td>
+                    <td style="padding:6px 8px; color:${isGood ? '#22c55e' : '#ef4444'};">${l.condition}</td>
+                    <td style="padding:6px 8px; color:#94a3b8;">${l.status}</td>
+                    <td style="padding:6px 8px; color:#94a3b8;">${l.driver || '-'}</td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
+      } catch (err) {
+        content.innerHTML = `<p style="color:#ef4444; margin:8px 0;">Error fetching day logs: ${err.message}</p>`;
+      }
+    };
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.getElementById("closeDayDetailBtn").addEventListener("click", () => {
+      document.getElementById("dayDetailModal").style.display = "none";
+    });
+
+    document.getElementById("refreshHistoryBtn").addEventListener("click", () => {
+      loadSocHistory();
+    });
+
+    // -----------------------------------------------------------------------
     // Boot
     // -----------------------------------------------------------------------
     (async function init() {
       await fetchSummary();
       await renderView("macro");
+      await loadSocHistory();
       startLivePolling();
     })();
   </script>
