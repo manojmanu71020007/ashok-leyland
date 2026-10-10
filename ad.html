@@ -1022,6 +1022,13 @@
             } catch (e) {
                 console.warn("Could not save allocated duties to localStorage:", e);
             }
+            try {
+                fetch("/api/allocated-duties", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ duties })
+                }).catch(() => {});
+            } catch (e) {}
         }
 
         function normalizeBm(bm) {
@@ -1523,13 +1530,22 @@
                 const normKey = normalizeBm(key);
                 if (!normKey || seenBms.has(normKey)) return;
 
-                // Check cross-route allocation
+                // Check if this bus is already assigned to ANY route or departure time
                 const existingAnyDuty = findAllocatedDutyForBm(key, allocatedDuties);
                 if (existingAnyDuty) {
                     const dutyRoute = normalizeRoute(existingAnyDuty.routeCode || existingAnyDuty.busNumber || existingAnyDuty.routeId);
                     const curRoute = normalizeRoute(routeCode);
-                    if (dutyRoute && curRoute && dutyRoute !== curRoute) {
-                        return; // Exclude: allocated to another route!
+                    const dutyTime = (existingAnyDuty.departureTime || '').substring(0, 5);
+                    const curTime = depShort;
+
+                    const isSameDuty = (dutyRoute === curRoute && dutyTime === curTime);
+                    if (!isSameDuty) {
+                        // Strictly exclude: bus is already assigned to Route ${existingAnyDuty.routeCode} at ${existingAnyDuty.departureTime}!
+                        // That same bus cannot be available for assigning again to another route or time!
+                        return;
+                    } else if (!isDuty) {
+                        // On this exact same route and time, it is already assigned as the committed duty, not a fresh candidate pool bus
+                        return;
                     }
                 }
 
@@ -1799,10 +1815,16 @@
                         </div>
 
                         <div class="cand-footer">
-                            <button type="button" class="cand-select-btn ${isSelected ? 'active' : ''}" 
-                                    onclick="event.stopPropagation(); selectCandidateBus('${escapeHtml(bus.bm)}');">
-                                ${isSelected ? '✓ Selected Vehicle' : 'Select Bus ➔'}
-                            </button>
+                            ${isCommitted ? `
+                                <button type="button" class="cand-select-btn active" style="background:#166534; color:#fff; border-color:#166534; cursor:default;" onclick="event.stopPropagation();">
+                                    🔒 Bus Already Assigned to this Duty
+                                </button>
+                            ` : `
+                                <button type="button" class="cand-select-btn ${isSelected ? 'active' : ''}" 
+                                        onclick="event.stopPropagation(); selectCandidateBus('${escapeHtml(bus.bm)}');">
+                                    ${isSelected ? '✓ Selected Vehicle' : 'Select Bus ➔'}
+                                </button>
+                            `}
                         </div>
                     </div>
                 `;
@@ -2476,11 +2498,12 @@
 
             // 2. Fetch fleet states, categories, and assignments in parallel in background
             try {
-                const [routesResponse, busStateResponse, assignResponse, busCategoriesResponse] = await Promise.all([
+                const [routesResponse, busStateResponse, assignResponse, busCategoriesResponse, allocatedDutiesResponse] = await Promise.all([
                     fetch("/api/routes").catch(() => null),
                     fetch("/api/bus-state").catch(() => null),
                     fetch("/api/bus-assignments").catch(() => null),
-                    fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null))
+                    fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null)),
+                    fetch("/api/allocated-duties").catch(() => null)
                 ]);
 
                 if (routesResponse && routesResponse.ok) {
@@ -2511,6 +2534,23 @@
                 if (assignResponse && assignResponse.ok) {
                     const assignPayload = await assignResponse.json();
                     busAssignments = assignPayload.assignments || {};
+                }
+
+                if (allocatedDutiesResponse && allocatedDutiesResponse.ok) {
+                    try {
+                        const adData = await allocatedDutiesResponse.json();
+                        if (adData && adData.ok && Array.isArray(adData.duties)) {
+                            const local = loadAllocatedDuties();
+                            const merged = [...adData.duties];
+                            local.forEach(ld => {
+                                if (!merged.some(md => normalizeBm(md.bm) === normalizeBm(ld.bm) && normalizeRoute(md.routeCode) === normalizeRoute(ld.routeCode) && (md.departureTime || '').substring(0, 5) === (ld.departureTime || '').substring(0, 5))) {
+                                    merged.push(ld);
+                                }
+                            });
+                            allocatedDuties = merged;
+                            try { localStorage.setItem(ALLOCATED_DUTIES_KEY, JSON.stringify(allocatedDuties)); } catch(e){}
+                        }
+                    } catch (e) {}
                 }
 
                 await recommend();

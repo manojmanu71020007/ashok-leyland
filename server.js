@@ -2402,6 +2402,38 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    // ── GET & POST /api/allocated-duties ───────────────────────────────────────
+    if (pathname === "/api/allocated-duties") {
+        if (req.method === "GET") {
+            try {
+                const currentState = loadBusState();
+                const duties = currentState._allocatedDuties || [];
+                sendJson(res, { ok: true, count: duties.length, duties });
+            } catch (error) {
+                sendJson(res, { ok: false, error: "Failed to load allocated duties", details: error.message }, 500);
+            }
+            return;
+        }
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    if (Array.isArray(payload.duties)) {
+                        currentState._allocatedDuties = payload.duties;
+                        saveBusState(currentState);
+                        sendJson(res, { ok: true, count: currentState._allocatedDuties.length, duties: currentState._allocatedDuties });
+                    } else {
+                        sendJson(res, { ok: false, error: "Invalid payload format. Expected { duties: [...] }" }, 400);
+                    }
+                } catch (error) {
+                    sendJson(res, { ok: false, error: "Failed to save allocated duties", details: error.message }, 500);
+                }
+            });
+            return;
+        }
+    }
+
     // ── GET /api/schedule-categories ──────────────────────────────────────────
     if (pathname === "/api/schedule-categories") {
         try {
