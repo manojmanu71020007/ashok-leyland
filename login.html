@@ -741,18 +741,23 @@
     // ── Persist auth state ─────────────────────────────────────────────────────
     // If the user explicitly signed out, a flag was set in localStorage.
     // We sign them out of Firebase first before doing anything else.
+    let isExplicitLogout = (localStorage.getItem("smartbus_loggedout") === "1");
     onAuthStateChanged(auth, async (user) => {
-        if (!user) return; // Already signed out — stay on login page
+        if (!user) {
+            isExplicitLogout = false;
+            return; // Already signed out — stay on login page
+        }
 
         const pendingLogout = localStorage.getItem("smartbus_loggedout");
-        if (pendingLogout === "1") {
+        if (pendingLogout === "1" || isExplicitLogout) {
+            isExplicitLogout = true;
             // User clicked Sign Out — kill the Firebase session and stay here
             localStorage.removeItem("smartbus_loggedout");
             localStorage.removeItem("accessMode");
             sessionStorage.removeItem("isLoggedIn");
             sessionStorage.removeItem("userEmail");
             sessionStorage.removeItem("userName");
-            await signOut(auth);
+            try { await signOut(auth); } catch(e){}
             return; // onAuthStateChanged will fire again with user=null — no redirect
         }
 
