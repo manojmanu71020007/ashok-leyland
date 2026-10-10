@@ -1808,32 +1808,7 @@
                 `;
             }).join("");
 
-            const minReq = candidates.length > 0 ? Math.min(...candidates.map(c => c.reqSoc)) : 35;
-            const minAllowed = minReq - 2;
-            const depTime = (depInput ? depInput.value : "13:10") || "13:10";
-            const tInfo = getTimeCategory(depTime);
-            const isPeak = tInfo.isPeak;
-
-            const bannerHtml = `
-                <div style="grid-column:1/-1;margin-top:6px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:0.75rem;color:#0369a1;display:flex;flex-direction:column;gap:4px;">
-                    <div style="display:flex;align-items:center;gap:6px;font-weight:700;">
-                        <span>📋</span>
-                        <span>Page 4 Dynamic Range Allocation Matrix:</span>
-                    </div>
-                    <div>
-                        • <strong>Constant SoC Gate:</strong> Minimum required SoC is <strong>${minReq}%</strong> (eligible with -2% margin: ≥ <strong>${minAllowed}%</strong>).
-                    </div>
-                    <div>
-                        • <strong>Battery Drain & Range:</strong> Dynamic categorization based on coverable distance: Cat A (&gt;120 km), Cat B (100–120 km), Cat C (&lt;100 km).
-                    </div>
-                    <div>
-                        • <strong>Dispatch Priority:</strong> ${isPeak 
-                            ? '⚡ <strong style="color:#b45309;">Peak Hours:</strong> Category A buses strictly recommended for high-load operations.' 
-                            : '🟢 <strong>Standard/Moderate Route (Off-Peak):</strong> <strong style="color:#15803d;">Category B is Primary Allocation</strong>; Category A is Fallback to conserve Tier A fleet for peak runs.'}
-                    </div>
-                </div>
-            `;
-            grid.innerHTML = cardsHtml + bannerHtml;
+            grid.innerHTML = cardsHtml;
             if (window.i18n) window.i18n.translatePage();
         }
 
