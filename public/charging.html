@@ -613,11 +613,8 @@
 </div>
 
 <!-- ── Bay Action & Completion ── -->
-<div class="card" id="actionCard" style="padding: 18px 24px;">
+<div class="card" id="actionCard" style="display:none; padding: 18px 24px;">
   <div style="display:flex; flex-direction:column; gap:10px;">
-    <button type="button" class="btn-lock" id="actionLockBtn" onclick="lockBus()" style="display:none; width:100%; font-size:1rem; padding:14px;">
-      🔒 Lock Bus for Charging
-    </button>
     <button type="button" class="btn-unlock" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;">
       🔓 Unlock &amp; Submit Charging Record
     </button>
@@ -928,7 +925,7 @@
     const lockBtn        = document.getElementById('lockBtn');
     const unlockBtn      = document.getElementById('unlockBtn');
     const lockBanner     = document.getElementById('lockBanner');
-    const actionLockBtn   = document.getElementById('actionLockBtn');
+    const actionCard     = document.getElementById('actionCard');
     const actionUnlockBtn = document.getElementById('actionUnlockBtn');
     const otherBanner    = document.getElementById('otherLockWarning');
 
@@ -936,7 +933,7 @@
       if (lockRow) lockRow.classList.remove('show');
       if (lockBanner) lockBanner.classList.remove('show');
       if (otherBanner) otherBanner.style.display = 'none';
-      if (actionLockBtn) actionLockBtn.style.display = 'none';
+      if (actionCard) actionCard.style.display = 'none';
       if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
       return;
     }
@@ -954,7 +951,7 @@
       }
       if (lockBtn) lockBtn.style.display = 'none';
       if (unlockBtn) unlockBtn.style.display = 'none';
-      if (actionLockBtn) actionLockBtn.style.display = 'none';
+      if (actionCard) actionCard.style.display = 'none';
       if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
       if (lockBanner) lockBanner.classList.remove('show');
       return;
@@ -964,16 +961,16 @@
 
     if (chargLocked) {
       if (lockBtn) lockBtn.style.display = 'none';
-      if (actionLockBtn) actionLockBtn.style.display = 'none';
       if (unlockBtn) unlockBtn.style.display = 'inline-flex';
+      if (actionCard) actionCard.style.display = 'block';
       if (actionUnlockBtn) actionUnlockBtn.style.display = 'inline-flex';
 
       lockBanner.innerHTML = `⚡ <strong>${bm}</strong> is locked for <strong>Charging</strong>. Complete session, confirm SOC, and click Unlock &amp; Submit Charging Record.`;
       lockBanner.classList.add('show');
     } else {
       if (lockBtn) lockBtn.style.display = 'inline-flex';
-      if (actionLockBtn) actionLockBtn.style.display = 'inline-flex';
       if (unlockBtn) unlockBtn.style.display = 'none';
+      if (actionCard) actionCard.style.display = 'none';
       if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
       lockBanner.classList.remove('show');
     }
