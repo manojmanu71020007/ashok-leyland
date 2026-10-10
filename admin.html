@@ -3050,7 +3050,7 @@ let busCategoriesMap = new Map();
                 timeCatLabel = tInfo.label;
             }
 
-            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRouteCode, distKm: routeDist }, matchedSched) : "moderate";
+            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched) : "moderate";
             const isModerate = (complexity === "moderate" || complexity === "standard");
 
             if (isPeak && page4Category !== "A") {

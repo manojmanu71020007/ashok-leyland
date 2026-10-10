@@ -1249,17 +1249,17 @@
             if (matchedSched && matchedSched.category) {
                 const scLower = String(matchedSched.category).toLowerCase();
                 if (scLower.includes("comp")) return "complex";
-                if (scLower.includes("mod")) return "moderate";
-                if (scLower.includes("stand") || scLower.includes("simp")) return "simple";
+                if (scLower.includes("mod") || scLower.includes("stand")) return "moderate";
+                if (scLower.includes("simp")) return "simple";
             }
             const rCode = String(routeObj?.code || routeObj?.routeCode || "").toUpperCase();
             if (rCode && Array.isArray(datasetSchedules)) {
                 const scheds = datasetSchedules.filter(s => String(s.route || "").toUpperCase() === rCode);
                 const compSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("comp"));
                 if (compSched) return "complex";
-                const modSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("mod"));
+                const modSched = scheds.find(s => s.category && (String(s.category).toLowerCase().includes("mod") || String(s.category).toLowerCase().includes("stand")));
                 if (modSched) return "moderate";
-                const standSched = scheds.find(s => s.category && (String(s.category).toLowerCase().includes("stand") || String(s.category).toLowerCase().includes("simp")));
+                const standSched = scheds.find(s => s.category && String(s.category).toLowerCase().includes("simp"));
                 if (standSched) return "simple";
             }
             const dist = Number(routeObj?.distKm || routeObj?.distanceKm || 0);
@@ -1413,7 +1413,7 @@
                 isPeak = tInfo.isPeak;
                 timeCatLabel = tInfo.label;
             }
-            const complexity = getRouteComplexity({ code: curRouteCode, distKm: routeDist }, matchedSched);
+            const complexity = getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched);
             const isModerate = (complexity === "moderate" || complexity === "standard");
 
             // Peak hours: ONLY Category A bus should be recommended
