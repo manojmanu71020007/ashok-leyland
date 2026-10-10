@@ -182,6 +182,9 @@ def allocate(
                         item["swap_prevented_by_hysteresis"] = True
                         item["reason"] += f" (Swap suppressed: SoC advantage {soc_diff:+.1f}% <= {soc_hysteresis}% hysteresis)."
 
+        is_moderate_normal = (route_category.upper() in {"MODERATE", "STANDARD"} and slot_name.upper() == "NORMAL")
+        cat_priority = {"B": 0, "A": 1, "C": 2} if is_moderate_normal else {"A": 0, "B": 1, "C": 2}
+
         def _sort_key(item: dict) -> tuple:
             eligible = item.get("eligible", False)
             if not eligible:
@@ -191,7 +194,7 @@ def allocate(
             if is_assigned:
                 return (
                     0,
-                    {"A": 0, "B": 1, "C": 2}.get(item.get("category"), 3),
+                    cat_priority.get(item.get("category"), 3),
                     -float(item.get("planned_range_km", 0)),
                 )
 
@@ -199,14 +202,14 @@ def allocate(
                 # Cannot displace the assigned bus
                 return (
                     2,
-                    {"A": 0, "B": 1, "C": 2}.get(item.get("category"), 3),
+                    cat_priority.get(item.get("category"), 3),
                     -float(item.get("planned_range_km", 0)),
                 )
 
             # Candidate exceeded hysteresis threshold (> 5% SoC gap): can compete for assignment
             return (
                 0,
-                {"A": 0, "B": 1, "C": 2}.get(item.get("category"), 3),
+                cat_priority.get(item.get("category"), 3),
                 -float(item.get("planned_range_km", 0)),
             )
 

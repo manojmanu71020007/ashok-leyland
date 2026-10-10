@@ -1135,9 +1135,16 @@
 
         // ── Single Charge Operation Requirement (Form 4 Standard) ──
         function getRequiredSingleChargeSoc(distKm, schedObj) {
-            let targetKm = (schedObj && schedObj.singleChargeReqKm)
-                ? Number(schedObj.singleChargeReqKm)
-                : (Number(distKm) || 28.7);
+            let targetKm = Number(distKm) || 28.7;
+            if (schedObj) {
+                const actKm = Number(schedObj.actual_km ?? schedObj.actualKm ?? 0);
+                const deadKm = Number(schedObj.dead_km ?? schedObj.deadKm ?? 0);
+                if (actKm > 0) {
+                    targetKm = actKm + deadKm;
+                } else if (schedObj.singleChargeReqKm) {
+                    targetKm = Number(schedObj.singleChargeReqKm);
+                }
+            }
 
             // If the schedule specifies intermediate rest stops / opportunity charging in remarks (e.g. "1 rest stoop at HSK 65.7")
             if (schedObj && schedObj.remarks) {
@@ -1157,12 +1164,8 @@
                 targetKm = 95;
             }
 
-            // Vehicle-specific range model:
-            // Tier A (~132 km full range) requires LESS SoC
-            // Tier B (~110 km full range) requires MODERATE SoC
-            // Tier C (~75 km full range) requires VERY HIGH SoC
-            const busRangeKm = busBm ? getBusActualRangeKm(busBm) : 110.0;
-            const baseSoc = (targetKm / busRangeKm) * 100;
+            // Constant minimum required SoC based on standard 1.42 km/% benchmark and 15% reserve floor
+            const baseSoc = (targetKm / 1.42);
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
         }
@@ -1314,75 +1317,161 @@
                 }
             }
 
-            const liveSoc = getBusSocByBm(key);
-            const fullDutyKm = calculateFullDutyDistance(liveSoc);
-            const busCat = getBusCategory(key, liveSoc);
             const state = busStates[key] || {};
             const condition = state.condition || "Good";
             const driver = state.driver || "Driver Assigned";
 
             if (condition === "Not Good") {
-                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} flagged for maintenance inspection.` };
+                return { feasible: false, bm: key, reason: `Bus ${key} flagged for maintenance inspection.` };
             }
 
             if (driver.toLowerCase().includes("no")) {
-                return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `No driver currently assigned to bus ${key}.` };
+                return { feasible: false, bm: key, reason: `No driver currently assigned to bus ${key}.` };
             }
 
-            // 1. HARD BATTERY CONSTRAINT FIRST:
-            // Battery requirement is bus-specific: Tier A requires less SoC %, Tier B moderate, Tier C very high!
-            const reqSoc = getRequiredSingleChargeSoc(routeDist, null, key);
+            // 1. Matched Schedule & Constant Minimum Required SoC Estimation (Actual km + Dead km)
+            const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
+            const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : "13:10";
+            const depMin = timeToMinutes(depTimeShort);
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
+            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
+            if (!matchedSched && routeSchedules.length > 0) {
+                matchedSched = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+            }
 
-            if (liveSoc < reqSoc) {
+            const constantMinReqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
+                ? targetReqSoc
+                : getRequiredSingleChargeSoc(routeDist, matchedSched);
+
+            // 2. SoC Matching Condition with -2% Margin:
+            // "those buses which current soc/manual updated soc through the cleaning webpage must matches(greater or -2%) the constant soc/minimum soc/required soc"
+            const liveSoc = getBusSocByBm(key);
+            const minAllowedSoc = constantMinReqSoc - 2;
+
+            if (liveSoc < minAllowedSoc) {
                 return {
                     feasible: false,
                     bm: key,
                     liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reqSoc,
-                    reason: `Bus ${key} (Cat ${busCat}) battery at ${liveSoc}% SoC is below vehicle-specific required level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                    reqSoc: constantMinReqSoc,
+                    minAllowedSoc,
+                    reason: `Bus ${key} battery at ${liveSoc}% SoC does not match minimum required SoC (${constantMinReqSoc}% with -2% margin: minimum allowed is ${minAllowedSoc}%).`
                 };
             }
 
-            // 2. CATEGORY ASSIGNMENT CONSTRAINTS SECOND:
-            // For Peak Time category and Complex route, ONLY Category A bus has to be assigned!
+            // 3. Coverable Distance Calculation using Previous Days' Battery Drain:
+            // "for those buses that matches that soc condition for those bus we have to calculate the distance which it can cover or not by using the previous days battery drain"
+            const busRangeKm = getBusActualRangeKm(key);
+            const drainPerKm = (100 / busRangeKm);
+            const coverableFullRangeKm = Math.round(busRangeKm);
+            const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
+
+            let operatingKm = Number(routeDist) || 28.7;
+            if (matchedSched) {
+                const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
+                const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
+                if (actKm > 0) operatingKm = actKm + deadKm;
+                else if (matchedSched.singleChargeReqKm) operatingKm = Number(matchedSched.singleChargeReqKm);
+            }
+            if (operatingKm > 95) operatingKm = 95;
+
+            if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    reqSoc: constantMinReqSoc,
+                    actualRangeKm: busRangeKm,
+                    usableCoverableKm,
+                    operatingKm,
+                    reason: `Bus ${key} historical battery drain allows usable range of ${usableCoverableKm} km, which cannot cover required ${operatingKm.toFixed(1)} km.`
+                };
+            }
+
+            // 4. Dynamic Page 4 Categorization based on coverable range:
+            // Category A: > 120 km | Category B: 100-120 km | Category C: < 100 km
+            let page4Category = "B";
+            if (coverableFullRangeKm > 120) {
+                page4Category = "A";
+            } else if (coverableFullRangeKm >= 100) {
+                page4Category = "B";
+            } else {
+                page4Category = "C";
+            }
+
+            // 5. Time Category & Route Constraints (Page 4 Specifications):
+            // Normal (Off-Peak): 05:00–07:00 & 23:00–05:00
+            // Peak / Extreme Peak: 07:00–10:00, 10:00–16:00, 16:00–20:00, 20:00–23:00
             let isPeak = false;
             let timeCatLabel = "Peak";
-            if (currentTargetKey && currentTargetKey.includes('_')) {
-                const tInfo = getTimeCategory(currentTargetKey.split('_')[1]);
+            if (depTimeShort) {
+                const tInfo = getTimeCategory(depTimeShort);
                 isPeak = tInfo.isPeak;
                 timeCatLabel = tInfo.label;
             }
+            const complexity = getRouteComplexity({ code: curRouteCode, distKm: routeDist }, matchedSched);
+            const isModerate = (complexity === "moderate" || complexity === "standard");
 
-            const requiresCatA = isComplexRoute || isPeak;
-            if (requiresCatA && busCat !== "A") {
-                const condDesc = (isComplexRoute && isPeak)
-                    ? "Complex route during Peak Time category"
-                    : (isComplexRoute ? "Complex route" : `Peak Time category (${timeCatLabel})`);
+            // Peak hours: ONLY Category A bus should be recommended
+            if (isPeak && page4Category !== "A") {
                 return {
                     feasible: false,
                     bm: key,
                     liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reqSoc,
-                    reason: `Bus ${key} is Category ${busCat}. ${condDesc} strictly requires Category A bus only.`
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Peak hours (${timeCatLabel}) strictly require Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
                 };
             }
 
-            const busRangeKm = getBusActualRangeKm(key);
-            const calculatedDutyKm = Math.round(busRangeKm * (liveSoc / 100));
+            // Complex route: strictly Category A
+            if (complexity === "complex" && page4Category !== "A") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Complex route strictly requires Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                };
+            }
+
+            // Moderate/Standard route in Normal (off-peak): Category B or A allowed (C excluded)
+            if (!isPeak && isModerate && page4Category === "C") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Standard/Moderate route requires Category B or A bus. Bus ${key} is Category C (<100 km range).`
+                };
+            }
+
             const histDischarge = getHistoricalDischargeRate(key, 1.3, isPeak);
 
             return {
                 feasible: true,
                 bm: key,
                 liveSoc,
-                fullDutyKm: calculatedDutyKm,
+                fullDutyKm: usableCoverableKm,
                 actualRangeKm: busRangeKm,
-                busCategory: busCat,
-                reqSoc,
+                coverableKm: coverableFullRangeKm,
+                busCategory: page4Category,
+                constantMinReqSoc,
+                minAllowedSoc,
+                reqSoc: constantMinReqSoc,
+                operatingKm,
                 socPerHour: histDischarge.socPerHour,
                 timeExpectedSoc: histDischarge.expectedSoc,
                 condition,
@@ -1417,9 +1506,13 @@
 
             const complexity = getRouteComplexity(routeObj, matchedSched);
             const isComplexRoute = (complexity === "complex");
+            const isModerateRoute = (complexity === "moderate" || complexity === "standard");
             const targetShift = (matchedSched && matchedSched.shift)
                 ? matchedSched.shift
                 : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
+
+            const tInfo = getTimeCategory(depShort);
+            const isPeak = tInfo.isPeak;
 
             const candidates = [];
             const seenBms = new Set();
@@ -1445,7 +1538,7 @@
                     seenBms.add(normKey);
                     const liveSoc = feas.liveSoc;
                     const fullDutyKm = feas.fullDutyKm;
-                    const busCat = feas.busCategory || getBusCategory(key, liveSoc);
+                    const busCat = feas.busCategory;
                     const regNo = getBusRegNo(key);
                     const reqSoc = feas.reqSoc;
                     const surplus = Math.round(liveSoc - reqSoc);
@@ -1463,7 +1556,10 @@
                         liveSoc: liveSoc,
                         fullDutyKm: fullDutyKm,
                         actualRangeKm: feas.actualRangeKm || getBusActualRangeKm(key),
+                        coverableKm: feas.coverableKm,
                         busCategory: busCat,
+                        constantMinReqSoc: feas.constantMinReqSoc,
+                        minAllowedSoc: feas.minAllowedSoc,
                         reqSoc: reqSoc,
                         socPerHour: feas.socPerHour || 15.0,
                         timeExpectedSoc: feas.timeExpectedSoc || 35,
@@ -1480,9 +1576,7 @@
                         allocType: isCommitted ? "Committed Duty Allocation" : role,
                         condition: feas.condition || "Good",
                         driver: feas.driver || "Assigned",
-                        reason: isCommitted
-                            ? `Bus ${key} (Category ${busCat}, ${feas.actualRangeKm} km full range) is officially allocated to Route ${routeCode} at ${(existingDuty && existingDuty.departureTime) || depTimeClean}. Battery SoC: ${liveSoc}% (Req: ${reqSoc}%, Hist Rate: ${feas.socPerHour}%/h).`
-                            : `${role}: Bus ${key} (Category ${busCat}, ${feas.actualRangeKm} km full range) ready for ${depTimeClean} departure on Route ${routeCode}. Battery SoC: ${liveSoc}% (Req: ${reqSoc}%, surplus: +${surplus}%, Hist Rate: ${feas.socPerHour}%/h).`
+                        reason: feas.reason || ""
                     });
                 }
             }
@@ -1514,7 +1608,7 @@
 
             // 3. Other scheduled buses for this route
             routeSchedules.forEach(s => {
-                if (candidates.length >= 6) return;
+                if (candidates.length >= 8) return;
                 if (s.fixBm) addCandidate(s.fixBm, `Route Standby Bus (${s.shift || targetShift})`);
                 if (s.swapBm) addCandidate(s.swapBm, `Route Standby Bus (${s.shift || targetShift})`);
             });
@@ -1533,23 +1627,49 @@
             };
             const designatedList = routeDesignatedBms[routeCode.toUpperCase()] || [];
             designatedList.forEach(bm => {
-                if (candidates.length >= 5) return;
+                if (candidates.length >= 8) return;
                 addCandidate(bm, `Route Standby Bus`);
             });
 
-            // 5. Depot reserve fallback if complex route requires Category A
+            // 5. Fleet search to guarantee 2-3 candidate buses
             if (candidates.length < 3) {
-                const catAPool = ["BM256", "BM264", "BM258", "BM273", "BM280", "BM282", "BM279", "BM294", "BM240", "BM255", "BM274", "BM268", "BM293", "BM250"];
-                const pool = isComplexRoute ? catAPool : (routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean));
-                for (const bm of pool) {
-                    if (candidates.length >= 3) break;
+                const allFleetKeys = Object.keys(STATIC_BUS_RANGES);
+                let priorityKeys = [];
+                if (isPeak || isComplexRoute) {
+                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_RANGES[k] > 120);
+                } else if (isModerateRoute) {
+                    const bKeys = allFleetKeys.filter(k => STATIC_BUS_RANGES[k] >= 100 && STATIC_BUS_RANGES[k] <= 120);
+                    const aKeys = allFleetKeys.filter(k => STATIC_BUS_RANGES[k] > 120);
+                    priorityKeys = [...bKeys, ...aKeys];
+                } else {
+                    priorityKeys = allFleetKeys;
+                }
+                for (const bm of priorityKeys) {
+                    if (candidates.length >= 6) break;
                     addCandidate(bm, `Depot Reserve Fleet Bus`);
                 }
             }
 
-            // Sort: Committed first, then Primary, then Swap, then surplus
+            // 6. Sort Candidates according to Page 4 and user specification:
+            // "for moderate/standard route the primary allocatement bus should be B cateogary bus , if that is not there then A cateogary , only on peak hours categoery A bus should be recommended."
             candidates.sort((a, b) => {
                 if (a.isCommitted !== b.isCommitted) return a.isCommitted ? -1 : 1;
+
+                let catRankA = 0;
+                let catRankB = 0;
+                if (isModerateRoute && !isPeak) {
+                    // For Moderate/Standard route in Normal (off-peak) hours: Category B is Primary Allocation, A is Fallback
+                    const catOrder = { "B": 0, "A": 1, "C": 2 };
+                    catRankA = catOrder[a.busCategory] ?? 3;
+                    catRankB = catOrder[b.busCategory] ?? 3;
+                } else {
+                    // Peak hours or Complex route: Category A is top priority
+                    const catOrder = { "A": 0, "B": 1, "C": 2 };
+                    catRankA = catOrder[a.busCategory] ?? 3;
+                    catRankB = catOrder[b.busCategory] ?? 3;
+                }
+                if (catRankA !== catRankB) return catRankA - catRankB;
+
                 const getRoleRank = (r) => {
                     const str = (r || "").toLowerCase();
                     if (str.includes("allocated")) return 0;
@@ -1560,10 +1680,39 @@
                 const rankA = getRoleRank(a.role);
                 const rankB = getRoleRank(b.role);
                 if (rankA !== rankB) return rankA - rankB;
-                return a.surplus - b.surplus;
+
+                return b.surplus - a.surplus;
             });
 
-            // ENSURE EXACTLY 2 TO 3 BUSES FOR A SELECTED ROUTE AND TIME
+            // 7. Update candidate titles and role descriptions according to final ranking:
+            candidates.forEach((cand, idx) => {
+                if (cand.isCommitted) return;
+                if (idx === 0) {
+                    if (isModerateRoute && !isPeak) {
+                        cand.role = (cand.busCategory === "B")
+                            ? "Primary Candidate (Category B — Standard Route)"
+                            : "Primary Candidate (Category A — Fallback Allocation)";
+                    } else if (isPeak) {
+                        cand.role = "Primary Candidate (Category A — Peak Hour Allocation)";
+                    } else if (isComplexRoute) {
+                        cand.role = "Primary Candidate (Category A — Complex Route)";
+                    } else {
+                        cand.role = `Primary Candidate (Category ${cand.busCategory})`;
+                    }
+                } else if (idx === 1) {
+                    if (isModerateRoute && !isPeak && cand.busCategory === "A") {
+                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
+                    } else {
+                        cand.role = "Designated Swap / Standby Bus";
+                    }
+                } else {
+                    cand.role = "Route Standby Bus";
+                }
+                cand.allocType = cand.role;
+                cand.reason = `Bus ${cand.bm} (Category ${cand.busCategory}, ${cand.actualRangeKm} km full range, ${cand.liveSoc}% SoC) ready for departure. Req: ${cand.reqSoc}% (surplus +${cand.surplus}%).`;
+            });
+
+            // ENSURE EXACTLY 2 TO 3 CANDIDATE BUSES RETURNED
             return candidates.slice(0, 3);
         }
 
@@ -1660,11 +1809,28 @@
             }).join("");
 
             const minReq = candidates.length > 0 ? Math.min(...candidates.map(c => c.reqSoc)) : 35;
-            const maxReq = candidates.length > 0 ? Math.max(...candidates.map(c => c.reqSoc)) : 65;
+            const minAllowed = minReq - 2;
+            const depTime = (depInput ? depInput.value : "13:10") || "13:10";
+            const tInfo = getTimeCategory(depTime);
+            const isPeak = tInfo.isPeak;
+
             const bannerHtml = `
-                <div style="grid-column:1/-1;margin-top:6px;padding:8px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:0.75rem;color:#0369a1;display:flex;align-items:center;gap:8px;">
-                    <span>ℹ️</span>
-                    <span><strong>Tier-Based Estimation:</strong> Tier A requires less SoC (${minReq}%), Tier B moderate, Tier C high (${maxReq}%). Historical time rate (⏱️ %/h) is a supplementary traffic indicator and is kept independent to prevent double-counting.</span>
+                <div style="grid-column:1/-1;margin-top:6px;padding:10px 14px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:0.75rem;color:#0369a1;display:flex;flex-direction:column;gap:4px;">
+                    <div style="display:flex;align-items:center;gap:6px;font-weight:700;">
+                        <span>📋</span>
+                        <span>Page 4 Dynamic Range Allocation Matrix:</span>
+                    </div>
+                    <div>
+                        • <strong>Constant SoC Gate:</strong> Minimum required SoC is <strong>${minReq}%</strong> (eligible with -2% margin: ≥ <strong>${minAllowed}%</strong>).
+                    </div>
+                    <div>
+                        • <strong>Battery Drain & Range:</strong> Dynamic categorization based on coverable distance: Cat A (&gt;120 km), Cat B (100–120 km), Cat C (&lt;100 km).
+                    </div>
+                    <div>
+                        • <strong>Dispatch Priority:</strong> ${isPeak 
+                            ? '⚡ <strong style="color:#b45309;">Peak Hours:</strong> Category A buses strictly recommended for high-load operations.' 
+                            : '🟢 <strong>Standard/Moderate Route (Off-Peak):</strong> <strong style="color:#15803d;">Category B is Primary Allocation</strong>; Category A is Fallback to conserve Tier A fleet for peak runs.'}
+                    </div>
                 </div>
             `;
             grid.innerHTML = cardsHtml + bannerHtml;

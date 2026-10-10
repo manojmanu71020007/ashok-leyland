@@ -299,6 +299,12 @@ def resync_assignments(
                 candidates,
                 key=lambda b: (0 if bus_categories[b] in {"B", "C"} else -1, ranges[b])
             )
+        elif rcat in {"MODERATE", "STANDARD"} and effective_slot.upper() == "NORMAL":
+            # For moderate/standard route primary allocation is Category B; fallback to A if B absent
+            best = max(
+                candidates,
+                key=lambda b: (1 if bus_categories[b] == "B" else (0 if bus_categories[b] == "A" else -1), ranges[b])
+            )
         else:
             # High difficulty or peak hours: prioritize Category A / highest range
             best = max(candidates, key=lambda b: ranges[b])

@@ -2972,26 +2972,76 @@ let busCategoriesMap = new Map();
                 return { feasible: false, bm: key, liveSoc, fullDutyKm, busCategory: busCat, reason: `Bus ${key} pending interior/exterior cleaning clearance.` };
             }
 
-            // 1. HARD BATTERY CONSTRAINT FIRST:
-            // Only buses having manual/live SoC >= required (estimated) SoC can travel the route length!
-            const reqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
-                ? targetReqSoc
-                : getRequiredSingleChargeSoc(routeDist);
+            // 1. Matched Schedule & Constant Minimum Required SoC Estimation (Actual km + Dead km)
+            const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
+            const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : "13:10";
+            const depMin = timeToMinutes(depTimeShort);
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
+            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
+            if (!matchedSched && routeSchedules.length > 0) {
+                matchedSched = routeSchedules.slice().sort((a, b) => {
+                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    return diffA - diffB;
+                })[0];
+            }
 
-            if (liveSoc < reqSoc) {
+            const constantMinReqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
+                ? targetReqSoc
+                : getRequiredSingleChargeSoc(routeDist, matchedSched);
+
+            // 2. SoC Matching Condition with -2% Margin:
+            const minAllowedSoc = constantMinReqSoc - 2;
+            if (liveSoc < minAllowedSoc) {
                 return {
                     feasible: false,
                     bm: key,
                     liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reqSoc,
-                    reason: `Bus ${key} battery at ${liveSoc}% SoC is below the required Single Charge Operation level (${reqSoc}% SoC required for ${routeDist.toFixed(1)} km).`
+                    reqSoc: constantMinReqSoc,
+                    minAllowedSoc,
+                    reason: `Bus ${key} battery SoC (${liveSoc}%) does not match minimum required SoC (${constantMinReqSoc}% with -2% margin: minimum allowed is ${minAllowedSoc}%).`
                 };
             }
 
-            // 2. CATEGORY ASSIGNMENT CONSTRAINTS SECOND:
-            // For Peak Time category and Complex route, ONLY Category A bus has to be assigned!
+            // 3. Coverable Distance Calculation using Previous Days' Battery Drain:
+            const busRangeKm = getBusActualRangeKm ? getBusActualRangeKm(key) : 110.0;
+            const drainPerKm = (100 / busRangeKm);
+            const coverableFullRangeKm = Math.round(busRangeKm);
+            const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
+
+            let operatingKm = Number(routeDist) || 28.7;
+            if (matchedSched) {
+                const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
+                const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
+                if (actKm > 0) operatingKm = actKm + deadKm;
+                else if (matchedSched.singleChargeReqKm) operatingKm = Number(matchedSched.singleChargeReqKm);
+            }
+            if (operatingKm > 95) operatingKm = 95;
+
+            if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    reqSoc: constantMinReqSoc,
+                    actualRangeKm: busRangeKm,
+                    usableCoverableKm,
+                    operatingKm,
+                    reason: `Bus ${key} historical battery drain allows usable range of ${usableCoverableKm} km, which cannot cover required ${operatingKm.toFixed(1)} km.`
+                };
+            }
+
+            // 4. Dynamic Page 4 Categorization based on coverable range:
+            let page4Category = "B";
+            if (coverableFullRangeKm > 120) {
+                page4Category = "A";
+            } else if (coverableFullRangeKm >= 100) {
+                page4Category = "B";
+            } else {
+                page4Category = "C";
+            }
+
+            // 5. Time Category & Route Constraints (Page 4 Specifications):
             let isPeak = false;
             let timeCatLabel = "Peak";
             if (currentTargetKey && currentTargetKey.includes('_')) {
@@ -3000,19 +3050,45 @@ let busCategoriesMap = new Map();
                 timeCatLabel = tInfo.label;
             }
 
-            const requiresCatA = isComplexRoute || isPeak;
-            if (requiresCatA && busCat !== "A") {
-                const condDesc = (isComplexRoute && isPeak)
-                    ? "Complex route during Peak Time category"
-                    : (isComplexRoute ? "Complex route" : `Peak Time category (${timeCatLabel})`);
+            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRouteCode, distKm: routeDist }, matchedSched) : "moderate";
+            const isModerate = (complexity === "moderate" || complexity === "standard");
+
+            if (isPeak && page4Category !== "A") {
                 return {
                     feasible: false,
                     bm: key,
                     liveSoc,
-                    fullDutyKm,
-                    busCategory: busCat,
-                    reqSoc,
-                    reason: `Bus ${key} is Category ${busCat}. ${condDesc} strictly requires Category A bus only.`
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Peak hours (${timeCatLabel}) strictly require Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                };
+            }
+
+            if (complexity === "complex" && page4Category !== "A") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Complex route strictly requires Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                };
+            }
+
+            if (!isPeak && isModerate && page4Category === "C") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Standard/Moderate route requires Category B or A bus. Bus ${key} is Category C (<100 km range).`
                 };
             }
 
@@ -3020,9 +3096,13 @@ let busCategoriesMap = new Map();
                 feasible: true,
                 bm: key,
                 liveSoc,
-                fullDutyKm,
-                busCategory: busCat,
-                reqSoc,
+                fullDutyKm: usableCoverableKm,
+                actualRangeKm: busRangeKm,
+                coverableKm: coverableFullRangeKm,
+                busCategory: page4Category,
+                constantMinReqSoc,
+                minAllowedSoc,
+                reqSoc: constantMinReqSoc,
                 condition,
                 driver,
                 role: candidateRole
