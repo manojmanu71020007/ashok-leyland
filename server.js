@@ -387,14 +387,15 @@ function loadCorridorSchedules() {
         console.warn("Could not read vehicle_assignments.csv in loadCorridorSchedules:", e.message);
     }
 
-    // Ensure 500DC has timetable schedule slots from GTFS trips (General Shift)
+    // Ensure 500DC has timetable schedule slots from GTFS trips (General Shift & Shift B)
     const has500DC = schedules.some(s => s.route === "500DC");
     if (!has500DC) {
         schedules.push(
-            { scheduleId: "500DC/12", route: "500DC", shift: "General", fixBm: "BM153", fixReg: "KA51AH4643", swapBm: "BM024", swapReg: "KA51AH2619", outTime: "07:45:00", inTime: "14:45:00" },
-            { scheduleId: "500DC/13", route: "500DC", shift: "General", fixBm: "BM285", fixReg: "KA51AH6252", swapBm: "BM285", swapReg: "KA51AH6252", outTime: "08:00:00", inTime: "15:00:00" },
-            { scheduleId: "500DC/14", route: "500DC", shift: "General", fixBm: "BM224", fixReg: "KA51AH8185", swapBm: "BM224", swapReg: "KA51AH8185", outTime: "08:15:00", inTime: "15:15:00" },
-            { scheduleId: "500DC/15", route: "500DC", shift: "General", fixBm: "BM283", fixReg: "KA51AH6249", swapBm: "BM075", swapReg: "KA51AH3122", outTime: "08:30:00", inTime: "15:30:00" }
+            { scheduleId: "500DC/12", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM255", swapReg: "KA51AH5639", outTime: "07:45:00", inTime: "14:45:00" },
+            { scheduleId: "500DC/13", route: "500DC", shift: "General", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:00:00", inTime: "15:00:00" },
+            { scheduleId: "500DC/14", route: "500DC", shift: "General", fixBm: "BM274", fixReg: "KA51AH6236", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "08:15:00", inTime: "15:15:00" },
+            { scheduleId: "500DC/15", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:30:00", inTime: "15:30:00" },
+            { scheduleId: "500DC/1", route: "500DC", shift: "Shift B", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "13:10:00", inTime: "21:10:00" }
         );
     }
 
