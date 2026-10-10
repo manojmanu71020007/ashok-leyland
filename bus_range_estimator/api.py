@@ -606,3 +606,97 @@ def post_resync_swap(payload: dict[str, Any]) -> dict[str, Any]:
         },
     }
 
+
+@app.get("/api/soc/discharge-estimate")
+def get_discharge_estimate(
+    bus_id: str,
+    route_code: str = "600F",
+    target_distance_km: float = 28.7,
+    expected_duration_hours: float = 1.3,
+    shift: str = "",
+    slot: str = "NORMAL",
+    reserve_pct: float = 15.0,
+    bus_category: str = "B",
+    bus_actual_range_km: Optional[float] = None,
+) -> dict[str, Any]:
+    """Calculate dual distance-based and historical time-based SoC estimate for a schedule departure."""
+    from .discharge_rate import extract_valid_consumption_segments, estimate_schedule_discharge
+    import dataclasses
+
+    conn = get_db_connection()
+    raw_records = []
+    try:
+        rows = conn.execute(
+            """
+            SELECT bus_id, route_code, slot, soc_start, soc_end, km, duration_hours, timestamp
+            FROM trip_logs
+            WHERE bus_id = ?
+            ORDER BY timestamp DESC
+            LIMIT 100
+            """,
+            (bus_id,),
+        ).fetchall()
+        for r in rows:
+            raw_records.append(dict(r))
+    finally:
+        conn.close()
+
+    if not raw_records:
+        raw_records = _fallback_macro_rows(bus_id)
+
+    segments = extract_valid_consumption_segments(raw_records)
+    res = estimate_schedule_discharge(
+        segments=segments,
+        bus_id=bus_id,
+        route_code=route_code,
+        target_distance_km=target_distance_km,
+        expected_duration_hours=expected_duration_hours,
+        shift=shift,
+        slot=slot,
+        reserve_pct=reserve_pct,
+        bus_actual_range_km=bus_actual_range_km,
+        bus_category=bus_category,
+    )
+
+    return {
+        "ok": True,
+        "estimate": dataclasses.asdict(res),
+    }
+
+
+@app.get("/api/soc/segments/{bus_id}")
+def get_bus_segments(bus_id: str) -> dict[str, Any]:
+    """Return parsed non-charging driving segments with soc_per_km and soc_per_hour."""
+    from .discharge_rate import extract_valid_consumption_segments
+    import dataclasses
+
+    conn = get_db_connection()
+    raw_records = []
+    try:
+        rows = conn.execute(
+            """
+            SELECT bus_id, route_code, slot, soc_start, soc_end, km, duration_hours, timestamp
+            FROM trip_logs
+            WHERE bus_id = ?
+            ORDER BY timestamp DESC
+            LIMIT 100
+            """,
+            (bus_id,),
+        ).fetchall()
+        for r in rows:
+            raw_records.append(dict(r))
+    finally:
+        conn.close()
+
+    if not raw_records:
+        raw_records = _fallback_macro_rows(bus_id)
+
+    segments = extract_valid_consumption_segments(raw_records)
+    return {
+        "ok": True,
+        "bus_id": bus_id,
+        "segments": [dataclasses.asdict(s) for s in segments],
+        "valid_driving_segments_count": len([s for s in segments if not s.is_charging and not s.is_layover]),
+    }
+
+

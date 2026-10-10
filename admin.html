@@ -2047,8 +2047,47 @@
         let lastNotAllocatedRoutes = [];
         let lastFilteredRoutes = [];
 
+        const STATIC_BUS_RANGES = {
+            "BM221":62.0,"BM304":69.8,"BM088":70.1,"BM057":80.1,"BM224":84.4,"BM218":87.2,"BM296":91.9,"BM082":92.5,"BM012":92.9,"BM225":93.2,
+            "BM260":95.0,"BM288":97.2,"BM005":98.5,"BM185":99.6,"BM032":100.2,"BM068":100.3,"BM004":103.2,"BM024":103.9,"BM261":104.3,"BM227":104.8,
+            "BM002":105.3,"BM119":105.5,"BM208":106.1,"BM204":106.1,"BM038":106.7,"BM001":106.9,"BM010":107.7,"BM298":107.7,"BM238":107.9,"BM003":108.7,
+            "BM265":109.4,"BM283":109.5,"BM086":109.5,"BM081":109.8,"BM285":109.9,"BM116":110.0,"BM257":110.5,"BM205":110.7,"BM183":110.8,"BM062":111.9,
+            "BM259":112.2,"BM075":112.2,"BM212":112.6,"BM213":113.2,"BM245":114.1,"BM289":114.1,"BM271":114.3,"BM207":114.8,"BM200":114.8,"BM290":115.1,
+            "BM210":115.4,"BM157":115.8,"BM300":115.8,"BM199":115.9,"BM191":116.1,"BM058":116.4,"BM278":116.5,"BM292":116.6,"BM202":116.8,"BM220":116.9,
+            "BM267":117.0,"BM217":117.2,"BM174":117.4,"BM020":117.8,"BM153":117.8,"BM277":117.9,"BM291":118.0,"BM151":118.0,"BM295":118.4,"BM033":118.8,
+            "BM124":119.0,"BM275":119.0,"BM216":119.4,"BM052":119.5,"BM054":119.6,"BM215":119.7,"BM219":119.8,"BM198":119.9,"BM222":119.9,"BM269":120.0,
+            "BM187":120.0,"BM019":120.0,"BM201":120.1,"BM206":120.5,"BM294":120.8,"BM287":120.8,"BM107":121.2,"BM209":121.3,"BM080":121.5,"BM268":121.8,
+            "BM240":122.1,"BM255":122.3,"BM276":122.3,"BM303":122.5,"BM152":123.0,"BM281":123.0,"BM274":123.6,"BM253":123.8,"BM263":124.6,"BM279":124.7,
+            "BM249":125.0,"BM286":125.2,"BM193":125.3,"BM056":125.7,"BM297":126.1,"BM214":126.4,"BM250":126.9,"BM197":127.4,"BM284":127.5,"BM258":128.5,
+            "BM280":128.7,"BM203":129.2,"BM272":129.3,"BM256":130.3,"BM282":130.4,"BM248":130.5,"BM293":132.1,"BM299":134.0,"BM264":134.6,"BM223":134.6,
+            "BM239":135.1,"BM273":136.3
+        };
+
+        function getBusActualRangeKm(bm) {
+            const key = String(bm || "").toUpperCase().trim();
+            if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
+            const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
+            if (cat === "A") return 130.0;
+            if (cat === "C") return 80.0;
+            return 110.0;
+        }
+
+        function getHistoricalDischargeRate(bm, hours, isPeak) {
+            const key = String(bm || "").toUpperCase().trim();
+            const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
+            const baseRates = { "A": 12.5, "B": 15.0, "C": 22.0 };
+            const rate = isPeak ? (baseRates[cat] * 1.30) : baseRates[cat];
+            const dur = Number(hours) || 1.3;
+            const expectedSoc = Math.min(100, Math.round(dur * rate + 15));
+            return {
+                socPerHour: Number(rate.toFixed(1)),
+                expectedSoc: expectedSoc,
+                isPeak: !!isPeak
+            };
+        }
+
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
-        function getRequiredSingleChargeSoc(distKm, schedObj) {
+        function getRequiredSingleChargeSoc(distKm, schedObj, busBm) {
             let targetKm = (schedObj && schedObj.singleChargeReqKm)
                 ? Number(schedObj.singleChargeReqKm)
                 : (Number(distKm) || 28.7);
@@ -2065,9 +2104,12 @@
                 targetKm = Math.min(targetKm, 95);
             }
 
-            // Energy needed for operating stretch = targetKm / 1.42 km per % SOC
-            // Plus 15% depot safety reserve floor
-            const baseSoc = targetKm / 1.42;
+            // Vehicle-specific range model:
+            // Tier A (~132 km full range) requires LESS SoC
+            // Tier B (~110 km full range) requires MODERATE SoC
+            // Tier C (~75 km full range) requires VERY HIGH SoC
+            const busRangeKm = busBm ? getBusActualRangeKm(busBm) : 110.0;
+            const baseSoc = (targetKm / busRangeKm) * 100;
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
         }

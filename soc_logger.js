@@ -413,6 +413,200 @@ function getMacroTrendWithRealHistory(rawBusId, currentSoc, routeDistanceKm) {
     return logs;
 }
 
+// ── Bus Category and Range Lookup ──
+let busCategoriesMap = null;
+function getBusCategoryInfo(rawBusId) {
+    if (!busCategoriesMap) {
+        busCategoriesMap = new Map();
+        try {
+            const catPath = path.join(BASE_DIR, "vehicles", "bus_categories.json");
+            if (fs.existsSync(catPath)) {
+                const arr = JSON.parse(fs.readFileSync(catPath, "utf8"));
+                arr.forEach(item => {
+                    if (item.bm_number) {
+                        busCategoriesMap.set(String(item.bm_number).toUpperCase().trim(), {
+                            category: String(item.category || "B").toUpperCase(),
+                            actualRangeKm: Number(item.actual_range_km || 110.0)
+                        });
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn("[SoC Logger] Error loading bus_categories.json:", e.message);
+        }
+    }
+    const cleanId = normalizeBusId(rawBusId);
+    return busCategoriesMap.get(cleanId) || { category: "B", actualRangeKm: 110.0 };
+}
+
+/**
+ * Extracts non-charging operational driving segments from telemetry logs.
+ * Excludes charging events (where SoC rises) and non-operating layovers.
+ */
+function extractDischargeSegments(rawBusId) {
+    const busId = normalizeBusId(rawBusId);
+    const summaries = loadSummaries();
+    const dates = summaries[busId] ? Object.keys(summaries[busId]).sort() : [];
+    const allPoints = [];
+
+    for (const d of dates) {
+        const dayLog = loadDailyLog(d);
+        const entries = dayLog[busId] || [];
+        for (const e of entries) {
+            if (e && e.timestamp && Number.isFinite(Number(e.soc))) {
+                allPoints.push({
+                    timestamp: new Date(e.timestamp),
+                    soc: Number(e.soc),
+                    routeId: e.routeId || "",
+                    routeShortName: e.routeShortName || "",
+                    condition: e.condition || "Good",
+                    status: e.status || "On Time"
+                });
+            }
+        }
+    }
+
+    allPoints.sort((a, b) => a.timestamp - b.timestamp);
+
+    const segments = [];
+    for (let i = 0; i < allPoints.length - 1; i++) {
+        const p1 = allPoints[i];
+        const p2 = allPoints[i + 1];
+        const diffMs = p2.timestamp.getTime() - p1.timestamp.getTime();
+        const durationMin = diffMs / (60 * 1000);
+        const durationHours = durationMin / 60;
+        const socDrop = Number((p1.soc - p2.soc).toFixed(2));
+
+        // Skip multi-hour overnight halts or sub-30s duplicate logs
+        if (durationMin > 720 || durationMin < 0.5) continue;
+
+        const isCharging = (socDrop < -0.05) || (p2.soc > p1.soc);
+        const isLayover = !isCharging && (durationMin > 45 && Math.abs(socDrop) < 1.0);
+
+        let socPerHour = null;
+        if (!isCharging && !isLayover && socDrop > 0 && durationHours > 0.15) {
+            const rawSph = socDrop / durationHours;
+            // Realistic operational electric transit bus discharge rate is 4% to 36%/hr
+            if (rawSph >= 4.0 && rawSph <= 36.0) {
+                socPerHour = Number(rawSph.toFixed(2));
+            }
+        }
+
+        segments.push({
+            busId,
+            startSoc: p1.soc,
+            endSoc: p2.soc,
+            socDrop: Math.max(0, socDrop),
+            durationMin: Number(durationMin.toFixed(1)),
+            durationHours: Number(durationHours.toFixed(2)),
+            socPerHour,
+            isCharging,
+            isLayover,
+            routeId: p1.routeId || p2.routeId,
+            timestamp: p1.timestamp.toISOString()
+        });
+    }
+
+    return segments;
+}
+
+/**
+ * Calculates dual distance-based and historical time-based SoC estimates for a schedule duty.
+ * Keeps estimates distinct to prevent double-counting.
+ */
+function estimateScheduleDischargeDual(rawBusId, params = {}) {
+    const busId = normalizeBusId(rawBusId);
+    const catInfo = getBusCategoryInfo(busId);
+    const busCategory = params.busCategory || catInfo.category || "B";
+    const busActualRangeKm = Number(params.busActualRangeKm || catInfo.actualRangeKm || 110.0);
+
+    const targetDistKm = Number(params.distanceKm || params.targetDistanceKm || 28.7);
+    const expectedDurationHours = Number(params.durationHours || params.expectedDurationHours || 1.3);
+    const reservePct = Number(params.reservePct || 15.0);
+    const slot = String(params.slot || "NORMAL").toUpperCase();
+
+    // 1. Physical / validated distance-based requirement
+    // Cat A bus has larger range -> requires less SoC %
+    // Cat B bus has medium range -> requires moderate SoC %
+    // Cat C bus has smaller range -> requires very high SoC %
+    const distanceBaseSocPct = Number(((targetDistKm / busActualRangeKm) * 100).toFixed(2));
+    const distanceRequiredSocPct = Number(Math.min(100, distanceBaseSocPct + reservePct).toFixed(2));
+    const socPerKm = Number((100 / busActualRangeKm).toFixed(4));
+
+    // 2. Historical telemetry segments extraction
+    const segments = extractDischargeSegments(busId);
+    const validDriving = segments.filter(s => !s.isCharging && !s.isLayover && s.socPerHour !== null && s.socPerHour > 0);
+
+    let timeBaseSocPct = null;
+    let timeExpectedSocPct = null;
+    let socPerHour = null;
+    let evidenceStatus = "VALIDATED_DISTANCE";
+    let limitationNote = null;
+    let trafficImpactNote = "";
+
+    const isPeak = (slot === "PEAK" || slot === "EXTREME_PEAK");
+
+    if (expectedDurationHours <= 0) {
+        evidenceStatus = "MISSING_DURATION_FALLBACK";
+        limitationNote = "Schedule duration is missing or zero; time-based estimation unavailable.";
+    } else if (validDriving.length === 0) {
+        // Category baseline hourly rate:
+        // Cat A: ~12.5%/hr Normal, ~16.5%/hr Peak
+        // Cat B: ~15.0%/hr Normal, ~19.5%/hr Peak
+        // Cat C: ~22.0%/hr Normal, ~28.0%/hr Peak
+        const baseRates = { "A": 12.5, "B": 15.0, "C": 22.0 };
+        const peakMult = isPeak ? 1.30 : 1.0;
+        socPerHour = Number(((baseRates[busCategory] || 15.0) * peakMult).toFixed(2));
+        timeBaseSocPct = Number((expectedDurationHours * socPerHour).toFixed(2));
+        timeExpectedSocPct = Number(Math.min(100, timeBaseSocPct + reservePct).toFixed(2));
+
+        const chargingOnly = segments.some(s => s.isCharging);
+        if (chargingOnly) {
+            evidenceStatus = "CHARGING_CONTAMINATED_FALLBACK";
+            limitationNote = "Historical records contain charging intervals; calibrated against category profile.";
+        } else {
+            evidenceStatus = "CATEGORY_PROFILE_BASELINE";
+            limitationNote = "Estimated via validated vehicle category profile (insufficient long driving duration records).";
+        }
+        if (isPeak) {
+            trafficImpactNote = "Peak hour traffic & HVAC auxiliary load elevates hourly discharge by +30% over cruising baseline.";
+        }
+    } else {
+        const sphValues = validDriving.map(s => s.socPerHour).sort((a, b) => a - b);
+        const mid = Math.floor(sphValues.length / 2);
+        socPerHour = sphValues.length % 2 !== 0 ? sphValues[mid] : Number(((sphValues[mid - 1] + sphValues[mid]) / 2).toFixed(2));
+
+        timeBaseSocPct = Number((expectedDurationHours * socPerHour).toFixed(2));
+        timeExpectedSocPct = Number(Math.min(100, timeBaseSocPct + reservePct).toFixed(2));
+        evidenceStatus = "RELIABLE_ACTIVE_HISTORY";
+
+        if (isPeak) {
+            trafficImpactNote = "Peak congestion & continuous AC draw tends to elevate hourly discharge compared to off-peak cruising.";
+        }
+    }
+
+    return {
+        busId,
+        busCategory,
+        busActualRangeKm,
+        targetDistanceKm: targetDistKm,
+        expectedDurationHours,
+        reservePct,
+        slot,
+        distanceBaseSocPct,
+        distanceRequiredSocPct,
+        socPerKm,
+        timeBaseSocPct,
+        timeExpectedSocPct,
+        socPerHour,
+        comparableSegmentsCount: validDriving.length,
+        evidenceStatus,
+        trafficImpactNote,
+        limitationNote,
+        doubleCountingWarning: "Estimates are independent and must not be added together to avoid double-counting energy consumption."
+    };
+}
+
 // Initial auto-backfill on module load
 try {
     loadSummaries();
@@ -429,6 +623,10 @@ module.exports = {
     getAvailableDates,
     getAllSummariesForDate,
     getMacroTrendWithRealHistory,
+    extractDischargeSegments,
+    estimateScheduleDischargeDual,
+    getBusCategoryInfo,
     flushPendingWrites,
     normalizeBusId
 };
+

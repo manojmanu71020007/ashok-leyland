@@ -12,6 +12,13 @@ from .config import DEFAULTS
 from .estimator import blend, fit_coefficients, live_range, planned_range
 from .models import Bus, Schedule, TelemetryPoint, TripLog
 
+from .discharge_rate import (
+    ConsumptionSegment,
+    ScheduleDischargeEstimate,
+    extract_valid_consumption_segments,
+    estimate_schedule_discharge,
+)
+
 __all__ = [
     "TripLog",
     "TelemetryPoint",
@@ -28,5 +35,9 @@ __all__ = [
     "can_swap_buses",
     "SOC_HYSTERESIS_PERCENT",
     "DEFAULTS",
+    "ConsumptionSegment",
+    "ScheduleDischargeEstimate",
+    "extract_valid_consumption_segments",
+    "estimate_schedule_discharge",
 ]
 

@@ -1956,6 +1956,51 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
+    if (pathname === "/api/soc/discharge-estimate" || pathname === "/api/soc-discharge-estimate") {
+        try {
+            const busId = (requestUrl.searchParams.get("busId") || requestUrl.searchParams.get("bus") || "BM238").trim();
+            const distanceKm = parseFloat(requestUrl.searchParams.get("distanceKm") || requestUrl.searchParams.get("km") || "28.7");
+            const durationHours = parseFloat(requestUrl.searchParams.get("durationHours") || requestUrl.searchParams.get("hours") || "1.3");
+            const routeCode = (requestUrl.searchParams.get("routeCode") || requestUrl.searchParams.get("route") || "600F").trim();
+            const shift = (requestUrl.searchParams.get("shift") || "").trim();
+            const slot = (requestUrl.searchParams.get("slot") || "NORMAL").trim();
+            const reservePct = parseFloat(requestUrl.searchParams.get("reservePct") || "15.0");
+            const busCategory = (requestUrl.searchParams.get("busCategory") || "").trim();
+
+            const estimate = socLogger.estimateScheduleDischargeDual(busId, {
+                distanceKm,
+                durationHours,
+                routeCode,
+                shift,
+                slot,
+                reservePct,
+                busCategory
+            });
+            sendJson(res, { ok: true, estimate });
+        } catch (error) {
+            sendJson(res, { ok: false, error: error.message }, 500);
+        }
+        return;
+    }
+
+    const segmentsMatch = pathname.match(/^\/api\/bus\/([^/]+)\/discharge-segments$/);
+    if (segmentsMatch) {
+        try {
+            const busIdParam = decodeURIComponent(segmentsMatch[1]);
+            const segments = socLogger.extractDischargeSegments(busIdParam);
+            const validCount = segments.filter(s => !s.isCharging && !s.isLayover && s.socPerHour !== null).length;
+            sendJson(res, {
+                ok: true,
+                busId: busIdParam,
+                segments,
+                validDrivingCount: validCount
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: error.message }, 500);
+        }
+        return;
+    }
+
     const summaryMatch = pathname.match(/^\/api\/bus\/([^/]+)\/summary$/);
     if (summaryMatch) {
         try {
