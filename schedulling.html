@@ -1978,16 +1978,6 @@
                             </strong>
                             ${isOverridden ? '<span class="metric-sub" style="color:#b45309;font-weight:700;">Manual Departure Over-ride Active</span>' : ''}
                         </div>
-                        <div class="alloc-metric-item" style="background:#fef3c7;border-radius:8px;padding:6px 10px;">
-                            <span class="metric-label" style="color:#92400e;font-weight:700;">Required SOC (Distance)</span>
-                            <strong id="alloc-req-soc" class="metric-val" style="color:#b45309;font-size:1.15rem;">${reqSocVal}%</strong>
-                            <span class="metric-sub" style="color:#92400e;">Cat ${escapeHtml(busCat)} (${alloc.actualRangeKm || '110'} km)</span>
-                        </div>
-                        <div class="alloc-metric-item" style="background:#f0f9ff;border-radius:8px;padding:6px 10px;border:1px solid #bae6fd;">
-                            <span class="metric-label" style="color:#0369a1;font-weight:700;">Historical Discharge (Time)</span>
-                            <strong class="metric-val" style="color:#0284c7;font-size:1.15rem;">⏱️ ${alloc.socPerHour || '15.0'}%/h</strong>
-                            <span class="metric-sub" style="color:#0369a1;">~${alloc.timeExpectedSoc || '35'}% Expected (Traffic)</span>
-                        </div>
                         <div class="alloc-metric-item" style="background:#dcfce7;border-radius:8px;padding:6px 10px;">
                             <span class="metric-label" style="color:#166534;font-weight:700;">Manual Updated SOC</span>
                             <strong id="alloc-soc" class="metric-val" style="color:#15803d;font-size:1.15rem;">${alloc.liveSoc}%</strong>
@@ -2001,10 +1991,6 @@
                         <div class="alloc-metric-item">
                             <span class="metric-label">Route Distance</span>
                             <strong id="alloc-route-dist" class="metric-val">${routeDistVal}</strong>
-                        </div>
-                        <div class="alloc-metric-item">
-                            <span class="metric-label">Driver Status</span>
-                            <strong id="alloc-driver" class="metric-val">${escapeHtml(alloc.driver || "Assigned")}</strong>
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Bus Tier</span>
