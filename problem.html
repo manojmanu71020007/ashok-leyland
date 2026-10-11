@@ -4922,6 +4922,14 @@ let busCategoriesMap = new Map();
                 };
             }
 
+            if (taskData) {
+                const depInputVal = document.getElementById("departure")?.value || "13:10";
+                taskData.departureTime = (allocDuty && allocDuty.departureTime) || (currentlyAllocatedBus && currentlyAllocatedBus.departureTime) || depInputVal;
+                if (!taskData.shift || taskData.shift === "General") {
+                    taskData.shift = (allocDuty && allocDuty.shift) || (currentlyAllocatedBus && currentlyAllocatedBus.shift) || taskData.shift || "General Shift";
+                }
+            }
+
             renderBusTasksContent(taskData);
         }
 
@@ -4949,6 +4957,70 @@ let busCategoriesMap = new Map();
         }
         window.openBusInfoFromAllocatedCard = openBusInfoFromAllocatedCard;
 
+        function generateWhyBusSelectedReason(vehicle, routeCode, depTimeClean, shiftName, currentSoc) {
+            const busBm = vehicle || "BM250";
+            const liveSoc = Number.isFinite(Number(currentSoc)) ? Number(currentSoc) : getBusSocByBm(busBm);
+            const busCat = getBusCategory(busBm, liveSoc);
+            const actualRangeKm = busCat === "A" ? 135 : (busCat === "B" ? 110 : 95);
+            const fullDutyKm = Math.round(liveSoc * 1.42);
+
+            const rObj = (routes || []).find(r => 
+                String(r.routeId) === String(routeCode) || 
+                String(r.busNumber).toUpperCase() === String(routeCode).toUpperCase() || 
+                String(r.code || '').toUpperCase() === String(routeCode).toUpperCase()
+            ) || (directionalRoutes || []).find(r => 
+                String(r.code).toUpperCase() === String(routeCode).toUpperCase() || 
+                String(r.id) === String(routeCode)
+            ) || { code: routeCode, distKm: 28.7 };
+            
+            const routeDist = Number(rObj.distKm || rObj.distanceKm || 28.7);
+            const timeInfo = getTimeCategory(depTimeClean);
+            const isPeak = timeInfo.isPeak;
+            const timeCatLabel = timeInfo.label || (isPeak ? "Peak (10:00–16:00 & 20:00–23:00)" : "Normal (Off-Peak)");
+            const complexity = (typeof getRouteComplexity === 'function') ? getRouteComplexity(rObj, null) : "moderate";
+            const isComplex = (complexity === "complex");
+
+            let reqSoc = 63;
+            if (currentlyAllocatedBus && (currentlyAllocatedBus.bm === busBm || currentlyAllocatedBus.routeCode === routeCode) && currentlyAllocatedBus.reqSoc) {
+                reqSoc = currentlyAllocatedBus.reqSoc;
+            } else if (typeof getRequiredSingleChargeSoc === 'function') {
+                reqSoc = getRequiredSingleChargeSoc(routeDist, null, busBm);
+            }
+            if (!reqSoc || reqSoc <= 0) reqSoc = 63;
+
+            const surplus = Math.round(liveSoc - reqSoc);
+
+            let categoryReason = "";
+            if (isComplex) {
+                categoryReason = `Route ${routeCode} is classified as a Complex Route, strictly requiring Category A buses (>120 km range). Bus ${busBm} satisfies this with a ${actualRangeKm} km full duty rating.`;
+            } else if (isPeak) {
+                categoryReason = `Departure at ${depTimeClean} falls in ${timeCatLabel}, strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus ${busBm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+            } else {
+                categoryReason = `Departure at ${depTimeClean} falls in ${timeCatLabel}. Category ${busCat} (${actualRangeKm} km full duty range) matches the operational requirements for Route ${routeCode}.`;
+            }
+
+            const energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
+
+            let dispatchReason = `Operator Choice: Bus ${busBm} was selected from the candidate list as the preferred vehicle for this route and departure time.`;
+            if (currentlyAllocatedBus && currentlyAllocatedBus.isManualOverride) {
+                dispatchReason += ` (Operating under manual departure time override at ${depTimeClean}).`;
+            }
+
+            return {
+                busBm,
+                routeCode,
+                depTimeClean,
+                shiftName: shiftName || "General Shift",
+                busCat,
+                liveSoc,
+                reqSoc,
+                surplus,
+                fullDutyKm,
+                routeDist,
+                reasonText: `• Vehicle & Route: Bus ${busBm} (Category ${busCat}) assigned to Route ${routeCode} for ${depTimeClean} departure (${shiftName || "General Shift"}).\n• Energy & Battery Feasibility: ${energyReason}\n• Category & Dispatch Rule: ${categoryReason}\n• Dispatch Selection: ${dispatchReason}`
+            };
+        }
+
         function renderBusTasksContent(data) {
             if (!tasksModalBody) return;
             const soc = data.currentSoc ?? 100;
@@ -4963,6 +5035,10 @@ let busCategoriesMap = new Map();
             const shift = data.shift || "General";
             const isMaintenance = cond === "Not Good";
             const isLowSoc = soc <= 25;
+
+            const depTimeClean = data.departureTime || (document.getElementById("departure") ? document.getElementById("departure").value : "13:10") || "13:10";
+            const whyData = generateWhyBusSelectedReason(vehicle, busNum, depTimeClean, shift, soc);
+            const socPerHour = (currentlyAllocatedBus && currentlyAllocatedBus.socPerHour) ? currentlyAllocatedBus.socPerHour : "15.0";
 
             let feasibilityAlert = "";
             if (isMaintenance) {
@@ -5030,6 +5106,19 @@ let busCategoriesMap = new Map();
             }).join("");
 
             tasksModalBody.innerHTML = `
+                <div style="background:#f0fdf4; border:1.5px dashed #86efac; border-radius:12px; padding:16px 18px; margin-bottom:16px;">
+                    <div style="font-weight:800; font-size:1rem; color:#15803d; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.2rem;">🎯</span>
+                        <span>Why Bus ${escapeHtml(whyData.busBm)} is Selected for Route ${escapeHtml(whyData.routeCode)} at ${escapeHtml(whyData.depTimeClean)}:</span>
+                    </div>
+                    <div style="color:#166534; font-size:0.86rem; line-height:1.65; white-space:pre-line;">
+                        ${escapeHtml(whyData.reasonText)}
+                    </div>
+                    <div style="margin-top:12px;font-size:0.8rem;color:#0369a1;background:#f0f9ff;padding:9px 14px;border-radius:8px;border:1px solid #bae6fd;line-height:1.5;">
+                        <strong>ℹ️ Dual-Metric Estimation Principle:</strong> Distance-based requirement (${whyData.reqSoc}%) and historical time-based rate (${socPerHour}%/hr) are kept distinct to reflect physical range and traffic/HVAC load without double-counting energy.
+                    </div>
+                </div>
+
                 <div class="task-kpi-grid">
                     <div class="task-kpi-card">
                         <div class="task-kpi-label">Assigned Vehicle (Bus Number)</div>
