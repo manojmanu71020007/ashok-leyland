@@ -2564,7 +2564,7 @@ let busCategoriesMap = new Map();
 
         function updateSelectedRouteDistance() {
             const selectedRouteId = routeSelect ? routeSelect.value : "";
-            const routeObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = directionalRoutes.find((r) => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
             const distanceInput = document.getElementById("distance");
             const totalDistanceEl = document.getElementById("route-distance-rule");
             selectedRouteDistance = null;
@@ -2693,8 +2693,8 @@ let busCategoriesMap = new Map();
             }
 
             const allocated = currentlyAllocatedBus;
-            const selectedRouteId = routeSelect.value;
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
             const distKm = routeObj ? Number(routeObj.distKm) : 28.7;
             const tripCount = routeObj ? (routeObj.trips || 8) : 8;
             const estChargePct = Number((distKm / 1.42).toFixed(1));
@@ -2735,7 +2735,7 @@ let busCategoriesMap = new Map();
 
         function updateScheduledTimesForSelectedRoute(keepManualTime = false) {
             const selectedRouteId = routeSelect ? routeSelect.value : "";
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
             if (!routeObj) return;
 
             const distanceInput = document.getElementById("distance");
@@ -3381,7 +3381,7 @@ let busCategoriesMap = new Map();
 
             if (!routeObj) {
                 const selectedRouteId = routeSelect ? routeSelect.value : "";
-                routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
             }
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
@@ -3520,7 +3520,7 @@ let busCategoriesMap = new Map();
             if (!bm) return;
             const selectedRouteId = routeSelect ? routeSelect.value : "";
             const routeObj = (Array.isArray(directionalRoutes) && directionalRoutes.length)
-                ? (directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0])
+                ? (directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0])
                 : null;
             const depTime = (document.getElementById("departure")?.value || "13:10").trim();
             const availableBuses = getBusesAvailableForDeparture(routeObj, depTime);
@@ -3539,7 +3539,7 @@ let busCategoriesMap = new Map();
 
             const selectedRouteId = routeSelect ? routeSelect.value : "";
             const routeObj = (Array.isArray(directionalRoutes) && directionalRoutes.length)
-                ? (directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0])
+                ? (directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0])
                 : null;
             const depTime = (document.getElementById("departure")?.value || "13:10").trim();
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
@@ -3704,7 +3704,7 @@ let busCategoriesMap = new Map();
 
             const routeDistVal = (() => {
                 const selectedRouteId = routeSelect ? routeSelect.value : "";
-                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
                 return routeObj ? `${routeObj.distKm.toFixed(1)} km` : "28.7 km";
             })();
 
@@ -3804,6 +3804,7 @@ let busCategoriesMap = new Map();
             }
             const complexity = getRouteComplexity(routeObj, matchedSched);
             const isComplexRoute = (complexity === "complex");
+            const reqSoc = getRequiredSingleChargeSoc(routeDistKmVal, matchedSched);
 
             // Collect all unique BM numbers designated for this particular route only
             const routeDesignatedBms = new Set();
@@ -3928,12 +3929,15 @@ let busCategoriesMap = new Map();
 
             // ── 2. Run Bus Allocation for currently chosen Route, Shift, Time & Battery State ──
             allocatedDuties = loadAllocatedDuties();
-            const selectedRouteId = routeSelect.value;
-            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
             const departureTime = document.getElementById("departure")?.value || "13:10";
             if (routeObj) {
                 const allocResult = allocateBus(routeObj, departureTime);
                 currentScheduleMatch = allocResult.matchedSched;
+                if (!currentlyAllocatedBus || (currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(routeObj.code))) {
+                    currentlyAllocatedBus = allocResult.allocated;
+                }
                 if (currentlyAllocatedBus) {
                     renderAllocatedCard({
                         allocated: currentlyAllocatedBus,
@@ -3943,8 +3947,7 @@ let busCategoriesMap = new Map();
                         reqSoc: currentlyAllocatedBus.reqSoc
                     });
                 } else {
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
+                    renderAllocatedCard(allocResult);
                 }
             }
 
@@ -4757,6 +4760,7 @@ let busCategoriesMap = new Map();
                     const matchingRoute = directionalRoutes.find(r => (code && (r.code === code || r.routeCode === code)) || String(r.routeId) === String(routeId));
                     if (matchingRoute && routeSelect.value !== matchingRoute.id) {
                         routeSelect.value = matchingRoute.id;
+                        currentlyAllocatedBus = null;
                         recommendClicked = false;
                         await updateSelectedRouteDistance();
                         updateScheduledTimesForSelectedRoute();
@@ -5414,8 +5418,10 @@ let busCategoriesMap = new Map();
             const distanceInput = document.getElementById("distance");
             const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
             const departure = (document.getElementById("departure")?.value) || "13:10";
-            const selectedRouteId = routeSelect.value;
-            const selectedRouteObj = directionalRoutes.find((r) => r.id === selectedRouteId) || directionalRoutes[0];
+            const selectedRouteId = routeSelect ? routeSelect.value : "";
+            const selectedRouteObj = (Array.isArray(directionalRoutes) && directionalRoutes.length)
+                ? (directionalRoutes.find((r) => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0])
+                : null;
 
             const departMinutes = departure ? departure.split(":").reduce((acc, part) => acc * 60 + Number(part), 0) : 0;
             const routeDistance = Number(
@@ -5438,10 +5444,15 @@ let busCategoriesMap = new Map();
             const busCatRule = document.getElementById("bus-category-rule");
             const matrixStatusRule = document.getElementById("matrix-status-rule");
 
-            // Compute matched schedule without auto-selecting candidate bus
+            let allocResult = null;
             if (selectedRouteObj) {
-                const allocResult = allocateBus(selectedRouteObj, departure);
+                allocResult = allocateBus(selectedRouteObj, departure);
                 currentScheduleMatch = allocResult.matchedSched;
+            }
+
+            // Auto-assign bus when switching route or if none selected yet
+            if (!currentlyAllocatedBus || (selectedRouteObj && currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(selectedRouteObj.code))) {
+                currentlyAllocatedBus = allocResult ? allocResult.allocated : null;
             }
 
             // Determine schedule complexity & route category:
@@ -5495,10 +5506,9 @@ let busCategoriesMap = new Map();
             };
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
 
-            // When no bus is selected yet: DO NOT show recommended candidate bus!
+            // When no bus is eligible for this route/departure
             if (!currentlyAllocatedBus) {
-                const card = document.getElementById("auto-allocated-card");
-                if (card) card.style.display = "none";
+                renderAllocatedCard(allocResult);
                 if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
                 if (socResult) socResult.textContent = "—";
                 if (rangeResult) rangeResult.textContent = "—";
@@ -5687,8 +5697,6 @@ let busCategoriesMap = new Map();
 
                 routeSelect.addEventListener("change", async () => {
                     currentlyAllocatedBus = null;
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
@@ -5701,8 +5709,9 @@ let busCategoriesMap = new Map();
                 });
                 routeSearch.addEventListener("input", async () => {
                     currentlyAllocatedBus = null;
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
+                    updateSelectedRouteDistance();
+                    updateScheduledTimesForSelectedRoute(false);
+                    syncScheduleTiming();
                     renderRoutes(true);
                     await recommend();
                     const availContainer = document.getElementById("available-buses-container");
@@ -5747,7 +5756,7 @@ let busCategoriesMap = new Map();
                                     scheduledTimeSelect.prepend(manualOpt);
                                 }
                                 const selectedRouteId = routeSelect ? routeSelect.value : "";
-                                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
                                 const shiftName = getShiftForTimeAndRoute(val, routeObj ? routeObj.code : "");
                                 manualOpt.value = val;
                                 manualOpt.textContent = `Manual Time: ${val} (Shift: ${shiftName})`;
@@ -5789,7 +5798,7 @@ let busCategoriesMap = new Map();
                         syncScheduleTiming();
 
                         const selectedRouteId = routeSelect ? routeSelect.value : "";
-                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId) || directionalRoutes[0];
+                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
                         const depInput = document.getElementById("departure");
                         const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
 
