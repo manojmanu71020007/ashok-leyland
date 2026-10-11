@@ -1630,6 +1630,7 @@
         }
     </style>
     <script src="i18n.js"></script>
+    <script src="sync-engine.js"></script>
 </head>
 <script>
     // ── Auth guard: redirect to login if not authenticated ──
@@ -2208,6 +2209,9 @@
                 localStorage.setItem(ALLOCATED_DUTIES_KEY, JSON.stringify(duties));
             } catch (e) {
                 console.warn("Could not save allocated duties to localStorage:", e);
+            }
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === 'function') {
+                window.DepotSyncEngine.saveAllocatedDuties(duties);
             }
         }
 
@@ -5338,6 +5342,9 @@ let busCategoriesMap = new Map();
             const lowerBm = bm.trim().toLowerCase();
             const updated = currentLocked.filter(x => String(x.bm || '').trim().toLowerCase() !== lowerBm);
             localStorage.setItem(LOCKED_KEY, JSON.stringify(updated));
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
+                window.DepotSyncEngine.saveLockedBuses(updated);
+            }
             localStorage.removeItem('depot_active_cleaning_selection');
             localStorage.removeItem('depot_active_charging_selection');
             
@@ -6371,6 +6378,22 @@ let busCategoriesMap = new Map();
         } catch(e) {}
 
 
+        function handleSyncStateUpdate() {
+            syncLocalStorageBusStates();
+            allocatedDuties = loadAllocatedDuties();
+            renderRoutes();
+            recommend();
+            const availContainer = document.getElementById("available-buses-container");
+            if (availContainer && availContainer.style.display !== "none") {
+                renderAvailableBusesForDeparture();
+            }
+            const lockedBackdrop = document.getElementById("locked-buses-modal-backdrop");
+            if (lockedBackdrop && lockedBackdrop.style.display === "flex") {
+                const searchInput = document.getElementById("locked-bus-search-input");
+                renderLockedBusesModalContent(searchInput ? searchInput.value : "");
+            }
+        }
+
         // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated, or allocated in AD portal)
         window.addEventListener('storage', (e) => {
             if (e.key === 'depot_locked_buses') {
@@ -6382,27 +6405,21 @@ let busCategoriesMap = new Map();
                 }
             }
             if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {
-                syncLocalStorageBusStates();
-                allocatedDuties = loadAllocatedDuties();
-                renderRoutes();
-                recommend();
-                const availContainer = document.getElementById("available-buses-container");
-                if (availContainer && availContainer.style.display !== "none") {
-                    renderAvailableBusesForDeparture();
-                }
+                handleSyncStateUpdate();
             }
         });
 
+        // Real-time cross-device sync via DepotSyncEngine
+        if (window.DepotSyncEngine) {
+            window.DepotSyncEngine.on('bus-state', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('allocated-duties', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('locked-buses', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('sync', handleSyncStateUpdate);
+        }
+
         // Auto-sync when switching back to this tab
         window.addEventListener('focus', () => {
-            syncLocalStorageBusStates();
-            allocatedDuties = loadAllocatedDuties();
-            renderRoutes();
-            recommend();
-            const availContainer = document.getElementById("available-buses-container");
-            if (availContainer && availContainer.style.display !== "none") {
-                renderAvailableBusesForDeparture();
-            }
+            handleSyncStateUpdate();
         });
     </script>
 </body>

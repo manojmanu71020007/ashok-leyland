@@ -125,6 +125,7 @@
     }
   </style>
   <script src="/i18n.js"></script>
+  <script src="/public/sync-engine.js"></script>
 </head>
 <body>
   <div class="container">
@@ -687,6 +688,13 @@
       await renderView("macro");
       await loadSocHistory();
       startLivePolling();
+
+      if (window.DepotSyncEngine) {
+        window.DepotSyncEngine.on('bus-state', async () => {
+          await fetchSummary();
+          await renderView(currentView);
+        });
+      }
     })();
   </script>
 </body>

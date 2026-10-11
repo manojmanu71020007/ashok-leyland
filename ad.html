@@ -691,6 +691,7 @@
         .allocation-toast.info    { background: linear-gradient(135deg, #0c4a6e, #075985); color: #f0f9ff; border: 1px solid #0284c7; }
     </style>
     <script src="i18n.js"></script>
+    <script src="sync-engine.js"></script>
 </head>
 <body>
     <main class="shell">
@@ -1017,13 +1018,17 @@
             } catch (e) {
                 console.warn("Could not save allocated duties to localStorage:", e);
             }
-            try {
-                fetch("/api/allocated-duties", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ duties })
-                }).catch(() => {});
-            } catch (e) {}
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === 'function') {
+                window.DepotSyncEngine.saveAllocatedDuties(duties);
+            } else {
+                try {
+                    fetch("/api/allocated-duties", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ duties })
+                    }).catch(() => {});
+                } catch (e) {}
+            }
         }
 
         function normalizeBm(bm) {
@@ -2645,20 +2650,30 @@
         } catch(e) {}
 
 
-        // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
-        window.addEventListener('storage', async (e) => {
-            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {
-                syncLocalStorageBusStates();
-                allocatedDuties = loadAllocatedDuties();
-                await recommend();
-            }
-        });
-
-        // Auto-refresh when switching back to this tab
-        window.addEventListener('focus', async () => {
+        async function handleSyncStateUpdate() {
             syncLocalStorageBusStates();
             allocatedDuties = loadAllocatedDuties();
             await recommend();
+        }
+
+        // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
+        window.addEventListener('storage', async (e) => {
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_locked_buses') {
+                await handleSyncStateUpdate();
+            }
+        });
+
+        // Real-time cross-device sync via DepotSyncEngine
+        if (window.DepotSyncEngine) {
+            window.DepotSyncEngine.on('bus-state', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('allocated-duties', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('locked-buses', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('sync', handleSyncStateUpdate);
+        }
+
+        // Auto-sync when switching back to this tab
+        window.addEventListener('focus', async () => {
+            await handleSyncStateUpdate();
         });
     </script>
 </body>

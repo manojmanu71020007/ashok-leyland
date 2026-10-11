@@ -1081,6 +1081,45 @@ function sendJson(res, payload, statusCode = 200) {
     }
 }
 
+function readBody(req, callback) {
+    let body = "";
+    req.on("data", chunk => { body += chunk; });
+    req.on("end", () => callback(body));
+    req.on("error", () => callback(""));
+}
+
+// ── Real-Time Cross-Device Synchronization Engine (SSE & State Versioning) ──
+let stateVersion = Date.now();
+const sseClients = new Set();
+
+function broadcastSyncEvent(eventType, data = {}) {
+    stateVersion = Date.now();
+    const payload = JSON.stringify({
+        type: eventType,
+        version: stateVersion,
+        data,
+        timestamp: Date.now()
+    });
+    for (const client of sseClients) {
+        try {
+            client.write(`event: ${eventType}\ndata: ${payload}\n\n`);
+        } catch (e) {
+            sseClients.delete(client);
+        }
+    }
+}
+
+// Keep SSE connections active with comment pings every 20 seconds
+setInterval(() => {
+    for (const client of sseClients) {
+        try {
+            client.write(": ping\n\n");
+        } catch (e) {
+            sseClients.delete(client);
+        }
+    }
+}, 20000).unref();
+
 function sendFile(res, filePath, contentType) {
     fs.readFile(filePath, (error, data) => {
         if (error) {
@@ -1843,6 +1882,78 @@ const server = http.createServer(async (req, res) => {
     const requestUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
     const pathname = requestUrl.pathname;
 
+    // ── Real-Time Server-Sent Events (SSE) Stream ──
+    if (pathname === "/api/events") {
+        res.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "Access-Control-Allow-Origin": "*"
+        });
+        res.write(`event: connected\ndata: ${JSON.stringify({ version: stateVersion, timestamp: Date.now() })}\n\n`);
+        sseClients.add(res);
+        req.on("close", () => {
+            sseClients.delete(res);
+        });
+        return;
+    }
+
+    // ── Universal Cross-Device State Sync Endpoint ──
+    if (pathname === "/api/sync-state") {
+        try {
+            const reqVersion = requestUrl.searchParams.get("v") || requestUrl.searchParams.get("version");
+            if (reqVersion && String(reqVersion) === String(stateVersion)) {
+                sendJson(res, { ok: true, upToDate: true, version: stateVersion });
+                return;
+            }
+            const currentState = loadBusState();
+            sendJson(res, {
+                ok: true,
+                version: stateVersion,
+                busState: currentState,
+                allocatedDuties: currentState._allocatedDuties || [],
+                lockedBuses: currentState._lockedBuses || [],
+                timestamp: Date.now()
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load sync state", details: error.message }, 500);
+        }
+        return;
+    }
+
+    // ── GET & POST /api/locked-buses (Cleaning & Charging Bay Locks) ──
+    if (pathname === "/api/locked-buses") {
+        if (req.method === "GET") {
+            try {
+                const currentState = loadBusState();
+                const lockedBuses = currentState._lockedBuses || [];
+                sendJson(res, { ok: true, count: lockedBuses.length, lockedBuses });
+            } catch (error) {
+                sendJson(res, { ok: false, error: "Failed to load locked buses", details: error.message }, 500);
+            }
+            return;
+        }
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    if (Array.isArray(payload.lockedBuses)) {
+                        currentState._lockedBuses = payload.lockedBuses;
+                        saveBusState(currentState);
+                        broadcastSyncEvent("locked-buses-updated", { lockedBuses: currentState._lockedBuses });
+                        sendJson(res, { ok: true, count: currentState._lockedBuses.length, lockedBuses: currentState._lockedBuses });
+                    } else {
+                        sendJson(res, { ok: false, error: "Invalid payload format. Expected { lockedBuses: [...] }" }, 400);
+                    }
+                } catch (error) {
+                    sendJson(res, { ok: false, error: "Failed to save locked buses", details: error.message }, 500);
+                }
+            });
+            return;
+        }
+    }
+
     if (pathname === "/api/routes") {
         try {
             const routes = loadRoutes();
@@ -2155,6 +2266,14 @@ const server = http.createServer(async (req, res) => {
 
                         swapBusAssignments(currentState);
                         saveBusState(currentState);
+                        broadcastSyncEvent("bus-state-updated", {
+                            uniqueId,
+                            bus: uniqueId,
+                            busShortName,
+                            state: updatedEntry,
+                            allAllocatedDuties: currentState._allocatedDuties || [],
+                            lockedBuses: currentState._lockedBuses || []
+                        });
 
                         // Persistent Daily SoC Logging
                         socLogger.logSocUpdate({
@@ -2304,6 +2423,14 @@ const server = http.createServer(async (req, res) => {
                     // Run the unique-id bus swap engine
                     swapBusAssignments(currentState);
                     saveBusState(currentState);
+                    broadcastSyncEvent("bus-state-updated", {
+                        uniqueId,
+                        bus: uniqueId,
+                        busShortName,
+                        state: updatedEntry,
+                        allAllocatedDuties: currentState._allocatedDuties || [],
+                        lockedBuses: currentState._lockedBuses || []
+                    });
 
                     // Persistent Daily SoC Logging
                     socLogger.logSocUpdate({
@@ -2422,6 +2549,7 @@ const server = http.createServer(async (req, res) => {
                     if (Array.isArray(payload.duties)) {
                         currentState._allocatedDuties = payload.duties;
                         saveBusState(currentState);
+                        broadcastSyncEvent("allocated-duties-updated", { duties: currentState._allocatedDuties });
                         sendJson(res, { ok: true, count: currentState._allocatedDuties.length, duties: currentState._allocatedDuties });
                     } else {
                         sendJson(res, { ok: false, error: "Invalid payload format. Expected { duties: [...] }" }, 400);
@@ -2718,6 +2846,11 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/i18n.js") {
         sendFile(res, path.join(BASE_DIR, "i18n.js"), "application/javascript; charset=utf-8");
+        return;
+    }
+
+    if (pathname === "/sync-engine.js" || pathname === "/public/sync-engine.js") {
+        sendStaticFile(res, "public/sync-engine.js");
         return;
     }
 

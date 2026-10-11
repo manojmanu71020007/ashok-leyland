@@ -457,6 +457,7 @@
     }
   </style>
   <script src="/i18n.js"></script>
+  <script src="/public/sync-engine.js"></script>
 </head>
 <body>
 
@@ -1008,6 +1009,9 @@
       if (Array.isArray(smartbus)) {
         smartbus = smartbus.filter(d => !sameBus(d.bm || d.bmNumber, bm));
         localStorage.setItem(SMARTBUS_ALLOCATED_KEY, JSON.stringify(smartbus));
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === 'function') {
+          window.DepotSyncEngine.saveAllocatedDuties(smartbus);
+        }
       }
     } catch {}
 
@@ -1208,10 +1212,17 @@
   // ──────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', loadVehicles);
 
-  // Auto-refresh when other tabs update allocations
+  // Auto-refresh when other tabs or devices update allocations
   window.addEventListener('storage', e => {
     if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY].includes(e.key)) refreshAll();
   });
+
+  if (window.DepotSyncEngine) {
+    window.DepotSyncEngine.on('sync', () => refreshAll());
+    window.DepotSyncEngine.on('allocated-duties', () => refreshAll());
+    window.DepotSyncEngine.on('locked-buses', () => refreshAll());
+    window.DepotSyncEngine.on('bus-state', () => refreshAll());
+  }
 
   try {
     const bc = new BroadcastChannel('depot_operations_sync');

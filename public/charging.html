@@ -476,6 +476,7 @@
     }
   </style>
   <script src="/i18n.js"></script>
+  <script src="/public/sync-engine.js"></script>
 </head>
 <body>
 
@@ -718,6 +719,9 @@
 
   function setLockedBuses(arr) {
     localStorage.setItem(LOCKED_KEY, JSON.stringify(arr));
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
+      window.DepotSyncEngine.saveLockedBuses(arr);
+    }
   }
 
   function isSameBusId(a, b) {
@@ -1479,15 +1483,25 @@
     t._timer = setTimeout(() => { t.classList.remove('show'); }, duration);
   }
 
+  function handleSyncChargingState() {
+    filterBuses();
+    renderOngoingButtons();
+    renderLog();
+    const curBm = document.getElementById('busSelect').value;
+    if (curBm) updateLockUI(curBm);
+  }
+
   window.addEventListener('storage', (e) => {
     if (e.key === LOCKED_KEY || e.key === CHARGING_HISTORY_KEY) {
-      filterBuses();
-      renderOngoingButtons();
-      renderLog();
-      const curBm = document.getElementById('busSelect').value;
-      if (curBm) updateLockUI(curBm);
+      handleSyncChargingState();
     }
   });
+
+  if (window.DepotSyncEngine) {
+    window.DepotSyncEngine.on('locked-buses', handleSyncChargingState);
+    window.DepotSyncEngine.on('bus-state', handleSyncChargingState);
+    window.DepotSyncEngine.on('sync', handleSyncChargingState);
+  }
 
   // ── Init ──
   loadVehicles().then(() => {
