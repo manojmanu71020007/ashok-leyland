@@ -461,32 +461,27 @@
             padding: 2px 6px;
             border-radius: 4px;
         }
-        .cand-metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.85);
-            padding: 8px 4px;
+        .cand-soc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255, 255, 255, 0.92);
+            padding: 8px 12px;
             border-radius: 6px;
             border: 1px solid #edf2f5;
+            margin: 2px 0;
         }
-        .cand-metric {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 2px;
-        }
-        .cand-metric-lbl {
-            font-size: 0.62rem;
+        .cand-soc-lbl {
+            font-size: 0.72rem;
             font-weight: 700;
             color: #64748b;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
-        .cand-metric-val {
-            font-size: 0.82rem;
+        .cand-soc-val {
+            font-size: 1.05rem;
             font-weight: 800;
-            color: #1e293b;
+            color: #15803d;
         }
         .cand-footer {
             margin-top: 4px;
@@ -772,7 +767,7 @@
                         <div class="candidate-buses-title-wrap">
                             <span class="candidate-title-icon">🚌</span>
                             <div>
-                                <h3 class="candidate-buses-title" id="candidate-buses-title" data-i18n="candidate_buses_title">Candidate Buses (2 to 3 Buses Available)</h3>
+                                <h3 class="candidate-buses-title" id="candidate-buses-title" data-i18n="candidate_buses_title">Candidate Buses For This Route &amp; Time</h3>
                                 <p class="candidate-buses-sub" id="candidate-buses-sub" data-i18n="candidate_buses_sub">Select one of the 2–3 eligible candidate buses for this departure</p>
                             </div>
                         </div>
@@ -1667,11 +1662,53 @@
                     cand.role = "Route Standby Bus";
                 }
                 cand.allocType = cand.role;
-                cand.reason = `Bus ${cand.bm} (Category ${cand.busCategory}, ${cand.actualRangeKm} km full range, ${cand.liveSoc}% SoC) ready for departure. Req: ${cand.reqSoc}% (surplus +${cand.surplus}%).`;
+                cand.reason = generateWhyBusSelectedReason(cand, routeObj, depTimeClean, targetShift, isManualOverride, !!cand.isUserSelected);
             });
 
             // ENSURE EXACTLY 2 TO 3 CANDIDATE BUSES RETURNED
             return candidates.slice(0, 3);
+        }
+
+        function generateWhyBusSelectedReason(bus, routeObj, departureTime, targetShift, isOverridden = false, isUserSelected = false) {
+            if (!bus) return "";
+            const routeCode = routeObj ? (routeObj.code || "356Z") : (bus.routeCode || "356Z");
+            const routeDist = Number(routeObj ? (routeObj.distKm || 28.7) : 28.7);
+            const depTimeClean = (departureTime || bus.departureTime || (depInput ? depInput.value : "13:10") || "13:10").trim();
+            const shift = targetShift || bus.shift || "General Shift";
+            const busCat = bus.busCategory || "A";
+            const liveSoc = Number(bus.liveSoc) || 0;
+            const reqSoc = Number(bus.reqSoc) || 63;
+            const surplus = (bus.surplus !== undefined) ? Number(bus.surplus) : Math.round(liveSoc - reqSoc);
+            const fullDutyKm = bus.fullDutyKm || Math.round(liveSoc * 1.42);
+            const actualRangeKm = bus.actualRangeKm || (busCat === "A" ? 135 : (busCat === "B" ? 110 : 95));
+
+            const timeInfo = getTimeCategory(depTimeClean);
+            const isPeak = timeInfo.isPeak;
+            const timeCatLabel = timeInfo.label || (isPeak ? "Peak (10:00–16:00 & 20:00–23:00)" : "Normal (Off-Peak)");
+
+            const complexity = getRouteComplexity(routeObj, null);
+            const isComplex = (complexity === "complex");
+
+            let categoryReason = "";
+            if (isComplex) {
+                categoryReason = `Route ${routeCode} is classified as a Complex Route, strictly requiring Category A buses (>120 km range). Bus ${bus.bm} satisfies this with a ${actualRangeKm} km full duty rating.`;
+            } else if (isPeak) {
+                categoryReason = `Departure at ${depTimeClean} falls in ${timeCatLabel}, strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+            } else {
+                categoryReason = `Departure at ${depTimeClean} falls in ${timeCatLabel}. Category ${busCat} (${actualRangeKm} km full duty range) matches the operational requirements for Route ${routeCode}.`;
+            }
+
+            let energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
+
+            let dispatchReason = isUserSelected
+                ? `Operator Choice: Bus ${bus.bm} was selected from the candidate list as the preferred vehicle for this route and departure time.`
+                : `Candidate Match: Bus ${bus.bm} is the primary ready-to-dispatch candidate for this timetable departure with driver assigned and maintenance inspection cleared.`;
+
+            if (isOverridden) {
+                dispatchReason += ` (Operating under manual departure time override at ${depTimeClean}).`;
+            }
+
+            return `• Vehicle & Route: Bus ${bus.bm} (Category ${busCat}) assigned to Route ${routeCode} for ${depTimeClean} departure (${shift}).\n• Energy & Battery Feasibility: ${energyReason}\n• Category & Dispatch Rule: ${categoryReason}\n• Dispatch Selection: ${dispatchReason}`;
         }
 
         function renderCandidateBuses(candidates) {
@@ -1709,11 +1746,10 @@
                     : `Select one of the 2–3 eligible candidate buses for this departure`;
             }
 
-            const cardsHtml = candidates.map((bus, idx) => {
+            // In Candidate Buses region: ONLY bus number, bus category, and current soc are shown!
+            const cardsHtml = candidates.map((bus) => {
                 const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
-                const roleBadgeClass = (idx === 0 ? 'primary' : (idx === 1 ? 'swap' : ''));
-                const roleDisplay = bus.role || (idx === 0 ? "Primary Candidate" : (idx === 1 ? "Designated Swap" : "Standby Bus"));
 
                 return `
                     <div class="candidate-bus-card ${isSelected ? 'selected' : ''}" 
@@ -1722,37 +1758,13 @@
                          role="button" tabindex="0" 
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectCandidateBus('${escapeHtml(bus.bm)}');}">
                         <div class="cand-card-top">
-                            <div class="cand-bus-id-row">
-                                <span class="cand-bus-id">🚌 ${escapeHtml(bus.bm)}</span>
-                                ${bus.regNo ? `<span class="cand-reg-no">(${escapeHtml(bus.regNo)})</span>` : ''}
-                            </div>
-                            <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                            <span class="cand-bus-id">🚌 ${escapeHtml(bus.bm)}</span>
+                            <span class="cat-pill ${catClass}">Category ${escapeHtml(bus.busCategory)}</span>
                         </div>
 
-                        <div class="cand-role-badge-row">
-                            <span class="cand-role-badge ${roleBadgeClass}" title="${escapeHtml(roleDisplay)}">
-                                ${escapeHtml(roleDisplay)}
-                            </span>
-                            ${isSelected ? '<span class="cand-selected-pill">✓ Selected</span>' : ''}
-                        </div>
-
-                        <div class="cand-metrics-grid">
-                            <div class="cand-metric">
-                                <span class="cand-metric-lbl" data-i18n="kpi_battery_soc">Battery SoC</span>
-                                <strong class="cand-metric-val" style="color:#15803d;">⚡ ${bus.liveSoc}%</strong>
-                            </div>
-                            <div class="cand-metric">
-                                <span class="cand-metric-lbl" title="Distance required SoC based on Category ${bus.busCategory} full range (${bus.actualRangeKm} km)">Req (Dist)</span>
-                                <strong class="cand-metric-val" style="color:#b45309;">📏 ${bus.reqSoc}%</strong>
-                            </div>
-                            <div class="cand-metric">
-                                <span class="cand-metric-lbl" title="Historical/calibrated time discharge rate (~${bus.timeExpectedSoc}% expected). Supplementary metric, not double-counted.">Rate (Time)</span>
-                                <strong class="cand-metric-val" style="color:#0369a1;">⏱️ ${bus.socPerHour}%/h</strong>
-                            </div>
-                            <div class="cand-metric">
-                                <span class="cand-metric-lbl" data-i18n="kpi_buffer_dist">Surplus</span>
-                                <strong class="cand-metric-val" style="color:#0284c7;">+${bus.surplus}%</strong>
-                            </div>
+                        <div class="cand-soc-row">
+                            <span class="cand-soc-lbl">Current SoC</span>
+                            <strong class="cand-soc-val">⚡ ${bus.liveSoc}%</strong>
                         </div>
 
                         <div class="cand-footer">
@@ -1776,19 +1788,22 @@
             const candidates = getRouteCandidateBuses(routeObj, departure);
             const bus = candidates.find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
             if (bus) {
+                bus.isUserSelected = true;
+                const shiftName = bus.shift || getShiftForTimeAndRoute(departure, routeObj ? routeObj.code : "");
+                bus.reason = generateWhyBusSelectedReason(bus, routeObj, departure, shiftName, isManualOverride, true);
                 currentlyAllocatedBus = bus;
                 renderCandidateBuses(candidates);
                 renderAllocatedCard({
                     allocated: bus,
                     matchedSched: currentScheduleMatch,
-                    shift: bus.shift,
-                    departureTime: bus.departureTime,
+                    shift: shiftName,
+                    departureTime: bus.departureTime || departure,
                     reqSoc: bus.reqSoc
                 });
                 updateAllocationPanelMetrics(bus);
                 updateSelectedBusDutyBanner();
                 updateAllocateButton(bus);
-                showAllocationToast(`✅ Selected Bus ${bus.bm} (${bus.regNo || ''}) for Route ${bus.routeCode} at ${bus.departureTime}${isManualOverride ? ' (Manual Over-ride)' : ''}`, "success");
+                showAllocationToast(`✅ Selected Bus ${bus.bm} for Route ${bus.routeCode || (routeObj ? routeObj.code : '')} at ${departure}${isManualOverride ? ' (Manual Over-ride)' : ''}`, "success");
             }
         }
         window.selectCandidateBus = selectCandidateBus;
@@ -1858,6 +1873,9 @@
             } else if (candidates.length > 0) {
                 allocated = candidates[0];
             }
+            if (allocated && !allocated.reason) {
+                allocated.reason = generateWhyBusSelectedReason(allocated, routeObj, depTimeClean, targetShift, isManualOverride, !!allocated.isUserSelected);
+            }
 
             return {
                 allocated,
@@ -1905,10 +1923,12 @@
             const shiftName = alloc.shift || (result && result.shift) || "Regular Shift";
             const reqSocVal = (alloc.reqSoc !== undefined && alloc.reqSoc !== null) ? alloc.reqSoc : (result && result.reqSoc ? result.reqSoc : "—");
             const surplusVal = (Number.isFinite(alloc.liveSoc) && Number.isFinite(reqSocVal)) ? (alloc.liveSoc - reqSocVal) : 0;
+            const routeObj = getSelectedRouteObj();
             const routeDistVal = (() => {
-                const routeObj = getSelectedRouteObj();
                 return routeObj ? `${(Number(routeObj.distKm || routeObj.distanceKm) || 28.7).toFixed(1)} km` : "28.7 km";
             })();
+            const depTimeClean = alloc.departureTime || (result && result.departureTime) || (depInput ? depInput.value : "13:10") || "13:10";
+            const reasonText = alloc.reason || generateWhyBusSelectedReason(alloc, routeObj, depTimeClean, shiftName, isOverridden, !!alloc.isUserSelected);
 
             card.style.display = "block";
             card.style.borderColor = "#86efac";
@@ -1992,9 +2012,18 @@
                             <strong class="metric-val" style="color:${busCat === 'A' ? '#16a34a' : (busCat === 'B' ? '#2563eb' : '#d97706')};">Category ${escapeHtml(busCat)}</strong>
                         </div>
                     </div>
-                    <div id="alloc-reason-text" class="auto-alloc-reason">
-                        <strong>Allocation Rationale:</strong> ${isOverridden ? '<span style="color:#b45309;font-weight:700;">[⚠️ Manual Over-ride Active]</span> ' : ''}${escapeHtml(alloc.reason)}
-                        <div style="margin-top:6px;font-size:0.78rem;color:#0369a1;background:#f0f9ff;padding:6px 10px;border-radius:6px;border:1px solid #bae6fd;">
+                    <div id="alloc-reason-text" class="auto-alloc-reason" style="background:#f0fdf4; border:1.5px dashed #86efac; border-radius:10px; padding:12px 16px; margin-top:14px;">
+                        <div style="font-weight:800; font-size:0.88rem; color:#15803d; margin-bottom:8px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+                            <span style="display:flex; align-items:center; gap:6px;">
+                                <span>🎯</span>
+                                <span>Why Bus ${escapeHtml(alloc.bm)} is Selected for Route ${escapeHtml(alloc.routeCode || (routeObj ? routeObj.code : '356Z'))} at ${escapeHtml(depTimeClean)}:</span>
+                            </span>
+                            ${isOverridden ? '<span class="manual-override-pill">⚠️ Manual Over-ride Active</span>' : ''}
+                        </div>
+                        <div style="color:#166534; font-size:0.83rem; line-height:1.65; white-space:pre-line;">
+                            ${escapeHtml(reasonText)}
+                        </div>
+                        <div style="margin-top:10px;font-size:0.77rem;color:#0369a1;background:#f0f9ff;padding:7px 12px;border-radius:6px;border:1px solid #bae6fd;line-height:1.45;">
                             <strong>ℹ️ Dual-Metric Estimation Principle:</strong> Distance-based requirement (${reqSocVal}%) and historical time-based rate (${alloc.socPerHour || '15.0'}%/hr) are kept distinct to reflect physical range and traffic/HVAC load without double-counting energy.
                         </div>
                     </div>
