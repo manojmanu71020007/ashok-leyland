@@ -2993,29 +2993,11 @@ let busCategoriesMap = new Map();
             // Check if bus is already allocated to another route or duty
             const alreadyAllocatedDuty = findAllocatedDutyForBm(key, allocatedDuties);
             if (alreadyAllocatedDuty) {
-                const dutyRoute = normalizeRoute(alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber || alreadyAllocatedDuty.routeId);
-                const curRoute = normalizeRoute(routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : ''));
-                const dutyTimeShort = (alreadyAllocatedDuty.departureTime || '').substring(0, 5);
-                const curTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : '';
-
-                const isSameRoute = curRoute && (dutyRoute === curRoute);
-                const isExactTarget = isSameRoute && curTimeShort && (dutyTimeShort === curTimeShort);
-
-                if (isAllocatedDuty || isExactTarget) {
-                    // This bus is officially allocated to this exact duty/departure — fully eligible!
-                } else if (!isSameRoute && dutyRoute) {
-                    // Strictly exclude: bus is already allocated to a DIFFERENT route!
+                if (!isAllocatedDuty) {
                     return {
                         feasible: false,
                         bm: key,
-                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for other routes.`
-                    };
-                } else if (isSameRoute && !isExactTarget && !isAllocatedDuty) {
-                    // Bus is already allocated to a different time slot on this route
-                    return {
-                        feasible: false,
-                        bm: key,
-                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure at ${curTimeShort || 'this time'}.`
+                        reason: `Bus ${key} is already allocated to Route ${alreadyAllocatedDuty.routeCode || alreadyAllocatedDuty.busNumber} at ${alreadyAllocatedDuty.departureTime} (Shift: ${alreadyAllocatedDuty.shift || '—'}). Unavailable for departure.`
                     };
                 }
             }
@@ -3435,30 +3417,18 @@ let busCategoriesMap = new Map();
                 if (!normKey || seenBms.has(normKey)) return;
                 seenBms.add(normKey);
 
-                // Strict cross-route exclusion: if this bus is already allocated to ANY other route, NEVER show it!
-                const existingAnyDuty = findAllocatedDutyForBm(key, allocatedDuties);
-                if (existingAnyDuty) {
-                    const dutyRoute = normalizeRoute(existingAnyDuty.routeCode || existingAnyDuty.busNumber || existingAnyDuty.routeId);
-                    const curRoute = normalizeRoute(routeCode);
-                    if (dutyRoute && curRoute && dutyRoute !== curRoute) {
-                        return; // Strictly exclude: allocated to another route!
-                    }
+                // Strict exclusion: if this bus is already allocated to ANY route or duty, NEVER show it!
+                if (findAllocatedDutyForBm(key, allocatedDuties)) {
+                    return; // Strictly exclude: bus is already assigned!
                 }
 
-                const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, isDuty);
+                const feas = evaluateBusFeasibility(key, role, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false);
                 if (feas && feas.feasible) {
                     const liveSoc = feas.liveSoc;
                     const fullDutyKm = feas.fullDutyKm;
                     const busCat = feas.busCategory || getBusCategory(key, liveSoc);
                     const regNo = getBusRegNo(key);
                     const surplus = liveSoc - reqSoc;
-
-                    const existingDuty = (allocatedDuties || []).find(d => {
-                        const isMatch = [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normKey);
-                        const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
-                        return isMatch && dRoute === normalizeRoute(routeCode);
-                    });
-                    const isCommitted = isDuty || !!existingDuty;
 
                     candidates.push({
                         bm: key,
@@ -3469,38 +3439,20 @@ let busCategoriesMap = new Map();
                         reqSoc: reqSoc,
                         surplus: surplus,
                         role: role,
-                        shift: (existingDuty && existingDuty.shift) || targetShift,
-                        departureTime: (existingDuty && existingDuty.departureTime) || depTimeClean,
+                        shift: targetShift,
+                        departureTime: depTimeClean,
                         routeCode: routeCode,
                         busShortName: routeCode,
-                        scheduleId: (existingDuty && existingDuty.scheduleId) || (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
-                        isCommitted: isCommitted,
+                        scheduleId: (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
+                        isCommitted: false,
                         isComplexRoute: isComplexRoute,
-                        allocType: isCommitted ? "Committed Duty Allocation" : role,
+                        allocType: role,
                         condition: feas.condition || "Good",
                         driver: feas.driver || "Assigned",
-                        reason: isCommitted
-                            ? `Bus ${key} (Category ${busCat}) is officially allocated to Route ${routeCode} (${(existingDuty && existingDuty.shift) || targetShift}) at ${(existingDuty && existingDuty.departureTime) || depTimeClean}. Battery SoC: ${liveSoc}%, ${fullDutyKm} km Full Duty Range.`
-                            : `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
+                        reason: `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
                     });
                 }
             }
-
-            // 0. Buses officially allocated to this route (via AD portal or Recommending portal)
-            (allocatedDuties || []).forEach(d => {
-                const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
-                const curRoute = normalizeRoute(routeCode);
-                if (dRoute && curRoute && dRoute === curRoute) {
-                    const bm = String(d.bm || d.bmNumber || d.uniqueId || "").toUpperCase().trim();
-                    if (bm) {
-                        const dTime = (d.departureTime || '').substring(0, 5);
-                        const role = (dTime === depShort)
-                            ? `🔒 Currently Allocated to ${routeCode} (${d.shift || targetShift})`
-                            : `🔒 Allocated to ${routeCode} @ ${d.departureTime} (${d.shift || targetShift})`;
-                        addCandidate(bm, role, true);
-                    }
-                }
-            });
 
             // 1. Primary & swap bus for this departure schedule
             if (matchedSched) {
@@ -3634,7 +3586,6 @@ let busCategoriesMap = new Map();
 
             listEl.innerHTML = availableBuses.map((bus) => {
                 const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
-                const isCommitted = !!bus.isCommitted;
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
 
                 return `
@@ -3651,7 +3602,6 @@ let busCategoriesMap = new Map();
                                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
                                     </svg>
                                 </button>
-                                ${isCommitted ? '<span style="font-size:0.68rem;background:#dcfce7;color:#15803d;padding:2px 6px;border-radius:4px;font-weight:700;">🔒 Currently Allocated</span>' : ''}
                             </div>
                             <div class="avail-bus-sub">
                                 <span>${escapeHtml(bus.role || 'Designated Bus')}</span>
