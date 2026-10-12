@@ -3165,7 +3165,7 @@ let busCategoriesMap = new Map();
                     };
                 }
 
-                if (isModerate && page4Category === "C") {
+                if (isModerate && page4Category !== "B") {
                     return {
                         feasible: false,
                         bm: key,
@@ -3174,12 +3174,22 @@ let busCategoriesMap = new Map();
                         actualRangeKm: busRangeKm,
                         busCategory: page4Category,
                         reqSoc: constantMinReqSoc,
-                        reason: `Moderate route (${curRoute}) as given in dataset requires Category B or A bus. Bus ${key} is Category C (<100 km range).`
+                        reason: `Moderate route (${curRoute}) in normal time strictly requires Category B bus (100–120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
                     };
                 }
 
-                // If isStandard (Standard route in dataset):
-                // Categories A, B, and C are all allowed! Category C is NOT rejected.
+                if (isStandard && page4Category !== "C") {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        liveSoc,
+                        fullDutyKm: usableCoverableKm,
+                        actualRangeKm: busRangeKm,
+                        busCategory: page4Category,
+                        reqSoc: constantMinReqSoc,
+                        reason: `Simple route (${curRoute}) in normal time strictly requires Category C bus (<100 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                    };
+                }
             }
 
             return {
@@ -3538,8 +3548,22 @@ let busCategoriesMap = new Map();
                 }
             });
 
-            // Only buses designated to this specific route are shown as available for departure on this route
-            // Depot reserve fleet is reserved for auto-allocation fallback when route-designated buses have insufficient battery
+            // 4. Depot reserve fleet search to guarantee eligible candidate buses for the required tier
+            if (candidates.length < 2) {
+                const allFleetKeys = Object.keys(STATIC_BUS_CATEGORIES);
+                let priorityKeys = [];
+                if (isPeakTime || isComplexRoute) {
+                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "A");
+                } else if (complexity === "moderate") {
+                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "B");
+                } else {
+                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "C");
+                }
+                for (const bm of priorityKeys) {
+                    if (candidates.length >= 4) break;
+                    addCandidate(bm, `Depot Reserve Fleet Bus`);
+                }
+            }
 
             // Sort: Committed / Allocated first, then category hierarchy, then primary, then smallest surplus
             const timeCatInfo = getTimeCategory(depShort);
@@ -5079,9 +5103,9 @@ let busCategoriesMap = new Map();
             } else if (isComplex) {
                 categoryReason = `Route ${routeCode} is classified as a Complex Route in the dataset, strictly requiring Category A buses (>120 km range). Bus ${busBm} satisfies this with a ${actualRangeKm} km full duty rating.`;
             } else if (isModerate) {
-                categoryReason = `Route ${routeCode} is classified as a Moderate Route in the dataset, permitting Category B or A buses in off-peak. Bus ${busBm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+                categoryReason = `Route ${routeCode} is classified as a Moderate Route in the dataset, requiring Category B buses in off-peak/normal time. Bus ${busBm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             } else {
-                categoryReason = `Route ${routeCode} is classified as a Standard Route in the dataset, permitting Category A, B, or C buses in off-peak. Bus ${busBm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+                categoryReason = `Route ${routeCode} is classified as a Simple/Standard Route in the dataset, requiring Category C buses in off-peak/normal time. Bus ${busBm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             }
 
             const energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
@@ -5701,8 +5725,8 @@ let busCategoriesMap = new Map();
                     totalDistanceRuleEl.textContent = `${routeDistance.toFixed(2)} km`;
                 }
                 if (busCatRule) {
-                    busCatRule.textContent = isComplexRoute ? "Category A (Required for Complex Route)" : (isPeakTimeHours ? "Category A (Required for Peak Hours)" : (complexity === "moderate" ? "Category A / B (Moderate Route)" : "Category A / B / C (Standard Route)"));
-                    busCatRule.style.color = (isComplexRoute || isPeakTimeHours) ? "#16a34a" : "#2563eb";
+                    busCatRule.textContent = isComplexRoute ? "Category A (Required for Complex Route)" : (isPeakTimeHours ? "Category A (Required for Peak Hours)" : (complexity === "moderate" ? "Category B (Moderate Route - Normal Time)" : "Category C (Simple Route - Normal Time)"));
+                    busCatRule.style.color = (isComplexRoute || isPeakTimeHours) ? "#16a34a" : (complexity === "moderate" ? "#2563eb" : "#d97706");
                 }
                 if (matrixStatusRule) {
                     matrixStatusRule.textContent = (isComplexRoute || isPeakTimeHours) ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
