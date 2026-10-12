@@ -18443,5 +18443,18 @@
       "reason": "• Vehicle & Route: Bus BM279 (Category A) assigned to Route 356Z for 13:45 departure (Shift B).\n• Energy & Battery Feasibility: Current battery SoC of 94% satisfies the Single Charge Operation threshold (63% minimum required) with a reserve margin of +31%, providing 99 km usable range for this 28.7 km scheduled trip without mid-route recharging.\n• Category & Dispatch Rule: Departure at 13:45 falls in Peak (10:00–16:00 & 20:00–23:00), strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus BM279 fulfills this with Category A (124.7 km full duty range).\n• Dispatch Selection: Candidate Match: Bus BM279 is the primary ready-to-dispatch candidate for this timetable departure with driver assigned and maintenance inspection cleared.",
       "allocatedAt": "09:37 pm"
     }
+  ],
+  "_lockedBuses": [
+    {
+      "bm": "BM279",
+      "reg": "KA51AH6244",
+      "page": "charging",
+      "reason": "Under Fast Charging (target 100% floor)",
+      "startTime": "09:40:44 pm, 12 Oct 2026",
+      "time": "09:40:44 pm",
+      "startTimestamp": 1791821444566,
+      "startSoc": "94",
+      "chargerBay": "Charging Bay"
+    }
   ]
 }
