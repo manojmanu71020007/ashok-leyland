@@ -6435,10 +6435,10 @@
   "BM279": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 94,
+    "soc": 96,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-11T02:29:13.472Z",
+    "updatedAt": "2026-10-12T16:11:05.199Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -6456,14 +6456,23 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 13,
-    "socAfter": 94,
-    "fullDutyDistanceKm": 119,
-    "lastChargedTime": "07:59:10 am",
+    "socBefore": 62,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "09:41:01 pm",
+    "socPerKm": null,
+    "rangeKmAtFullSoc": null,
+    "rangeCategory": null,
     "history": [
       {
         "timestamp": "2026-10-11T02:29:13.472Z",
         "soc": 94,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-12T16:11:05.199Z",
+        "soc": 96,
         "condition": "Good",
         "status": "On Time"
       }
@@ -8659,74 +8668,41 @@
     "soc": 88,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-12T13:53:13.031Z",
+    "updatedAt": "2026-10-12T16:11:05.199Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "15:10",
+        "departure": "15:15"
       },
       "On Time": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "15:00",
+        "departure": "15:05"
       },
       "Ahead": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "14:50",
+        "departure": "14:55"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 0,
-    "socAfter": 80,
-    "fullDutyDistanceKm": 99,
-    "lastChargedTime": "09:46:27 pm",
+    "socBefore": 62,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "09:41:01 pm",
+    "socPerKm": null,
+    "rangeKmAtFullSoc": null,
+    "rangeCategory": null,
     "history": [
       {
-        "timestamp": "2026-10-02T05:21:03.785Z",
-        "soc": 100,
+        "timestamp": "2026-10-11T02:29:13.472Z",
+        "soc": 94,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T04:45:42.167Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "Blocked"
-      },
-      {
-        "timestamp": "2026-10-03T12:29:27.893Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:45:14.381Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T02:57:35.092Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:18:14.724Z",
-        "soc": 43,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-09T16:16:29.567Z",
-        "soc": 80,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-12T13:53:13.031Z",
-        "soc": 80,
+        "timestamp": "2026-10-12T16:11:05.199Z",
+        "soc": 96,
         "condition": "Good",
         "status": "On Time"
       }
@@ -11672,16 +11648,16 @@
       "assignedRouteDisplay": "Route BM279 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 94,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -15314,16 +15290,16 @@
       "assignedRouteDisplay": "Route BM279 - 328H (187.2 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 94,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -17957,16 +17933,16 @@
       "bmNumber": "BM279",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 94,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 187.17,
       "blocked": true
@@ -18444,17 +18420,5 @@
       "allocatedAt": "09:37 pm"
     }
   ],
-  "_lockedBuses": [
-    {
-      "bm": "BM279",
-      "reg": "KA51AH6244",
-      "page": "charging",
-      "reason": "Under Fast Charging (target 100% floor)",
-      "startTime": "09:40:44 pm, 12 Oct 2026",
-      "time": "09:40:44 pm",
-      "startTimestamp": 1791821444566,
-      "startSoc": "94",
-      "chargerBay": "Charging Bay"
-    }
-  ]
+  "_lockedBuses": []
 }
