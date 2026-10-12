@@ -18409,5 +18409,39 @@
       "blocked": true
     }
   },
-  "_swapLog": []
+  "_swapLog": [],
+  "_allocatedDuties": [
+    {
+      "id": "duty_BM279_356Z_1345_1791821276800",
+      "bm": "BM279",
+      "bmNumber": "BM279",
+      "uniqueId": "BM279",
+      "vehicleId": "BM279",
+      "busId": "BM279",
+      "regNo": "KA51AH6244",
+      "routeId": "356Z",
+      "corridorRouteId": "356Z",
+      "busNumber": "356Z",
+      "busShortName": "356Z",
+      "routeShortName": "356Z",
+      "routeCode": "356Z",
+      "code": "356Z",
+      "busCategory": "A",
+      "isComplexRoute": true,
+      "scheduleId": "356Z/7",
+      "routeName": "Chandapura ⇔ Anekal (356Z) (Route 356Z) — 28.7 km",
+      "origin": "Chandapura",
+      "destination": "Anekal (356Z)",
+      "departureTime": "13:45",
+      "isManualOverride": false,
+      "shift": "Shift B",
+      "soc": 94,
+      "fullDutyKm": 99,
+      "routeDist": 28.7,
+      "tripCount": 8,
+      "allocType": "Committed Duty Allocation",
+      "reason": "• Vehicle & Route: Bus BM279 (Category A) assigned to Route 356Z for 13:45 departure (Shift B).\n• Energy & Battery Feasibility: Current battery SoC of 94% satisfies the Single Charge Operation threshold (63% minimum required) with a reserve margin of +31%, providing 99 km usable range for this 28.7 km scheduled trip without mid-route recharging.\n• Category & Dispatch Rule: Departure at 13:45 falls in Peak (10:00–16:00 & 20:00–23:00), strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus BM279 fulfills this with Category A (124.7 km full duty range).\n• Dispatch Selection: Candidate Match: Bus BM279 is the primary ready-to-dispatch candidate for this timetable departure with driver assigned and maintenance inspection cleared.",
+      "allocatedAt": "09:37 pm"
+    }
+  ]
 }
