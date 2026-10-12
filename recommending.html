@@ -1725,7 +1725,7 @@
                 <!-- ── Allocated Bus Card (System allocates bus based on Route, Shift, Time & Battery State) ── -->
                 <div id="auto-allocated-card" class="auto-allocated-card" style="display:none;">
                     <div class="auto-alloc-header">
-                        <span class="auto-alloc-badge">⚡ Allocated Bus</span>
+                        <span class="auto-alloc-badge">💡 Recommended Candidate Bus</span>
                         <span id="alloc-shift-badge" style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: Night Halt</span>
                         <span id="alloc-type-badge" class="alloc-type-badge">Primary Scheduled Bus</span>
                     </div>
@@ -3684,13 +3684,6 @@ let busCategoriesMap = new Map();
                                 <span class="avail-bus-bm">🚌 ${escapeHtml(bus.bm)}</span>
                                 ${bus.regNo ? `<span class="avail-bus-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
                                 <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
-                                <button type="button" class="bus-info-circle-btn" onclick="event.stopPropagation(); openBusTasksModal('${escapeHtml(bus.routeCode || routeCode)}', '${escapeHtml(bus.bm)}', '${escapeHtml(bus.scheduleId || '')}', '${escapeHtml(bus.routeCode || routeCode)}');" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
-                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                    </svg>
-                                </button>
                             </div>
                             <div class="avail-bus-sub">
                                 <span>${escapeHtml(bus.role || 'Designated Bus')}</span>
@@ -5735,7 +5728,7 @@ let busCategoriesMap = new Map();
             const grossDutyDist = Math.round(liveSoc * 1.42);
 
             if (titleEl) {
-                titleEl.innerHTML = `Allocation result of ${escapeHtml(assignedVehicle)} (${escapeHtml(busShortName)}) <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(busShortName)}', '${escapeHtml(assignedVehicle)}', '', '${escapeHtml(busShortName)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(assignedVehicle)}" aria-label="Details for Bus ${escapeHtml(assignedVehicle)}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
+                titleEl.innerHTML = `Allocation result of ${escapeHtml(assignedVehicle)} (${escapeHtml(busShortName)})`;
             }
             if (socKpi) socKpi.style.opacity = "1";
             if (rangeKpi) rangeKpi.style.opacity = "1";
@@ -5760,7 +5753,7 @@ let busCategoriesMap = new Map();
             }
 
             if (busCatRule) {
-                busCatRule.innerHTML = `Category ${escapeHtml(busCategory)} (${rangeValue} km) <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(busShortName)}', '${escapeHtml(assignedVehicle)}', '', '${escapeHtml(busShortName)}')" title="Click to view details for Bus ${escapeHtml(assignedVehicle)}" aria-label="Details for Bus ${escapeHtml(assignedVehicle)}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg></button>`;
+                busCatRule.textContent = `Category ${busCategory} (${rangeValue} km)`;
                 busCatRule.style.color = busCategory === "A" ? "#16a34a" : (busCategory === "B" ? "#2563eb" : "#d97706");
             }
 
