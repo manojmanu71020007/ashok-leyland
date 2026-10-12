@@ -2137,6 +2137,13 @@
 
         function getBusActualRangeKm(bm) {
             const key = String(bm || "").toUpperCase().trim();
+            const bs = (typeof busStates !== 'undefined' && busStates) ? (busStates[key] || {}) : {};
+            if (bs && Number.isFinite(Number(bs.rangeKmAtFullSoc)) && Number(bs.rangeKmAtFullSoc) > 0) {
+                return Number(bs.rangeKmAtFullSoc);
+            }
+            if (bs && Number.isFinite(Number(bs.socPerKm)) && Number(bs.socPerKm) > 0) {
+                return Math.round(90 / Number(bs.socPerKm));
+            }
             if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
             const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
             if (cat === "A") return 130.0;

@@ -1097,9 +1097,21 @@
             return FALLBACK_REG_MAP[key] || "";
         }
 
-        function calculateFullDutyDistance(soc) {
+        function calculateFullDutyDistance(soc, bm) {
             if (!soc || soc <= 0) return 0;
-            return Math.round(soc * 1.42);
+            const usableSoc = Math.max(0, Number(soc) - 10);
+            if (bm) {
+                const key = String(bm).toUpperCase().trim();
+                const bs = (typeof busStates !== 'undefined' && busStates) ? (busStates[key] || {}) : {};
+                const spk = bs && Number(bs.socPerKm);
+                if (Number.isFinite(spk) && spk > 0) {
+                    return Math.round(usableSoc / spk);
+                }
+                if (typeof STATIC_BUS_RANGES !== 'undefined' && STATIC_BUS_RANGES[key]) {
+                    return Math.round(usableSoc * (STATIC_BUS_RANGES[key] / 90.0));
+                }
+            }
+            return Math.round(usableSoc * 1.42);
         }
 
         function getTimeCategory(timeStr) {
@@ -1211,6 +1223,13 @@
 
         function getBusActualRangeKm(bm) {
             const key = String(bm || "").toUpperCase().trim();
+            const bs = (typeof busStates !== 'undefined' && busStates) ? (busStates[key] || {}) : {};
+            if (bs && Number.isFinite(Number(bs.rangeKmAtFullSoc)) && Number(bs.rangeKmAtFullSoc) > 0) {
+                return Number(bs.rangeKmAtFullSoc);
+            }
+            if (bs && Number.isFinite(Number(bs.socPerKm)) && Number(bs.socPerKm) > 0) {
+                return Math.round(90 / Number(bs.socPerKm));
+            }
             if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
             const cat = getBusCategory(key);
             if (cat === "A") return 130.0;
@@ -1906,7 +1925,7 @@
                     bm: existingDuty.bm,
                     regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
                     liveSoc: liveSoc,
-                    fullDutyKm: calculateFullDutyDistance(liveSoc),
+                    fullDutyKm: calculateFullDutyDistance(liveSoc, existingDuty.bm),
                     busCategory: getBusCategory(existingDuty.bm, liveSoc),
                     reqSoc: reqSoc,
                     surplus: Math.round(liveSoc - reqSoc),
