@@ -1171,7 +1171,7 @@
     "soc": 80,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-09T16:16:29.567Z",
+    "updatedAt": "2026-10-12T13:53:13.031Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:05",
@@ -1232,6 +1232,12 @@
       },
       {
         "timestamp": "2026-10-09T16:16:29.567Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-12T13:53:13.031Z",
         "soc": 80,
         "condition": "Good",
         "status": "On Time"
@@ -8545,32 +8551,74 @@
     "soc": 88,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-11T02:29:13.472Z",
+    "updatedAt": "2026-10-12T13:53:13.031Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "13:05",
+        "departure": "13:00"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "13:05",
+        "departure": "13:00"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 13,
-    "socAfter": 94,
-    "fullDutyDistanceKm": 119,
-    "lastChargedTime": "07:59:10 am",
+    "socBefore": 0,
+    "socAfter": 80,
+    "fullDutyDistanceKm": 99,
+    "lastChargedTime": "09:46:27 pm",
     "history": [
       {
-        "timestamp": "2026-10-11T02:29:13.472Z",
-        "soc": 94,
+        "timestamp": "2026-10-02T05:21:03.785Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:27.893Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:45:14.381Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T02:57:35.092Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T13:18:14.724Z",
+        "soc": 43,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-09T16:16:29.567Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-12T13:53:13.031Z",
+        "soc": 80,
         "condition": "Good",
         "status": "On Time"
       }
@@ -9410,7 +9458,7 @@
       "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
@@ -9418,8 +9466,8 @@
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 104.48,
+      "fullDutyDistanceKm": 104.48,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -12968,7 +13016,7 @@
       "assignedRouteDisplay": "Route BM082 - KBS3F (129.7 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
@@ -12976,8 +13024,8 @@
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 104.48,
+      "fullDutyDistanceKm": 104.48,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16370,7 +16418,7 @@
       "bmNumber": "BM082",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
@@ -16378,8 +16426,8 @@
       "soc": 80,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 104.48,
+      "fullDutyDistanceKm": 104.48,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 129.72,
       "blocked": true
