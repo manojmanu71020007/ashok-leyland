@@ -816,33 +816,20 @@ const PYTHON_RANGE_TTL_MS = 60_000; // 60 s — discard stale Python estimates
 
 /**
  * Return the estimated range in km for a bus.
- * Priority order:
- *   1. Python blended estimate (planned historical + live regression) — most accurate
- *   2. Per-bus discharge rate (socPerKm) stored in bus_state.json — per-bus efficient
- *   3. Flat fallback: 1.42 km/% — generic, same for all buses
+ * Uses the Python blended estimate (planned+live) when available and fresh,
+ * otherwise falls back to the flat 1.42 km/% formula.
  *
- * @param {number} soc        - current SoC %
+ * @param {number} soc      - current SoC %
  * @param {string} [uniqueId] - BM number key (e.g. BM238) for the Python cache lookup
  */
 function estimatedRangeKm(soc, uniqueId) {
     if (uniqueId) {
-        // 1. Python blended estimate (most accurate — historical fit + live regression)
         const cached = _pythonRangeCache.get(uniqueId);
         if (cached && (Date.now() - cached.ts) < PYTHON_RANGE_TTL_MS) {
             return cached.rangeKm;
         }
-        // 2. Per-bus discharge rate from bus_state.json
-        try {
-            const state = loadBusState();
-            const busEntry = state[uniqueId] || {};
-            const socPerKm = Number(busEntry.socPerKm);
-            if (Number.isFinite(socPerKm) && socPerKm > 0) {
-                const usable = Math.max(0, soc - SOC_BUFFER_PCT);
-                return Math.round(usable / socPerKm);
-            }
-        } catch (_) { /* ignore — bus_state.json unavailable */ }
     }
-    // 3. Flat fallback: generic multiplier
+    // Fallback: flat formula
     const usable = Math.max(0, soc - SOC_BUFFER_PCT);
     return Math.round(usable * RANGE_KM_PER_SOC_PCT);
 }
@@ -864,27 +851,10 @@ function fetchAndCachePythonRange(uniqueId, soc) {
                     category: data.range_category || "C",
                     ts: Date.now()
                 });
-                // Persist soc_per_km into bus_state.json so it is available as an offline fallback
-                // when the Python sidecar is not running.
-                // socPerKm = usable SoC / blended range (inverse of km per %)
-                try {
-                    const usable = Math.max(1, soc - SOC_BUFFER_PCT);
-                    const derivedSocPerKm = parseFloat((usable / data.blended_range_km).toFixed(4));
-                    if (Number.isFinite(derivedSocPerKm) && derivedSocPerKm > 0) {
-                        const currentState = loadBusState();
-                        if (currentState[uniqueId] && typeof currentState[uniqueId] === "object") {
-                            currentState[uniqueId].socPerKm = derivedSocPerKm;
-                            currentState[uniqueId].rangeKmAtFullSoc = data.blended_range_km;
-                            currentState[uniqueId].rangeCategory = data.range_category || "C";
-                            saveBusState(currentState);
-                        }
-                    }
-                } catch (_) { /* ignore — state file may not be writable */ }
             }
         })
         .catch(() => {}); // silent — Python sidecar may not be running locally
 }
-
 
 
 /**
@@ -1359,14 +1329,6 @@ function normalizeBusStateEntry(entry, existing = {}) {
         socAfter: Number.isFinite(Number(entry?.socAfter)) ? Number(entry.socAfter) : (existing?.socAfter ?? soc),
         fullDutyDistanceKm: Math.round(Math.max(0, soc - 10) * 1.42),
         lastChargedTime: entry?.lastChargedTime || existing?.lastChargedTime || null,
-        // Discharge-rate-based range fields — preserved from Python sidecar or manual updates
-        socPerKm: Number.isFinite(Number(entry?.socPerKm)) && Number(entry.socPerKm) > 0
-            ? Number(entry.socPerKm)
-            : (Number.isFinite(Number(existing?.socPerKm)) && Number(existing.socPerKm) > 0 ? Number(existing.socPerKm) : null),
-        rangeKmAtFullSoc: Number.isFinite(Number(entry?.rangeKmAtFullSoc)) && Number(entry.rangeKmAtFullSoc) > 0
-            ? Number(entry.rangeKmAtFullSoc)
-            : (Number.isFinite(Number(existing?.rangeKmAtFullSoc)) ? Number(existing.rangeKmAtFullSoc) : null),
-        rangeCategory: entry?.rangeCategory || existing?.rangeCategory || null,
         history: updatedHistory
     };
 }
@@ -2370,9 +2332,6 @@ const server = http.createServer(async (req, res) => {
                             origin: assignedRouteObj?.origin || "",
                             destination: assignedRouteObj?.destination || "",
                             blocked: isBlocked,
-                            socPerKm: updatedEntry.socPerKm || null,
-                            rangeKmAtFullSoc: updatedEntry.rangeKmAtFullSoc || null,
-                            rangeCategory: updatedEntry.rangeCategory || null,
                             state: updatedEntry
                         });
                     } catch (error) {

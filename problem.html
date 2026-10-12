@@ -2137,13 +2137,6 @@
 
         function getBusActualRangeKm(bm) {
             const key = String(bm || "").toUpperCase().trim();
-            const bs = (typeof busStates !== 'undefined' && busStates) ? (busStates[key] || {}) : {};
-            if (bs && Number.isFinite(Number(bs.rangeKmAtFullSoc)) && Number(bs.rangeKmAtFullSoc) > 0) {
-                return Number(bs.rangeKmAtFullSoc);
-            }
-            if (bs && Number.isFinite(Number(bs.socPerKm)) && Number(bs.socPerKm) > 0) {
-                return Math.round(90 / Number(bs.socPerKm));
-            }
             if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
             const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
             if (cat === "A") return 130.0;
@@ -2688,27 +2681,10 @@ let busCategoriesMap = new Map();
             return 0;
         }
 
-        function calculateFullDutyDistance(soc, bm) {
+        function calculateFullDutyDistance(soc) {
             // Single Charge Operation (Form 4 Transit Standard)
-            // Priority:
-            //   1. Per-bus discharge rate (socPerKm) — derived from historical Python range data
-            //   2. Static dataset range (STATIC_BUS_RANGES) — per-bus from dataset
-            //   3. Flat formula: 1.42 km/% — generic fallback
+            // Usable energy above 10% depot safety reserve floor:
             const usableSoc = Math.max(0, Number(soc) - 10);
-            if (bm) {
-                const key = String(bm).toUpperCase().trim();
-                // 1. Per-bus discharge rate from live busStates (populated by Python sidecar)
-                const bs = busStates && (busStates[key] || {});
-                const spk = bs && Number(bs.socPerKm);
-                if (Number.isFinite(spk) && spk > 0) {
-                    return Math.round(usableSoc / spk);
-                }
-                // 2. Static dataset per-bus range
-                if (STATIC_BUS_RANGES[key]) {
-                    return Math.round(usableSoc * (STATIC_BUS_RANGES[key] / 90.0));
-                }
-            }
-            // 3. Flat fallback
             return Math.round(usableSoc * 1.42);
         }
 
@@ -2979,7 +2955,7 @@ let busCategoriesMap = new Map();
                 if (r && r.busCategory) return String(r.busCategory).toUpperCase();
             }
             const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
-            const range = calculateFullDutyDistance(soc, key);
+            const range = calculateFullDutyDistance(soc);
             return range > 120 ? "A" : (range >= 106 ? "B" : "C");
         }
 
@@ -3825,29 +3801,6 @@ let busCategoriesMap = new Map();
             const badgeColor = isCommitted ? "#15803d" : "#0369a1";
             const badgeBorder = isCommitted ? "#86efac" : "#bae6fd";
 
-            // ── Discharge-rate range confidence ───────────────────────────────
-            // If busStates has a socPerKm for this bus (from Python sidecar or persisted data),
-            // compute a per-bus estimated full range and confidence level.
-            const bmKey = String(alloc.bm || "").toUpperCase().trim();
-            const busStateEntry = busStates && (busStates[bmKey] || {});
-            const storedSocPerKm = busStateEntry && Number(busStateEntry.socPerKm);
-            const hasDischargeRate = Number.isFinite(storedSocPerKm) && storedSocPerKm > 0;
-            const drEstimatedRange = hasDischargeRate
-                ? Math.round(Math.max(0, (alloc.liveSoc || 0) - 10) / storedSocPerKm)
-                : null;
-            const drConfidence = hasDischargeRate
-                ? (busStateEntry.rangeCategory === "A" ? "High" : busStateEntry.rangeCategory === "B" ? "Medium" : "Low")
-                : "Estimated";
-            const drSource = hasDischargeRate ? "Discharge Rate Model" : "Static Dataset";
-            const drColor = hasDischargeRate
-                ? (drConfidence === "High" ? "#15803d" : drConfidence === "Medium" ? "#2563eb" : "#d97706")
-                : "#64748b";
-            const rangeDisplayHtml = hasDischargeRate
-                ? `<strong class="metric-val" style="color:${drColor};font-size:1.05rem;">~${drEstimatedRange} km</strong>
-                   <span class="metric-sub" style="color:${drColor};">Rate: ${storedSocPerKm.toFixed(3)} %SoC/km · <em>${drConfidence} Confidence</em></span>`
-                : `<strong class="metric-val" style="color:#64748b;">~${calculateFullDutyDistance(alloc.liveSoc || 0, bmKey)} km</strong>
-                   <span class="metric-sub" style="color:#94a3b8;">${drSource} (no per-bus rate yet)</span>`;
-
             card.innerHTML = `
                 <div class="auto-alloc-header">
                     <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
@@ -3904,10 +3857,6 @@ let busCategoriesMap = new Map();
                         <div class="alloc-metric-item">
                             <span class="metric-label">Bus Tier</span>
                             <strong class="metric-val" style="color:${busCat === 'A' ? '#16a34a' : (busCat === 'B' ? '#2563eb' : '#d97706')};">Category ${escapeHtml(busCat)}</strong>
-                        </div>
-                        <div class="alloc-metric-item" style="background:#f8fafc;border-radius:8px;padding:6px 10px;border:1px solid #e2e8f0;">
-                            <span class="metric-label" style="color:#475569;font-weight:700;">📊 Range Confidence</span>
-                            ${rangeDisplayHtml}
                         </div>
                     </div>
                     <div id="alloc-reason-text" class="auto-alloc-reason">
