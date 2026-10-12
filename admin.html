@@ -2519,6 +2519,7 @@
 };
 let busCategoriesMap = new Map();
         let currentlyAllocatedBus = null;
+        let userSelectedBusForDeparture = false;
         let currentScheduleMatch = null;
         let recommendClicked = false;
 
@@ -3744,6 +3745,7 @@ let busCategoriesMap = new Map();
 
         function selectBusForDeparture(bus) {
             if (!bus) return;
+            userSelectedBusForDeparture = true;
             currentlyAllocatedBus = bus;
 
             // Render and display the candidate bus card with full details
@@ -4041,10 +4043,12 @@ let busCategoriesMap = new Map();
             if (routeObj) {
                 const allocResult = allocateBus(routeObj, departureTime);
                 currentScheduleMatch = allocResult.matchedSched;
-                if (!currentlyAllocatedBus || (currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(routeObj.code))) {
-                    currentlyAllocatedBus = allocResult.allocated;
-                }
-                if (currentlyAllocatedBus) {
+                if (!userSelectedBusForDeparture || !currentlyAllocatedBus || (currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(routeObj.code))) {
+                    currentlyAllocatedBus = null;
+                    userSelectedBusForDeparture = false;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
+                } else {
                     renderAllocatedCard({
                         allocated: currentlyAllocatedBus,
                         matchedSched: currentScheduleMatch,
@@ -4052,8 +4056,6 @@ let busCategoriesMap = new Map();
                         departureTime: departureTime,
                         reqSoc: currentlyAllocatedBus.reqSoc
                     });
-                } else {
-                    renderAllocatedCard(allocResult);
                 }
             }
 
@@ -5651,9 +5653,10 @@ let busCategoriesMap = new Map();
                 currentScheduleMatch = allocResult.matchedSched;
             }
 
-            // Auto-assign bus when switching route or if none selected yet
-            if (!currentlyAllocatedBus || (selectedRouteObj && currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(selectedRouteObj.code))) {
-                currentlyAllocatedBus = allocResult ? allocResult.allocated : null;
+            // Do NOT auto-assign bus. Only retain bus if user explicitly selected it from Buses Available for Departure for this route.
+            if (!userSelectedBusForDeparture || !currentlyAllocatedBus || (selectedRouteObj && currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(selectedRouteObj.code))) {
+                currentlyAllocatedBus = null;
+                userSelectedBusForDeparture = false;
             }
 
             // Determine schedule complexity & route category:
@@ -5707,9 +5710,11 @@ let busCategoriesMap = new Map();
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
             const isPeakTimeHours = (timeCategoryKey === "PEAK" || timeCategoryKey === "EXTREME_PEAK");
 
-            // When no bus is eligible for this route/departure
-            if (!currentlyAllocatedBus) {
-                renderAllocatedCard(allocResult);
+            // When no bus is selected yet from Buses Available for Departure:
+            // Do NOT show Recommended Candidate Bus card until user selects one.
+            if (!userSelectedBusForDeparture || !currentlyAllocatedBus) {
+                const card = document.getElementById("auto-allocated-card");
+                if (card) card.style.display = "none";
                 if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
                 if (socResult) socResult.textContent = "—";
                 if (rangeResult) rangeResult.textContent = "—";
@@ -5898,6 +5903,9 @@ let busCategoriesMap = new Map();
 
                 routeSelect.addEventListener("change", async () => {
                     currentlyAllocatedBus = null;
+                    userSelectedBusForDeparture = false;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
@@ -5910,6 +5918,9 @@ let busCategoriesMap = new Map();
                 });
                 routeSearch.addEventListener("input", async () => {
                     currentlyAllocatedBus = null;
+                    userSelectedBusForDeparture = false;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
@@ -5923,6 +5934,7 @@ let busCategoriesMap = new Map();
                 if (scheduledTimeSelect) {
                     scheduledTimeSelect.addEventListener("change", async () => {
                         currentlyAllocatedBus = null;
+                        userSelectedBusForDeparture = false;
                         const card = document.getElementById("auto-allocated-card");
                         if (card) card.style.display = "none";
                         const depInput = document.getElementById("departure");
@@ -5942,6 +5954,7 @@ let busCategoriesMap = new Map();
                 if (depInput) {
                     const handleDeparture = async () => {
                         currentlyAllocatedBus = null;
+                        userSelectedBusForDeparture = false;
                         const card = document.getElementById("auto-allocated-card");
                         if (card) card.style.display = "none";
                         const val = depInput.value;
