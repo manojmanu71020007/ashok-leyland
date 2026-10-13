@@ -2800,7 +2800,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === "/index.html") {
-        sendFile(res, path.join(BASE_DIR, "index.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
         return;
     }
 
@@ -2819,18 +2819,8 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/style.css") {
-        sendFile(res, path.join(BASE_DIR, "style.css"), "text/css");
-        return;
-    }
-
     if (pathname === "/login.css") {
         sendFile(res, path.join(BASE_DIR, "login.css"), "text/css");
-        return;
-    }
-
-    if (pathname === "/script.js") {
-        sendFile(res, path.join(BASE_DIR, "script.js"), "application/javascript");
         return;
     }
 
@@ -2870,7 +2860,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (pathname === "/public/index.html" || pathname === "/public/") {
-        sendStaticFile(res, "public/index.html");
+        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
         return;
     }
 
