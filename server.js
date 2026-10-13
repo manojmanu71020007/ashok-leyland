@@ -2804,17 +2804,12 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/problem.html") {
-        sendFile(res, path.join(BASE_DIR, "problem.html"), "text/html");
-        return;
-    }
-
     if (pathname === "/schedulling" || pathname === "/schedulling.html" || pathname === "/scheduling" || pathname === "/scheduling.html" || pathname === "/ad" || pathname === "/ad.html") {
-        sendFile(res, path.join(BASE_DIR, "schedulling.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "scheduling.html"), "text/html");
         return;
     }
 
-    if (pathname === "/admin" || pathname === "/admin.html" || pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
+    if (pathname === "/admin" || pathname === "/admin.html" || pathname === "/problem" || pathname === "/problem.html" || pathname === "/recommending" || pathname === "/recommending.html" || pathname === "/smart-bus-scheduling" || pathname === "/smart-bus-scheduling.html") {
         sendFile(res, path.join(BASE_DIR, "admin.html"), "text/html");
         return;
     }
