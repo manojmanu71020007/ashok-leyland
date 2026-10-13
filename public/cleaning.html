@@ -519,40 +519,40 @@
 
   <!-- Checklist warning comment for 7 seconds -->
   <div id="checklistWarningText" style="display:none; margin-top:10px; background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:11px 16px; color:#991b1b; font-weight:700; font-size:0.88rem; align-items:center; gap:8px;">
-    <span>⚠️ Please complete both Interior and Exterior cleaning checklists before unlocking &amp; submitting this bus!</span>
+    <span data-i18n="warn_complete_checklists">⚠️ Please complete both Interior and Exterior cleaning checklists before unlocking &amp; submitting this bus!</span>
   </div>
 
   <!-- Lock Banner for currently selected bus -->
-  <div class="lock-banner" id="lockBanner">
-    🔒 This bus is currently <strong style="margin:0 4px;">locked for cleaning</strong> — complete checklist to unlock and submit record.
+  <div class="lock-banner" id="lockBanner" data-i18n="banner_locked_for_cleaning">
+    🔒 This bus is currently locked for cleaning — complete checklist to unlock and submit record.
   </div>
 
   <!-- Ongoing Process Buttons -->
   <div class="ongoing-bar" id="ongoingBar" style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
     <button type="button" class="btn-ongoing btn-ongoing-clean" id="ongoingCleaningBtn" onclick="openOngoingModal('cleaning')">
-      🧹 Ongoing Cleaning <span class="ongoing-badge-pill" id="ongoingCleaningCount">0</span>
+      <span data-i18n="btn_ongoing_cleaning">🧹 Ongoing Cleaning</span> <span class="ongoing-badge-pill" id="ongoingCleaningCount">0</span>
     </button>
   </div>
 </div>
 
 <!-- ── Cleaning Checklist ── -->
 <div class="card">
-  <div class="card-title">✅ Cleaning Checklist</div>
+  <div class="card-title" data-i18n="title_cleaning_checklist">✅ Cleaning Checklist</div>
   <div class="checklist">
-    <div class="check-item"><input type="checkbox" id="c1" onchange="updateChecklistAndUnlockState()"><label for="c1">Interior Cleaning</label></div>
-    <div class="check-item"><input type="checkbox" id="c2" onchange="updateChecklistAndUnlockState()"><label for="c2">Exterior Cleaning</label></div>
+    <div class="check-item"><input type="checkbox" id="c1" onchange="updateChecklistAndUnlockState()"><label for="c1" data-i18n="label_interior_cleaning">Interior Cleaning</label></div>
+    <div class="check-item"><input type="checkbox" id="c2" onchange="updateChecklistAndUnlockState()"><label for="c2" data-i18n="label_exterior_cleaning">Exterior Cleaning</label></div>
   </div>
 
   <div style="margin-top: 16px;">
-    <label for="remarks" style="font-size:0.88rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;">Remarks (optional)</label>
-    <textarea id="remarks" placeholder="Any special observations or damage noted during cleaning…"></textarea>
+    <label for="remarks" style="font-size:0.88rem;font-weight:600;color:var(--muted);display:block;margin-bottom:6px;" data-i18n="label_remarks_optional">Remarks (optional)</label>
+    <textarea id="remarks" placeholder="Any special observations or damage noted during cleaning…" data-i18n-placeholder="placeholder_remarks_cleaning"></textarea>
   </div>
 </div>
 
 <!-- ── Bay Action & Completion ── -->
 <div class="card" id="actionCard" style="display:none; padding: 18px 24px;">
   <div style="display:flex; flex-direction:column; gap:10px;">
-    <button type="button" class="btn-unlock disabled" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record">
+    <button type="button" class="btn-unlock disabled" id="actionUnlockBtn" onclick="handleUnlockAndSubmit()" style="display:none; width:100%; font-size:1rem; padding:14px;" title="Please complete both Interior and Exterior cleaning checks to unlock and submit record" data-i18n="btn_unlock_bus_cleaning">
       🔓 Unlock &amp; Submit Cleaning Record
     </button>
   </div>
@@ -562,18 +562,18 @@
 <div class="card" id="logCard">
   <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
     <div style="display:flex;align-items:center;gap:10px;">
-      <span>📋 Recent Cleaning Records</span>
-      <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-weight:700;">Recent 5</span>
+      <span data-i18n="title_recent_cleaning_records">📋 Recent Cleaning Records</span>
+      <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-weight:700;" data-i18n="badge_recent_5">Recent 5</span>
     </div>
-    <button type="button" class="btn-history" id="historyBtn" onclick="openHistoryModal()">
+    <button type="button" class="btn-history" id="historyBtn" onclick="openHistoryModal()" data-i18n="btn_history">
       📜 History
     </button>
   </div>
-  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;">Displaying the 5 most recent bus cleaning records. Click any bus to view its full Verification Record, or click History for the complete log.</p>
+  <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;" data-i18n="sub_recent_cleaning_records">Displaying the 5 most recent bus cleaning records. Click any bus to view its full Verification Record, or click History for the complete log.</p>
   <ul class="log-list" id="logList"></ul>
   <div id="historyMoreLink" style="margin-top:14px; text-align:center; display:none;">
     <button type="button" onclick="openHistoryModal()" style="background:none;border:none;color:var(--accent-dark);font-weight:700;font-size:0.86rem;cursor:pointer;text-decoration:underline;">
-      📜 View Complete Cleaning Verification History (<span id="totalHistoryCount">0</span> records) ›
+      <span data-i18n="link_view_complete_cleaning_history">📜 View Complete Cleaning Verification History</span> (<span id="totalHistoryCount">0</span> <span data-i18n="text_records">records</span>) ›
     </button>
   </div>
 </div>
@@ -583,19 +583,19 @@
   <div class="detail-modal-box" style="max-width: 650px;">
     <div class="detail-modal-header">
       <div>
-        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;">Depot Archive</span>
-        <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;">📜 Cleaning Verification Record History</h2>
+        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;" data-i18n="modal_depot_archive">Depot Archive</span>
+        <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;" data-i18n="title_history_modal_cleaning">📜 Cleaning Verification Record History</h2>
       </div>
       <button type="button" class="btn" onclick="closeHistoryModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
     </div>
     <div style="padding: 12px 22px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; gap:10px; align-items:center;">
-      <input type="text" id="historySearchInput" placeholder="Filter history by BM number, registration, or date…" oninput="filterHistoryList()" style="flex:1; padding:9px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:0.88rem;" />
-      <span style="font-size:0.8rem; font-weight:700; color:var(--muted); white-space:nowrap;" id="historyModalCount">0 records</span>
+      <input type="text" id="historySearchInput" placeholder="Filter history by BM number, registration, or date…" data-i18n-placeholder="placeholder_filter_history" oninput="filterHistoryList()" style="flex:1; padding:9px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:0.88rem;" />
+      <span style="font-size:0.8rem; font-weight:700; color:var(--muted); white-space:nowrap;"><span id="historyModalCount">0</span> <span data-i18n="text_records">records</span></span>
     </div>
     <div class="detail-modal-body" id="historyModalBody" style="max-height: 440px; overflow-y: auto;"></div>
     <div class="detail-modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
-      <button type="button" class="btn" onclick="clearAllHistory()" style="background:#fee2e2; color:#991b1b; padding:8px 14px; font-size:0.82rem;">Clear History</button>
-      <button type="button" class="btn" onclick="closeHistoryModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;">Close</button>
+      <button type="button" class="btn" onclick="clearAllHistory()" style="background:#fee2e2; color:#991b1b; padding:8px 14px; font-size:0.82rem;" data-i18n="btn_clear_history">Clear History</button>
+      <button type="button" class="btn" onclick="closeHistoryModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;" data-i18n="btn_close">Close</button>
     </div>
   </div>
 </div>
@@ -605,14 +605,14 @@
   <div class="detail-modal-box">
     <div class="detail-modal-header">
       <div>
-        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;">Depot Verification Record</span>
+        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;" data-i18n="title_depot_verification_record">Depot Verification Record</span>
         <h2 id="modalBusTitle" style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;">🚌 Bus Details</h2>
       </div>
       <button type="button" class="btn" onclick="closeProcessDetailModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
     </div>
     <div class="detail-modal-body" id="modalDetailBody"></div>
     <div class="detail-modal-footer">
-      <button type="button" class="btn" onclick="closeProcessDetailModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;">Close</button>
+      <button type="button" class="btn" onclick="closeProcessDetailModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;" data-i18n="btn_close">Close</button>
     </div>
   </div>
 </div>
@@ -622,14 +622,14 @@
   <div class="detail-modal-box">
     <div class="detail-modal-header">
       <div>
-        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;">Active Depot Operations</span>
-        <h2 id="ongoingModalTitle" style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;">Ongoing Operations</h2>
+        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;" data-i18n="modal_active_depot_ops">Active Depot Operations</span>
+        <h2 id="ongoingModalTitle" style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;" data-i18n="title_ongoing_ops">Ongoing Operations</h2>
       </div>
       <button type="button" class="btn" onclick="closeOngoingModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
     </div>
     <div class="detail-modal-body" id="ongoingModalBody"></div>
     <div class="detail-modal-footer">
-      <button type="button" class="btn" onclick="closeOngoingModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;">Close</button>
+      <button type="button" class="btn" onclick="closeOngoingModal()" style="background:#e2e8f0; color:#334155; padding:8px 18px;" data-i18n="btn_close">Close</button>
     </div>
   </div>
 </div>
@@ -644,6 +644,8 @@
 
   const LOCKED_KEY = 'depot_locked_buses';
   const CLEANING_HISTORY_KEY = 'depot_cleaning_history';
+
+  const t = (key, fallback) => (window.i18n && typeof window.i18n.t === 'function') ? window.i18n.t(key, null, fallback) : (fallback || key);
 
   function getLockedBuses() {
     try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
@@ -930,14 +932,14 @@
     const body = document.getElementById('ongoingModalBody');
     if (!modal || !title || !body) return;
 
-    title.innerHTML = `🧹 Buses in Ongoing Cleaning (${list.length})`;
+    title.innerHTML = `🧹 ${t('buses_in_ongoing_cleaning', 'Buses in Ongoing Cleaning')} (${list.length})`;
 
     if (!list.length) {
       body.innerHTML = `
         <div style="text-align:center; padding:28px 14px; color:var(--muted);">
           <div style="font-size:2.2rem; margin-bottom:8px;">🧹</div>
-          <strong style="color:var(--text); font-size:1.05rem; display:block;">No buses currently in ongoing cleaning</strong>
-          <p style="font-size:0.85rem; margin-top:5px;">All depot vehicles are either ready for service duty or in active operation.</p>
+          <strong style="color:var(--text); font-size:1.05rem; display:block;">${t('msg_no_buses_ongoing_cleaning', 'No buses currently in ongoing cleaning')}</strong>
+          <p style="font-size:0.85rem; margin-top:5px;">${t('msg_all_depot_vehicles_ready', 'All depot vehicles are either ready for service duty or in active operation.')}</p>
         </div>
       `;
     } else {
@@ -952,7 +954,7 @@
               <div style="display:flex; align-items:center; gap:8px;">
                 <strong style="font-size:1.08rem; color:var(--text);">${x.bm}</strong>
                 <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dcfce7; color:#166534;">
-                  🧹 Cleaning Bay
+                  🧹 ${t('badge_cleaning_bay', 'Cleaning Bay')}
                 </span>
               </div>
               <div style="font-size:0.82rem; color:var(--muted); margin-top:3px;">
@@ -964,7 +966,7 @@
             </div>
             <div>
               <button type="button" class="btn" onclick="selectOngoingBus('${x.bm}')" style="padding:7px 14px; font-size:0.84rem; font-weight:700; background:var(--accent); color:#fff; border-radius:8px;">
-                Select Bus ›
+                ${t('btn_select_bus', 'Select Bus')} ›
               </button>
             </div>
           </div>
@@ -1037,35 +1039,35 @@
     document.getElementById('modalBusTitle').innerHTML = `🧹 Bus ${item.bm} <span style="font-size:0.9rem;font-weight:600;color:var(--muted);">(${item.reg || ''})</span>`;
     document.getElementById('modalDetailBody').innerHTML = `
       <div class="detail-modal-row">
-        <span class="detail-modal-label">Process Type:</span>
+        <span class="detail-modal-label">${t('label_process_type', 'Process Type:')}</span>
         <span class="detail-modal-val" style="color:var(--accent-dark);">${item.processType || 'Interior & Exterior Cleaning'}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">⏱️ Process Started:</span>
+        <span class="detail-modal-label">${t('label_process_started', '⏱️ Process Started:')}</span>
         <span class="detail-modal-val" style="color:#0369a1;">${item.startTime}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">🏁 Process Ended / Unlocked:</span>
+        <span class="detail-modal-label">${t('label_process_ended', '🏁 Process Ended / Unlocked:')}</span>
         <span class="detail-modal-val" style="color:#15803d;font-weight:800;">${item.unlockTime}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">⏳ Total Duration:</span>
+        <span class="detail-modal-label">${t('label_total_duration', 'Total Duration:')}</span>
         <span class="detail-modal-val">${item.duration || 'Just finished'}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">🎯 Final Stage:</span>
+        <span class="detail-modal-label">${t('label_final_stage', 'Final Stage:')}</span>
         <span class="detail-modal-val" style="color:#15803d;font-weight:800;">${item.finalStage}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">Tasks Verified:</span>
+        <span class="detail-modal-label">${t('label_tasks_verified', 'Tasks Verified:')}</span>
         <span class="detail-modal-val">${item.tasksSummary || `${item.totalDone ?? 2} of ${item.total ?? 2} tasks completed`}</span>
       </div>
       <div class="detail-modal-row">
-        <span class="detail-modal-label">Clearance Status:</span>
-        <span class="detail-modal-val" style="color:#16a34a;">${item.clearanceState || '✅ Cleared for Service Dispatch'}</span>
+        <span class="detail-modal-label">${t('label_clearance_status', 'Clearance Status:')}</span>
+        <span class="detail-modal-val" style="color:#16a34a;">${item.clearanceState || t('status_cleared_for_service', '✅ Cleared for Service Dispatch')}</span>
       </div>
       <div class="detail-modal-row" style="flex-direction:column;align-items:flex-start;gap:4px;">
-        <span class="detail-modal-label" style="width:100%;">Supervisor Remarks:</span>
+        <span class="detail-modal-label" style="width:100%;">${t('label_supervisor_remarks', 'Supervisor Remarks:')}</span>
         <span style="color:#334155;font-size:0.85rem;background:#f8fafc;padding:8px 12px;border-radius:8px;border:1px solid #e2e8f0;width:100%;box-sizing:border-box;">${item.remarks || 'Cleaning complete.'}</span>
       </div>
     `;
@@ -1098,7 +1100,7 @@
       : records;
 
     const countEl = document.getElementById('historyModalCount');
-    if (countEl) countEl.textContent = `${filtered.length} of ${records.length} records`;
+    if (countEl) countEl.textContent = `${filtered.length} of ${records.length} ${t('text_records', 'records')}`;
 
     const body = document.getElementById('historyModalBody');
     if (!body) return;
@@ -1135,7 +1137,7 @@
         </div>
         <div>
           <button type="button" class="click-details-tag" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')">
-            📄 View Details ›
+            ${t('btn_view_details', '📄 View Details ›')}
           </button>
         </div>
       </div>
@@ -1254,7 +1256,7 @@
               <span style="font-size:0.8rem;color:var(--muted);">${e.reg || ''}</span>
               <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-weight:600;">${e.duration || 'Cleaned'}</span>
             </div>
-            <span class="click-details-tag">👉 View Record ›</span>
+            <span class="click-details-tag">${t('btn_view_record', '👉 View Record ›')}</span>
           </div>
         </div>
       </li>
@@ -1269,12 +1271,12 @@
   }
 
   function showToast(msg, type = '', duration = 3200) {
-    const t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
-    clearTimeout(t._timer);
-    t._timer = setTimeout(() => { t.classList.remove('show'); }, duration);
+    const tEl = document.getElementById('toast');
+    if (!tEl) return;
+    tEl.textContent = msg;
+    tEl.className = `toast ${type} show`;
+    clearTimeout(tEl._timer);
+    tEl._timer = setTimeout(() => { tEl.classList.remove('show'); }, duration);
   }
 
   function handleSyncCleaningState() {
@@ -1299,6 +1301,17 @@
     window.DepotSyncEngine.on('bus-state', handleSyncCleaningState);
     window.DepotSyncEngine.on('sync', handleSyncCleaningState);
   }
+
+  window.addEventListener('languageChanged', () => {
+    renderOngoingButtons();
+    renderLog();
+    if (document.getElementById('historyModal')?.style.display === 'flex') {
+      filterHistoryList();
+    }
+    if (document.getElementById('ongoingModal')?.style.display === 'flex') {
+      openOngoingModal();
+    }
+  });
 
   // ── Init ──
   loadVehicles().then(() => {
