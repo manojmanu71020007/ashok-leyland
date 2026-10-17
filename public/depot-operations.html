@@ -793,6 +793,37 @@
     .history-5-grid strong {
       color: var(--text);
     }
+    .history-7-table {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 10px;
+    }
+    .h7-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 10px;
+    }
+    .h7-cell {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .h7-span-2 {
+      grid-column: span 2;
+    }
+    .h7-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .h7-val {
+      font-size: 0.88rem;
+      color: var(--text);
+    }
 
     /* Detail View (Level 3) */
     .history-detail-wrap {
@@ -943,14 +974,14 @@
     <div class="stat-sub" data-i18n="stat_returned_today">returned today</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label" data-i18n="stat_in_charging">In Charging</div>
-    <div class="stat-value stat-charging" id="statCharging">0</div>
-    <div class="stat-sub" data-i18n="stat_bays_active">bays active</div>
+    <div class="stat-label">Depot 1 Fleet</div>
+    <div class="stat-value" id="statDepot1Count" style="color:#0f766e;">61</div>
+    <div class="stat-sub">assigned buses</div>
   </div>
   <div class="stat-card">
-    <div class="stat-label" data-i18n="stat_in_cleaning">In Cleaning</div>
-    <div class="stat-value stat-cleaning" id="statCleaning">0</div>
-    <div class="stat-sub" data-i18n="stat_bays_active">bays active</div>
+    <div class="stat-label">Depot 2 Fleet</div>
+    <div class="stat-value" id="statDepot2Count" style="color:#6d28d9;">61</div>
+    <div class="stat-sub">assigned buses</div>
   </div>
 </div>
 
@@ -1035,7 +1066,7 @@
     ⚠️ <span id="warnText">This bus is not currently allocated on a route. Only allocated buses can be marked as route completed.</span>
   </div>
   <div class="warning-banner warning-already-done" id="warnAlreadyDone">
-    ✅ <span>This bus has already been returned to depot and is available for charging / cleaning / re-allocation.</span>
+    ✅ <span>This bus has already been returned to depot and is available for re-allocation.</span>
   </div>
   <div class="warning-banner warning-transfer" id="warnDepotTransfer" style="display:none;background:#fef3c7;border:1.5px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:12px;font-size:0.88rem;font-weight:600;margin-top:12px;">
     ⚡ <span>Cross-Depot Route Completion: This bus is currently registered under <strong>Depot <span id="warnFromDepot">2</span></strong>. Completing route here will return and transfer it into <strong>Depot <span id="warnToDepot">1</span></strong>'s fleet, decrementing Depot <span id="warnFromDepot2">2</span> and incrementing Depot <span id="warnToDepot2">1</span>.</span>
@@ -1058,7 +1089,7 @@
     <div class="success-icon">✅</div>
     <div class="success-content">
       <h3 id="successTitle">Route completed!</h3>
-      <p id="successText">Bus is now available for charging, cleaning, and re-allocation.</p>
+      <p id="successText">Bus is now available for re-allocation.</p>
     </div>
   </div>
 </div>
@@ -1111,7 +1142,7 @@
           <th data-i18n="th_reg_no">Reg. No.</th>
           <th data-i18n="th_route">Route</th>
           <th data-i18n="th_completed_at">Completed At</th>
-          <th data-i18n="th_next_action">Next Action</th>
+          <th>Status</th>
         </tr>
       </thead>
       <tbody id="completedTbody">
@@ -1126,7 +1157,7 @@
   <div class="modal-box">
     <div class="modal-header">
       <h2>✅ Confirm Route Completion</h2>
-      <p>This will release the bus back to the depot for charging, cleaning, and re-allocation.</p>
+      <p>This will release the bus back to the depot for re-allocation.</p>
     </div>
     <div class="modal-body" id="confirmModalBody"></div>
     <div class="modal-footer">
@@ -1488,235 +1519,7 @@
     localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(arr));
   }
 
-  function getChargingHistoryLogs() {
-    try {
-      const raw = localStorage.getItem('depot_charging_history') || localStorage.getItem('smartbus_charging_history');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
 
-    const now = new Date();
-    const fmt = d => d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) + ', ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    return [
-      {
-        id: 'chg_init_1',
-        bm: 'BM001',
-        reg: 'KA51AH4144',
-        chargerBay: 'Bay 02 (120 kW Fast)',
-        startSoc: '22%',
-        finalSoc: '98%',
-        energyAdded: '162 kWh',
-        duration: '52 mins',
-        unlockTime: fmt(new Date(now.getTime() - 25 * 60 * 1000)),
-        completedTs: now.getTime() - 25 * 60 * 1000,
-        remarks: 'Fast charging completed to 98%. Battery condition Good (SOH 97%).',
-        depot: '1'
-      },
-      {
-        id: 'chg_init_2',
-        bm: 'BM062',
-        reg: 'KA51AH2434',
-        chargerBay: 'Bay 05 (150 kW DC)',
-        startSoc: '18%',
-        finalSoc: '95%',
-        energyAdded: '174 kWh',
-        duration: '58 mins',
-        unlockTime: fmt(new Date(now.getTime() - 85 * 60 * 1000)),
-        completedTs: now.getTime() - 85 * 60 * 1000,
-        remarks: 'Depot 2 fast charger session passed inspection.',
-        depot: '2'
-      },
-      {
-        id: 'chg_init_3',
-        bm: 'BM153',
-        reg: 'KA51AH4643',
-        chargerBay: 'Bay 01 (120 kW Fast)',
-        startSoc: '31%',
-        finalSoc: '100%',
-        energyAdded: '148 kWh',
-        duration: '46 mins',
-        unlockTime: fmt(new Date(now.getTime() - 150 * 60 * 1000)),
-        completedTs: now.getTime() - 150 * 60 * 1000,
-        remarks: 'Balanced cell charge completed to 100%.',
-        depot: '1'
-      }
-    ];
-  }
-
-  function getCleaningHistoryLogs() {
-    try {
-      const raw = localStorage.getItem('depot_cleaning_history') || localStorage.getItem('smartbus_cleaning_history');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-
-    const now = new Date();
-    const fmt = d => d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) + ', ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    return [
-      {
-        id: 'cln_init_1',
-        bm: 'BM153',
-        reg: 'KA51AH4643',
-        bay: 'Bay 01 (Automatic Wash)',
-        cleaner: 'S. Nagaraj',
-        duration: '35 mins',
-        unlockTime: fmt(new Date(now.getTime() - 20 * 60 * 1000)),
-        completedTs: now.getTime() - 20 * 60 * 1000,
-        processType: 'Interior & Exterior Bus Cleaning',
-        remarks: 'Depot bay inspection signed off. No exterior scratches. Cabin sanitized.',
-        depot: '1'
-      },
-      {
-        id: 'cln_init_2',
-        bm: 'BM001',
-        reg: 'KA51AH4144',
-        bay: 'Bay 03 (Manual Jet Wash)',
-        cleaner: 'G. Murthy',
-        duration: '28 mins',
-        unlockTime: fmt(new Date(now.getTime() - 65 * 60 * 1000)),
-        completedTs: now.getTime() - 65 * 60 * 1000,
-        processType: 'Full Chassis Wash & Cabin Sanitization',
-        remarks: 'Floor sanitization passed. Windshield clean.',
-        depot: '1'
-      },
-      {
-        id: 'cln_init_3',
-        bm: 'BM062',
-        reg: 'KA51AH2434',
-        bay: 'Bay 02 (Depot 2 Jet Wash)',
-        cleaner: 'K. Shiva',
-        duration: '30 mins',
-        unlockTime: fmt(new Date(now.getTime() - 120 * 60 * 1000)),
-        completedTs: now.getTime() - 120 * 60 * 1000,
-        processType: 'Exterior Wash & Deep Vacuum',
-        remarks: 'Depot 2 cleaning log verified.',
-        depot: '2'
-      }
-    ];
-  }
-
-  function getAllBusesHistory() {
-    const list = [];
-
-    // 1. Route completions
-    const completed = getCompletedLog();
-    completed.forEach(item => {
-      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
-      const bDepot = item.depot || getBusDepot(item.bm);
-      list.push({
-        id: item.id || ('rc_' + (item.completedTs || Math.random())),
-        bm: item.bm,
-        reg: item.reg || v?.reg_no || '—',
-        model: v?.model || 'EiV12 AC Electric Bus',
-        category: item.isTransferred ? 'transfer' : 'route',
-        categoryLabel: item.isTransferred ? '🔄 Depot Transfer' : '🚍 Route Completed',
-        badgeBg: item.isTransferred ? '#fef3c7' : '#dcfce7',
-        badgeColor: item.isTransferred ? '#92400e' : '#166534',
-        timestamp: item.completedAt || '—',
-        sortTs: item.completedTs || (Date.now() - 3600000),
-        depot: bDepot,
-        prevDepot: item.prevDepot || bDepot,
-        isTransferred: !!item.isTransferred,
-        route: item.route || '—',
-        schedule: item.schedule || '—',
-        driver: item.driver || '—',
-        dispatchTime: item.dispatchTime || '—',
-        details: item.isTransferred 
-          ? `Returned to Depot ${bDepot} and transferred from Depot ${item.prevDepot}. Total depot buses updated (+1/-1).`
-          : `Returned to Depot ${bDepot} upon route completion. Available for charging & cleaning.`
-      });
-    });
-
-    // 2. Charging records
-    const charging = getChargingHistoryLogs();
-    charging.forEach(item => {
-      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
-      const bDepot = item.depot || getBusDepot(item.bm);
-      list.push({
-        id: item.id || ('chg_' + Math.random()),
-        bm: item.bm,
-        reg: item.reg || v?.reg_no || '—',
-        model: v?.model || 'EiV12 AC Electric Bus',
-        category: 'charging',
-        categoryLabel: '⚡ Charging Session',
-        badgeBg: '#e0f2fe',
-        badgeColor: '#0369a1',
-        timestamp: item.unlockTime || item.timeStr || '—',
-        sortTs: item.completedTs || (Date.now() - 7200000),
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        chargerBay: item.chargerBay || item.bay || 'Bay 01',
-        startSoc: item.startSoc || '—',
-        finalSoc: item.finalSoc || '—',
-        energyAdded: item.energyAdded || '—',
-        duration: item.duration || '—',
-        details: item.remarks || (item.startSoc && item.finalSoc ? `Charged from ${item.startSoc} to ${item.finalSoc} (${item.duration})` : 'Charging verified.')
-      });
-    });
-
-    // 3. Cleaning records
-    const cleaning = getCleaningHistoryLogs();
-    cleaning.forEach(item => {
-      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
-      const bDepot = item.depot || getBusDepot(item.bm);
-      list.push({
-        id: item.id || ('cln_' + Math.random()),
-        bm: item.bm,
-        reg: item.reg || v?.reg_no || '—',
-        model: v?.model || 'EiV12 AC Electric Bus',
-        category: 'cleaning',
-        categoryLabel: '🧹 Cleaning Verification',
-        badgeBg: '#ffedd5',
-        badgeColor: '#9a3412',
-        timestamp: item.unlockTime || item.timeStr || '—',
-        sortTs: item.completedTs || (Date.now() - 10800000),
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        cleaningBay: item.bay || 'Bay 01',
-        cleaner: item.cleaner || 'Staff',
-        processType: item.processType || 'Bus Cleaning',
-        duration: item.duration || '—',
-        details: item.remarks || item.tasksSummary || 'Cleaning and sanitization inspection passed.'
-      });
-    });
-
-    // 4. Currently Allocated dispatches
-    const allocated = getAllocatedBuses();
-    allocated.forEach(item => {
-      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
-      const bDepot = getBusDepot(item.bm);
-      list.push({
-        id: 'alloc_' + item.bm + '_' + (item.dispatchTime || 'now'),
-        bm: item.bm,
-        reg: item.reg || v?.reg_no || '—',
-        model: v?.model || 'EiV12 AC Electric Bus',
-        category: 'route',
-        categoryLabel: '🟣 Dispatched (On Route)',
-        badgeBg: '#ede9fe',
-        badgeColor: '#5b21b6',
-        timestamp: item.dispatchTime || item.time || 'Currently Dispatched',
-        sortTs: Date.now() + 1000,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        route: item.route || '—',
-        schedule: item.schedule || '—',
-        driver: item.driver || '—',
-        dispatchTime: item.dispatchTime || item.time || '—',
-        details: `Dispatched from Depot ${bDepot}. Currently operating on Route ${item.route || ''}.`
-      });
-    });
-
-    // Sort newest first
-    list.sort((a, b) => (b.sortTs || 0) - (a.sortTs || 0));
-    return list;
-  }
 
   // ──────────────────────────────────────────────
   //  All Buses History: 3-Level Navigation & Detailed Information
@@ -1818,129 +1621,41 @@
   function getLast5HistoryForBus(bm) {
     const clean = String(bm || '').trim().toUpperCase();
     const v = allVehicles.find(x => sameBus(x.bm_no, clean));
-    const bDepot = getBusDepot(clean);
     const busReg = v?.reg_no || ('KA51AH' + (clean.replace(/\D/g, '').padStart(4, '0') || '4144'));
-    const busModel = v?.model || 'ELECTRIC BUS AC EiV12';
+    const busModel = v?.model || 'Ashok Leyland Electric Bus AC EiV12';
+    const currentDepotNum = getBusDepot(clean);
+    const currentDepotStr = 'Depot ' + currentDepotNum;
 
     const liveList = [];
 
-    // 1. Live route completed records
+    // 1. Live route completed records from local completed log
     const completedLog = getCompletedLog();
     completedLog.forEach(c => {
       if (sameBus(c.bm, clean)) {
+        const targetDepotStr = c.depot ? ('Depot ' + c.depot) : currentDepotStr;
+        const originDepotStr = c.prevDepot ? ('Depot ' + c.prevDepot) : targetDepotStr;
+        const isXfer = !!c.isTransferred || (c.prevDepot && c.depot && String(c.prevDepot) !== String(c.depot));
+
         liveList.push({
           id: c.id || ('rc_' + (c.completedTs || Math.random())),
           bm: clean,
-          reg: busReg,
-          model: busModel,
-          depot: c.depot || bDepot,
-          prevDepot: c.prevDepot || bDepot,
-          isTransferred: !!c.isTransferred,
-          category: c.isTransferred ? 'transfer' : 'route',
-          categoryLabel: c.isTransferred ? '🔄 Depot Transfer & Route Completed' : '✅ Route Completed',
-          badgeBg: c.isTransferred ? '#fef3c7' : '#dcfce7',
-          badgeColor: c.isTransferred ? '#92400e' : '#166534',
-          timestamp: c.completedAt || 'Today, 10:30 AM',
-          sortTs: c.completedTs || Date.now(),
-          titleSummary: c.isTransferred ? `Transferred to Depot ${c.depot} (from Depot ${c.prevDepot})` : `Route ${c.route || '356Z'} Completed at Depot ${c.depot}`,
-          shortSummary: `Route: ${c.route || '356Z'} • Driver: ${c.driver || 'Staff'} • Dispatch: ${c.dispatchTime || '06:00 AM'}`,
+          reg: c.reg || busReg,
+          receivingDepot: targetDepotStr,
+          homeDepot: originDepotStr,
           route: c.route || '356Z',
           schedule: c.schedule || 'SCH-01',
-          driver: c.driver || 'Ramesh Gowda',
+          completionTime: c.completedAt || 'Today, 10:45 AM',
+          driver: c.driver || 'Driver Assigned',
           dispatchTime: c.dispatchTime || '06:30 AM',
-          completedAt: c.completedAt || '10:45 AM',
-          notes: c.isTransferred
-            ? `Bus returned to Depot ${c.depot} and was successfully transferred from Depot ${c.prevDepot}. Total fleet counters updated (+1/-1). Bus is unlocked and ready for charging & cleaning in Depot ${c.depot}.`
-            : `Bus successfully returned to Depot ${c.depot} upon route completion. Cleared for charging and cleaning.`
-        });
-      }
-    });
-
-    // 2. Live charging sessions
-    const chargingLogs = getChargingHistoryLogs();
-    chargingLogs.forEach(ch => {
-      if (sameBus(ch.bm, clean)) {
-        liveList.push({
-          id: ch.id || ('chg_' + Math.random()),
-          bm: clean,
-          reg: busReg,
           model: busModel,
-          depot: ch.depot || bDepot,
-          prevDepot: ch.depot || bDepot,
-          isTransferred: false,
-          category: 'charging',
-          categoryLabel: '⚡ Charging Session',
-          badgeBg: '#e0f2fe',
-          badgeColor: '#0369a1',
-          timestamp: ch.unlockTime || 'Today, 08:30 AM',
-          sortTs: ch.completedTs || (Date.now() - 3600000),
-          titleSummary: `Charged from ${ch.startSoc || '20%'} to ${ch.finalSoc || '98%'} (${ch.chargerBay || 'Bay 02'})`,
-          shortSummary: `Bay: ${ch.chargerBay || 'Bay 02'} • Duration: ${ch.duration || '45 mins'} • Added: ${ch.energyAdded || '150 kWh'}`,
-          chargerBay: ch.chargerBay || 'Bay 02 (120 kW Fast DC)',
-          startSoc: ch.startSoc || '22%',
-          finalSoc: ch.finalSoc || '98%',
-          energyAdded: ch.energyAdded || '162 kWh',
-          duration: ch.duration || '52 mins',
-          notes: ch.remarks || 'Fast charging completed successfully. All battery temperature & cell balance parameters normal.'
-        });
-      }
-    });
-
-    // 3. Live cleaning records
-    const cleaningLogs = getCleaningHistoryLogs();
-    cleaningLogs.forEach(cl => {
-      if (sameBus(cl.bm, clean)) {
-        liveList.push({
-          id: cl.id || ('cln_' + Math.random()),
-          bm: clean,
-          reg: busReg,
-          model: busModel,
-          depot: cl.depot || bDepot,
-          prevDepot: cl.depot || bDepot,
-          isTransferred: false,
-          category: 'cleaning',
-          categoryLabel: '🧹 Cleaning Verification',
-          badgeBg: '#ffedd5',
-          badgeColor: '#9a3412',
-          timestamp: cl.unlockTime || 'Today, 07:15 AM',
-          sortTs: cl.completedTs || (Date.now() - 7200000),
-          titleSummary: `Cleaned & Inspected (${cl.bay || 'Bay 01'})`,
-          shortSummary: `Cleaner: ${cl.cleaner || 'Staff'} • Type: ${cl.processType || 'Full Cleaning'} • ${cl.duration || '30 mins'}`,
-          cleaningBay: cl.bay || 'Bay 01 (Automated Wash & Sanitization)',
-          cleaner: cl.cleaner || 'S. Nagaraj',
-          processType: cl.processType || 'Interior & Exterior Bus Cleaning',
-          duration: cl.duration || '35 mins',
-          notes: cl.remarks || 'Depot cleaning verification passed. Vehicle cabin sanitized, floor vacuumed, exterior body washed.'
-        });
-      }
-    });
-
-    // 4. Currently allocated route
-    const allocated = getAllocatedBuses();
-    allocated.forEach(al => {
-      if (sameBus(al.bm, clean)) {
-        liveList.push({
-          id: 'alloc_' + clean + '_' + (al.dispatchTime || 'live'),
-          bm: clean,
-          reg: busReg,
-          model: busModel,
-          depot: bDepot,
-          prevDepot: bDepot,
-          isTransferred: false,
-          category: 'route',
-          categoryLabel: '🟣 Route Dispatched (On Route)',
-          badgeBg: '#ede9fe',
-          badgeColor: '#5b21b6',
-          timestamp: al.dispatchTime || 'Today, 06:15 AM',
-          sortTs: Date.now() + 10000,
-          titleSummary: `Dispatched on Route ${al.route || '356Z'} (Schedule ${al.schedule || 'SCH-01'})`,
-          shortSummary: `Driver: ${al.driver || 'Driver Assigned'} • Dispatched: ${al.dispatchTime || '06:15 AM'}`,
-          route: al.route || '356Z',
-          schedule: al.schedule || 'SCH-01',
-          driver: al.driver || 'Ramesh Gowda',
-          dispatchTime: al.dispatchTime || '06:15 AM',
-          completedAt: 'Operating on Route',
-          notes: `Vehicle is currently active on route ${al.route || ''}. Will return to depot upon route completion.`
+          isTransferred: isXfer,
+          categoryLabel: isXfer ? '🔄 Depot Transfer & Route Completed' : '✅ Route Completed',
+          badgeBg: isXfer ? '#fef3c7' : '#dcfce7',
+          badgeColor: isXfer ? '#92400e' : '#166534',
+          sortTs: c.completedTs || Date.now(),
+          notes: isXfer
+            ? `Bus completed route and transferred into ${targetDepotStr} from ${originDepotStr}. Fleet balance verified (+1/-1 counter adjustment). Cleared for re-allocation.`
+            : `Route ${c.route || '356Z'} completed on time at ${targetDepotStr}. Verified and cleared for re-allocation.`
         });
       }
     });
@@ -1956,17 +1671,11 @@
       });
     }
 
-    // Otherwise, generate remaining realistic records up to 5
+    // Otherwise, generate realistic route history records up to 5
     const num = parseInt(clean.replace(/\D/g, '')) || 1;
     const routesPool = ['356Z', '600F', 'G-2', '360K', '356P', '290E', '500D', 'V-356', '365J', '342F'];
     const driversPool = ['Ramesh Gowda', 'Suresh Kumar', 'Venkatesh M', 'Anand Rao', 'Manjunath B', 'Praveen K', 'Shivanna C', 'Lokesh H'];
-    const cleanersPool = ['S. Nagaraj', 'G. Murthy', 'K. Shiva', 'M. Ravi', 'Basavaraj P'];
-
-    const chosenRoute = routesPool[(num + 1) % routesPool.length];
-    const altRoute    = routesPool[(num + 4) % routesPool.length];
-    const driver1     = driversPool[(num + 2) % driversPool.length];
-    const driver2     = driversPool[(num + 5) % driversPool.length];
-    const cleaner     = cleanersPool[num % cleanersPool.length];
+    const offsets = [180, 420, 840, 1380, 1920]; // 3h, 7h, 14h, 23h, 32h ago
 
     const now = new Date();
     const fmt = (offsetMins) => {
@@ -1977,126 +1686,40 @@
       };
     };
 
-    const offsets = [180, 420, 840, 1380, 1920]; // 3h, 7h, 14h, 23h, 32h ago
+    const generated = [];
+    for (let i = 0; i < 5; i++) {
+      const route = routesPool[(num + i * 2) % routesPool.length];
+      const schedule = `SCH-${String(((num + i) % 12) + 1).padStart(2, '0')}`;
+      const driver = driversPool[(num + i * 3) % driversPool.length];
+      const isXfer = (i === 1 || (num + i) % 5 === 0);
+      const otherDepotNum = currentDepotNum === '1' ? '2' : '1';
+      const receivingDepot = 'Depot ' + currentDepotNum;
+      const homeDepot = isXfer ? ('Depot ' + otherDepotNum) : receivingDepot;
+      const timeData = fmt(offsets[i]);
 
-    const generated = [
-      {
-        id: `gen_${clean}_1`,
+      generated.push({
+        id: `gen_${clean}_route_${i + 1}`,
         bm: clean,
         reg: busReg,
-        model: busModel,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        category: 'route',
-        categoryLabel: '✅ Route Completed',
-        badgeBg: '#dcfce7',
-        badgeColor: '#166534',
-        timestamp: fmt(offsets[0]).str,
-        sortTs: fmt(offsets[0]).ts,
-        titleSummary: `Route ${chosenRoute} Completed at Depot ${bDepot}`,
-        shortSummary: `Route: ${chosenRoute} • Driver: ${driver1} • Schedule: SCH-${String((num % 12) + 1).padStart(2,'0')}`,
-        route: chosenRoute,
-        schedule: `SCH-${String((num % 12) + 1).padStart(2,'0')}`,
-        driver: driver1,
+        receivingDepot: receivingDepot,
+        homeDepot: homeDepot,
+        route: route,
+        schedule: schedule,
+        completionTime: timeData.str,
+        driver: driver,
         dispatchTime: '06:15 AM',
-        completedAt: fmt(offsets[0]).str.split(',')[0],
-        notes: `Route ${chosenRoute} finished with zero defects. Passenger trip logs verified. Bus returned to Depot ${bDepot} bay area.`
-      },
-      {
-        id: `gen_${clean}_2`,
-        bm: clean,
-        reg: busReg,
         model: busModel,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        category: 'charging',
-        categoryLabel: '⚡ Charging Session',
-        badgeBg: '#e0f2fe',
-        badgeColor: '#0369a1',
-        timestamp: fmt(offsets[1]).str,
-        sortTs: fmt(offsets[1]).ts,
-        titleSummary: `Fast Charged 24% ➔ 96% (Bay 0${(num % 6) + 1})`,
-        shortSummary: `Bay 0${(num % 6) + 1} (120 kW Fast DC) • Duration: 54 mins • Energy: 168 kWh`,
-        chargerBay: `Bay 0${(num % 6) + 1} (120 kW Fast DC)`,
-        startSoc: '24%',
-        finalSoc: '96%',
-        energyAdded: '168 kWh',
-        duration: '54 mins',
-        notes: `Session completed at Depot ${bDepot} DC fast charger. Peak charging current 185A. Temperature nominal (27°C).`
-      },
-      {
-        id: `gen_${clean}_3`,
-        bm: clean,
-        reg: busReg,
-        model: busModel,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        category: 'cleaning',
-        categoryLabel: '🧹 Cleaning Verification',
-        badgeBg: '#ffedd5',
-        badgeColor: '#9a3412',
-        timestamp: fmt(offsets[2]).str,
-        sortTs: fmt(offsets[2]).ts,
-        titleSummary: `Cabin Sanitization & Body Wash (Bay 0${(num % 3) + 1})`,
-        shortSummary: `Cleaner: ${cleaner} • High-Pressure Jet Wash • Duration: 30 mins`,
-        cleaningBay: `Bay 0${(num % 3) + 1} (High-Pressure Wash Bay)`,
-        cleaner: cleaner,
-        processType: 'Full Body Wash & Cabin Sanitization',
-        duration: '30 mins',
-        notes: `Interior vacuuming, seat wiping with sanitizing agent, and exterior pressure wash signed off by shift supervisor.`
-      },
-      {
-        id: `gen_${clean}_4`,
-        bm: clean,
-        reg: busReg,
-        model: busModel,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        category: 'route',
-        categoryLabel: '✅ Route Completed',
-        badgeBg: '#dcfce7',
-        badgeColor: '#166534',
-        timestamp: fmt(offsets[3]).str,
-        sortTs: fmt(offsets[3]).ts,
-        titleSummary: `Route ${altRoute} Completed at Depot ${bDepot}`,
-        shortSummary: `Route: ${altRoute} • Driver: ${driver2} • Schedule: SCH-${String(((num + 3) % 12) + 1).padStart(2,'0')}`,
-        route: altRoute,
-        schedule: `SCH-${String(((num + 3) % 12) + 1).padStart(2,'0')}`,
-        driver: driver2,
-        dispatchTime: '01:30 PM',
-        completedAt: fmt(offsets[3]).str.split(',')[0],
-        notes: `Afternoon schedule completed on time. Regenerative braking verified at 94% efficiency.`
-      },
-      {
-        id: `gen_${clean}_5`,
-        bm: clean,
-        reg: busReg,
-        model: busModel,
-        depot: bDepot,
-        prevDepot: bDepot,
-        isTransferred: false,
-        category: 'charging',
-        categoryLabel: '⚡ Charging Session',
-        badgeBg: '#e0f2fe',
-        badgeColor: '#0369a1',
-        timestamp: fmt(offsets[4]).str,
-        sortTs: fmt(offsets[4]).ts,
-        titleSummary: `Overnight Top-up Charge 40% ➔ 100%`,
-        shortSummary: `Bay 02 (150 kW DC) • Duration: 48 mins • Energy: 142 kWh`,
-        chargerBay: `Bay 02 (150 kW DC)`,
-        startSoc: '40%',
-        finalSoc: '100%',
-        energyAdded: '142 kWh',
-        duration: '48 mins',
-        notes: `Full charge cycle balanced across all cell packs. Battery State-of-Health (SOH): 98%. Ready for morning dispatch.`
-      }
-    ];
+        isTransferred: isXfer,
+        categoryLabel: isXfer ? '🔄 Depot Transfer & Route Completed' : '✅ Route Completed',
+        badgeBg: isXfer ? '#fef3c7' : '#dcfce7',
+        badgeColor: isXfer ? '#92400e' : '#166534',
+        sortTs: timeData.ts,
+        notes: isXfer
+          ? `Bus arrived at ${receivingDepot} upon completing Route ${route} from ${homeDepot}. Cross-depot fleet transfer executed and recorded in depot archive.`
+          : `Routine trip on Route ${route} completed successfully at ${receivingDepot}. Trip logs verified, zero defects noted, bus cleared for re-allocation.`
+      });
+    }
 
-    // Combine live records and generated records to always produce 5 entries
     const combined = [...liveList];
     for (const g of generated) {
       if (combined.length >= 5) break;
@@ -2136,7 +1759,7 @@
 
       if (modalBadge) modalBadge.textContent = 'Fleet Operational Archive';
       if (modalTitle) modalTitle.textContent = '📜 All Buses History';
-      if (modalSub) modalSub.textContent = 'Select any bus to view its last 5 operational history records';
+      if (modalSub) modalSub.textContent = 'Select any bus to view its last 5 route completion history records';
 
       const q = (document.getElementById('allBusesHistorySearch')?.value || '').trim().toLowerCase();
       const depotFilter = document.getElementById('historyDepotFilter')?.value || 'all';
@@ -2176,12 +1799,10 @@
 
       container.innerHTML = buses.map(v => {
         const bDepot = getBusDepot(v.bm_no);
-        const status = getBusStatus(v.bm_no, v.reg_no);
-        const statusBadge = 
-          status === 'allocated' ? '<span style="background:#ede9fe;color:#5b21b6;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟣 On Route</span>' :
-          status === 'charging'  ? '<span style="background:#e0f2fe;color:#0369a1;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">⚡ Charging</span>' :
-          status === 'cleaning'  ? '<span style="background:#ffedd5;color:#9a3412;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🧹 Cleaning</span>' :
-          '<span style="background:#dcfce7;color:#166534;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟢 Available</span>';
+        const isAlloc = isBusAllocated(v.bm_no);
+        const statusBadge = isAlloc
+          ? '<span style="background:#ede9fe;color:#5b21b6;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟣 On Route</span>'
+          : '<span style="background:#dcfce7;color:#166534;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟢 Available</span>';
 
         return `
           <div class="history-bus-row" onclick="selectBusForHistory('${v.bm_no}')">
@@ -2211,6 +1832,8 @@
     } else if (historyViewLevel === 2) {
       // ══════════════════════════════════════════════════════
       //  LEVEL 2: LAST 5 HISTORY RECORDS FOR SELECTED BUS
+      //  Contains: Bus (BM No.), Registration, Receiving Depot Facility,
+      //            Bus Home Depot, Route, Schedule, and Completion Time
       // ══════════════════════════════════════════════════════
       const bus = currentHistoryBus || { bm_no: 'BM001', reg_no: 'KA51AH4144' };
       const bDepot = getBusDepot(bus.bm_no);
@@ -2232,12 +1855,12 @@
         btnBack.textContent = '← Back to All Buses';
       }
 
-      if (modalBadge) modalBadge.textContent = `Bus ${bus.bm_no} Timeline`;
+      if (modalBadge) modalBadge.textContent = `Bus ${bus.bm_no} History`;
       if (modalTitle) modalTitle.textContent = `📜 ${bus.bm_no} — Last 5 History Records`;
-      if (modalSub) modalSub.textContent = `Click any of the 5 history records below to view its complete detailed information`;
+      if (modalSub) modalSub.textContent = `Each history record contains: Bus (BM No.), Registration, Receiving Depot Facility, Bus Home Depot, Route, Schedule, and Completion Time`;
 
       if (footerCount) {
-        footerCount.textContent = `Showing 5 Most Recent Records for ${bus.bm_no}`;
+        footerCount.textContent = `Showing 5 Most Recent Route Records for ${bus.bm_no}`;
       }
 
       if (!currentHistory5List || !currentHistory5List.length) {
@@ -2245,7 +1868,7 @@
           <div style="text-align:center; padding:48px 14px; color:var(--muted);">
             <div style="font-size:2.5rem; margin-bottom:10px;">📋</div>
             <strong style="color:var(--text); font-size:1.1rem; display:block;">No History Records</strong>
-            <p style="font-size:0.88rem; margin-top:6px;">No operational history records found for ${bus.bm_no}.</p>
+            <p style="font-size:0.88rem; margin-top:6px;">No route operational history records found for ${bus.bm_no}.</p>
           </div>
         `;
         return;
@@ -2259,7 +1882,7 @@
             <span style="font-size:0.75rem;font-weight:800;background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:999px;margin-left:6px;">Depot ${bDepot}</span>
           </div>
           <span style="font-size:0.8rem;color:var(--muted);font-weight:600;">
-            Displaying the <strong>5 most recent</strong> operational records
+            Displaying the <strong>5 most recent</strong> operational history records
           </span>
         </div>
 
@@ -2274,38 +1897,60 @@
                   <span style="font-size:0.8rem;font-weight:800;padding:3px 10px;border-radius:999px;background:${rec.badgeBg};color:${rec.badgeColor};">
                     ${rec.categoryLabel}
                   </span>
-                  <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#475569;font-weight:700;">
-                    🏢 Depot ${rec.depot}
-                  </span>
+                  ${rec.isTransferred ? `
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#fef3c7;color:#92400e;font-weight:800;">
+                      🔄 Transfer: ${rec.homeDepot} ➔ ${rec.receivingDepot}
+                    </span>
+                  ` : `
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#475569;font-weight:700;">
+                      🏢 ${rec.receivingDepot}
+                    </span>
+                  `}
                 </div>
                 <div style="font-size:0.82rem;font-weight:700;color:var(--muted);">
-                  🕒 ${rec.timestamp}
+                  🕒 ${rec.completionTime}
                 </div>
               </div>
-              <div style="font-size:0.96rem;font-weight:800;color:var(--text);margin-top:6px;">
-                ${rec.titleSummary}
+
+              <!-- 7 Key History Fields -->
+              <div class="history-7-table">
+                <div class="h7-row">
+                  <div class="h7-cell">
+                    <span class="h7-label">Bus (BM No.)</span>
+                    <span class="h7-val" style="color:var(--accent);font-weight:800;">${rec.bm}</span>
+                  </div>
+                  <div class="h7-cell">
+                    <span class="h7-label">Registration</span>
+                    <span class="h7-val" style="font-weight:700;">${rec.reg}</span>
+                  </div>
+                  <div class="h7-cell">
+                    <span class="h7-label">Receiving Depot Facility</span>
+                    <span class="h7-val" style="color:#0f766e;font-weight:800;">${rec.receivingDepot}</span>
+                  </div>
+                  <div class="h7-cell">
+                    <span class="h7-label">Bus Home Depot</span>
+                    <span class="h7-val" style="color:#6d28d9;font-weight:800;">${rec.homeDepot}</span>
+                  </div>
+                </div>
+                <div class="h7-row" style="margin-top:10px;">
+                  <div class="h7-cell">
+                    <span class="h7-label">Route</span>
+                    <span class="h7-val" style="color:#7c3aed;font-weight:800;">Route ${rec.route}</span>
+                  </div>
+                  <div class="h7-cell">
+                    <span class="h7-label">Schedule</span>
+                    <span class="h7-val" style="font-weight:700;">${rec.schedule}</span>
+                  </div>
+                  <div class="h7-cell h7-span-2">
+                    <span class="h7-label">Completion Time</span>
+                    <span class="h7-val" style="color:#16a34a;font-weight:800;">${rec.completionTime}</span>
+                  </div>
+                </div>
               </div>
-              <div class="history-5-grid">
-                ${rec.category === 'charging' ? `
-                  <div><strong>Charger Bay:</strong> ${rec.chargerBay || 'Bay'}</div>
-                  <div><strong>Charge:</strong> ${rec.startSoc || '—'} ➔ ${rec.finalSoc || '—'}</div>
-                  <div><strong>Duration:</strong> ${rec.duration || '—'}</div>
-                  <div><strong>Energy:</strong> ${rec.energyAdded || '—'}</div>
-                ` : rec.category === 'cleaning' ? `
-                  <div><strong>Cleaning Bay:</strong> ${rec.cleaningBay || 'Bay'}</div>
-                  <div><strong>Staff:</strong> ${rec.cleaner || '—'}</div>
-                  <div><strong>Type:</strong> ${rec.processType || '—'}</div>
-                  <div><strong>Duration:</strong> ${rec.duration || '—'}</div>
-                ` : `
-                  <div><strong>Route:</strong> ${rec.route || '—'}</div>
-                  <div><strong>Schedule:</strong> ${rec.schedule || '—'}</div>
-                  <div><strong>Driver:</strong> ${rec.driver || '—'}</div>
-                  <div><strong>Dispatch:</strong> ${rec.dispatchTime || '—'}</div>
-                `}
-              </div>
-              <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+
+              <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
                 <span style="font-size:0.78rem;color:#64748b;font-weight:600;">
-                  ${rec.shortSummary}
+                  Driver: ${rec.driver || 'Driver Assigned'} &nbsp;•&nbsp; ${rec.notes}
                 </span>
                 <span style="font-size:0.82rem;font-weight:800;color:var(--accent);">
                   View Information ›
@@ -2319,6 +1964,7 @@
     } else if (historyViewLevel === 3) {
       // ══════════════════════════════════════════════════════
       //  LEVEL 3: DETAILED INFORMATION FOR SELECTED RECORD
+      //  Displays the 7 required parameters + operational sign-off
       // ══════════════════════════════════════════════════════
       const rec = currentHistoryRecord;
       if (!rec) { goToLevel2(); return; }
@@ -2347,10 +1993,10 @@
 
       if (modalBadge) modalBadge.textContent = `Record #${rec.rank} Details`;
       if (modalTitle) modalTitle.textContent = `📄 ${rec.bm} — Detailed Information`;
-      if (modalSub) modalSub.textContent = `Full operational parameters, verification log, and system sign-off`;
+      if (modalSub) modalSub.textContent = `Complete operational parameters, route verification, and depot allocation`;
 
       if (footerCount) {
-        footerCount.textContent = `Record #${rec.rank} of 5 • Recorded at ${rec.timestamp}`;
+        footerCount.textContent = `Record #${rec.rank} of 5 • Completed at ${rec.completionTime}`;
       }
 
       container.innerHTML = `
@@ -2366,120 +2012,74 @@
               </span>
               ${rec.isTransferred ? `
                 <span style="font-size:0.8rem;font-weight:800;padding:4px 12px;border-radius:999px;background:#fef3c7;color:#92400e;">
-                  🔄 Cross-Depot Transfer: Depot ${rec.prevDepot} ➔ Depot ${rec.depot}
+                  🔄 Cross-Depot Transfer: ${rec.homeDepot} ➔ ${rec.receivingDepot}
                 </span>` : ''}
             </div>
             <div style="font-size:0.88rem;font-weight:800;color:var(--muted);">
-              🕒 ${rec.timestamp}
+              🕒 ${rec.completionTime}
             </div>
           </div>
 
-          <!-- Section 1: Vehicle Specifications -->
-          <div class="detail-section-title">🚌 Vehicle Identification</div>
+          <!-- Section 1: Required Operational History Parameters -->
+          <div class="detail-section-title">📋 Operational History Parameters</div>
           <div class="detail-info-grid">
             <div class="detail-item">
-              <label>Bus (BM Number)</label>
-              <span style="color:var(--accent);">${rec.bm}</span>
+              <label>Bus (BM No.)</label>
+              <span style="color:var(--accent);font-weight:800;font-size:1.05rem;">${rec.bm}</span>
             </div>
             <div class="detail-item">
-              <label>Registration Number</label>
-              <span>${rec.reg || bus.reg_no || 'KA51AH'}</span>
+              <label>Registration</label>
+              <span style="font-weight:700;">${rec.reg}</span>
             </div>
             <div class="detail-item">
-              <label>Make & Model</label>
-              <span>${rec.model || bus.model || 'Ashok Leyland Electric Bus AC EiV12'}</span>
+              <label>Receiving Depot Facility</label>
+              <span style="color:#0f766e;font-weight:800;font-size:1rem;">${rec.receivingDepot}</span>
             </div>
             <div class="detail-item">
-              <label>Operating Facility</label>
-              <span style="color:#0f766e;">Depot ${rec.depot}</span>
+              <label>Bus Home Depot</label>
+              <span style="color:#6d28d9;font-weight:800;font-size:1rem;">${rec.homeDepot}</span>
+            </div>
+            <div class="detail-item">
+              <label>Route</label>
+              <span style="color:#7c3aed;font-weight:800;font-size:1rem;">Route ${rec.route}</span>
+            </div>
+            <div class="detail-item">
+              <label>Schedule</label>
+              <span style="font-weight:700;font-size:1rem;">${rec.schedule}</span>
+            </div>
+            <div class="detail-item" style="grid-column: 1 / -1;">
+              <label>Completion Time</label>
+              <span style="color:#16a34a;font-weight:800;font-size:1.05rem;">${rec.completionTime}</span>
             </div>
           </div>
 
-          <!-- Section 2: Process & Operational Information -->
-          <div class="detail-section-title">⚙️ Process & Operational Information</div>
+          <!-- Section 2: Fleet Allocation & Driver Details -->
+          <div class="detail-section-title">🚍 Fleet Allocation & Driver Details</div>
           <div class="detail-info-grid">
-            ${rec.category === 'charging' ? `
-              <div class="detail-item">
-                <label>Charger Bay</label>
-                <span style="color:#0369a1;">${rec.chargerBay || 'Bay 02'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Initial SoC (Arrival)</label>
-                <span>${rec.startSoc || '24%'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Final SoC (Cleared)</label>
-                <span style="color:#16a34a;">${rec.finalSoc || '98%'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Energy Delivered</label>
-                <span>${rec.energyAdded || '160 kWh'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Charging Duration</label>
-                <span>${rec.duration || '50 mins'}</span>
-              </div>
-              <div class="detail-item">
-                <label>BMS Battery Health</label>
-                <span style="color:#15803d;">Healthy (Cell balance normal, SOH 98%)</span>
-              </div>
-            ` : rec.category === 'cleaning' ? `
-              <div class="detail-item">
-                <label>Cleaning Bay</label>
-                <span style="color:#9a3412;">${rec.cleaningBay || 'Bay 01'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Assigned Staff / Cleaner</label>
-                <span>${rec.cleaner || 'S. Nagaraj'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Cleaning Tasks Performed</label>
-                <span>${rec.processType || 'Full Chassis Wash & Cabin Sanitization'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Inspection Sign-off</label>
-                <span style="color:#15803d;">Passed — Verified by Shift Lead</span>
-              </div>
-              <div class="detail-item">
-                <label>Duration</label>
-                <span>${rec.duration || '35 mins'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Sanitization Status</label>
-                <span style="color:#15803d;">Certified Sanitized</span>
-              </div>
-            ` : `
-              <div class="detail-item">
-                <label>Allocated Route</label>
-                <span style="color:#7c3aed;">Route ${rec.route || '356Z'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Duty Schedule</label>
-                <span>${rec.schedule || 'SCH-01'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Assigned Driver</label>
-                <span>${rec.driver || 'Driver Assigned'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Dispatched Time</label>
-                <span>${rec.dispatchTime || '06:00 AM'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Completed Time</label>
-                <span style="color:#16a34a;">${rec.completedAt || rec.timestamp || 'Completed'}</span>
-              </div>
-              <div class="detail-item">
-                <label>Receiving Facility</label>
-                <span style="color:#7c3aed;">Depot ${rec.depot}</span>
-              </div>
-            `}
+            <div class="detail-item">
+              <label>Vehicle Model</label>
+              <span>${rec.model || 'Ashok Leyland Electric Bus AC EiV12'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Assigned Driver</label>
+              <span>${rec.driver || 'Driver Assigned'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Dispatch Time</label>
+              <span>${rec.dispatchTime || '06:15 AM'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Depot Transfer Status</label>
+              <span style="font-weight:700;color:${rec.isTransferred ? '#92400e' : '#15803d'};">
+                ${rec.isTransferred ? `Transferred into ${rec.receivingDepot} from ${rec.homeDepot}` : `Retained at ${rec.receivingDepot}`}
+              </span>
+            </div>
           </div>
 
-          <!-- Section 3: Notes & System Sign-off -->
-          <div class="detail-section-title">📋 Operational Notes & Clearance</div>
+          <!-- Section 3: Operational Notes & System Verification -->
+          <div class="detail-section-title">📝 Operational Notes & Sign-off</div>
           <div style="background:#f8fafc;padding:14px 18px;border-radius:10px;border:1px solid var(--border);font-size:0.88rem;color:#334155;line-height:1.5;">
-            ${rec.notes || rec.details || 'Operational record verified. Bus cleared for subsequent scheduling cycles.'}
+            ${rec.notes || 'Route completed and logged in depot archive. Bus cleared and verified for re-allocation.'}
           </div>
 
           <!-- Navigation Action Buttons -->
@@ -2520,14 +2120,6 @@
 
   function getBusStatus(bm, reg) {
     const allocated = isBusAllocated(bm);
-    const lockedBuses = getLockedBuses();
-    const lockEntry   = lockedBuses.find(x => sameBus(x.bm, bm) || (reg && sameBus(x.reg, reg)));
-
-    if (lockEntry) {
-      const page = String(lockEntry.page || '').toLowerCase();
-      if (page.includes('charg')) return 'charging';
-      if (page.includes('clean')) return 'cleaning';
-    }
     if (allocated) return 'allocated';
     return 'available';
   }
@@ -2570,11 +2162,9 @@
 
     sel.innerHTML = '<option value="">— Choose a bus —</option>';
     data.forEach(v => {
-      const status = getBusStatus(v.bm_no, v.reg_no);
-      const emoji  = status === 'allocated' ? '🟣' :
-                     status === 'charging'  ? '⚡' :
-                     status === 'cleaning'  ? '🧹' : '🟢';
-      const bDepot = getBusDepot(v.bm_no);
+      const isAlloc = isBusAllocated(v.bm_no);
+      const emoji   = isAlloc ? '🟣' : '🟢';
+      const bDepot  = getBusDepot(v.bm_no);
       const opt = document.createElement('option');
       opt.value       = v.bm_no;
       opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no}  [Depot ${bDepot}]`;
@@ -2644,9 +2234,7 @@
     // Status badge
     const statusBadgeMap = {
       allocated:  '<span class="badge badge-allocated">🟣 On Route</span>',
-      available:  '<span class="badge badge-available">🟢 Available</span>',
-      charging:   '<span class="badge badge-charging">⚡ Charging</span>',
-      cleaning:   '<span class="badge badge-cleaning">🧹 Cleaning</span>',
+      available:  '<span class="badge badge-available">🟢 Available</span>'
     };
     document.getElementById('infoStatus').innerHTML = statusBadgeMap[status] || '—';
 
@@ -2755,8 +2343,7 @@
       </div>
       ` : ''}
       <div style="margin-top:14px; padding:12px 14px; background:#f0fdf4; border-radius:10px; border:1.5px solid #86efac; font-size:0.85rem; color:#166534; font-weight:700;">
-        🔓 After confirmation, this bus will be available in <strong>Depot ${targetDepot}</strong> for:<br>
-        <span style="margin-left:8px;">⚡ Charging ${targetDepot} &nbsp;|&nbsp; 🧹 Cleaning ${targetDepot} &nbsp;|&nbsp; 📋 Scheduling ${targetDepot}</span>
+        🔓 After confirmation, this bus will be returned to <strong>Depot ${targetDepot}</strong> and cleared for re-allocation from the Scheduling page.
       </div>
     `;
     document.getElementById('confirmModal').style.display = 'flex';
@@ -2859,7 +2446,7 @@
     const sb = document.getElementById('successBanner');
     document.getElementById('successTitle').textContent = `${bm} — Route Completed at Depot ${targetDepot} ✅`;
     document.getElementById('successText').textContent  =
-      `Bus returned to Depot ${targetDepot} at ${timeStr}. ${isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses updated: Depot 1 (${depotCounts.depot1Count} buses), Depot 2 (${depotCounts.depot2Count} buses). Bus is now available in Depot ${targetDepot} quick actions.` : `Now available for charging, cleaning & re-allocation in Depot ${targetDepot}.`}`;
+      `Bus returned to Depot ${targetDepot} at ${timeStr}. ${isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses updated: Depot 1 (${depotCounts.depot1Count} buses), Depot 2 (${depotCounts.depot2Count} buses). Bus is now available in Depot ${targetDepot} fleet.` : `Now available for re-allocation in Depot ${targetDepot}.`}`;
     sb.classList.add('show');
 
     // Keep selected bus in dropdown and refresh info
@@ -2951,8 +2538,7 @@
         <td>${e.route || '—'}</td>
         <td>${e.completedAt || '—'}</td>
         <td>
-          <a href="/public/charging.html?depot=${e.depot || currentOperatingDepot}" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;margin-right:8px;">⚡ Charge</a>
-          <a href="/public/cleaning.html?depot=${e.depot || currentOperatingDepot}" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;">🧹 Clean</a>
+          <span style="font-size:0.75rem;padding:3px 10px;border-radius:999px;background:#dcfce7;color:#166534;font-weight:700;">🟢 Ready for Allocation</span>
         </td>
       </tr>
     `).join('');
@@ -2963,18 +2549,18 @@
   // ──────────────────────────────────────────────
   function renderStats() {
     const allocated = getAllocatedBuses();
-    const locked    = getLockedBuses();
     const completed = getCompletedLog();
     const today     = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-
-    const charging = locked.filter(x => String(x.page || '').toLowerCase().includes('charg')).length;
-    const cleaning = locked.filter(x => String(x.page || '').toLowerCase().includes('clean')).length;
     const todayDone = completed.filter(e => e.dateStr === today).length;
 
     document.getElementById('statAllocated').textContent  = allocated.length;
     document.getElementById('statCompleted').textContent  = todayDone;
-    document.getElementById('statCharging').textContent   = charging;
-    document.getElementById('statCleaning').textContent   = cleaning;
+    if (document.getElementById('statDepot1Count')) {
+      document.getElementById('statDepot1Count').textContent = depotCounts.depot1Count;
+    }
+    if (document.getElementById('statDepot2Count')) {
+      document.getElementById('statDepot2Count').textContent = depotCounts.depot2Count;
+    }
   }
 
   // ──────────────────────────────────────────────
