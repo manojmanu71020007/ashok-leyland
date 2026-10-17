@@ -1250,7 +1250,9 @@
   // ──────────────────────────────────────────────
   //  Depot Number & Multi-Depot Fleet State
   // ──────────────────────────────────────────────
-  let currentOperatingDepot = new URLSearchParams(window.location.search).get('depot') || localStorage.getItem('selected_depot') || '1';
+  const urlDepotParam = new URLSearchParams(window.location.search).get('depot');
+  let currentOperatingDepot = urlDepotParam || sessionStorage.getItem('selected_depot') || localStorage.getItem('selected_depot') || '1';
+  try { sessionStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
   let depotAssignments = {};
   let depotCounts = { depot1Count: 61, depot2Count: 61 };
 
@@ -1319,7 +1321,13 @@
 
   window.switchOperatingDepot = function(num) {
     currentOperatingDepot = String(num);
+    try { sessionStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
     try { localStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('depot', currentOperatingDepot);
+      window.history.replaceState(null, '', url.toString());
+    } catch(e){}
     updateDepotUI();
     filterBuses();
     refreshAll();
@@ -2167,17 +2175,16 @@
     const sel  = document.getElementById('busSelect');
     if (!sel) return;
     const prev = sel.value;
-    const sourceData = list || filteredVehicles;
-    // Strictly show ONLY buses of the current operating depot!
-    const data = sourceData.filter(v => String(getBusDepot(v.bm_no)) === String(currentOperatingDepot));
+    const data = list || filteredVehicles || allVehicles || [];
 
     sel.innerHTML = '<option value="">— Choose a bus —</option>';
     data.forEach(v => {
       const isAlloc = isBusAllocated(v.bm_no);
       const emoji   = isAlloc ? '🟣' : '🟢';
+      const bDepot  = getBusDepot(v.bm_no);
       const opt = document.createElement('option');
       opt.value       = v.bm_no;
-      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no || '—'}`;
+      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no || '—'}  (Depot ${bDepot})`;
       sel.appendChild(opt);
     });
 
@@ -2193,14 +2200,16 @@
   // ──────────────────────────────────────────────
   function filterBuses() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
-    // Only search within the current operating depot fleet
-    const depotVehicles = (allVehicles || []).filter(v => String(getBusDepot(v.bm_no)) === String(currentOperatingDepot));
+    const list = allVehicles || [];
     filteredVehicles = q
-      ? depotVehicles.filter(v =>
-          (v.bm_no || '').toLowerCase().includes(q) ||
-          (v.reg_no || '').toLowerCase().includes(q)
-        )
-      : [...depotVehicles];
+      ? list.filter(v => {
+          const bDepot = getBusDepot(v.bm_no);
+          return (v.bm_no || '').toLowerCase().includes(q) ||
+            (v.reg_no || '').toLowerCase().includes(q) ||
+            (v.model || '').toLowerCase().includes(q) ||
+            (`depot ${bDepot}`).toLowerCase().includes(q);
+        })
+      : [...list];
     populateSelect(filteredVehicles);
 
     // Keep previous selection if still present
@@ -2489,8 +2498,7 @@
   // ──────────────────────────────────────────────
   function renderAllocatedList() {
     const allAllocated = getAllocatedBuses();
-    // Strictly filter to this depot only
-    const allocated = allAllocated.filter(entry => String(getBusDepot(entry.bm)) === String(currentOperatingDepot));
+    const allocated = allAllocated;
     const container = document.getElementById('allocatedList');
     const badge     = document.getElementById('allocCountBadge');
 
@@ -2500,7 +2508,7 @@
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🚌</div>
-          <p>No buses from Depot ${currentOperatingDepot} are currently allocated on routes.</p>
+          <p>No buses are currently allocated on routes.</p>
           <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
         </div>`;
       return;
@@ -2508,11 +2516,18 @@
 
     const items = allocated.map(entry => {
       const v = allVehicles.find(x => sameBus(x.bm_no, entry.bm));
+      const bDepot = getBusDepot(entry.bm);
+      const isCrossDepot = (String(bDepot) !== String(currentOperatingDepot));
       return `
         <div class="alloc-item">
           <div class="alloc-meta">
-            <div class="alloc-bm">🟣 ${entry.bm}</div>
-            <div class="alloc-sub">${v?.reg_no || '—'} &nbsp;|&nbsp; Route: ${entry.route || '—'} &nbsp;|&nbsp; ${entry.schedule || ''}</div>
+            <div class="alloc-bm">
+              🟣 ${entry.bm}
+              <span style="font-size:0.75rem;padding:2px 8px;border-radius:6px;background:${isCrossDepot ? '#fef3c7;color:#92400e;border:1px solid #fcd34d;' : '#f1f5f9;color:#475569;border:1px solid #cbd5e1;'}margin-left:6px;font-weight:700;">
+                Depot ${bDepot}${isCrossDepot ? ' (Cross-Depot)' : ''}
+              </span>
+            </div>
+            <div class="alloc-sub">${v?.reg_no || entry.reg || '—'} &nbsp;|&nbsp; Route: ${entry.route || '—'} &nbsp;|&nbsp; ${entry.schedule || ''}</div>
             <div class="alloc-sub" style="margin-top:2px;">Driver: ${entry.driver || '—'} &nbsp;·&nbsp; Dispatched: ${entry.dispatchTime || entry.time || '—'}</div>
           </div>
           <div class="alloc-actions">
@@ -2567,7 +2582,7 @@
   // ──────────────────────────────────────────────
   function renderStats() {
     const allAllocated = getAllocatedBuses();
-    const allocated = allAllocated.filter(entry => String(getBusDepot(entry.bm)) === String(currentOperatingDepot));
+    const allocated = allAllocated;
     const completed = getCompletedLog();
     const depotCompleted = completed.filter(e => String(e.depot) === String(currentOperatingDepot));
     const today     = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
@@ -2644,11 +2659,7 @@
 
   // Auto-refresh when other tabs or devices update allocations or depot assignments
   window.addEventListener('storage', e => {
-    if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY, 'depot_bus_assignments', 'selected_depot'].includes(e.key)) {
-      if (e.key === 'selected_depot' && e.newValue) {
-        currentOperatingDepot = e.newValue;
-        updateDepotUI();
-      }
+    if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY, 'depot_bus_assignments'].includes(e.key)) {
       loadDepotAssignments();
       refreshAll();
     }

@@ -700,7 +700,9 @@
   let sessionLogs = [];
 
   // ── Depot Assignment State ──
-  let currentOperatingDepot = new URLSearchParams(window.location.search).get('depot') || localStorage.getItem('selected_depot') || '1';
+  const urlDepotParam = new URLSearchParams(window.location.search).get('depot');
+  let currentOperatingDepot = urlDepotParam || sessionStorage.getItem('selected_depot') || localStorage.getItem('selected_depot') || '1';
+  try { sessionStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
   let depotAssignments = {};
   let depotCounts = { depot1Count: 61, depot2Count: 61 };
 
@@ -755,7 +757,13 @@
 
   window.switchOperatingDepot = function(num) {
     currentOperatingDepot = String(num);
+    try { sessionStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
     try { localStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('depot', currentOperatingDepot);
+      window.history.replaceState(null, '', url.toString());
+    } catch(e){}
     updateDepotUI();
     filterBuses();
   };
@@ -1540,7 +1548,7 @@
     if (e.key === LOCKED_KEY || e.key === CLEANING_HISTORY_KEY || e.key === ALLOCATED_DUTIES_KEY || e.key === DEPOT_ALLOCATED_KEY) {
       handleSyncCleaningState();
     }
-    if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot') {
+    if (e.key === 'depot_bus_assignments') {
       loadDepotAssignments();
       handleSyncCleaningState();
     }
