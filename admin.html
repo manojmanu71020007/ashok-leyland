@@ -453,10 +453,15 @@
         }
         .section-switch-buttons {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
         }
-        @media (max-width: 850px) {
+        @media (max-width: 1100px) {
+            .section-switch-buttons {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+        @media (max-width: 650px) {
             .section-switch-buttons {
                 grid-template-columns: 1fr;
             }
@@ -620,6 +625,165 @@
         }
         .section-nav-btn.btn-view-scheduled.active .btn-nav-chevron {
             color: #0369a1;
+        }
+
+        /* ── Button 4: Available Buses for Scheduling (Indigo/Violet Theme) ── */
+        .section-nav-btn.btn-view-available-scheduling:hover {
+            border-color: #c4b5fd;
+            background: #f5f3ff;
+        }
+        .section-nav-btn.btn-view-available-scheduling.active {
+            background: linear-gradient(135deg, #f5f3ff, #ede9fe);
+            border-color: #7c3aed;
+            box-shadow: 0 4px 18px rgba(124, 58, 237, 0.25);
+        }
+        .section-nav-btn.btn-view-available-scheduling.active .btn-nav-title {
+            color: #5b21b6;
+        }
+        .section-nav-btn.btn-view-available-scheduling.active .btn-nav-desc {
+            color: #6d28d9;
+        }
+        .section-nav-btn.btn-view-available-scheduling.active .btn-nav-pill {
+            background: #7c3aed;
+            color: #ffffff;
+            border-color: #6d28d9;
+        }
+        .section-nav-btn.btn-view-available-scheduling.active .btn-nav-chevron {
+            color: #5b21b6;
+        }
+
+        /* ── Available Buses for Scheduling Cards & Grid ── */
+        .avail-sched-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+            gap: 14px;
+            margin-top: 14px;
+        }
+        .avail-sched-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            position: relative;
+        }
+        .avail-sched-card:hover {
+            border-color: #7c3aed;
+            box-shadow: 0 8px 24px rgba(124, 58, 237, 0.12);
+            transform: translateY(-2px);
+        }
+        .avail-sched-card.selected {
+            border-color: #16a34a;
+            background: #f0fdf4;
+            box-shadow: 0 4px 16px rgba(22, 163, 74, 0.18);
+        }
+        .avail-sched-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+        .avail-sched-bm-wrap {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .avail-sched-bm {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+        .avail-sched-reg {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .avail-sched-soc-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .avail-sched-soc-bar-bg {
+            width: 100%;
+            height: 7px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .avail-sched-soc-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+        .avail-sched-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-size: 0.77rem;
+            border: 1px solid #f1f5f9;
+        }
+        .avail-sched-metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .avail-sched-metric-lbl {
+            color: #64748b;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        .avail-sched-metric-val {
+            color: #0f172a;
+            font-weight: 700;
+        }
+        .avail-sched-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: 2px;
+            padding-top: 9px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .btn-schedule-bus-act {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+            color: #ffffff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.22);
+        }
+        .btn-schedule-bus-act:hover {
+            background: linear-gradient(135deg, #6d28d9, #5b21b6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+        }
+        .avail-sched-badge-ready {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 700;
         }
 
         /* ── Section Views Container & Panels ── */
@@ -1886,6 +2050,20 @@
                         <span class="btn-nav-chevron">▼</span>
                     </div>
                 </button>
+
+                <button type="button" class="section-nav-btn btn-view-available-scheduling" id="btn-tab-available-scheduling" onclick="toggleFleetSection('available-scheduling')" data-target="view-panel-available-scheduling" role="tab" aria-selected="false" aria-controls="view-panel-available-scheduling">
+                    <div class="btn-nav-main">
+                        <span class="btn-nav-icon">⚡</span>
+                        <div class="btn-nav-meta">
+                            <span class="btn-nav-title" data-i18n="btn_nav_available_scheduling">Available Buses for Scheduling</span>
+                            <span class="btn-nav-desc" data-i18n="btn_nav_available_scheduling_desc">Available for Scheduling Only</span>
+                        </div>
+                    </div>
+                    <div class="btn-nav-end">
+                        <span class="btn-nav-pill" id="nav-count-available-scheduling">0</span>
+                        <span class="btn-nav-chevron">▼</span>
+                    </div>
+                </button>
             </div>
         </div>
 
@@ -2016,6 +2194,63 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Panel 4: Available Buses for Scheduling -->
+            <div id="view-panel-available-scheduling" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-available-scheduling">
+                <section class="panel" aria-label="Available buses for scheduling">
+                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:#6d28d9; margin:0;">⚡ Available Buses for Scheduling (<span id="available-scheduling-count">0</span>)</h2>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
+                                🛡️ Cleaning &amp; Charging Buses Strictly Excluded
+                            </span>
+                        </div>
+                    </div>
+                    <p class="panel-note" style="margin-bottom:12px;">
+                        Buses available strictly for scheduling and dispatch. Buses currently undergoing cleaning or charging protocols are strictly excluded.
+                    </p>
+
+                    <!-- Filter and sort controls -->
+                    <div class="sort-strip" style="flex-wrap:wrap;gap:10px;align-items:center;">
+                        <label style="display:inline-flex;align-items:center;gap:4px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                            Filter &amp; Sort:
+                        </label>
+                        <label>Category:
+                            <select id="avail-sched-filter-category" onchange="renderAvailableBusesForScheduling()">
+                                <option value="all">All Categories (A, B, C)</option>
+                                <option value="A">Category A (High Efficiency)</option>
+                                <option value="B">Category B (Standard)</option>
+                                <option value="C">Category C (Degraded / Reserve)</option>
+                            </select>
+                        </label>
+                        <label>Sort by:
+                            <select id="avail-sched-sort-by" onchange="renderAvailableBusesForScheduling()">
+                                <option value="soc-desc">Battery SOC (Highest → Lowest)</option>
+                                <option value="soc-asc">Battery SOC (Lowest → Highest)</option>
+                                <option value="bm-asc">BM Number (A → Z)</option>
+                                <option value="cat-asc">Category (A → B → C)</option>
+                            </select>
+                        </label>
+                        <label>Allocation Status:
+                            <select id="avail-sched-filter-status" onchange="renderAvailableBusesForScheduling()">
+                                <option value="unallocated">Ready to Schedule (Unassigned Only)</option>
+                                <option value="all-available">All Ready Fleet (Including Assigned)</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="region-search-wrap" style="margin-bottom:14px;">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input type="text" id="available-scheduling-search" class="region-search-input" placeholder="Search by BM number (e.g. BM153), Reg No (e.g. KA51AH4643), category..." autocomplete="off" spellcheck="false" oninput="renderAvailableBusesForScheduling()" />
+                        <button type="button" id="clear-avail-sched-search" class="clear-search-btn" title="Clear search" onclick="clearAvailableSchedulingSearch()" style="display:none;">✕</button>
+                    </div>
+
+                    <div id="available-scheduling-summary">
+                        <!-- Populated dynamically by JavaScript -->
                     </div>
                 </section>
             </div>
@@ -2262,7 +2497,7 @@
             }, 4500);
         }
 
-        // ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time) ──
+        // ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time, Available Buses for Scheduling) ──
         function getSectionPanelMap() {
             return {
                 "allocated": {
@@ -2276,6 +2511,10 @@
                 "scheduled": {
                     btn: document.getElementById("btn-tab-scheduled"),
                     panel: document.getElementById("view-panel-scheduled")
+                },
+                "available-scheduling": {
+                    btn: document.getElementById("btn-tab-available-scheduling"),
+                    panel: document.getElementById("view-panel-available-scheduling")
                 }
             };
         }
@@ -2315,6 +2554,8 @@
                     renderNotAllocatedList(lastNotAllocatedRoutes);
                 } else if (sectionKey === "scheduled" && typeof renderScheduledTime === "function") {
                     renderScheduledTime();
+                } else if (sectionKey === "available-scheduling" && typeof renderAvailableBusesForScheduling === "function") {
+                    renderAvailableBusesForScheduling();
                 }
             } catch (renderErr) {
                 console.warn("Could not re-render section on open:", renderErr);
@@ -2390,6 +2631,7 @@
                     if (typeof renderAllocatedList === "function") renderAllocatedList(lastAllocatedRoutes);
                     if (typeof renderNotAllocatedList === "function") renderNotAllocatedList(lastNotAllocatedRoutes);
                     if (typeof renderScheduledTime === "function") renderScheduledTime();
+                    if (typeof renderAvailableBusesForScheduling === "function") renderAvailableBusesForScheduling();
                 } catch (e) {}
             } else {
                 Object.values(panelMap).forEach(item => {
@@ -2415,6 +2657,7 @@
             const btnAllocated = document.getElementById("btn-tab-allocated");
             const btnNotAllocated = document.getElementById("btn-tab-not-allocated");
             const btnScheduled = document.getElementById("btn-tab-scheduled");
+            const btnAvailableScheduling = document.getElementById("btn-tab-available-scheduling");
             const btnToggleAll = document.getElementById("btn-toggle-all-sections");
 
             if (btnAllocated && !btnAllocated._bound) {
@@ -2429,11 +2672,251 @@
                 btnScheduled._bound = true;
                 btnScheduled.addEventListener("click", () => toggleFleetSection("scheduled"));
             }
+            if (btnAvailableScheduling && !btnAvailableScheduling._bound) {
+                btnAvailableScheduling._bound = true;
+                btnAvailableScheduling.addEventListener("click", () => toggleFleetSection("available-scheduling"));
+            }
             if (btnToggleAll && !btnToggleAll._bound) {
                 btnToggleAll._bound = true;
                 btnToggleAll.addEventListener("click", toggleAllFleetSections);
             }
         }
+
+        // ══════════════════════════════════════════════════════════════════════════
+        //  AVAILABLE BUSES FOR SCHEDULING (Excluding Cleaning & Charging Buses)
+        // ══════════════════════════════════════════════════════════════════════════
+        function getAvailableBusesForSchedulingList() {
+            const allFleetKeys = Object.keys(STATIC_BUS_CATEGORIES);
+            const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
+            if (!Array.isArray(allocatedDuties) && typeof loadAllocatedDuties === "function") {
+                allocatedDuties = loadAllocatedDuties();
+            }
+
+            const available = [];
+
+            allFleetKeys.forEach(bmKey => {
+                const bm = String(bmKey).toUpperCase().trim();
+                const regNo = typeof getBusRegNo === "function" ? getBusRegNo(bm) : "";
+
+                // 1. Strict Cleaning & Charging Lock check via getBusLockInfo
+                if (typeof getBusLockInfo === "function") {
+                    const lockInfo = getBusLockInfo(bm);
+                    if (lockInfo && lockInfo.isLocked) {
+                        // Bus is locked under cleaning, charging, or both -> STRICTLY EXCLUDE
+                        return;
+                    }
+                }
+
+                // 2. Direct check against lockedList items by BM and Registration plate
+                const isLockedDirect = (lockedList || []).some(item => {
+                    const lbm = String(item.bm || "").trim().toLowerCase();
+                    const lreg = String(item.reg || "").trim().toLowerCase();
+                    const bmL = bm.toLowerCase();
+                    const regL = regNo.toLowerCase();
+                    return (lbm && (lbm === bmL || bmL.includes(lbm) || lbm.includes(bmL))) ||
+                           (regL && lreg && (lreg === regL || regL.includes(lreg)));
+                });
+                if (isLockedDirect) return;
+
+                // 3. Check busStates charging and cleaning status
+                const bState = (typeof busStates !== "undefined" && busStates[bm]) ? busStates[bm] : {};
+                const chgStatus = String(bState.chargingStatus || bState.status || "").toLowerCase();
+                if (chgStatus.includes("charg") || chgStatus.includes("clean")) {
+                    return;
+                }
+
+                // 4. Condition check: broken or damaged buses cannot be scheduled
+                const cond = bState.condition || "Good";
+                if (String(cond).toLowerCase().includes("not good")) {
+                    return;
+                }
+
+                const liveSoc = typeof getBusSocByBm === "function" ? getBusSocByBm(bm) : 80;
+                const fullDutyKm = typeof calculateFullDutyDistance === "function" ? calculateFullDutyDistance(liveSoc) : 100;
+                const busCat = typeof getBusCategory === "function" ? getBusCategory(bm, liveSoc) : (STATIC_BUS_CATEGORIES[bm] || "B");
+                const allocatedDuty = typeof findAllocatedDutyForBm === "function" ? findAllocatedDutyForBm(bm, allocatedDuties) : null;
+
+                available.push({
+                    bm: bm,
+                    regNo: regNo,
+                    liveSoc: liveSoc,
+                    fullDutyKm: fullDutyKm,
+                    busCategory: busCat,
+                    condition: cond,
+                    driver: bState.driver || "Driver Assigned",
+                    isAllocated: Boolean(allocatedDuty),
+                    allocatedDuty: allocatedDuty
+                });
+            });
+
+            return available;
+        }
+
+        function renderAvailableBusesForScheduling() {
+            const container = document.getElementById("available-scheduling-summary");
+            const countEl = document.getElementById("available-scheduling-count");
+            const navPill = document.getElementById("nav-count-available-scheduling");
+            const clearBtn = document.getElementById("clear-avail-sched-search");
+            const searchInput = document.getElementById("available-scheduling-search");
+            const catFilter = document.getElementById("avail-sched-filter-category");
+            const statusFilter = document.getElementById("avail-sched-filter-status");
+            const sortBy = document.getElementById("avail-sched-sort-by");
+
+            const allAvailable = getAvailableBusesForSchedulingList();
+
+            // Update navigation pill count with all unassigned available buses
+            const unallocatedCount = allAvailable.filter(b => !b.isAllocated).length;
+            if (navPill) navPill.textContent = String(unallocatedCount);
+
+            if (!container) return;
+
+            const selectedCat = catFilter ? catFilter.value : "all";
+            const selectedStatus = statusFilter ? statusFilter.value : "unallocated";
+            const selectedSort = sortBy ? sortBy.value : "soc-desc";
+            const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+
+            if (clearBtn) clearBtn.style.display = query ? "inline-flex" : "none";
+
+            let filtered = allAvailable;
+
+            // Filter by allocation status
+            if (selectedStatus === "unallocated") {
+                filtered = filtered.filter(b => !b.isAllocated);
+            }
+
+            // Filter by category
+            if (selectedCat !== "all") {
+                filtered = filtered.filter(b => b.busCategory === selectedCat);
+            }
+
+            // Filter by search query
+            if (query) {
+                const cleanQ = query.replace(/[^a-z0-9]/g, "");
+                filtered = filtered.filter(b => {
+                    const bmClean = b.bm.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const regClean = (b.regNo || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const catClean = `category${b.busCategory.toLowerCase()}`;
+                    return bmClean.includes(cleanQ) || regClean.includes(cleanQ) || catClean.includes(cleanQ) || b.busCategory.toLowerCase() === query;
+                });
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (selectedSort === "soc-desc") return b.liveSoc - a.liveSoc;
+                if (selectedSort === "soc-asc") return a.liveSoc - b.liveSoc;
+                if (selectedSort === "bm-asc") return a.bm.localeCompare(b.bm, undefined, { numeric: true });
+                if (selectedSort === "cat-asc") {
+                    const order = { "A": 0, "B": 1, "C": 2 };
+                    return (order[a.busCategory] ?? 3) - (order[b.busCategory] ?? 3);
+                }
+                return 0;
+            });
+
+            if (countEl) countEl.textContent = String(filtered.length);
+
+            if (!filtered.length) {
+                container.innerHTML = `
+                    <div style="padding:28px 20px;text-align:center;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:12px;margin-top:10px;">
+                        <span style="font-size:2rem;display:block;margin-bottom:8px;">🔍</span>
+                        <strong style="color:#0f172a;font-size:0.95rem;display:block;">No available buses match your filter</strong>
+                        <p style="color:#64748b;font-size:0.82rem;margin:4px 0 0;">
+                            Try clearing your search query or selecting a different category. Note that buses selected for cleaning or charging are strictly excluded.
+                        </p>
+                    </div>`;
+                return;
+            }
+
+            const cardsHtml = filtered.map(bus => {
+                const catClass = bus.busCategory === "A" ? "cat-pill-a" : (bus.busCategory === "B" ? "cat-pill-b" : "cat-pill-c");
+                const socBarColor = bus.liveSoc >= 75 ? "#16a34a" : (bus.liveSoc >= 45 ? "#0284c7" : "#d97706");
+                const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
+
+                return `
+                    <div class="avail-sched-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}">
+                        <div class="avail-sched-top">
+                            <div class="avail-sched-bm-wrap">
+                                <span class="avail-sched-bm">🚌 ${escapeHtml(bus.bm)}</span>
+                                ${bus.regNo ? `<span class="avail-sched-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
+                                <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(bus.bm)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                            <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                        </div>
+
+                        <div class="avail-sched-soc-wrap">
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;">
+                                <span style="color:#64748b;font-weight:600;">Battery State of Charge</span>
+                                <strong style="color:${socBarColor};font-weight:800;">⚡ ${bus.liveSoc}%</strong>
+                            </div>
+                            <div class="avail-sched-soc-bar-bg">
+                                <div class="avail-sched-soc-bar-fill" style="width:${Math.min(100, Math.max(0, bus.liveSoc))}%;background:${socBarColor};"></div>
+                            </div>
+                        </div>
+
+                        <div class="avail-sched-metrics">
+                            <div class="avail-sched-metric-item">
+                                <span class="avail-sched-metric-lbl">Full Duty Range</span>
+                                <strong class="avail-sched-metric-val">📏 ${bus.fullDutyKm} km</strong>
+                            </div>
+                            <div class="avail-sched-metric-item">
+                                <span class="avail-sched-metric-lbl">Condition / Driver</span>
+                                <strong class="avail-sched-metric-val">✅ ${escapeHtml(bus.condition)}</strong>
+                            </div>
+                        </div>
+
+                        <div class="avail-sched-actions">
+                            ${bus.isAllocated ? `
+                                <span style="font-size:0.72rem;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:3px 8px;border-radius:6px;font-weight:700;">
+                                    🎯 Assigned (${escapeHtml(bus.allocatedDuty?.routeCode || 'Duty')})
+                                </span>
+                            ` : `
+                                <span class="avail-sched-badge-ready">
+                                    ● Ready for Dispatch
+                                </span>
+                            `}
+                            <button type="button" class="btn-schedule-bus-act" onclick="scheduleAvailableBus('${escapeHtml(bus.bm)}')">
+                                <span>⚡ Schedule Bus</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+            container.innerHTML = `<div class="avail-sched-grid">${cardsHtml}</div>`;
+        }
+
+        function clearAvailableSchedulingSearch() {
+            const input = document.getElementById("available-scheduling-search");
+            if (input) input.value = "";
+            renderAvailableBusesForScheduling();
+        }
+
+        function scheduleAvailableBus(bm) {
+            if (!bm) return;
+            selectBusForDepartureByBm(bm);
+            const reqSection = document.querySelector(".panel");
+            if (reqSection) reqSection.scrollIntoView({ behavior: "smooth", block: "start" });
+            const selectedRoute = routeSelect ? (routeSelect.options[routeSelect.selectedIndex]?.text || routeSelect.value) : "Selected Route";
+            showAllocationToast(`⚡ Bus ${bm} selected for departure on ${selectedRoute}! Review and confirm allocation.`, "success");
+        }
+
+        function updateAvailableSchedulingNavPill() {
+            const navPill = document.getElementById("nav-count-available-scheduling");
+            if (navPill && typeof getAvailableBusesForSchedulingList === "function") {
+                const list = getAvailableBusesForSchedulingList();
+                const unassigned = list.filter(b => !b.isAllocated).length;
+                navPill.textContent = String(unassigned);
+            }
+        }
+
+        window.renderAvailableBusesForScheduling = renderAvailableBusesForScheduling;
+        window.clearAvailableSchedulingSearch = clearAvailableSchedulingSearch;
+        window.scheduleAvailableBus = scheduleAvailableBus;
 
         // Initialize immediately and also on DOMContentLoaded
         if (document.readyState === "loading") {
@@ -4753,6 +5236,13 @@ let busCategoriesMap = new Map();
             if (navSchedPill) {
                 navSchedPill.textContent = String(augmentedRoutes.length);
             }
+            if (typeof updateAvailableSchedulingNavPill === "function") {
+                updateAvailableSchedulingNavPill();
+            }
+            const availSchedPanel = document.getElementById("view-panel-available-scheduling");
+            if (availSchedPanel && availSchedPanel.style.display !== "none" && typeof renderAvailableBusesForScheduling === "function") {
+                renderAvailableBusesForScheduling();
+            }
 
             let routesToDisplay = augmentedRoutes;
             if (scheduledFilter === "allocated") {
@@ -6528,6 +7018,13 @@ let busCategoriesMap = new Map();
                 const searchInput = document.getElementById("locked-bus-search-input");
                 renderLockedBusesModalContent(searchInput ? searchInput.value : "");
             }
+            const availSchedPanel = document.getElementById("view-panel-available-scheduling");
+            if (availSchedPanel && availSchedPanel.style.display !== "none" && typeof renderAvailableBusesForScheduling === "function") {
+                renderAvailableBusesForScheduling();
+            }
+            if (typeof updateAvailableSchedulingNavPill === "function") {
+                updateAvailableSchedulingNavPill();
+            }
         }
 
         // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated, or allocated in AD portal)
@@ -6538,6 +7035,13 @@ let busCategoriesMap = new Map();
                 if (lockedBackdrop && lockedBackdrop.style.display === "flex") {
                     const searchInput = document.getElementById("locked-bus-search-input");
                     renderLockedBusesModalContent(searchInput ? searchInput.value : "");
+                }
+                const availSchedPanel = document.getElementById("view-panel-available-scheduling");
+                if (availSchedPanel && availSchedPanel.style.display !== "none" && typeof renderAvailableBusesForScheduling === "function") {
+                    renderAvailableBusesForScheduling();
+                }
+                if (typeof updateAvailableSchedulingNavPill === "function") {
+                    updateAvailableSchedulingNavPill();
                 }
             }
             if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {

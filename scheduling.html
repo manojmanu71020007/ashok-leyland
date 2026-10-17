@@ -695,23 +695,25 @@
 </head>
 <body>
     <main class="shell">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+            <a href="/login.html" style="display:inline-flex;align-items:center;gap:6px;font-size:0.88rem;font-weight:700;color:var(--blue);text-decoration:none;" data-i18n="nav_back_portal">← Back to Portal</a>
+            <div class="lang-selector-wrap" id="lang-selector-wrap">
+                <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+                <select id="lang-select" class="lang-select" aria-label="Select Language">
+                    <option value="en">English</option>
+                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                    <option value="hi">हिन्दी (Hindi)</option>
+                    <option value="te">తెలుగు (Telugu)</option>
+                    <option value="ta">தமிழ் (Tamil)</option>
+                </select>
+            </div>
+        </div>
+
         <header class="topbar">
             <div>
                 <div class="eyebrow" data-i18n="depot_chandapura_eyebrow">BMTC Depot 32 • Chandapura</div>
                 <h1 data-i18n="smart_allocation_title">Smart Bus Allocation</h1>
                 <p class="subtitle" data-i18n="smart_allocation_subtitle">Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC.</p>
-            </div>
-            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;">
-                <div class="lang-selector-wrap" id="lang-selector-wrap">
-                    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
-                    <select id="lang-select" class="lang-select" aria-label="Select Language">
-                        <option value="en">English</option>
-                        <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                        <option value="hi">हिन्दी (Hindi)</option>
-                        <option value="te">తెలుగు (Telugu)</option>
-                        <option value="ta">தமிழ் (Tamil)</option>
-                    </select>
-                </div>
             </div>
         </header>
 
@@ -760,6 +762,17 @@
                         <span data-i18n="label_route_length">Schedule distance (km)</span>
                         <input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data">
                     </label>
+                </div>
+
+                <!-- ── Available Buses for Scheduling Bar ── -->
+                <div class="avail-scheduling-bar" style="margin: 14px 0 10px 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                    <button type="button" id="btn-avail-scheduling-modal" class="btn-avail-scheduling-quick" onclick="openAvailableSchedulingModal()" style="display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg, #7c3aed, #6d28d9); color:#ffffff; border:none; padding:9px 16px; border-radius:10px; font-weight:700; font-size:0.83rem; cursor:pointer; box-shadow:0 2px 8px rgba(124, 58, 237, 0.25); transition:all 0.2s;">
+                        <span>⚡ Available Buses for Scheduling</span>
+                        <span id="scheduling-avail-badge" style="background:rgba(255,255,255,0.25); padding:2px 8px; border-radius:10px; font-size:0.75rem;">0 Available</span>
+                    </button>
+                    <span style="font-size:0.75rem; color:#059669; font-weight:700; background:#ecfdf5; border:1px solid #a7f3d0; padding:4px 10px; border-radius:8px;">
+                        🛡️ Cleaning &amp; Charging Buses Excluded
+                    </span>
                 </div>
 
                 <!-- ── Candidate Buses for Selected Route & Time (2 to 3 Buses) ── -->
@@ -824,6 +837,43 @@
 
     <!-- Allocation Toast -->
     <div id="allocation-toast" class="allocation-toast"></div>
+
+    <!-- ── Available Buses for Scheduling Modal Dialog ── -->
+    <div id="avail-scheduling-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center;" onclick="if(event.target===this)closeAvailableSchedulingModal()">
+        <div class="modal-dialog" style="max-width:880px; width:92%; max-height:85vh; background:#fff; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3);" role="dialog" aria-modal="true">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                <div>
+                    <h2 style="margin:0; font-size:1.25rem; color:#5b21b6; display:flex; align-items:center; gap:8px;">
+                        <span>⚡ Available Buses for Scheduling</span>
+                        <span id="modal-avail-count-badge" style="background:#ede9fe; color:#6d28d9; font-size:.8rem; padding:2px 10px; border-radius:12px; font-weight:800;">0</span>
+                    </h2>
+                    <p style="margin:4px 0 0; color:var(--muted); font-size:.8rem;">
+                        Buses available for scheduling purpose only. Buses selected for cleaning or charging are strictly excluded.
+                    </p>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeAvailableSchedulingModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;" aria-label="Close">✕</button>
+            </div>
+
+            <div style="padding:14px 24px; border-bottom:1px solid #f1f5f9; background:#fff; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                <input type="text" id="sched-modal-search" placeholder="Search by BM number, Reg No, category..." style="flex:1; min-width:200px; padding:8px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" oninput="renderModalAvailableBuses()" />
+                <select id="sched-modal-cat" style="padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" onchange="renderModalAvailableBuses()">
+                    <option value="all">All Categories</option>
+                    <option value="A">Category A</option>
+                    <option value="B">Category B</option>
+                    <option value="C">Category C</option>
+                </select>
+                <select id="sched-modal-sort" style="padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" onchange="renderModalAvailableBuses()">
+                    <option value="soc-desc">Battery SOC (Highest First)</option>
+                    <option value="soc-asc">Battery SOC (Lowest First)</option>
+                    <option value="bm-asc">BM Number (A → Z)</option>
+                </select>
+            </div>
+
+            <div id="sched-modal-body" style="padding:18px 24px; overflow-y:auto; flex:1; max-height:calc(85vh - 160px);">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+    </div>
 
     <script>
         const routeSelect = document.getElementById("route-select");
@@ -1018,6 +1068,16 @@
             } catch (e) {
                 console.warn("Could not save allocated duties to localStorage:", e);
             }
+            try {
+                const bc = new BroadcastChannel('depot_operations_sync');
+                bc.postMessage({
+                    type: 'ALLOCATED_DUTIES_UPDATED',
+                    action: 'allocated_duties_updated',
+                    count: (duties || []).length,
+                    time: Date.now()
+                });
+                bc.close();
+            } catch (e) {}
             if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === 'function') {
                 window.DepotSyncEngine.saveAllocatedDuties(duties);
             } else {
@@ -2313,6 +2373,9 @@
                 }
             }
             updateManualOverrideUI();
+            if (typeof updateSchedulingAvailBadge === "function") {
+                updateSchedulingAvailBadge();
+            }
         }
 
         function populateRouteDropdown(filterText = "") {
@@ -2656,11 +2719,173 @@
             };
         } catch(e) {}
 
+        // ══════════════════════════════════════════════════════════════════════════
+        //  AVAILABLE BUSES FOR SCHEDULING (Excluding Cleaning & Charging Buses)
+        // ══════════════════════════════════════════════════════════════════════════
+        function getModalAvailableBusesList() {
+            const allFleetKeys = Object.keys(STATIC_BUS_CATEGORIES);
+            const locked = JSON.parse(localStorage.getItem('depot_locked_buses') || '[]');
+            const allocated = JSON.parse(localStorage.getItem('smartbus_allocated_duties') || '[]');
+
+            const available = [];
+            allFleetKeys.forEach(bmKey => {
+                const bm = String(bmKey).toUpperCase().trim();
+
+                // Lock check (cleaning or charging)
+                const isLocked = locked.some(x => {
+                    const lbm = String(x.bm || '').toUpperCase();
+                    return lbm === bm || lbm.includes(bm) || bm.includes(lbm);
+                });
+                if (isLocked) return;
+
+                // Charging state check
+                const bState = (typeof busStates !== 'undefined' && busStates[bm]) ? busStates[bm] : {};
+                const chgStatus = String(bState.chargingStatus || bState.status || '').toLowerCase();
+                if (chgStatus.includes('charg') || chgStatus.includes('clean')) return;
+
+                // Defect condition check
+                if (String(bState.condition || '').toLowerCase().includes('not good')) return;
+
+                const liveSoc = typeof getBusSocByBm === 'function' ? getBusSocByBm(bm) : 80;
+                const fullDutyKm = typeof calculateFullDutyDistance === 'function' ? calculateFullDutyDistance(liveSoc) : 100;
+                const cat = typeof getBusCategory === 'function' ? getBusCategory(bm, liveSoc) : 'B';
+                const regNo = typeof getBusRegNo === 'function' ? getBusRegNo(bm) : '';
+                const isAllocated = allocated.some(d => String(d.bm || '').toUpperCase() === bm);
+
+                available.push({
+                    bm,
+                    regNo,
+                    liveSoc,
+                    fullDutyKm,
+                    busCategory: cat,
+                    isAllocated
+                });
+            });
+
+            return available;
+        }
+
+        function openAvailableSchedulingModal() {
+            const backdrop = document.getElementById("avail-scheduling-modal-backdrop");
+            if (backdrop) {
+                backdrop.style.display = "flex";
+                renderModalAvailableBuses();
+            }
+        }
+
+        function closeAvailableSchedulingModal() {
+            const backdrop = document.getElementById("avail-scheduling-modal-backdrop");
+            if (backdrop) backdrop.style.display = "none";
+        }
+
+        function renderModalAvailableBuses() {
+            const body = document.getElementById("sched-modal-body");
+            const countBadge = document.getElementById("modal-avail-count-badge");
+            const btnBadge = document.getElementById("scheduling-avail-badge");
+            const searchInput = document.getElementById("sched-modal-search");
+            const catSelect = document.getElementById("sched-modal-cat");
+            const sortSelect = document.getElementById("sched-modal-sort");
+
+            if (!body) return;
+
+            const allList = getModalAvailableBusesList();
+            const unallocatedCount = allList.filter(b => !b.isAllocated).length;
+            if (btnBadge) btnBadge.textContent = `${unallocatedCount} Available`;
+
+            const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+            const cat = catSelect ? catSelect.value : "all";
+            const sort = sortSelect ? sortSelect.value : "soc-desc";
+
+            let filtered = allList.filter(b => !b.isAllocated);
+            if (cat !== "all") filtered = filtered.filter(b => b.busCategory === cat);
+            if (query) {
+                filtered = filtered.filter(b => {
+                    const bm = b.bm.toLowerCase();
+                    const reg = (b.regNo || "").toLowerCase();
+                    return bm.includes(query) || reg.includes(query);
+                });
+            }
+
+            filtered.sort((a, b) => {
+                if (sort === "soc-desc") return b.liveSoc - a.liveSoc;
+                if (sort === "soc-asc") return a.liveSoc - b.liveSoc;
+                if (sort === "bm-asc") return a.bm.localeCompare(b.bm, undefined, { numeric: true });
+                return 0;
+            });
+
+            if (countBadge) countBadge.textContent = String(filtered.length);
+
+            if (!filtered.length) {
+                body.innerHTML = `
+                    <div style="padding:32px 16px;text-align:center;color:#64748b;">
+                        <span style="font-size:2rem;display:block;margin-bottom:6px;">🔍</span>
+                        <strong>No available buses match your criteria</strong>
+                        <p style="margin:4px 0 0;font-size:0.8rem;">Buses currently selected for cleaning or charging are strictly excluded.</p>
+                    </div>`;
+                return;
+            }
+
+            body.innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));gap:12px;">
+                    ${filtered.map(b => {
+                        const catClass = b.busCategory === 'A' ? 'cat-pill-a' : (b.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
+                        const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === b.bm;
+                        return `
+                            <div style="background:#fff;border:1.5px solid ${isSelected ? '#16a34a' : '#e2e8f0'};border-radius:12px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.03);display:flex;flex-direction:column;gap:8px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;">
+                                    <div>
+                                        <strong style="font-size:1rem;color:#0f172a;">🚌 ${escapeHtml(b.bm)}</strong>
+                                        ${b.regNo ? `<span style="font-size:0.75rem;color:#64748b;margin-left:4px;">(${escapeHtml(b.regNo)})</span>` : ''}
+                                    </div>
+                                    <span class="cat-pill ${catClass}">Cat ${escapeHtml(b.busCategory)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.78rem;background:#f8fafc;padding:6px 10px;border-radius:6px;">
+                                    <span>Battery SoC: <strong style="color:#16a34a;">⚡ ${b.liveSoc}%</strong></span>
+                                    <span>Range: <strong>${b.fullDutyKm} km</strong></span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
+                                    <span style="font-size:0.72rem;color:#065f46;font-weight:700;">● Ready for Dispatch</span>
+                                    <button type="button" onclick="selectModalAvailableBus('${escapeHtml(b.bm)}')" style="background:linear-gradient(135deg, #7c3aed, #6d28d9);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;">
+                                        ${isSelected ? '✓ Selected' : 'Select Bus ➔'}
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join("")}
+                </div>
+            `;
+        }
+
+        function selectModalAvailableBus(bm) {
+            if (!bm) return;
+            selectCandidateBus(bm);
+            closeAvailableSchedulingModal();
+            showAllocationToast(`⚡ Bus ${bm} selected for departure schedule!`, "success");
+        }
+
+        function updateSchedulingAvailBadge() {
+            const btnBadge = document.getElementById("scheduling-avail-badge");
+            if (btnBadge && typeof getModalAvailableBusesList === 'function') {
+                const list = getModalAvailableBusesList();
+                const unallocatedCount = list.filter(b => !b.isAllocated).length;
+                btnBadge.textContent = `${unallocatedCount} Available`;
+            }
+        }
+
+        window.openAvailableSchedulingModal = openAvailableSchedulingModal;
+        window.closeAvailableSchedulingModal = closeAvailableSchedulingModal;
+        window.renderModalAvailableBuses = renderModalAvailableBuses;
+        window.selectModalAvailableBus = selectModalAvailableBus;
 
         async function handleSyncStateUpdate() {
             syncLocalStorageBusStates();
             allocatedDuties = loadAllocatedDuties();
             await recommend();
+            updateSchedulingAvailBadge();
+            const modalBackdrop = document.getElementById("avail-scheduling-modal-backdrop");
+            if (modalBackdrop && modalBackdrop.style.display === "flex") {
+                renderModalAvailableBuses();
+            }
         }
 
         // Auto-refresh when localStorage changes in another tab (e.g. SOC submitted in charging portal)
@@ -2677,6 +2902,17 @@
             window.DepotSyncEngine.on('locked-buses', handleSyncStateUpdate);
             window.DepotSyncEngine.on('sync', handleSyncStateUpdate);
         }
+
+        // Real-time broadcast channel sync with Depot Operations & Charging
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.onmessage = async (ev) => {
+                const msgType = String(ev.data?.type || '').toUpperCase();
+                if (msgType === 'ROUTE_COMPLETED' || msgType === 'DEPOT_CHANGED' || msgType === 'ALLOCATED_DUTIES_UPDATED') {
+                    await handleSyncStateUpdate();
+                }
+            };
+        } catch(e) {}
 
         // Auto-sync when switching back to this tab
         window.addEventListener('focus', async () => {

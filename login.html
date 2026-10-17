@@ -430,14 +430,240 @@
             background: #f9fafb;
             border-color: #9ca3af;
         }
+
+        /* ── Top Left 3 Parallel Lines (Depot Menu) ── */
+        .depot-hamburger-btn {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1.5px solid rgba(255, 255, 255, 0.32);
+            border-radius: 12px;
+            display: inline-flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            padding: 0;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+        }
+        .depot-hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.26);
+            border-color: rgba(255, 255, 255, 0.55);
+            transform: translateY(-1px);
+        }
+        .depot-hamburger-btn .hamburger-bar {
+            width: 20px;
+            height: 2.5px;
+            background-color: #ffffff;
+            border-radius: 2px;
+            display: block;
+            transition: all 0.2s ease;
+        }
+
+        .depot-active-chip {
+            background: rgba(255, 255, 255, 0.14);
+            border: 1.5px solid rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+            padding: 7px 14px;
+            border-radius: 12px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: all 0.2s ease;
+        }
+        .depot-active-chip:hover {
+            background: rgba(255, 255, 255, 0.24);
+            border-color: rgba(255, 255, 255, 0.45);
+        }
+
+        /* ── Depot Drawer & Backdrop ── */
+        .depot-drawer-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            z-index: 9998;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .depot-drawer-backdrop.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .depot-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 330px;
+            max-width: 86vw;
+            background: #ffffff;
+            box-shadow: 12px 0 35px rgba(0, 0, 0, 0.35);
+            z-index: 9999;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        .depot-drawer.show {
+            transform: translateX(0);
+        }
+
+        .depot-drawer-header {
+            padding: 20px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+        .depot-drawer-close {
+            background: none;
+            border: 1px solid #cbd5e1;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+        }
+        .depot-drawer-close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .depot-drawer-body {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .depot-select-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 16px;
+            cursor: pointer;
+            background: #ffffff;
+            transition: all 0.2s ease;
+        }
+        .depot-select-card:hover {
+            border-color: #3b82f6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
+        }
+        .depot-select-card.active {
+            border-color: #2563eb;
+            background: #f0f7ff;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
+        }
+
+        .depot-card-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .depot-number-badge {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: #2563eb;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+        }
+        .depot-status-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: #dcfce7;
+            color: #166534;
+        }
+        .depot-card-stat {
+            font-size: 0.85rem;
+            color: #475569;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            background: rgba(241, 245, 249, 0.7);
+            border-radius: 10px;
+        }
+        .depot-selected-check {
+            font-size: 0.78rem;
+            font-weight: 800;
+            color: #2563eb;
+            background: #dbeafe;
+            padding: 3px 10px;
+            border-radius: 999px;
+        }
+
+        .depot-drawer-footer {
+            padding: 16px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .quick-tile {
+            background: rgba(255, 255, 255, 0.10);
+            border: 1.5px solid rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+            padding: 16px 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
     </style>
     <script src="i18n.js"></script>
+    <script src="sync-engine.js"></script>
 </head>
 <body>
 <main class="page-wrapper">
 
-    <!-- ── Language Selector Header ── -->
-    <div style="width:100%;display:flex;justify-content:flex-end;margin-bottom:14px;">
+    <!-- ── Top Header: 3 Parallel Lines (Depot Menu), Active Chip & Language Selector ── -->
+    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <!-- 3 Parallel Lines Button -->
+            <button id="depotHamburgerBtn" class="depot-hamburger-btn" type="button" aria-label="Select Depot Menu" title="Click to Select Depot" onclick="toggleDepotDrawer()">
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+                <span class="hamburger-bar"></span>
+            </button>
+            <!-- Selected depot indicator chip -->
+            <button id="depotActiveChip" class="depot-active-chip" type="button" onclick="toggleDepotDrawer()" title="Switch Depot">
+                <span id="depotActiveChipText">🏢 Depot 1 (61 Buses)</span>
+                <span style="font-size:0.75rem;opacity:0.8;">▾</span>
+            </button>
+        </div>
+
         <div class="lang-selector-wrap" id="lang-selector-wrap">
             <span class="lang-globe-icon" aria-hidden="true">🌐</span>
             <select id="lang-select" class="lang-select" aria-label="Select Language">
@@ -450,43 +676,122 @@
         </div>
     </div>
 
+    <!-- ── Depot Selection Drawer & Backdrop ── -->
+    <div id="depotDrawerBackdrop" class="depot-drawer-backdrop" onclick="closeDepotDrawer()"></div>
+    <aside id="depotDrawer" class="depot-drawer" aria-label="Depot Selection Drawer">
+        <div class="depot-drawer-header">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:1.5rem;">🏢</span>
+                <div>
+                    <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#0f172a;">Select Depot</h3>
+                    <p style="margin:2px 0 0;font-size:0.74rem;color:#64748b;">Choose depot to reveal its fleet & quick actions</p>
+                </div>
+            </div>
+            <button type="button" class="depot-drawer-close" onclick="closeDepotDrawer()" aria-label="Close">✕</button>
+        </div>
+
+        <div class="depot-drawer-body">
+            <!-- Depot 1 Option -->
+            <div id="depotCard1" class="depot-select-card" onclick="chooseDepot('1')">
+                <div class="depot-card-top">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="depot-number-badge">1</span>
+                        <div>
+                            <div style="font-weight:800;font-size:1.05rem;color:#0f172a;">Depot 1</div>
+                            <div style="font-size:0.75rem;color:#64748b;">Facility & Assigned Fleet</div>
+                        </div>
+                    </div>
+                    <span id="depot1StatusBadge" class="depot-status-badge">Active</span>
+                </div>
+                <div class="depot-card-stat">
+                    <span>Total Buses:</span>
+                    <strong id="drawerDepot1Count" style="color:#2563eb;font-size:1.05rem;">61 Buses</strong>
+                </div>
+                <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.75rem;color:#059669;font-weight:700;">🟢 Fast Charging & Ops Ready</span>
+                    <span id="depot1Check" class="depot-selected-check">✓ Active</span>
+                </div>
+            </div>
+
+            <!-- Depot 2 Option -->
+            <div id="depotCard2" class="depot-select-card" onclick="chooseDepot('2')">
+                <div class="depot-card-top">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                        <span class="depot-number-badge" style="background:#7c3aed;">2</span>
+                        <div>
+                            <div style="font-weight:800;font-size:1.05rem;color:#0f172a;">Depot 2</div>
+                            <div style="font-size:0.75rem;color:#64748b;">Facility & Assigned Fleet</div>
+                        </div>
+                    </div>
+                    <span id="depot2StatusBadge" class="depot-status-badge">Active</span>
+                </div>
+                <div class="depot-card-stat">
+                    <span>Total Buses:</span>
+                    <strong id="drawerDepot2Count" style="color:#7c3aed;font-size:1.05rem;">61 Buses</strong>
+                </div>
+                <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.75rem;color:#059669;font-weight:700;">🟢 Fast Charging & Ops Ready</span>
+                    <span id="depot2Check" class="depot-selected-check" style="display:none;">✓ Active</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="depot-drawer-footer">
+            <div style="font-size:0.78rem;color:#64748b;text-align:center;">
+                Total Fleet Across Depots: <strong id="drawerTotalCount" style="color:#0f172a;">122 Buses</strong>
+            </div>
+        </div>
+    </aside>
+
     <!-- ── Quick Access Portal Tiles ── -->
     <div style="width:100%;margin-bottom:22px;">
-        <p style="color:rgba(255,255,255,0.65);font-size:0.82rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:12px;text-align:center;" data-i18n="quick_access_portal">Quick Access Portal</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px;">
+            <p id="quickPortalTitle" style="color:rgba(255,255,255,0.85);font-size:0.82rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin:0;">
+                ⚡ Depot <span id="quickDepotNum">1</span> Quick Actions
+            </p>
+            <span id="quickDepotBadge" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:0.75rem;padding:3px 10px;border-radius:999px;font-weight:800;backdrop-filter:blur(6px);">
+                <span id="quickBusCount">61</span> Buses
+            </span>
+        </div>
+
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(105px, 1fr));gap:10px;">
-            <a href="/public/charging.html" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+            <!-- Charging Tile -->
+            <a id="linkCharging" href="/public/charging.html?depot=1" style="text-decoration:none;">
+                <div class="quick-tile"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">⚡</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_charging">Charging</div>
+                    <div id="tileChargingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Charging 1</div>
                     <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_charging_sub">Log sessions</div>
                 </div>
             </a>
-            <a href="/public/cleaning.html" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.10);border:1.5px solid rgba(255,255,255,0.18);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+            <!-- Cleaning Tile -->
+            <a id="linkCleaning" href="/public/cleaning.html?depot=1" style="text-decoration:none;">
+                <div class="quick-tile"
                      onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🧹</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_cleaning">Cleaning</div>
+                    <div id="tileCleaningText" style="color:#fff;font-weight:700;font-size:0.92rem;">Cleaning 1</div>
                     <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_cleaning_sub">Status record</div>
                 </div>
             </a>
-            <a href="/scheduling" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(14,165,233,0.45);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+            <!-- Scheduling Tile (Separate Standalone Portal) -->
+            <a id="linkScheduling" href="/scheduling" style="text-decoration:none;">
+                <div class="quick-tile" style="border-color:rgba(14,165,233,0.45);background:rgba(255,255,255,0.12);"
                      onmouseover="this.style.background='rgba(14,165,233,0.22)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🎯</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_scheduling">Scheduling</div>
+                    <div id="tileSchedulingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Scheduling</div>
                     <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_scheduling_sub">Smart allocation</div>
                 </div>
             </a>
-            <a href="/public/depot-operations.html" style="text-decoration:none;">
-                <div style="background:rgba(255,255,255,0.12);border:1.5px solid rgba(168,85,247,0.45);border-radius:18px;padding:16px 12px;text-align:center;cursor:pointer;transition:background 0.2s,transform 0.2s;backdrop-filter:blur(10px);"
+            <!-- Depot Ops Tile -->
+            <a id="linkDepotOps" href="/public/depot-operations.html?depot=1" style="text-decoration:none;">
+                <div class="quick-tile" style="border-color:rgba(168,85,247,0.45);background:rgba(255,255,255,0.12);"
                      onmouseover="this.style.background='rgba(168,85,247,0.22)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🚍</div>
-                    <div style="color:#fff;font-weight:700;font-size:0.92rem;" data-i18n="tile_depot_ops">Depot Ops</div>
+                    <div id="tileDepotOpsText" style="color:#fff;font-weight:700;font-size:0.92rem;">Depot Ops 1</div>
                     <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_depot_ops_sub">Route complete</div>
                 </div>
             </a>
@@ -1213,6 +1518,158 @@
         fill.style.background = val.length ? colors[score - 1] || colors[0] : "#e5e7eb";
         label.textContent   = val.length ? labels[score - 1] || labels[0] : "";
     });
+
+    // ══════════════════════════════════════════════════════════════════════════
+    //  DEPOT FLEET & QUICK ACTIONS CONTROLLER
+    // ══════════════════════════════════════════════════════════════════════════
+    let selectedDepot = localStorage.getItem('selected_depot') || '1';
+    let depotCounts = { depot1Count: 61, depot2Count: 61 };
+
+    window.toggleDepotDrawer = function() {
+        const drawer = document.getElementById('depotDrawer');
+        if (drawer && drawer.classList.contains('show')) {
+            window.closeDepotDrawer();
+        } else {
+            window.openDepotDrawer();
+        }
+    };
+
+    window.openDepotDrawer = function() {
+        updateDepotDrawerUI();
+        document.getElementById('depotDrawer')?.classList.add('show');
+        document.getElementById('depotDrawerBackdrop')?.classList.add('show');
+    };
+
+    window.closeDepotDrawer = function() {
+        document.getElementById('depotDrawer')?.classList.remove('show');
+        document.getElementById('depotDrawerBackdrop')?.classList.remove('show');
+    };
+
+    window.chooseDepot = function(num) {
+        selectedDepot = String(num);
+        try { localStorage.setItem('selected_depot', selectedDepot); } catch(e){}
+        updateQuickActionsUI();
+        updateDepotDrawerUI();
+        window.closeDepotDrawer();
+    };
+
+    function updateQuickActionsUI() {
+        const num = selectedDepot || '1';
+        const count = (num === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
+
+        // Top chip
+        const chipText = document.getElementById('depotActiveChipText');
+        if (chipText) chipText.textContent = `🏢 Depot ${num} (${count} Buses)`;
+
+        // Quick Portal Title & Count
+        const qNum = document.getElementById('quickDepotNum');
+        if (qNum) qNum.textContent = num;
+        const qCount = document.getElementById('quickBusCount');
+        if (qCount) qCount.textContent = count;
+
+        // Quick Action Tiles
+        const chgText = document.getElementById('tileChargingText');
+        if (chgText) chgText.textContent = `Charging ${num}`;
+        const clnText = document.getElementById('tileCleaningText');
+        if (clnText) clnText.textContent = `Cleaning ${num}`;
+        const schText = document.getElementById('tileSchedulingText');
+        if (schText) schText.textContent = `Scheduling`;
+        const dopsText = document.getElementById('tileDepotOpsText');
+        if (dopsText) dopsText.textContent = `Depot Ops ${num}`;
+
+        // Link Hrefs with depot param
+        const lChg = document.getElementById('linkCharging');
+        if (lChg) lChg.href = `/public/charging.html?depot=${num}`;
+        const lCln = document.getElementById('linkCleaning');
+        if (lCln) lCln.href = `/public/cleaning.html?depot=${num}`;
+        const lSch = document.getElementById('linkScheduling');
+        if (lSch) lSch.href = `/scheduling`;
+        const lOps = document.getElementById('linkDepotOps');
+        if (lOps) lOps.href = `/public/depot-operations.html?depot=${num}`;
+    }
+
+    function updateDepotDrawerUI() {
+        const card1 = document.getElementById('depotCard1');
+        const card2 = document.getElementById('depotCard2');
+        const check1 = document.getElementById('depot1Check');
+        const check2 = document.getElementById('depot2Check');
+
+        if (card1 && card2) {
+            if (selectedDepot === '2') {
+                card1.classList.remove('active');
+                card2.classList.add('active');
+                if (check1) check1.style.display = 'none';
+                if (check2) check2.style.display = 'inline-block';
+            } else {
+                card1.classList.add('active');
+                card2.classList.remove('active');
+                if (check1) check1.style.display = 'inline-block';
+                if (check2) check2.style.display = 'none';
+            }
+        }
+
+        const d1c = document.getElementById('drawerDepot1Count');
+        if (d1c) d1c.textContent = `${depotCounts.depot1Count} Buses`;
+        const d2c = document.getElementById('drawerDepot2Count');
+        if (d2c) d2c.textContent = `${depotCounts.depot2Count} Buses`;
+        const tc = document.getElementById('drawerTotalCount');
+        if (tc) tc.textContent = `${depotCounts.depot1Count + depotCounts.depot2Count} Buses`;
+    }
+
+    async function fetchDepotCounts() {
+        try {
+            const res = await fetch('/api/depot-state');
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.ok) {
+                    depotCounts.depot1Count = data.depot1Count || 61;
+                    depotCounts.depot2Count = data.depot2Count || 61;
+                    if (data.assignments) {
+                        try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+                    }
+                    updateQuickActionsUI();
+                    updateDepotDrawerUI();
+                    return;
+                }
+            }
+        } catch (e) {}
+
+        // Fallback to local storage or sync engine
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
+            const counts = window.DepotSyncEngine.getDepotCounts();
+            depotCounts = counts;
+            updateQuickActionsUI();
+            updateDepotDrawerUI();
+        }
+    }
+
+    // Real-time synchronization across tabs and server
+    try {
+        const bc = new BroadcastChannel('depot_operations_sync');
+        bc.onmessage = () => { fetchDepotCounts(); };
+    } catch(e) {}
+
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot') {
+            if (e.key === 'selected_depot' && e.newValue) selectedDepot = e.newValue;
+            fetchDepotCounts();
+        }
+    });
+
+    if (window.DepotSyncEngine) {
+        window.DepotSyncEngine.on('depot-updated', (data) => {
+            if (data && data.depot1Count !== undefined) {
+                depotCounts.depot1Count = data.depot1Count;
+                depotCounts.depot2Count = data.depot2Count;
+            }
+            updateQuickActionsUI();
+            updateDepotDrawerUI();
+        });
+    }
+
+    // Init depot UI immediately
+    updateQuickActionsUI();
+    fetchDepotCounts();
 </script>
 </body>
 </html>

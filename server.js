@@ -1250,9 +1250,44 @@ async function restoreBusStateFromGitHub() {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
+function getDefaultDepotAssignments() {
+    const assignments = {};
+    try {
+        if (fs.existsSync(VEHICLES_FILE)) {
+            const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).slice(1).filter(Boolean);
+            const bms = lines.map(l => (l.split(",")[0] || "").trim()).filter(Boolean);
+            const mid = Math.ceil(bms.length / 2);
+            bms.forEach((bm, idx) => {
+                assignments[bm.toUpperCase()] = idx < mid ? "1" : "2";
+            });
+            return assignments;
+        }
+    } catch (e) {
+        console.warn("Could not read vehicles file for default depot assignments:", e.message);
+    }
+    return {};
+}
+
+function getDepotCounts(assignments) {
+    let d1Count = 0;
+    let d2Count = 0;
+    const map = assignments || {};
+    for (const bm of Object.keys(map)) {
+        if (String(map[bm]) === "2") d2Count++;
+        else d1Count++;
+    }
+    return { depot1Count: d1Count, depot2Count: d2Count, total: d1Count + d2Count };
+}
+
 function loadBusState() {
     const state = readJsonFile(BUS_STATE_FILE, {});
-    return state && typeof state === "object" ? state : {};
+    const clean = state && typeof state === "object" ? state : {};
+    if (!clean._depotAssignments || Object.keys(clean._depotAssignments).length === 0) {
+        clean._depotAssignments = getDefaultDepotAssignments();
+        saveBusState(clean);
+    }
+    return clean;
 }
 
 function saveBusState(state) {
@@ -1907,18 +1942,82 @@ const server = http.createServer(async (req, res) => {
                 return;
             }
             const currentState = loadBusState();
+            const assignments = currentState._depotAssignments || getDefaultDepotAssignments();
+            const counts = getDepotCounts(assignments);
             sendJson(res, {
                 ok: true,
                 version: stateVersion,
                 busState: currentState,
                 allocatedDuties: currentState._allocatedDuties || [],
                 lockedBuses: currentState._lockedBuses || [],
+                depotAssignments: assignments,
+                depot1Count: counts.depot1Count,
+                depot2Count: counts.depot2Count,
                 timestamp: Date.now()
             });
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to load sync state", details: error.message }, 500);
         }
         return;
+    }
+
+    // ── GET & POST /api/depot-state & /api/depot-assign ───────────────────────
+    if (pathname === "/api/depot-state") {
+        try {
+            const currentState = loadBusState();
+            const assignments = currentState._depotAssignments || getDefaultDepotAssignments();
+            const counts = getDepotCounts(assignments);
+            sendJson(res, {
+                ok: true,
+                depot1Count: counts.depot1Count,
+                depot2Count: counts.depot2Count,
+                total: counts.total,
+                assignments
+            });
+        } catch (error) {
+            sendJson(res, { ok: false, error: "Failed to load depot state", details: error.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/depot-assign") {
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    if (!currentState._depotAssignments) {
+                        currentState._depotAssignments = getDefaultDepotAssignments();
+                    }
+                    if (payload.bm && payload.depot) {
+                        const cleanBm = String(payload.bm).toUpperCase().trim();
+                        const targetDepot = String(payload.depot).trim();
+                        currentState._depotAssignments[cleanBm] = targetDepot;
+                    } else if (payload.assignments && typeof payload.assignments === "object") {
+                        Object.assign(currentState._depotAssignments, payload.assignments);
+                    }
+
+                    const counts = getDepotCounts(currentState._depotAssignments);
+                    saveBusState(currentState);
+                    broadcastSyncEvent("depot-updated", {
+                        assignments: currentState._depotAssignments,
+                        depot1Count: counts.depot1Count,
+                        depot2Count: counts.depot2Count
+                    });
+
+                    sendJson(res, {
+                        ok: true,
+                        depot1Count: counts.depot1Count,
+                        depot2Count: counts.depot2Count,
+                        total: counts.total,
+                        assignments: currentState._depotAssignments
+                    });
+                } catch (error) {
+                    sendJson(res, { ok: false, error: "Failed to save depot assignment", details: error.message }, 500);
+                }
+            });
+            return;
+        }
     }
 
     // ── GET & POST /api/locked-buses (Cleaning & Charging Bay Locks) ──

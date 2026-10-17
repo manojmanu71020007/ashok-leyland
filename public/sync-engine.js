@@ -26,6 +26,7 @@
         'bus-state': new Set(),
         'allocated-duties': new Set(),
         'locked-buses': new Set(),
+        'depot-updated': new Set(),
         'sync': new Set()
     };
 
@@ -81,6 +82,18 @@
                 });
             } catch (e) {}
             notify('bus-state', stateData.busState);
+        }
+
+        // 4. Sync depot assignments
+        if (stateData.depotAssignments && typeof stateData.depotAssignments === 'object') {
+            try {
+                localStorage.setItem('depot_bus_assignments', JSON.stringify(stateData.depotAssignments));
+            } catch (e) {}
+            notify('depot-updated', {
+                assignments: stateData.depotAssignments,
+                depot1Count: stateData.depot1Count,
+                depot2Count: stateData.depot2Count
+            });
         }
 
         notify('sync', stateData);
@@ -202,6 +215,22 @@
                 }
             });
 
+            eventSource.addEventListener('depot-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const d = payload && payload.data;
+                    if (d && d.assignments) {
+                        try { localStorage.setItem('depot_bus_assignments', JSON.stringify(d.assignments)); } catch(e){}
+                        notify('depot-updated', d);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
             eventSource.addEventListener('sync-all', () => {
                 fetchFullSync();
             });
@@ -290,6 +319,63 @@
         return false;
     }
 
+    async function pushDepotAssignment(bm, depot) {
+        const cleanBm = String(bm || '').toUpperCase().trim();
+        const targetDepot = String(depot || '1').trim();
+        try {
+            const local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+            local[cleanBm] = targetDepot;
+            localStorage.setItem('depot_bus_assignments', JSON.stringify(local));
+            let d1 = 0, d2 = 0;
+            for (const k in local) { if (String(local[k]) === '2') d2++; else d1++; }
+            notify('depot-updated', { assignments: local, depot1Count: d1, depot2Count: d2 });
+        } catch (e) {}
+
+        try {
+            const res = await fetch('/api/depot-assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bm: cleanBm, depot: targetDepot })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.assignments) {
+                    try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+                    notify('depot-updated', data);
+                }
+                return data;
+            }
+        } catch (e) {
+            console.warn('[SyncEngine] pushDepotAssignment failed:', e);
+        }
+        return null;
+    }
+
+    function getDepotForBus(bm) {
+        const clean = String(bm || '').toUpperCase().trim();
+        try {
+            const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+            if (map[clean]) return String(map[clean]);
+        } catch (e) {}
+        return '1';
+    }
+
+    function getDepotCountsLocal() {
+        let d1 = 0, d2 = 0;
+        try {
+            const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+            const keys = Object.keys(map);
+            if (keys.length > 0) {
+                for (const k of keys) {
+                    if (String(map[k]) === '2') d2++;
+                    else d1++;
+                }
+                return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
+            }
+        } catch (e) {}
+        return { depot1Count: 61, depot2Count: 61, total: 122 };
+    }
+
     // Initialize immediately on load
     initEventSource();
     startPolling(3000); // watchdog poll every 3s
@@ -304,6 +390,9 @@
         saveAllocatedDuties: pushAllocatedDuties,
         saveLockedBuses: pushLockedBuses,
         saveBusState: pushBusState,
+        saveDepotAssignment: pushDepotAssignment,
+        getDepotForBus: getDepotForBus,
+        getDepotCounts: getDepotCountsLocal,
         getVersion: () => currentVersion
     };
 })(window);

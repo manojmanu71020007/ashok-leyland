@@ -474,6 +474,64 @@
       border-top: 1px solid #e2e8f0;
       text-align: right;
     }
+
+    /* ── Depot Switcher Bar ── */
+    .depot-switcher-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      padding: 12px 18px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .depot-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .depot-switch-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .depot-switch-btn.active {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .depot-switch-btn .depot-pill-badge {
+      background: rgba(0, 0, 0, 0.08);
+      color: inherit;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .depot-switch-btn.active .depot-pill-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .depot-fleet-summary {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .depot-fleet-summary strong {
+      color: var(--text);
+    }
   </style>
   <script src="/i18n.js"></script>
   <script src="/public/sync-engine.js"></script>
@@ -499,8 +557,26 @@
 <div class="header">
   <div class="header-icon">⚡</div>
   <div>
-    <h1 data-i18n="chg_page_title">Charging Log</h1>
-    <p data-i18n="chg_page_sub">Record bus charging sessions — Depot 32 / Chandapura</p>
+    <h1 id="chargingPageTitle">Charging <span id="chargingDepotNum">1</span> Log</h1>
+    <p id="chargingPageSub">Record bus charging sessions — Depot <span id="chargingDepotSubNum">1</span> (<span id="chargingDepotFleetCount">61</span> Active Buses)</p>
+  </div>
+</div>
+
+<!-- ── Depot Switcher Bar ── -->
+<div class="depot-switcher-bar">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:0.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Operating Facility:</span>
+    <div style="display:flex;gap:8px;">
+      <button type="button" id="btnDepot1" class="depot-switch-btn active" onclick="switchOperatingDepot('1')">
+        🏢 Depot 1 <span class="depot-pill-badge" id="depot1Badge">61 Buses</span>
+      </button>
+      <button type="button" id="btnDepot2" class="depot-switch-btn" onclick="switchOperatingDepot('2')">
+        🏢 Depot 2 <span class="depot-pill-badge" id="depot2Badge">61 Buses</span>
+      </button>
+    </div>
+  </div>
+  <div class="depot-fleet-summary">
+    Active Facility: <strong>Depot <span id="activeDepotNumLabel">1</span></strong> (<span id="activeDepotCountLabel">61</span> buses assigned)
   </div>
 </div>
 
@@ -709,6 +785,117 @@
   let sessionLogs = [];
   let selectedPillValue = 'Completed';
 
+  // ──────────────────────────────────────────────
+  //  Depot Context & Fleet Filter
+  // ──────────────────────────────────────────────
+  let currentOperatingDepot = new URLSearchParams(window.location.search).get('depot') || localStorage.getItem('selected_depot') || '1';
+  let depotAssignments = {};
+  let depotCounts = { depot1Count: 61, depot2Count: 61 };
+
+  function getBusDepot(bm) {
+    const clean = String(bm || '').toUpperCase().trim();
+    if (depotAssignments[clean]) return String(depotAssignments[clean]);
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotForBus === 'function') {
+      return window.DepotSyncEngine.getDepotForBus(clean);
+    }
+    try {
+      const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+      if (map[clean]) return String(map[clean]);
+    } catch(e) {}
+    return '1';
+  }
+
+  function getDepotVehicles() {
+    return allVehicles.filter(v => getBusDepot(v.bm_no) === currentOperatingDepot);
+  }
+
+  function recalcDepotCounts() {
+    let d1 = 0, d2 = 0;
+    if (allVehicles && allVehicles.length > 0) {
+      allVehicles.forEach(v => {
+        if (getBusDepot(v.bm_no) === '2') d2++;
+        else d1++;
+      });
+    } else {
+      const keys = Object.keys(depotAssignments);
+      if (keys.length > 0) {
+        for (const bm of keys) {
+          if (String(depotAssignments[bm]) === '2') d2++;
+          else d1++;
+        }
+      } else {
+        d1 = 61; d2 = 61;
+      }
+    }
+    depotCounts.depot1Count = d1;
+    depotCounts.depot2Count = d2;
+    updateDepotUI();
+  }
+
+  function updateDepotUI() {
+    const d1b = document.getElementById('depot1Badge');
+    if (d1b) d1b.textContent = `${depotCounts.depot1Count} Buses`;
+    const d2b = document.getElementById('depot2Badge');
+    if (d2b) d2b.textContent = `${depotCounts.depot2Count} Buses`;
+
+    const btn1 = document.getElementById('btnDepot1');
+    const btn2 = document.getElementById('btnDepot2');
+    if (btn1 && btn2) {
+      if (currentOperatingDepot === '2') {
+        btn1.classList.remove('active');
+        btn2.classList.add('active');
+      } else {
+        btn1.classList.add('active');
+        btn2.classList.remove('active');
+      }
+    }
+
+    const numLabel = document.getElementById('activeDepotNumLabel');
+    if (numLabel) numLabel.textContent = currentOperatingDepot;
+    const cntLabel = document.getElementById('activeDepotCountLabel');
+    const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
+    if (cntLabel) cntLabel.textContent = activeCount;
+
+    const chgTitle = document.getElementById('chargingPageTitle');
+    if (chgTitle) chgTitle.innerHTML = `Charging <span id="chargingDepotNum">${currentOperatingDepot}</span> Log`;
+    const chgSub = document.getElementById('chargingPageSub');
+    if (chgSub) chgSub.innerHTML = `Record bus charging sessions — Depot ${currentOperatingDepot} (${activeCount} Active Buses)`;
+  }
+
+  window.switchOperatingDepot = function(num) {
+    currentOperatingDepot = String(num);
+    try { localStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
+    updateDepotUI();
+    filterBuses();
+  };
+
+  async function loadDepotAssignments() {
+    try {
+      const res = await fetch('/api/depot-state');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.assignments) {
+          depotAssignments = data.assignments;
+          depotCounts.depot1Count = data.depot1Count || 61;
+          depotCounts.depot2Count = data.depot2Count || 61;
+          try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+          updateDepotUI();
+          filterBuses();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    try {
+      const local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+      if (Object.keys(local).length > 0) {
+        depotAssignments = local;
+        recalcDepotCounts();
+        filterBuses();
+      }
+    } catch(e) {}
+  }
+
   const LOCKED_KEY = 'depot_locked_buses';
   const CHARGING_HISTORY_KEY = 'depot_charging_history';
 
@@ -757,9 +944,59 @@
     });
   }
 
+  const ALLOCATED_DUTIES_KEY = 'smartbus_allocated_duties';
+  const DEPOT_ALLOCATED_KEY = 'depot_allocated_buses';
+
+  function getAllocatedDuties() {
+    const list = [];
+    try {
+      const raw = localStorage.getItem(ALLOCATED_DUTIES_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          parsed.forEach(d => {
+            if (d && (d.bm || d.bmNumber)) list.push(d);
+          });
+        }
+      }
+    } catch(e) {}
+    try {
+      const raw2 = localStorage.getItem(DEPOT_ALLOCATED_KEY);
+      if (raw2) {
+        const parsed2 = JSON.parse(raw2);
+        if (Array.isArray(parsed2)) {
+          parsed2.forEach(d => {
+            if (d && d.bm && !list.some(x => isSameBusId(x.bm || x.bmNumber, d.bm))) list.push(d);
+          });
+        }
+      }
+    } catch(e) {}
+    return list;
+  }
+
+  function isBusAllocatedOnRoute(bm, reg) {
+    if (!bm && !reg) return false;
+    const duties = getAllocatedDuties();
+    return duties.some(d => {
+      const bmTarget = d.bm || d.bmNumber || d.uniqueId || d.vehicleId || d.busId;
+      const regTarget = d.regNo || d.reg_no;
+      return (bm && isSameBusId(bmTarget, bm)) || (reg && isSameBusId(regTarget, reg));
+    });
+  }
+
+  function getBusAllocatedDuty(bm, reg) {
+    if (!bm && !reg) return null;
+    const duties = getAllocatedDuties();
+    return duties.find(d => {
+      const bmTarget = d.bm || d.bmNumber || d.uniqueId || d.vehicleId || d.busId;
+      const regTarget = d.regNo || d.reg_no;
+      return (bm && isSameBusId(bmTarget, bm)) || (reg && isSameBusId(regTarget, reg));
+    }) || null;
+  }
+
   function getAvailableVehicles() {
-    // All buses are always available for search and select
-    return [...allVehicles];
+    // Only return vehicles assigned to currentOperatingDepot that are NOT on route
+    return getDepotVehicles().filter(v => !isBusAllocatedOnRoute(v.bm_no, v.reg_no));
   }
 
   function getRegNoForBm(bm) {
@@ -775,6 +1012,12 @@
     }
 
     const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+
+    if (isBusAllocatedOnRoute(bm, v?.reg_no)) {
+      showToast(`⚠️ Bus ${bm} is currently on route (Allocated via Scheduling). It cannot be charged until marked 'Completed Route' in Depot Operations!`, 'error', 5000);
+      return;
+    }
+
     if (isBusInCleaning(bm, v?.reg_no)) {
       showToast(`⚠️ Bus ${bm} is currently locked in Cleaning Bay! Complete cleaning first.`, 'error');
       return;
@@ -950,6 +1193,23 @@
 
     const chargLocked = isBusLockedForCharging(bm);
     const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+    const allocDuty = getBusAllocatedDuty(bm, v?.reg_no);
+
+    if (allocDuty) {
+      if (otherBanner) {
+        const routeLabel = allocDuty.routeCode || allocDuty.busNumber || allocDuty.route || 'Service Route';
+        const depTime = allocDuty.departureTime ? ` (Departure: ${allocDuty.departureTime})` : '';
+        otherBanner.innerHTML = `🚍 <strong>${bm}</strong> is currently on route for <strong>${routeLabel}</strong>${depTime}.<br>This bus is not available for charging until marked <strong>Route Completed</strong> in Depot Operations.`;
+        otherBanner.style.display = 'flex';
+      }
+      if (lockBtn) lockBtn.style.display = 'none';
+      if (unlockBtn) unlockBtn.style.display = 'none';
+      if (actionCard) actionCard.style.display = 'none';
+      if (actionUnlockBtn) actionUnlockBtn.style.display = 'none';
+      if (lockBanner) lockBanner.classList.remove('show');
+      return;
+    }
+
     const cleanLocked = isBusInCleaning(bm, v?.reg_no);
 
     if (cleanLocked && !chargLocked) {
@@ -1298,27 +1558,54 @@
   function renderDropdown(list) {
     const sel = document.getElementById('busSelect');
     const cur = sel.value;
-    sel.innerHTML = `<option value="">— Choose a bus (${allVehicles.length} total) —</option>`;
-    list.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.bm_no;
-      let tag = '';
-      if (isBusLockedForCharging(v.bm_no)) {
-        tag = ' [⚡ In Charging Bay]';
-      } else if (isBusInCleaning(v.bm_no, v.reg_no)) {
-        tag = ' [🔒 In Cleaning Bay]';
-      }
-      opt.textContent = `${v.bm_no}  —  ${v.reg_no}${tag}`;
-      if (v.bm_no === cur) opt.selected = true;
-      sel.appendChild(opt);
-    });
+    const depotVehs = getDepotVehicles();
+    const availableVehs = list.filter(v => !isBusAllocatedOnRoute(v.bm_no, v.reg_no));
+    const onRouteVehs   = list.filter(v => isBusAllocatedOnRoute(v.bm_no, v.reg_no));
+
+    sel.innerHTML = `<option value="">— Choose a bus (${availableVehs.length} Available for Charging / ${depotVehs.length} in Depot ${currentOperatingDepot}) —</option>`;
+
+    if (availableVehs.length > 0) {
+      const optGroupAvail = document.createElement('optgroup');
+      optGroupAvail.label = `🟢 Available for Charging (${availableVehs.length} Buses)`;
+      availableVehs.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.bm_no;
+        let tag = '';
+        if (isBusLockedForCharging(v.bm_no)) {
+          tag = ' [⚡ In Charging Bay]';
+        } else if (isBusInCleaning(v.bm_no, v.reg_no)) {
+          tag = ' [🔒 In Cleaning Bay]';
+        }
+        opt.textContent = `${v.bm_no}  —  ${v.reg_no}${tag}`;
+        if (v.bm_no === cur) opt.selected = true;
+        optGroupAvail.appendChild(opt);
+      });
+      sel.appendChild(optGroupAvail);
+    }
+
+    if (onRouteVehs.length > 0) {
+      const optGroupRoute = document.createElement('optgroup');
+      optGroupRoute.label = `🚍 On Route / Allocated (${onRouteVehs.length} Buses) — Must Complete Route in Depot Ops`;
+      onRouteVehs.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.bm_no;
+        opt.disabled = true;
+        const duty = getBusAllocatedDuty(v.bm_no, v.reg_no);
+        const routeName = duty?.routeCode || duty?.busNumber || duty?.route || 'Assigned Duty';
+        opt.textContent = `${v.bm_no}  —  ${v.reg_no} [🚍 On Route: ${routeName}]`;
+        if (v.bm_no === cur) opt.selected = true;
+        optGroupRoute.appendChild(opt);
+      });
+      sel.appendChild(optGroupRoute);
+    }
   }
 
   function filterBuses() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const depotVehicles = getDepotVehicles();
     filteredVehicles = q
-      ? allVehicles.filter(v => v.bm_no.toLowerCase().includes(q) || v.reg_no.toLowerCase().includes(q))
-      : [...allVehicles];
+      ? depotVehicles.filter(v => v.bm_no.toLowerCase().includes(q) || v.reg_no.toLowerCase().includes(q))
+      : [...depotVehicles];
     renderDropdown(filteredVehicles);
 
     const curBm = document.getElementById('busSelect').value;
@@ -1400,6 +1687,13 @@
       showToast('⚠️ Please select a bus first.', 'error');
       return;
     }
+
+    const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+    if (isBusAllocatedOnRoute(bm, v?.reg_no)) {
+      showToast(`⚠️ Bus ${bm} is currently on route (Allocated via Scheduling). Complete route in Depot Operations first!`, 'error', 4000);
+      return;
+    }
+
     const val = parseInt(document.getElementById('socAfter').value) || 0;
     const usableSoc = Math.max(0, val - 10);
     const fullDutyKm = Math.round(usableSoc * 1.42);
@@ -1485,6 +1779,7 @@
   }
 
   function handleSyncChargingState() {
+    loadDepotAssignments();
     filterBuses();
     renderOngoingButtons();
     renderLog();
@@ -1493,15 +1788,35 @@
   }
 
   window.addEventListener('storage', (e) => {
-    if (e.key === LOCKED_KEY || e.key === CHARGING_HISTORY_KEY) {
+    if (e.key === LOCKED_KEY || e.key === CHARGING_HISTORY_KEY || e.key === ALLOCATED_DUTIES_KEY || e.key === DEPOT_ALLOCATED_KEY) {
+      handleSyncChargingState();
+    }
+    if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot') {
+      loadDepotAssignments();
       handleSyncChargingState();
     }
   });
 
+  try {
+    const bc = new BroadcastChannel('depot_operations_sync');
+    bc.onmessage = (ev) => {
+      const msgType = String(ev.data?.type || '').toUpperCase();
+      if (msgType === 'DEPOT_CHANGED' || msgType === 'ROUTE_COMPLETED' || msgType === 'ALLOCATED_DUTIES_UPDATED') {
+        loadDepotAssignments();
+        handleSyncChargingState();
+      }
+    };
+  } catch(e) {}
+
   if (window.DepotSyncEngine) {
     window.DepotSyncEngine.on('locked-buses', handleSyncChargingState);
+    window.DepotSyncEngine.on('allocated-duties', handleSyncChargingState);
     window.DepotSyncEngine.on('bus-state', handleSyncChargingState);
     window.DepotSyncEngine.on('sync', handleSyncChargingState);
+    window.DepotSyncEngine.on('depot-updated', () => {
+      loadDepotAssignments();
+      handleSyncChargingState();
+    });
   }
 
   window.addEventListener('languageChanged', () => {
@@ -1516,10 +1831,13 @@
   });
 
   // ── Init ──
-  loadVehicles().then(() => {
+  (async function initCharging() {
+    await loadDepotAssignments();
+    updateDepotUI();
+    await loadVehicles();
     renderOngoingButtons();
     renderLog();
-  });
+  })();
 </script>
 </body>
 </html>

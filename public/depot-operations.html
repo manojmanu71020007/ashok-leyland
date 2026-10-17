@@ -455,6 +455,64 @@
       cursor: pointer;
       width: auto;
     }
+
+    /* ── Depot Switcher Bar ── */
+    .depot-switcher-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      padding: 12px 18px;
+      border-radius: 16px;
+      border: 1.5px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .depot-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: #f8fafc;
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .depot-switch-btn:hover {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+    .depot-switch-btn.active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
+    }
+    .depot-switch-btn .depot-pill-badge {
+      background: rgba(0, 0, 0, 0.08);
+      color: inherit;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 800;
+    }
+    .depot-switch-btn.active .depot-pill-badge {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
+    .depot-fleet-summary {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .depot-fleet-summary strong {
+      color: var(--text);
+    }
   </style>
   <script src="/i18n.js"></script>
   <script src="/public/sync-engine.js"></script>
@@ -480,8 +538,26 @@
 <div class="header">
   <div class="header-icon">🚍</div>
   <div>
-    <h1 data-i18n="title_depot_operations">Depot Operations</h1>
+    <h1 id="pageTitleHeading" data-i18n="title_depot_operations">Depot Operations</h1>
     <p data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
+  </div>
+</div>
+
+<!-- ── Depot Switcher Bar ── -->
+<div class="depot-switcher-bar">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+    <span style="font-size:0.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Operating Depot:</span>
+    <div style="display:flex;gap:8px;">
+      <button type="button" id="btnDepot1" class="depot-switch-btn active" onclick="switchOperatingDepot('1')">
+        🏢 Depot 1 <span class="depot-pill-badge" id="depot1Badge">61 Buses</span>
+      </button>
+      <button type="button" id="btnDepot2" class="depot-switch-btn" onclick="switchOperatingDepot('2')">
+        🏢 Depot 2 <span class="depot-pill-badge" id="depot2Badge">61 Buses</span>
+      </button>
+    </div>
+  </div>
+  <div class="depot-fleet-summary" id="depotFleetSummary">
+    Selected Facility: <strong>Depot <span id="activeDepotNumLabel">1</span></strong> (<span id="activeDepotCountLabel">61</span> Buses Assigned)
   </div>
 </div>
 
@@ -549,6 +625,10 @@
         <span id="infoModel">—</span>
       </div>
       <div class="info-item">
+        <label>Assigned Depot</label>
+        <span id="infoDepot" style="font-weight:800;color:var(--accent);">—</span>
+      </div>
+      <div class="info-item">
         <label data-i18n="label_current_status">Current Status</label>
         <span id="infoStatus">—</span>
       </div>
@@ -582,6 +662,9 @@
   </div>
   <div class="warning-banner warning-already-done" id="warnAlreadyDone">
     ✅ <span>This bus has already been returned to depot and is available for charging / cleaning / re-allocation.</span>
+  </div>
+  <div class="warning-banner warning-transfer" id="warnDepotTransfer" style="display:none;background:#fef3c7;border:1.5px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:12px;font-size:0.88rem;font-weight:600;margin-top:12px;">
+    ⚡ <span>Cross-Depot Route Completion: This bus is currently registered under <strong>Depot <span id="warnFromDepot">2</span></strong>. Completing route here will return and transfer it into <strong>Depot <span id="warnToDepot">1</span></strong>'s fleet, decrementing Depot <span id="warnFromDepot2">2</span> and incrementing Depot <span id="warnToDepot2">1</span>.</span>
   </div>
 
   <!-- Route Completed Button -->
@@ -690,6 +773,124 @@
   let filteredVehicles = [];
   let pendingBm        = null;   // BM being confirmed in modal
   let currentFilter    = 'all';
+
+  // ──────────────────────────────────────────────
+  //  Depot Number & Multi-Depot Fleet State
+  // ──────────────────────────────────────────────
+  let currentOperatingDepot = new URLSearchParams(window.location.search).get('depot') || localStorage.getItem('selected_depot') || '1';
+  let depotAssignments = {};
+  let depotCounts = { depot1Count: 61, depot2Count: 61 };
+
+  function getBusDepot(bm) {
+    const clean = String(bm || '').toUpperCase().trim();
+    if (depotAssignments[clean]) return String(depotAssignments[clean]);
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotForBus === 'function') {
+      return window.DepotSyncEngine.getDepotForBus(clean);
+    }
+    try {
+      const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+      if (map[clean]) return String(map[clean]);
+    } catch(e) {}
+    return '1';
+  }
+
+  function setBusDepot(bm, depot) {
+    const clean = String(bm || '').toUpperCase().trim();
+    const d = String(depot || '1');
+    depotAssignments[clean] = d;
+    try {
+      const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+      map[clean] = d;
+      localStorage.setItem('depot_bus_assignments', JSON.stringify(map));
+    } catch(e) {}
+    recalcDepotCounts();
+  }
+
+  function recalcDepotCounts() {
+    let d1 = 0, d2 = 0;
+    if (allVehicles && allVehicles.length > 0) {
+      allVehicles.forEach(v => {
+        if (getBusDepot(v.bm_no) === '2') d2++;
+        else d1++;
+      });
+    } else {
+      const keys = Object.keys(depotAssignments);
+      if (keys.length > 0) {
+        for (const bm of keys) {
+          if (String(depotAssignments[bm]) === '2') d2++;
+          else d1++;
+        }
+      } else {
+        d1 = 61; d2 = 61;
+      }
+    }
+    depotCounts.depot1Count = d1;
+    depotCounts.depot2Count = d2;
+    updateDepotUI();
+  }
+
+  function updateDepotUI() {
+    const d1b = document.getElementById('depot1Badge');
+    if (d1b) d1b.textContent = `${depotCounts.depot1Count} Buses`;
+    const d2b = document.getElementById('depot2Badge');
+    if (d2b) d2b.textContent = `${depotCounts.depot2Count} Buses`;
+
+    const btn1 = document.getElementById('btnDepot1');
+    const btn2 = document.getElementById('btnDepot2');
+    if (btn1 && btn2) {
+      if (currentOperatingDepot === '2') {
+        btn1.classList.remove('active');
+        btn2.classList.add('active');
+      } else {
+        btn1.classList.add('active');
+        btn2.classList.remove('active');
+      }
+    }
+
+    const numLabel = document.getElementById('activeDepotNumLabel');
+    if (numLabel) numLabel.textContent = currentOperatingDepot;
+    const cntLabel = document.getElementById('activeDepotCountLabel');
+    if (cntLabel) cntLabel.textContent = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
+
+    const pageHeading = document.getElementById('pageTitleHeading');
+    if (pageHeading) pageHeading.textContent = `Depot ${currentOperatingDepot} Operations`;
+  }
+
+  window.switchOperatingDepot = function(num) {
+    currentOperatingDepot = String(num);
+    try { localStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
+    updateDepotUI();
+    populateSelect();
+    const sel = document.getElementById('busSelect');
+    if (sel && sel.value) onBusSelected();
+  };
+
+  async function loadDepotAssignments() {
+    try {
+      const res = await fetch('/api/depot-state');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.assignments) {
+          depotAssignments = data.assignments;
+          depotCounts.depot1Count = data.depot1Count || 61;
+          depotCounts.depot2Count = data.depot2Count || 61;
+          try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+          updateDepotUI();
+          populateSelect();
+          return;
+        }
+      }
+    } catch(e) {}
+
+    try {
+      const local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+      if (Object.keys(local).length > 0) {
+        depotAssignments = local;
+        recalcDepotCounts();
+        populateSelect();
+      }
+    } catch(e) {}
+  }
 
   // ──────────────────────────────────────────────
   //  LocalStorage helpers
@@ -821,9 +1022,10 @@
       const emoji  = status === 'allocated' ? '🟣' :
                      status === 'charging'  ? '⚡' :
                      status === 'cleaning'  ? '🧹' : '🟢';
+      const bDepot = getBusDepot(v.bm_no);
       const opt = document.createElement('option');
       opt.value       = v.bm_no;
-      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no}`;
+      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no}  [Depot ${bDepot}]`;
       sel.appendChild(opt);
     });
 
@@ -862,6 +1064,7 @@
     const status = getBusStatus(bm, v?.reg_no);
     const allocEntry = getAllocationEntry(bm);
     const isAllocated = status === 'allocated';
+    const bDepot = getBusDepot(bm);
 
     const box = document.getElementById('busInfoBox');
     box.className = `bus-info-box show status-${status}`;
@@ -869,6 +1072,22 @@
     document.getElementById('infoBM').textContent     = v?.bm_no  || bm;
     document.getElementById('infoReg').textContent    = v?.reg_no || '—';
     document.getElementById('infoModel').textContent  = v?.model  || '—';
+    const depotEl = document.getElementById('infoDepot');
+    if (depotEl) depotEl.textContent = `Depot ${bDepot}`;
+
+    // Cross-depot warning notice
+    const warnTransfer = document.getElementById('warnDepotTransfer');
+    if (warnTransfer) {
+      if (bDepot !== currentOperatingDepot) {
+        warnTransfer.style.display = 'block';
+        const f1 = document.getElementById('warnFromDepot'); if (f1) f1.textContent = bDepot;
+        const t1 = document.getElementById('warnToDepot'); if (t1) t1.textContent = currentOperatingDepot;
+        const f2 = document.getElementById('warnFromDepot2'); if (f2) f2.textContent = bDepot;
+        const t2 = document.getElementById('warnToDepot2'); if (t2) t2.textContent = currentOperatingDepot;
+      } else {
+        warnTransfer.style.display = 'none';
+      }
+    }
 
     // Status badge
     const statusBadgeMap = {
@@ -908,13 +1127,8 @@
 
     // Route Complete button
     const btn = document.getElementById('btnRouteComplete');
-    if (isAllocated) {
-      btn.disabled = false;
-      btn.classList.remove('disabled');
-    } else {
-      btn.disabled = true;
-      btn.classList.add('disabled');
-    }
+    btn.disabled = false;
+    btn.classList.remove('disabled');
 
     // Hide success banner when a new bus is selected
     document.getElementById('successBanner').classList.remove('show');
@@ -924,6 +1138,8 @@
     document.getElementById('busInfoBox').className = 'bus-info-box';
     document.getElementById('warnNotAllocated').classList.remove('show');
     document.getElementById('warnAlreadyDone').classList.remove('show');
+    const warnTransfer = document.getElementById('warnDepotTransfer');
+    if (warnTransfer) warnTransfer.style.display = 'none';
     document.getElementById('successBanner').classList.remove('show');
     const btn = document.getElementById('btnRouteComplete');
     btn.disabled = true;
@@ -936,7 +1152,6 @@
   function onRouteCompleteClick() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) { showToast('⚠️ Please select a bus first.', 'warning'); return; }
-    if (!isBusAllocated(bm)) { showToast('⚠️ This bus is not allocated on a route.', 'warning'); return; }
 
     pendingBm = bm;
     openConfirmModal(bm);
@@ -945,6 +1160,10 @@
   function openConfirmModal(bm) {
     const v = allVehicles.find(x => sameBus(x.bm_no, bm));
     const allocEntry = getAllocationEntry(bm);
+    const prevDepot = getBusDepot(bm);
+    const targetDepot = currentOperatingDepot;
+    const isTransferred = (prevDepot !== targetDepot);
+
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true });
     const dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
@@ -952,11 +1171,19 @@
     document.getElementById('confirmModalBody').innerHTML = `
       <div class="modal-detail-row">
         <span class="modal-detail-label">Bus (BM No.)</span>
-        <span class="modal-detail-val">${bm}</span>
+        <span class="modal-detail-val" style="font-weight:800;">${bm}</span>
       </div>
       <div class="modal-detail-row">
         <span class="modal-detail-label">Registration</span>
         <span class="modal-detail-val">${v?.reg_no || '—'}</span>
+      </div>
+      <div class="modal-detail-row">
+        <span class="modal-detail-label">Current Operating Depot</span>
+        <span class="modal-detail-val" style="color:#7c3aed;font-weight:800;">Depot ${targetDepot}</span>
+      </div>
+      <div class="modal-detail-row">
+        <span class="modal-detail-label">Bus Home Depot</span>
+        <span class="modal-detail-val">Depot ${prevDepot}</span>
       </div>
       <div class="modal-detail-row">
         <span class="modal-detail-label">Route</span>
@@ -967,16 +1194,17 @@
         <span class="modal-detail-val">${allocEntry?.schedule || '—'}</span>
       </div>
       <div class="modal-detail-row">
-        <span class="modal-detail-label">Driver</span>
-        <span class="modal-detail-val">${allocEntry?.driver || '—'}</span>
-      </div>
-      <div class="modal-detail-row">
         <span class="modal-detail-label">Completion Time</span>
         <span class="modal-detail-val" style="color:#16a34a;">${timeStr}, ${dateStr}</span>
       </div>
+      ${isTransferred ? `
+      <div style="margin-top:12px; padding:10px 14px; background:#fef3c7; border-radius:10px; border:1.5px solid #fcd34d; font-size:0.83rem; color:#92400e; font-weight:700;">
+        🔄 <strong>Cross-Depot Fleet Transfer:</strong> Bus ${bm} will be returned to <strong>Depot ${targetDepot}</strong> and transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses will be updated: Depot ${targetDepot} (+1), Depot ${prevDepot} (-1).
+      </div>
+      ` : ''}
       <div style="margin-top:14px; padding:12px 14px; background:#f0fdf4; border-radius:10px; border:1.5px solid #86efac; font-size:0.85rem; color:#166534; font-weight:700;">
-        🔓 After confirmation, this bus will be available for:<br>
-        <span style="margin-left:8px;">⚡ Charging &nbsp;|&nbsp; 🧹 Cleaning &nbsp;|&nbsp; 📋 Re-Allocation</span>
+        🔓 After confirmation, this bus will be available in <strong>Depot ${targetDepot}</strong> for:<br>
+        <span style="margin-left:8px;">⚡ Charging ${targetDepot} &nbsp;|&nbsp; 🧹 Cleaning ${targetDepot} &nbsp;|&nbsp; 📋 Scheduling ${targetDepot}</span>
       </div>
     `;
     document.getElementById('confirmModal').style.display = 'flex';
@@ -999,6 +1227,10 @@
     const dateStr = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
     const fullTs  = `${timeStr}, ${dateStr}`;
 
+    const prevDepot = getBusDepot(bm);
+    const targetDepot = currentOperatingDepot;
+    const isTransferred = (prevDepot !== targetDepot);
+
     // 1. Remove from allocated list in all storage keys
     try {
       let allocated = JSON.parse(localStorage.getItem(ALLOCATED_KEY) || '[]');
@@ -1017,7 +1249,19 @@
       }
     } catch {}
 
-    // 2. Add to completed log
+    // 2. Depot Fleet Transfer: Always assign bus to targetDepot
+    setBusDepot(bm, targetDepot);
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveDepotAssignment === 'function') {
+      window.DepotSyncEngine.saveDepotAssignment(bm, targetDepot);
+    } else {
+      fetch('/api/depot-assign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bm, depot: targetDepot })
+      }).catch(() => {});
+    }
+
+    // 3. Add to completed log
     const logEntry = {
       id:           'rc_' + Date.now(),
       bm:           bm,
@@ -1029,34 +1273,48 @@
       completedAt:  fullTs,
       completedTs:  Date.now(),
       dateStr:      dateStr,
+      depot:        targetDepot,
+      prevDepot:    prevDepot,
+      isTransferred: isTransferred
     };
     const log = getCompletedLog();
     log.unshift(logEntry);
     setCompletedLog(log);
 
-    // 3. Broadcast so other pages can react
+    // 4. Broadcast so other pages can react immediately
     try {
       const bc = new BroadcastChannel('depot_operations_sync');
-      bc.postMessage({ type: 'route_completed', bm: bm.toUpperCase(), time: Date.now() });
+      bc.postMessage({
+        type: 'ROUTE_COMPLETED',
+        action: 'route_completed',
+        bm: bm.toUpperCase(),
+        depot: targetDepot,
+        prevDepot: prevDepot,
+        isTransferred: isTransferred,
+        depot1Count: depotCounts.depot1Count,
+        depot2Count: depotCounts.depot2Count,
+        time: Date.now()
+      });
       bc.close();
     } catch {}
 
-    // 4. Refresh UI
+    // 5. Refresh UI
+    recalcDepotCounts();
     refreshAll();
     populateSelect();
 
-    // Show success banner
+    // Show success banner with detailed count updates
     const sb = document.getElementById('successBanner');
-    document.getElementById('successTitle').textContent = `${bm} — Route Completed ✅`;
+    document.getElementById('successTitle').textContent = `${bm} — Route Completed at Depot ${targetDepot} ✅`;
     document.getElementById('successText').textContent  =
-      `Bus returned to depot at ${timeStr}. Now available for charging, cleaning & re-allocation.`;
+      `Bus returned to Depot ${targetDepot} at ${timeStr}. ${isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses updated: Depot 1 (${depotCounts.depot1Count} buses), Depot 2 (${depotCounts.depot2Count} buses). Bus is now available in Depot ${targetDepot} quick actions.` : `Now available for charging, cleaning & re-allocation in Depot ${targetDepot}.`}`;
     sb.classList.add('show');
 
     // Keep selected bus in dropdown and refresh info
     document.getElementById('busSelect').value = bm;
     onBusSelected();
 
-    showToast(`✅ ${bm} route completed at ${timeStr}. Bus is now available.`, 'success');
+    showToast(`✅ ${bm} route completed at Depot ${targetDepot}. ${isTransferred ? `Transferred: Depot ${prevDepot} ➔ Depot ${targetDepot} (+1/-1).` : ''}`, 'success');
   }
 
   // ──────────────────────────────────────────────
@@ -1095,10 +1353,11 @@
 
     const items = allocated.map(entry => {
       const v = allVehicles.find(x => sameBus(x.bm_no, entry.bm));
+      const bDepot = getBusDepot(entry.bm);
       return `
         <div class="alloc-item">
           <div class="alloc-meta">
-            <div class="alloc-bm">🟣 ${entry.bm}</div>
+            <div class="alloc-bm">🟣 ${entry.bm} <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#475569;margin-left:6px;font-weight:700;">Depot ${bDepot}</span></div>
             <div class="alloc-sub">${v?.reg_no || '—'} &nbsp;|&nbsp; Route: ${entry.route || '—'} &nbsp;|&nbsp; ${entry.schedule || ''}</div>
             <div class="alloc-sub" style="margin-top:2px;">Driver: ${entry.driver || '—'} &nbsp;·&nbsp; Dispatched: ${entry.dispatchTime || entry.time || '—'}</div>
           </div>
@@ -1135,13 +1394,13 @@
 
     tbody.innerHTML = filtered.map(e => `
       <tr>
-        <td class="td-bus">${e.bm}</td>
+        <td class="td-bus">${e.bm} <span style="font-size:0.72rem;padding:2px 6px;border-radius:6px;background:#ede9fe;color:#5b21b6;margin-left:4px;font-weight:700;">Depot ${e.depot || '1'}</span>${e.isTransferred ? ` <span style="font-size:0.68rem;padding:2px 6px;border-radius:6px;background:#fef3c7;color:#92400e;font-weight:700;">from Depot ${e.prevDepot}</span>` : ''}</td>
         <td>${e.reg || '—'}</td>
         <td>${e.route || '—'}</td>
         <td>${e.completedAt || '—'}</td>
         <td>
-          <a href="/charging.html" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;margin-right:8px;">⚡ Charge</a>
-          <a href="/cleaning.html" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;">🧹 Clean</a>
+          <a href="/public/charging.html?depot=${e.depot || currentOperatingDepot}" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;margin-right:8px;">⚡ Charge</a>
+          <a href="/public/cleaning.html?depot=${e.depot || currentOperatingDepot}" style="color:#0369a1;font-weight:700;font-size:0.82rem;text-decoration:none;">🧹 Clean</a>
         </td>
       </tr>
     `).join('');
@@ -1212,15 +1471,37 @@
   // ──────────────────────────────────────────────
   //  Init
   // ──────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', loadVehicles);
+  document.addEventListener('DOMContentLoaded', async () => {
+    updateDepotUI();
+    await loadDepotAssignments();
+    await loadVehicles();
+  });
 
-  // Auto-refresh when other tabs or devices update allocations
+  // Auto-refresh when other tabs or devices update allocations or depot assignments
   window.addEventListener('storage', e => {
-    if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY].includes(e.key)) refreshAll();
+    if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY, 'depot_bus_assignments', 'selected_depot'].includes(e.key)) {
+      if (e.key === 'selected_depot' && e.newValue) {
+        currentOperatingDepot = e.newValue;
+        updateDepotUI();
+      }
+      loadDepotAssignments();
+      refreshAll();
+    }
   });
 
   if (window.DepotSyncEngine) {
-    window.DepotSyncEngine.on('sync', () => refreshAll());
+    window.DepotSyncEngine.on('sync', () => { loadDepotAssignments(); refreshAll(); });
+    window.DepotSyncEngine.on('depot-updated', (data) => {
+      if (data && data.assignments) depotAssignments = data.assignments;
+      if (data && data.depot1Count !== undefined) {
+        depotCounts.depot1Count = data.depot1Count;
+        depotCounts.depot2Count = data.depot2Count;
+      } else {
+        recalcDepotCounts();
+      }
+      updateDepotUI();
+      refreshAll();
+    });
     window.DepotSyncEngine.on('allocated-duties', () => refreshAll());
     window.DepotSyncEngine.on('locked-buses', () => refreshAll());
     window.DepotSyncEngine.on('bus-state', () => refreshAll());
@@ -1228,7 +1509,10 @@
 
   try {
     const bc = new BroadcastChannel('depot_operations_sync');
-    bc.onmessage = () => refreshAll();
+    bc.onmessage = () => {
+      loadDepotAssignments();
+      refreshAll();
+    };
   } catch {}
 </script>
 
