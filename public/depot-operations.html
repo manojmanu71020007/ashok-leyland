@@ -973,12 +973,12 @@
     <div class="stat-value stat-completed" id="statCompleted">0</div>
     <div class="stat-sub" data-i18n="stat_returned_today">returned today</div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card" id="cardDepot1Fleet">
     <div class="stat-label">Depot 1 Fleet</div>
     <div class="stat-value" id="statDepot1Count" style="color:#0f766e;">61</div>
     <div class="stat-sub">assigned buses</div>
   </div>
-  <div class="stat-card">
+  <div class="stat-card" id="cardDepot2Fleet">
     <div class="stat-label">Depot 2 Fleet</div>
     <div class="stat-value" id="statDepot2Count" style="color:#6d28d9;">61</div>
     <div class="stat-sub">assigned buses</div>
@@ -1303,22 +1303,29 @@
   }
 
   function updateDepotUI() {
-    const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
+    const activeCount = (String(currentOperatingDepot) === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
 
     const pageHeading = document.getElementById('pageTitleHeading');
     if (pageHeading) pageHeading.textContent = `Depot ${currentOperatingDepot} Operations`;
 
     const pageSub = document.getElementById('pageSubHeading');
     if (pageSub) pageSub.textContent = `Manage route completions — mark allocated buses as returned to Depot ${currentOperatingDepot} (${activeCount} Active Buses)`;
+
+    const cardD1 = document.getElementById('cardDepot1Fleet');
+    const cardD2 = document.getElementById('cardDepot2Fleet');
+    if (cardD1) cardD1.style.display = (String(currentOperatingDepot) === '1') ? 'block' : 'none';
+    if (cardD2) cardD2.style.display = (String(currentOperatingDepot) === '2') ? 'block' : 'none';
   }
 
   window.switchOperatingDepot = function(num) {
     currentOperatingDepot = String(num);
     try { localStorage.setItem('selected_depot', currentOperatingDepot); } catch(e){}
     updateDepotUI();
-    populateSelect();
+    filterBuses();
+    refreshAll();
     const sel = document.getElementById('busSelect');
     if (sel && sel.value) onBusSelected();
+    else clearBusInfo();
   };
 
   async function loadDepotAssignments() {
@@ -1332,7 +1339,8 @@
           depotCounts.depot2Count = data.depot2Count || 61;
           try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
           updateDepotUI();
-          populateSelect();
+          filterBuses();
+          refreshAll();
           return;
         }
       }
@@ -1343,7 +1351,8 @@
       if (Object.keys(local).length > 0) {
         depotAssignments = local;
         recalcDepotCounts();
-        populateSelect();
+        filterBuses();
+        refreshAll();
       }
     } catch(e) {}
   }
@@ -2147,8 +2156,7 @@
         { vehicle_id:'BM003', bm_no:'BM003', reg_no:'KA51AH2423', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
       ];
     }
-    filteredVehicles = [...allVehicles];
-    populateSelect();
+    filterBuses();
     refreshAll();
   }
 
@@ -2157,22 +2165,26 @@
   // ──────────────────────────────────────────────
   function populateSelect(list) {
     const sel  = document.getElementById('busSelect');
+    if (!sel) return;
     const prev = sel.value;
-    const data = list || filteredVehicles;
+    const sourceData = list || filteredVehicles;
+    // Strictly show ONLY buses of the current operating depot!
+    const data = sourceData.filter(v => String(getBusDepot(v.bm_no)) === String(currentOperatingDepot));
 
     sel.innerHTML = '<option value="">— Choose a bus —</option>';
     data.forEach(v => {
       const isAlloc = isBusAllocated(v.bm_no);
       const emoji   = isAlloc ? '🟣' : '🟢';
-      const bDepot  = getBusDepot(v.bm_no);
       const opt = document.createElement('option');
       opt.value       = v.bm_no;
-      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no}  [Depot ${bDepot}]`;
+      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no || '—'}`;
       sel.appendChild(opt);
     });
 
     if (prev && [...sel.options].some(o => o.value === prev)) {
       sel.value = prev;
+    } else {
+      sel.value = '';
     }
   }
 
@@ -2181,13 +2193,15 @@
   // ──────────────────────────────────────────────
   function filterBuses() {
     const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    // Only search within the current operating depot fleet
+    const depotVehicles = (allVehicles || []).filter(v => String(getBusDepot(v.bm_no)) === String(currentOperatingDepot));
     filteredVehicles = q
-      ? allVehicles.filter(v =>
-          v.bm_no.toLowerCase().includes(q) ||
+      ? depotVehicles.filter(v =>
+          (v.bm_no || '').toLowerCase().includes(q) ||
           (v.reg_no || '').toLowerCase().includes(q)
         )
-      : [...allVehicles];
-    populateSelect();
+      : [...depotVehicles];
+    populateSelect(filteredVehicles);
 
     // Keep previous selection if still present
     const sel = document.getElementById('busSelect');
@@ -2474,7 +2488,9 @@
   //  Render: Allocated buses list
   // ──────────────────────────────────────────────
   function renderAllocatedList() {
-    const allocated = getAllocatedBuses();
+    const allAllocated = getAllocatedBuses();
+    // Strictly filter to this depot only
+    const allocated = allAllocated.filter(entry => String(getBusDepot(entry.bm)) === String(currentOperatingDepot));
     const container = document.getElementById('allocatedList');
     const badge     = document.getElementById('allocCountBadge');
 
@@ -2484,7 +2500,7 @@
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🚌</div>
-          <p>No buses are currently allocated on routes.</p>
+          <p>No buses from Depot ${currentOperatingDepot} are currently allocated on routes.</p>
           <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
         </div>`;
       return;
@@ -2492,11 +2508,10 @@
 
     const items = allocated.map(entry => {
       const v = allVehicles.find(x => sameBus(x.bm_no, entry.bm));
-      const bDepot = getBusDepot(entry.bm);
       return `
         <div class="alloc-item">
           <div class="alloc-meta">
-            <div class="alloc-bm">🟣 ${entry.bm} <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#f1f5f9;color:#475569;margin-left:6px;font-weight:700;">Depot ${bDepot}</span></div>
+            <div class="alloc-bm">🟣 ${entry.bm}</div>
             <div class="alloc-sub">${v?.reg_no || '—'} &nbsp;|&nbsp; Route: ${entry.route || '—'} &nbsp;|&nbsp; ${entry.schedule || ''}</div>
             <div class="alloc-sub" style="margin-top:2px;">Driver: ${entry.driver || '—'} &nbsp;·&nbsp; Dispatched: ${entry.dispatchTime || entry.time || '—'}</div>
           </div>
@@ -2519,21 +2534,24 @@
     const tbody = document.getElementById('completedTbody');
     const badge = document.getElementById('completedCountBadge');
 
+    // ONLY show buses which are marked as "route completed" in that particular depot only!
+    const depotLog = log.filter(e => String(e.depot) === String(currentOperatingDepot));
+
     const today = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
     const filtered = currentFilter === 'today'
-      ? log.filter(e => e.dateStr === today)
-      : log;
+      ? depotLog.filter(e => e.dateStr === today)
+      : depotLog;
 
-    badge.textContent = log.length;
+    badge.textContent = depotLog.length;
 
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No completed routes ${currentFilter === 'today' ? 'today' : 'yet'}.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No completed routes recorded for Depot ${currentOperatingDepot} ${currentFilter === 'today' ? 'today' : 'yet'}.</td></tr>`;
       return;
     }
 
     tbody.innerHTML = filtered.map(e => `
       <tr>
-        <td class="td-bus">${e.bm} <span style="font-size:0.72rem;padding:2px 6px;border-radius:6px;background:#ede9fe;color:#5b21b6;margin-left:4px;font-weight:700;">Depot ${e.depot || '1'}</span>${e.isTransferred ? ` <span style="font-size:0.68rem;padding:2px 6px;border-radius:6px;background:#fef3c7;color:#92400e;font-weight:700;">from Depot ${e.prevDepot}</span>` : ''}</td>
+        <td class="td-bus">${e.bm}</td>
         <td>${e.reg || '—'}</td>
         <td>${e.route || '—'}</td>
         <td>${e.completedAt || '—'}</td>
@@ -2548,10 +2566,12 @@
   //  Stats
   // ──────────────────────────────────────────────
   function renderStats() {
-    const allocated = getAllocatedBuses();
+    const allAllocated = getAllocatedBuses();
+    const allocated = allAllocated.filter(entry => String(getBusDepot(entry.bm)) === String(currentOperatingDepot));
     const completed = getCompletedLog();
+    const depotCompleted = completed.filter(e => String(e.depot) === String(currentOperatingDepot));
     const today     = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-    const todayDone = completed.filter(e => e.dateStr === today).length;
+    const todayDone = depotCompleted.filter(e => e.dateStr === today).length;
 
     document.getElementById('statAllocated').textContent  = allocated.length;
     document.getElementById('statCompleted').textContent  = todayDone;
@@ -2561,6 +2581,11 @@
     if (document.getElementById('statDepot2Count')) {
       document.getElementById('statDepot2Count').textContent = depotCounts.depot2Count;
     }
+
+    const cardD1 = document.getElementById('cardDepot1Fleet');
+    const cardD2 = document.getElementById('cardDepot2Fleet');
+    if (cardD1) cardD1.style.display = (String(currentOperatingDepot) === '1') ? 'block' : 'none';
+    if (cardD2) cardD2.style.display = (String(currentOperatingDepot) === '2') ? 'block' : 'none';
   }
 
   // ──────────────────────────────────────────────
@@ -2587,11 +2612,13 @@
   //  Clear log
   // ──────────────────────────────────────────────
   function clearCompletedLog() {
-    if (!confirm('Clear the entire completed routes log? This cannot be undone.')) return;
-    setCompletedLog([]);
+    if (!confirm(`Clear completed routes log for Depot ${currentOperatingDepot}? This cannot be undone.`)) return;
+    const log = getCompletedLog();
+    const remaining = log.filter(e => String(e.depot) !== String(currentOperatingDepot));
+    setCompletedLog(remaining);
     renderCompletedTable();
     renderStats();
-    showToast('🗑 Completed routes log cleared.', 'warning');
+    showToast(`🗑 Completed routes log for Depot ${currentOperatingDepot} cleared.`, 'warning');
   }
 
   // ──────────────────────────────────────────────
