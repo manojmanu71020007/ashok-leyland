@@ -89,10 +89,13 @@
             try {
                 localStorage.setItem('depot_bus_assignments', JSON.stringify(stateData.depotAssignments));
             } catch (e) {}
+            const counts = (typeof stateData.depot1Count === 'number' && typeof stateData.depot2Count === 'number')
+                ? { depot1Count: stateData.depot1Count, depot2Count: stateData.depot2Count }
+                : getDepotCountsLocal();
             notify('depot-updated', {
                 assignments: stateData.depotAssignments,
-                depot1Count: stateData.depot1Count,
-                depot2Count: stateData.depot2Count
+                depot1Count: counts.depot1Count,
+                depot2Count: counts.depot2Count
             });
         }
 
@@ -326,9 +329,8 @@
             const local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             local[cleanBm] = targetDepot;
             localStorage.setItem('depot_bus_assignments', JSON.stringify(local));
-            let d1 = 0, d2 = 0;
-            for (const k in local) { if (String(local[k]) === '2') d2++; else d1++; }
-            notify('depot-updated', { assignments: local, depot1Count: d1, depot2Count: d2 });
+            const counts = getDepotCountsLocal();
+            notify('depot-updated', { assignments: local, depot1Count: counts.depot1Count, depot2Count: counts.depot2Count });
         } catch (e) {}
 
         try {
@@ -357,7 +359,7 @@
             const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             if (map[clean]) return String(map[clean]);
         } catch (e) {}
-        return '1';
+        return null;
     }
 
     function getDepotCountsLocal() {
@@ -365,7 +367,7 @@
         try {
             const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             const keys = Object.keys(map);
-            if (keys.length > 0) {
+            if (keys.length >= 100) {
                 for (const k of keys) {
                     if (String(map[k]) === '2') d2++;
                     else d1++;

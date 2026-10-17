@@ -1213,21 +1213,34 @@ function githubRequest(method, apiPath, body) {
     });
 }
 
-// Push bus_state.json to GitHub (fire-and-forget, called after every local save)
+// ── Master in-memory Bus State Cache ──────────────────────────────────────
+let masterBusState = null;
+let githubSyncTimer = null;
+let isSyncingToGitHub = false;
+
+// Push bus_state.json to GitHub with debouncing and conflict safety
 function syncBusStateToGitHub(state) {
     if (!GITHUB_TOKEN) return;
-    const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
-    githubRequest("GET", apiPath)
-        .then((current) => {
-            const content = Buffer.from(JSON.stringify(state, null, 2)).toString("base64");
-            return githubRequest("PUT", apiPath, {
+    if (githubSyncTimer) clearTimeout(githubSyncTimer);
+    githubSyncTimer = setTimeout(async () => {
+        if (isSyncingToGitHub) return;
+        isSyncingToGitHub = true;
+        try {
+            const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+            const current = await githubRequest("GET", apiPath);
+            const content = Buffer.from(JSON.stringify(state || masterBusState, null, 2)).toString("base64");
+            await githubRequest("PUT", apiPath, {
                 message: "auto: sync bus_state from server",
                 content,
                 sha: current.sha
             });
-        })
-        .then(() => { console.log("[GitHub] bus_state.json synced ✓"); })
-        .catch((e) => { console.warn("[GitHub sync failed]", e.message); });
+            console.log("[GitHub] bus_state.json synced ✓");
+        } catch (e) {
+            console.warn("[GitHub sync failed]", e.message);
+        } finally {
+            isSyncingToGitHub = false;
+        }
+    }, 1500);
 }
 
 // Pull bus_state.json from GitHub and overwrite local copy (called once at startup)
@@ -1242,6 +1255,9 @@ async function restoreBusStateFromGitHub() {
         if (result && result.content) {
             const decoded = Buffer.from(result.content, "base64").toString("utf8");
             fs.writeFileSync(BUS_STATE_FILE, decoded, "utf8");
+            try {
+                masterBusState = JSON.parse(decoded);
+            } catch (err) {}
             console.log("[GitHub] bus_state.json restored from GitHub ✓");
         }
     } catch (e) {
@@ -1281,19 +1297,33 @@ function getDepotCounts(assignments) {
 }
 
 function loadBusState() {
-    const state = readJsonFile(BUS_STATE_FILE, {});
-    const clean = state && typeof state === "object" ? state : {};
-    if (!clean._depotAssignments || Object.keys(clean._depotAssignments).length === 0) {
-        clean._depotAssignments = getDefaultDepotAssignments();
-        saveBusState(clean);
+    if (!masterBusState) {
+        const state = readJsonFile(BUS_STATE_FILE, {});
+        masterBusState = state && typeof state === "object" ? state : {};
+        if (!masterBusState._depotAssignments || Object.keys(masterBusState._depotAssignments).length === 0) {
+            masterBusState._depotAssignments = getDefaultDepotAssignments();
+            saveBusState(masterBusState);
+        } else {
+            // Fill any missing bus keys from defaults without overwriting existing assignments
+            const defaults = getDefaultDepotAssignments();
+            let missing = false;
+            for (const bm of Object.keys(defaults)) {
+                if (!masterBusState._depotAssignments[bm]) {
+                    masterBusState._depotAssignments[bm] = defaults[bm];
+                    missing = true;
+                }
+            }
+            if (missing) saveBusState(masterBusState);
+        }
     }
-    return clean;
+    return masterBusState;
 }
 
 function saveBusState(state) {
-    const clean = state && typeof state === "object" ? state : {};
+    const clean = state && typeof state === "object" ? state : (masterBusState || {});
+    masterBusState = clean;
     writeJsonFile(BUS_STATE_FILE, clean);
-    syncBusStateToGitHub(clean); // persist to GitHub in background
+    syncBusStateToGitHub(clean); // persist to GitHub in background with debounce
 }
 
 function normalizeBusStatus(status) {

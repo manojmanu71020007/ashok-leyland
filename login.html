@@ -1621,9 +1621,10 @@
             const res = await fetch('/api/depot-state');
             if (res.ok) {
                 const data = await res.json();
-                if (data && data.ok) {
-                    depotCounts.depot1Count = data.depot1Count || 61;
-                    depotCounts.depot2Count = data.depot2Count || 61;
+                    if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
+                        depotCounts.depot1Count = data.depot1Count;
+                        depotCounts.depot2Count = data.depot2Count;
+                    }
                     if (data.assignments) {
                         try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
                     }

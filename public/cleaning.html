@@ -710,12 +710,19 @@
     const clean = String(bm || '').toUpperCase().trim();
     if (depotAssignments[clean]) return String(depotAssignments[clean]);
     if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotForBus === 'function') {
-      return window.DepotSyncEngine.getDepotForBus(clean);
+      const d = window.DepotSyncEngine.getDepotForBus(clean);
+      if (d) return String(d);
     }
     try {
       const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
       if (map[clean]) return String(map[clean]);
     } catch(e) {}
+    if (allVehicles && allVehicles.length > 0) {
+      const idx = allVehicles.findIndex(v => sameBus(v.bm_no, clean));
+      if (idx !== -1) {
+        return (idx < Math.ceil(allVehicles.length / 2)) ? '1' : '2';
+      }
+    }
     return '1';
   }
 
@@ -730,14 +737,24 @@
         if (getBusDepot(v.bm_no) === '2') d2++;
         else d1++;
       });
+    } else if (Object.keys(depotAssignments).length > 0) {
+      for (const bm of Object.keys(depotAssignments)) {
+        if (String(depotAssignments[bm]) === '2') d2++;
+        else d1++;
+      }
     } else {
-      const keys = Object.keys(depotAssignments);
-      if (keys.length > 0) {
-        for (const bm of keys) {
-          if (String(depotAssignments[bm]) === '2') d2++;
-          else d1++;
+      try {
+        const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+        const keys = Object.keys(map);
+        if (keys.length > 0) {
+          for (const bm of keys) {
+            if (String(map[bm]) === '2') d2++;
+            else d1++;
+          }
+        } else {
+          d1 = 61; d2 = 61;
         }
-      } else {
+      } catch(e) {
         d1 = 61; d2 = 61;
       }
     }
@@ -775,8 +792,12 @@
         const data = await res.json();
         if (data && data.assignments) {
           depotAssignments = data.assignments;
-          depotCounts.depot1Count = data.depot1Count || 61;
-          depotCounts.depot2Count = data.depot2Count || 61;
+          if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
+            depotCounts.depot1Count = data.depot1Count;
+            depotCounts.depot2Count = data.depot2Count;
+          } else {
+            recalcDepotCounts();
+          }
           try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
           updateDepotUI();
           filterBuses();
