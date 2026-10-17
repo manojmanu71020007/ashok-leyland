@@ -539,25 +539,7 @@
   <div class="header-icon">🚍</div>
   <div>
     <h1 id="pageTitleHeading" data-i18n="title_depot_operations">Depot Operations</h1>
-    <p data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
-  </div>
-</div>
-
-<!-- ── Depot Switcher Bar ── -->
-<div class="depot-switcher-bar">
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <span style="font-size:0.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Operating Depot:</span>
-    <div style="display:flex;gap:8px;">
-      <button type="button" id="btnDepot1" class="depot-switch-btn active" onclick="switchOperatingDepot('1')">
-        🏢 Depot 1 <span class="depot-pill-badge" id="depot1Badge">61 Buses</span>
-      </button>
-      <button type="button" id="btnDepot2" class="depot-switch-btn" onclick="switchOperatingDepot('2')">
-        🏢 Depot 2 <span class="depot-pill-badge" id="depot2Badge">61 Buses</span>
-      </button>
-    </div>
-  </div>
-  <div class="depot-fleet-summary" id="depotFleetSummary">
-    Selected Facility: <strong>Depot <span id="activeDepotNumLabel">1</span></strong> (<span id="activeDepotCountLabel">61</span> Buses Assigned)
+    <p id="pageSubHeading" data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
   </div>
 </div>
 
@@ -830,30 +812,13 @@
   }
 
   function updateDepotUI() {
-    const d1b = document.getElementById('depot1Badge');
-    if (d1b) d1b.textContent = `${depotCounts.depot1Count} Buses`;
-    const d2b = document.getElementById('depot2Badge');
-    if (d2b) d2b.textContent = `${depotCounts.depot2Count} Buses`;
-
-    const btn1 = document.getElementById('btnDepot1');
-    const btn2 = document.getElementById('btnDepot2');
-    if (btn1 && btn2) {
-      if (currentOperatingDepot === '2') {
-        btn1.classList.remove('active');
-        btn2.classList.add('active');
-      } else {
-        btn1.classList.add('active');
-        btn2.classList.remove('active');
-      }
-    }
-
-    const numLabel = document.getElementById('activeDepotNumLabel');
-    if (numLabel) numLabel.textContent = currentOperatingDepot;
-    const cntLabel = document.getElementById('activeDepotCountLabel');
-    if (cntLabel) cntLabel.textContent = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
+    const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
 
     const pageHeading = document.getElementById('pageTitleHeading');
     if (pageHeading) pageHeading.textContent = `Depot ${currentOperatingDepot} Operations`;
+
+    const pageSub = document.getElementById('pageSubHeading');
+    if (pageSub) pageSub.textContent = `Manage route completions — mark allocated buses as returned to Depot ${currentOperatingDepot} (${activeCount} Active Buses)`;
   }
 
   window.switchOperatingDepot = function(num) {
@@ -1178,7 +1143,7 @@
         <span class="modal-detail-val">${v?.reg_no || '—'}</span>
       </div>
       <div class="modal-detail-row">
-        <span class="modal-detail-label">Current Operating Depot</span>
+        <span class="modal-detail-label">Receiving Depot Facility</span>
         <span class="modal-detail-val" style="color:#7c3aed;font-weight:800;">Depot ${targetDepot}</span>
       </div>
       <div class="modal-detail-row">
