@@ -1135,7 +1135,10 @@ function sendFile(res, filePath, contentType) {
         const acceptEncoding = (res.req && res.req.headers["accept-encoding"]) || "";
         const headers = {
             "Content-Type": contentType,
-            "Access-Control-Allow-Origin": "*"
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
         };
 
         if (acceptEncoding.includes("gzip") && data.length > 512) {
@@ -1277,23 +1280,27 @@ async function restoreBusStateFromGitHub() {
 }
 // ──────────────────────────────────────────────────────────────────────────────
 
+const BASE_DEPOT_MAP = {"BM001":"1","BM002":"1","BM003":"1","BM004":"1","BM005":"1","BM010":"1","BM012":"1","BM019":"1","BM020":"1","BM024":"1","BM032":"1","BM033":"1","BM038":"1","BM052":"2","BM054":"1","BM056":"1","BM057":"1","BM058":"1","BM062":"1","BM068":"1","BM075":"1","BM080":"1","BM081":"1","BM082":"1","BM086":"1","BM088":"1","BM107":"1","BM116":"1","BM119":"1","BM124":"1","BM151":"1","BM152":"1","BM153":"1","BM157":"1","BM174":"1","BM183":"1","BM185":"1","BM187":"1","BM191":"1","BM193":"1","BM197":"1","BM198":"1","BM199":"1","BM200":"1","BM201":"1","BM202":"1","BM203":"1","BM204":"1","BM205":"1","BM206":"1","BM207":"1","BM208":"1","BM209":"1","BM210":"1","BM212":"1","BM213":"1","BM214":"1","BM215":"1","BM216":"1","BM217":"1","BM218":"1","BM219":"2","BM220":"2","BM221":"2","BM222":"2","BM223":"2","BM224":"2","BM225":"2","BM227":"2","BM238":"2","BM239":"2","BM240":"2","BM245":"2","BM248":"2","BM249":"2","BM250":"2","BM253":"2","BM255":"2","BM256":"2","BM257":"2","BM258":"2","BM259":"2","BM260":"2","BM261":"2","BM263":"2","BM264":"2","BM265":"2","BM267":"2","BM268":"2","BM269":"2","BM271":"2","BM272":"2","BM273":"2","BM274":"2","BM275":"2","BM276":"2","BM277":"2","BM278":"2","BM279":"1","BM280":"2","BM281":"2","BM282":"2","BM283":"2","BM284":"2","BM285":"2","BM286":"2","BM287":"2","BM288":"2","BM289":"2","BM290":"2","BM291":"2","BM292":"2","BM293":"2","BM294":"2","BM295":"2","BM296":"2","BM297":"2","BM298":"2","BM299":"2","BM300":"2","BM303":"1","BM304":"2"};
+
 function getDefaultDepotAssignments() {
-    const assignments = {};
+    const assignments = Object.assign({}, BASE_DEPOT_MAP);
     try {
         if (fs.existsSync(VEHICLES_FILE)) {
             const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
             const lines = raw.split(/\r?\n/).slice(1).filter(Boolean);
             const bms = lines.map(l => (l.split(",")[0] || "").trim()).filter(Boolean);
-            const mid = Math.ceil(bms.length / 2);
-            bms.forEach((bm, idx) => {
-                assignments[bm.toUpperCase()] = idx < mid ? "1" : "2";
+            bms.forEach((bm) => {
+                const upper = bm.toUpperCase();
+                if (!assignments[upper]) {
+                    assignments[upper] = "1";
+                }
             });
             return assignments;
         }
     } catch (e) {
         console.warn("Could not read vehicles file for default depot assignments:", e.message);
     }
-    return {};
+    return assignments;
 }
 
 function getDepotCounts(assignments) {

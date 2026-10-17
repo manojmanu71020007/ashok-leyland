@@ -462,6 +462,7 @@
             border-radius: 2px;
             display: block;
             transition: all 0.2s ease;
+            pointer-events: none;
         }
 
         .depot-active-chip {
@@ -480,6 +481,9 @@
             -webkit-backdrop-filter: blur(8px);
             transition: all 0.2s ease;
         }
+        .depot-active-chip * {
+            pointer-events: none;
+        }
         .depot-active-chip:hover {
             background: rgba(255, 255, 255, 0.24);
             border-color: rgba(255, 255, 255, 0.45);
@@ -492,10 +496,12 @@
             left: 0;
             right: 0;
             bottom: 0;
+            width: 100vw;
+            height: 100vh;
             background: rgba(15, 23, 42, 0.65);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
-            z-index: 9998;
+            z-index: 99998;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s ease;
@@ -510,11 +516,13 @@
             top: 0;
             left: 0;
             bottom: 0;
+            height: 100vh;
+            height: 100dvh;
             width: 330px;
             max-width: 86vw;
             background: #ffffff;
             box-shadow: 12px 0 35px rgba(0, 0, 0, 0.35);
-            z-index: 9999;
+            z-index: 99999;
             transform: translateX(-100%);
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
@@ -644,6 +652,31 @@
     </style>
     <script src="i18n.js"></script>
     <script src="sync-engine.js"></script>
+    <script>
+        // Early definition fallback
+        window.toggleDepotDrawer = window.toggleDepotDrawer || function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            const d = document.getElementById('depotDrawer');
+            if (d && d.classList.contains('show')) window.closeDepotDrawer(e);
+            else window.openDepotDrawer(e);
+        };
+        window.openDepotDrawer = window.openDepotDrawer || function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            document.getElementById('depotDrawer')?.classList.add('show');
+            document.getElementById('depotDrawerBackdrop')?.classList.add('show');
+            if (typeof window.updateDepotDrawerUI === 'function') window.updateDepotDrawerUI();
+        };
+        window.closeDepotDrawer = window.closeDepotDrawer || function(e) {
+            if (e && e.preventDefault) e.preventDefault();
+            document.getElementById('depotDrawer')?.classList.remove('show');
+            document.getElementById('depotDrawerBackdrop')?.classList.remove('show');
+        };
+        window.chooseDepot = window.chooseDepot || function(num) {
+            try { localStorage.setItem('selected_depot', String(num)); } catch(e){}
+            try { sessionStorage.setItem('selected_depot', String(num)); } catch(e){}
+            window.closeDepotDrawer();
+        };
+    </script>
 </head>
 <body>
 <main class="page-wrapper">
@@ -652,14 +685,14 @@
     <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;">
         <div style="display:flex;align-items:center;gap:10px;">
             <!-- 3 Parallel Lines Button -->
-            <button id="depotHamburgerBtn" class="depot-hamburger-btn" type="button" aria-label="Select Depot Menu" title="Click to Select Depot" onclick="toggleDepotDrawer()">
+            <button id="depotHamburgerBtn" class="depot-hamburger-btn" type="button" aria-label="Select Depot Menu" title="Click to Select Depot" onclick="toggleDepotDrawer(event)">
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
                 <span class="hamburger-bar"></span>
             </button>
             <!-- Selected depot indicator chip -->
-            <button id="depotActiveChip" class="depot-active-chip" type="button" onclick="toggleDepotDrawer()" title="Switch Depot">
-                <span id="depotActiveChipText">🏢 Depot 1 (61 Buses)</span>
+            <button id="depotActiveChip" class="depot-active-chip" type="button" onclick="toggleDepotDrawer(event)" title="Switch Depot">
+                <span id="depotActiveChipText">🏢 Depot 1 (62 Buses)</span>
                 <span style="font-size:0.75rem;opacity:0.8;">▾</span>
             </button>
         </div>
@@ -676,73 +709,6 @@
         </div>
     </div>
 
-    <!-- ── Depot Selection Drawer & Backdrop ── -->
-    <div id="depotDrawerBackdrop" class="depot-drawer-backdrop" onclick="closeDepotDrawer()"></div>
-    <aside id="depotDrawer" class="depot-drawer" aria-label="Depot Selection Drawer">
-        <div class="depot-drawer-header">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <span style="font-size:1.5rem;">🏢</span>
-                <div>
-                    <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#0f172a;">Select Depot</h3>
-                    <p style="margin:2px 0 0;font-size:0.74rem;color:#64748b;">Choose depot to reveal its fleet & quick actions</p>
-                </div>
-            </div>
-            <button type="button" class="depot-drawer-close" onclick="closeDepotDrawer()" aria-label="Close">✕</button>
-        </div>
-
-        <div class="depot-drawer-body">
-            <!-- Depot 1 Option -->
-            <div id="depotCard1" class="depot-select-card" onclick="chooseDepot('1')">
-                <div class="depot-card-top">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span class="depot-number-badge">1</span>
-                        <div>
-                            <div style="font-weight:800;font-size:1.05rem;color:#0f172a;">Depot 1</div>
-                            <div style="font-size:0.75rem;color:#64748b;">Facility & Assigned Fleet</div>
-                        </div>
-                    </div>
-                    <span id="depot1StatusBadge" class="depot-status-badge">Active</span>
-                </div>
-                <div class="depot-card-stat">
-                    <span>Total Buses:</span>
-                    <strong id="drawerDepot1Count" style="color:#2563eb;font-size:1.05rem;">61 Buses</strong>
-                </div>
-                <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:0.75rem;color:#059669;font-weight:700;">🟢 Fast Charging & Ops Ready</span>
-                    <span id="depot1Check" class="depot-selected-check">✓ Active</span>
-                </div>
-            </div>
-
-            <!-- Depot 2 Option -->
-            <div id="depotCard2" class="depot-select-card" onclick="chooseDepot('2')">
-                <div class="depot-card-top">
-                    <div style="display:flex;align-items:center;gap:10px;">
-                        <span class="depot-number-badge" style="background:#7c3aed;">2</span>
-                        <div>
-                            <div style="font-weight:800;font-size:1.05rem;color:#0f172a;">Depot 2</div>
-                            <div style="font-size:0.75rem;color:#64748b;">Facility & Assigned Fleet</div>
-                        </div>
-                    </div>
-                    <span id="depot2StatusBadge" class="depot-status-badge">Active</span>
-                </div>
-                <div class="depot-card-stat">
-                    <span>Total Buses:</span>
-                    <strong id="drawerDepot2Count" style="color:#7c3aed;font-size:1.05rem;">61 Buses</strong>
-                </div>
-                <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
-                    <span style="font-size:0.75rem;color:#059669;font-weight:700;">🟢 Fast Charging & Ops Ready</span>
-                    <span id="depot2Check" class="depot-selected-check" style="display:none;">✓ Active</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="depot-drawer-footer">
-            <div style="font-size:0.78rem;color:#64748b;text-align:center;">
-                Total Fleet Across Depots: <strong id="drawerTotalCount" style="color:#0f172a;">122 Buses</strong>
-            </div>
-        </div>
-    </aside>
-
     <!-- ── Quick Access Portal Tiles ── -->
     <div style="width:100%;margin-bottom:22px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px;">
@@ -750,7 +716,7 @@
                 ⚡ Depot <span id="quickDepotNum">1</span> Quick Actions
             </p>
             <span id="quickDepotBadge" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:0.75rem;padding:3px 10px;border-radius:999px;font-weight:800;backdrop-filter:blur(6px);">
-                <span id="quickBusCount">61</span> Buses
+                <span id="quickBusCount">62</span> Buses
             </span>
         </div>
 
@@ -940,6 +906,79 @@
 
     </section>
 </main>
+
+<!-- ══════════════════════════════════════════ DEPOT SELECTION DRAWER (FULL SCREEN LEVEL) ══════════════════════════════════════════ -->
+<div id="depotDrawerBackdrop" class="depot-drawer-backdrop" onclick="closeDepotDrawer(event)"></div>
+
+<aside id="depotDrawer" class="depot-drawer" aria-label="Select Depot">
+    <div class="depot-drawer-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.4rem;">🏢</span>
+            <div>
+                <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#0f172a;">Select Operational Depot</h3>
+                <p style="margin:2px 0 0 0;font-size:0.75rem;color:#64748b;">Ashok Leyland Electric Fleet</p>
+            </div>
+        </div>
+        <button type="button" class="depot-drawer-close" onclick="closeDepotDrawer(event)" aria-label="Close Depot Drawer">✕</button>
+    </div>
+
+    <div class="depot-drawer-body">
+        <!-- Depot 1 Option -->
+        <div id="depotCard1" class="depot-select-card active" onclick="chooseDepot(1)">
+            <div class="depot-card-top">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="depot-number-badge">1</div>
+                    <div>
+                        <div style="font-weight:800;font-size:0.98rem;color:#0f172a;">Depot 1 Fleet</div>
+                        <div style="font-size:0.74rem;color:#64748b;">North Operations Wing</div>
+                    </div>
+                </div>
+                <span class="depot-status-badge">Active</span>
+            </div>
+            <div class="depot-card-stat">
+                <span>Assigned Fleet</span>
+                <strong id="drawerDepot1Count" style="color:#2563eb;font-weight:800;">62 Buses</strong>
+            </div>
+            <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+                <span id="depot1Check" class="depot-selected-check">✓ Active Depot</span>
+            </div>
+        </div>
+
+        <!-- Depot 2 Option -->
+        <div id="depotCard2" class="depot-select-card" onclick="chooseDepot(2)">
+            <div class="depot-card-top">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="depot-number-badge" style="background:#7c3aed;">2</div>
+                    <div>
+                        <div style="font-weight:800;font-size:0.98rem;color:#0f172a;">Depot 2 Fleet</div>
+                        <div style="font-size:0.74rem;color:#64748b;">South Operations Wing</div>
+                    </div>
+                </div>
+                <span class="depot-status-badge">Active</span>
+            </div>
+            <div class="depot-card-stat">
+                <span>Assigned Fleet</span>
+                <strong id="drawerDepot2Count" style="color:#7c3aed;font-weight:800;">60 Buses</strong>
+            </div>
+            <div style="margin-top:10px;display:flex;justify-content:flex-end;">
+                <span id="depot2Check" class="depot-selected-check" style="display:none;background:#f3e8ff;color:#7c3aed;">✓ Active Depot</span>
+            </div>
+        </div>
+
+        <!-- Total Fleet Stat Box -->
+        <div style="margin-top:auto;padding:14px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:14px;text-align:center;">
+            <div style="font-size:0.75rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Total Fleet Network</div>
+            <div id="drawerTotalCount" style="font-size:1.35rem;font-weight:900;color:#0f172a;margin-top:4px;">122 Buses</div>
+            <div style="font-size:0.72rem;color:#94a3b8;margin-top:3px;">Real-time sync enabled across all tabs</div>
+        </div>
+    </div>
+
+    <div class="depot-drawer-footer">
+        <button type="button" class="primary-btn" onclick="closeDepotDrawer(event)" style="padding:10px;font-size:0.88rem;border-radius:10px;">
+            Done / Close Menu
+        </button>
+    </div>
+</aside>
 
 <!-- ══════════════════════════════════════════ FORGOT PASSWORD MODAL ══════════════════════════════════════════ -->
 <div class="modal-backdrop" id="reset-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reset-modal-heading" style="display:none;">
@@ -1522,40 +1561,87 @@
     // ══════════════════════════════════════════════════════════════════════════
     //  DEPOT FLEET & QUICK ACTIONS CONTROLLER
     // ══════════════════════════════════════════════════════════════════════════
-    let selectedDepot = localStorage.getItem('selected_depot') || '1';
-    let depotCounts = { depot1Count: 61, depot2Count: 61 };
-    try {
-        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
-            depotCounts = window.DepotSyncEngine.getDepotCounts();
-        }
-    } catch(e) {}
+    //  DEPOT FLEET & QUICK ACTIONS CONTROLLER
+    // ══════════════════════════════════════════════════════════════════════════
+    const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
+        ? ''
+        : 'https://ashok-leyland-bus-tracking.onrender.com';
 
-    window.toggleDepotDrawer = function() {
+    let selectedDepot = localStorage.getItem('selected_depot') || sessionStorage.getItem('selected_depot') || '1';
+    let depotCounts = { depot1Count: 62, depot2Count: 60 };
+
+    function computeCountsFromStorage() {
+        try {
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
+                const c = window.DepotSyncEngine.getDepotCounts();
+                if (c && c.total > 0) return c;
+            }
+        } catch(e) {}
+        try {
+            const raw = localStorage.getItem('depot_bus_assignments');
+            if (raw) {
+                const map = JSON.parse(raw);
+                if (map && typeof map === 'object') {
+                    let d1 = 0, d2 = 0;
+                    for (const k of Object.keys(map)) {
+                        if (String(map[k]) === '2') d2++;
+                        else d1++;
+                    }
+                    if (d1 + d2 > 0) return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
+                }
+            }
+        } catch(e) {}
+        return { depot1Count: 62, depot2Count: 60, total: 122 };
+    }
+
+    let _lastToggleTs = 0;
+    window.toggleDepotDrawer = function(e) {
+        if (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        }
+        const now = Date.now();
+        if (now - _lastToggleTs < 250) return; // Guard against duplicate inline + event listener trigger
+        _lastToggleTs = now;
+
         const drawer = document.getElementById('depotDrawer');
         if (drawer && drawer.classList.contains('show')) {
-            window.closeDepotDrawer();
+            window.closeDepotDrawer(e);
         } else {
-            window.openDepotDrawer();
+            window.openDepotDrawer(e);
         }
     };
 
-    window.openDepotDrawer = function() {
+    window.openDepotDrawer = function(e) {
+        if (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        }
         updateDepotDrawerUI();
         document.getElementById('depotDrawer')?.classList.add('show');
         document.getElementById('depotDrawerBackdrop')?.classList.add('show');
     };
 
-    window.closeDepotDrawer = function() {
+    window.closeDepotDrawer = function(e) {
+        if (e) {
+            if (e.preventDefault) e.preventDefault();
+            if (e.stopPropagation) e.stopPropagation();
+        }
         document.getElementById('depotDrawer')?.classList.remove('show');
         document.getElementById('depotDrawerBackdrop')?.classList.remove('show');
     };
 
     window.chooseDepot = function(num) {
-        selectedDepot = String(num);
+        selectedDepot = String(num || '1');
         try { localStorage.setItem('selected_depot', selectedDepot); } catch(e){}
+        try { sessionStorage.setItem('selected_depot', selectedDepot); } catch(e){}
         updateQuickActionsUI();
         updateDepotDrawerUI();
         window.closeDepotDrawer();
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.postMessage({ type: 'depot_changed', depot: selectedDepot });
+        } catch(e){}
     };
 
     function updateQuickActionsUI() {
@@ -1622,8 +1708,12 @@
     }
 
     async function fetchDepotCounts() {
+        depotCounts = computeCountsFromStorage();
+        updateQuickActionsUI();
+        updateDepotDrawerUI();
+
         try {
-            const res = await fetch('/api/depot-state');
+            const res = await fetch(API_BASE + '/api/depot-state');
             if (res.ok) {
                 const data = await res.json();
                 if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
@@ -1635,33 +1725,19 @@
                 }
                 updateQuickActionsUI();
                 updateDepotDrawerUI();
-                return;
             }
         } catch (e) {}
-
-        // Fallback to local storage or sync engine
-        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
-            const counts = window.DepotSyncEngine.getDepotCounts();
-            depotCounts = counts;
-            updateQuickActionsUI();
-            updateDepotDrawerUI();
-        }
     }
-
-    // Explicit listeners for buttons
-    document.getElementById('depotHamburgerBtn')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.toggleDepotDrawer();
-    });
-    document.getElementById('depotActiveChip')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        window.toggleDepotDrawer();
-    });
 
     // Real-time synchronization across tabs and server
     try {
         const bc = new BroadcastChannel('depot_operations_sync');
-        bc.onmessage = () => { fetchDepotCounts(); };
+        bc.onmessage = (evt) => {
+            if (evt && evt.data && evt.data.depot) {
+                selectedDepot = String(evt.data.depot);
+            }
+            fetchDepotCounts();
+        };
     } catch(e) {}
 
     window.addEventListener('storage', (e) => {
@@ -1686,6 +1762,7 @@
     }
 
     // Init depot UI immediately
+    depotCounts = computeCountsFromStorage();
     updateQuickActionsUI();
     fetchDepotCounts();
 </script>

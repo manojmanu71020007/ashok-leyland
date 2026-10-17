@@ -7,11 +7,14 @@
 (function(window) {
     'use strict';
 
-    const SYNC_STATE_ENDPOINT = '/api/sync-state';
-    const EVENTS_ENDPOINT = '/api/events';
-    const ALLOCATED_DUTIES_ENDPOINT = '/api/allocated-duties';
-    const LOCKED_BUSES_ENDPOINT = '/api/locked-buses';
-    const BUS_STATE_ENDPOINT = '/api/bus-state';
+    const API_BASE = (typeof window !== 'undefined' && (window.location.protocol === 'file:' || !window.location.host))
+        ? 'https://ashok-leyland-bus-tracking.onrender.com'
+        : '';
+    const SYNC_STATE_ENDPOINT = API_BASE + '/api/sync-state';
+    const EVENTS_ENDPOINT = API_BASE + '/api/events';
+    const ALLOCATED_DUTIES_ENDPOINT = API_BASE + '/api/allocated-duties';
+    const LOCKED_BUSES_ENDPOINT = API_BASE + '/api/locked-buses';
+    const BUS_STATE_ENDPOINT = API_BASE + '/api/bus-state';
 
     const ALLOCATED_KEY = 'smartbus_allocated_duties';
     const LOCKED_KEY = 'depot_locked_buses';
@@ -324,6 +327,8 @@
 
     const DEFAULT_FLEET_BMS = ["BM001","BM002","BM003","BM004","BM005","BM010","BM012","BM019","BM020","BM024","BM032","BM033","BM038","BM052","BM054","BM056","BM057","BM058","BM062","BM068","BM075","BM080","BM081","BM082","BM086","BM088","BM107","BM116","BM119","BM124","BM151","BM152","BM153","BM157","BM174","BM183","BM185","BM187","BM191","BM193","BM197","BM198","BM199","BM200","BM201","BM202","BM203","BM204","BM205","BM206","BM207","BM208","BM209","BM210","BM212","BM213","BM214","BM215","BM216","BM217","BM218","BM219","BM220","BM221","BM222","BM223","BM224","BM225","BM227","BM238","BM239","BM240","BM245","BM248","BM249","BM250","BM253","BM255","BM256","BM257","BM258","BM259","BM260","BM261","BM263","BM264","BM265","BM267","BM268","BM269","BM271","BM272","BM273","BM274","BM275","BM276","BM277","BM278","BM279","BM280","BM281","BM282","BM283","BM284","BM285","BM286","BM287","BM288","BM289","BM290","BM291","BM292","BM293","BM294","BM295","BM296","BM297","BM298","BM299","BM300","BM303","BM304"];
 
+    const DEFAULT_DEPOT_MAP = {"BM001":"1","BM002":"1","BM003":"1","BM004":"1","BM005":"1","BM010":"1","BM012":"1","BM019":"1","BM020":"1","BM024":"1","BM032":"1","BM033":"1","BM038":"1","BM052":"2","BM054":"1","BM056":"1","BM057":"1","BM058":"1","BM062":"1","BM068":"1","BM075":"1","BM080":"1","BM081":"1","BM082":"1","BM086":"1","BM088":"1","BM107":"1","BM116":"1","BM119":"1","BM124":"1","BM151":"1","BM152":"1","BM153":"1","BM157":"1","BM174":"1","BM183":"1","BM185":"1","BM187":"1","BM191":"1","BM193":"1","BM197":"1","BM198":"1","BM199":"1","BM200":"1","BM201":"1","BM202":"1","BM203":"1","BM204":"1","BM205":"1","BM206":"1","BM207":"1","BM208":"1","BM209":"1","BM210":"1","BM212":"1","BM213":"1","BM214":"1","BM215":"1","BM216":"1","BM217":"1","BM218":"1","BM219":"2","BM220":"2","BM221":"2","BM222":"2","BM223":"2","BM224":"2","BM225":"2","BM227":"2","BM238":"2","BM239":"2","BM240":"2","BM245":"2","BM248":"2","BM249":"2","BM250":"2","BM253":"2","BM255":"2","BM256":"2","BM257":"2","BM258":"2","BM259":"2","BM260":"2","BM261":"2","BM263":"2","BM264":"2","BM265":"2","BM267":"2","BM268":"2","BM269":"2","BM271":"2","BM272":"2","BM273":"2","BM274":"2","BM275":"2","BM276":"2","BM277":"2","BM278":"2","BM279":"1","BM280":"2","BM281":"2","BM282":"2","BM283":"2","BM284":"2","BM285":"2","BM286":"2","BM287":"2","BM288":"2","BM289":"2","BM290":"2","BM291":"2","BM292":"2","BM293":"2","BM294":"2","BM295":"2","BM296":"2","BM297":"2","BM298":"2","BM299":"2","BM300":"2","BM303":"1","BM304":"2"};
+
     async function pushDepotAssignment(bm, depot) {
         const cleanBm = String(bm || '').toUpperCase().trim();
         const targetDepot = String(depot || '1').trim();
@@ -331,8 +336,8 @@
             let local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             if (Object.keys(local).length < DEFAULT_FLEET_BMS.length) {
                 const fullMap = {};
-                DEFAULT_FLEET_BMS.forEach((b, idx) => {
-                    fullMap[b] = local[b] || (idx < 61 ? '1' : '2');
+                DEFAULT_FLEET_BMS.forEach((b) => {
+                    fullMap[b] = local[b] || DEFAULT_DEPOT_MAP[b] || '1';
                 });
                 local = fullMap;
             }
@@ -343,7 +348,7 @@
         } catch (e) {}
 
         try {
-            const res = await fetch('/api/depot-assign', {
+            const res = await fetch(API_BASE + '/api/depot-assign', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ bm: cleanBm, depot: targetDepot })
@@ -368,8 +373,7 @@
             const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             if (map[clean]) return String(map[clean]);
         } catch (e) {}
-        const idx = DEFAULT_FLEET_BMS.indexOf(clean);
-        if (idx !== -1) return (idx < 61) ? '1' : '2';
+        if (DEFAULT_DEPOT_MAP[clean]) return DEFAULT_DEPOT_MAP[clean];
         return '1';
     }
 
@@ -380,8 +384,8 @@
             map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
         } catch (e) {}
 
-        DEFAULT_FLEET_BMS.forEach((bm, idx) => {
-            const assigned = map[bm] || (idx < 61 ? '1' : '2');
+        DEFAULT_FLEET_BMS.forEach((bm) => {
+            const assigned = map[bm] || DEFAULT_DEPOT_MAP[bm] || '1';
             if (String(assigned) === '2') d2++;
             else d1++;
         });

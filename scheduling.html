@@ -758,9 +758,16 @@
                             <button type="button" id="btn-reset-time" class="btn-reset-time" onclick="resetToScheduledTime()" data-i18n="btn_reset_auto">Reset to Timetable</button>
                         </div>
                     </label>
-                    <label class="wide">
+                    <label>
                         <span data-i18n="label_route_length">Schedule distance (km)</span>
                         <input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data">
+                    </label>
+                    <label>
+                        <span data-i18n="label_driver">Driver Readiness</span>
+                        <select id="driver" title="Driver assignment status for this schedule">
+                            <option value="ready" selected>👤 Driver Assigned (Ready)</option>
+                            <option value="not-ready">⚠️ No Driver Assigned</option>
+                        </select>
                     </label>
                 </div>
 
@@ -820,6 +827,7 @@
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
                     <div class="rule"><span>Departure Mode</span><strong id="departure-mode-rule"><span style="color:#16a34a;font-weight:700;">✅ Timetable Schedule</span></strong></div>
+                    <div class="rule"><span>Driver status</span><strong id="driver-rule"><span style="color:#16a34a;font-weight:700;">✅ Driver Assigned &amp; Ready</span></strong></div>
                 </div>
             </aside>
         </div>
@@ -1391,7 +1399,9 @@
 
             const state = busStates[key] || {};
             const condition = state.condition || "Good";
-            const driver = state.driver || "Driver Assigned";
+            const driverSelectEl = document.getElementById("driver");
+            const manualDriverVal = driverSelectEl ? driverSelectEl.value : null;
+            const driver = (manualDriverVal === "not-ready") ? "No Driver Assigned" : (state.driver || "Driver Assigned");
 
             if (condition === "Not Good") {
                 return { feasible: false, bm: key, reason: `Bus ${key} flagged for maintenance inspection.` };
@@ -1887,10 +1897,11 @@
             if (section) section.style.display = "block";
 
             if (!Array.isArray(candidates) || candidates.length === 0) {
+                const isNoDriver = document.getElementById("driver") && document.getElementById("driver").value === "not-ready";
                 grid.innerHTML = `
                     <div style="grid-column:1/-1;padding:16px;background:#fef2f2;border:1px solid #fecdd3;border-radius:8px;color:#991b1b;font-size:0.86rem;text-align:center;">
-                        <strong>⚠️ No eligible candidate buses currently available for this route & time.</strong>
-                        <p style="margin-top:4px;font-size:0.78rem;color:#7f1d1d;">Please ensure buses have sufficient battery SoC updated in the Charging Portal.</p>
+                        <strong>⚠️ ${isNoDriver ? 'No Driver Assigned to Schedule' : 'No eligible candidate buses currently available for this route & time.'}</strong>
+                        <p style="margin-top:4px;font-size:0.78rem;color:#7f1d1d;">${isNoDriver ? 'Please select "Driver Assigned" to evaluate and unlock candidate buses.' : 'Please ensure buses have sufficient battery SoC updated in the Charging Portal.'}</p>
                     </div>
                 `;
                 if (countBadge) countBadge.textContent = "0 Buses Available";
@@ -2075,6 +2086,7 @@
                 const shiftName = (result && result.shift) ? result.shift : "Selected Shift";
                 const depTime = (result && result.departureTime) ? result.departureTime : "selected time";
                 const reqText = (result && result.reqSoc) ? `${result.reqSoc}% SoC required` : "insufficient battery";
+                const isNoDriver = document.getElementById("driver") && document.getElementById("driver").value === "not-ready";
                 card.style.display = "block";
                 card.style.borderColor = "#fca5a5";
                 card.style.borderLeftColor = "#dc2626";
@@ -2088,7 +2100,7 @@
                     <div style="font-size:0.88rem;color:#7f1d1d;line-height:1.5;padding:6px 0;">
                         <strong>No eligible bus could be allocated for this schedule (${escapeHtml(shiftName)} at ${escapeHtml(depTime)}).</strong>
                         <div style="margin-top:6px;font-size:0.8rem;color:#991b1b;line-height:1.4;">
-                            ${result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is below the estimated required Single Charge Operation level (${reqText}). Update bus SOC in Charging Portal to allocate.`}
+                            ${isNoDriver ? "⚠️ Driver Unassigned: A driver must be assigned to this departure before a vehicle can be dispatched. Select 'Driver Assigned' in the schedule form." : (result && result.swapLog && result.swapLog.length ? result.swapLog.join("<br>") : `Candidate buses disqualified: Battery state is below the estimated required Single Charge Operation level (${reqText}). Update bus SOC in Charging Portal to allocate.`)}
                         </div>
                     </div>
                 `;
@@ -2171,6 +2183,10 @@
                         <div class="alloc-metric-item">
                             <span class="metric-label">Bus Tier</span>
                             <strong class="metric-val" style="color:${busCat === 'A' ? '#16a34a' : (busCat === 'B' ? '#2563eb' : '#d97706')};">Category ${escapeHtml(busCat)}</strong>
+                        </div>
+                        <div class="alloc-metric-item">
+                            <span class="metric-label">Driver Status</span>
+                            <strong id="alloc-driver" class="metric-val" style="color:#059669;">👤 ${escapeHtml(alloc.driver || "Driver Assigned")}</strong>
                         </div>
                     </div>
                 </div>
@@ -2308,6 +2324,13 @@
                     matrixStatusRule.textContent = (isComplexRoute || isPeakTime) ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
                     matrixStatusRule.style.color = (isComplexRoute || isPeakTime) ? "#b45309" : "#64748b";
                 }
+                const driverRuleEl = document.getElementById("driver-rule");
+                if (driverRuleEl) {
+                    const isNoDriver = document.getElementById("driver") && document.getElementById("driver").value === "not-ready";
+                    driverRuleEl.innerHTML = isNoDriver
+                        ? `<span style="color:#dc2626;font-weight:700;">❌ No Driver Assigned (Disqualified)</span>`
+                        : `—`;
+                }
                 return;
             }
 
@@ -2341,21 +2364,31 @@
                 busCatRule.style.color = busCategory === "A" ? "#16a34a" : (busCategory === "B" ? "#2563eb" : "#d97706");
             }
 
-                if (matrixStatusRule) {
-                    matrixStatusRule.textContent = isMatrixCompliant
-                        ? `✅ Allowed (Cat ${requiresCatA ? 'A' : allowedCategories.join('/')})`
-                        : `⚠️ Required Cat ${requiresCatA ? 'A' : allowedCategories.join('/')} (Current: Cat ${busCategory})`;
-                    matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
-                }
-
-                updateManualOverrideUI();
+            if (matrixStatusRule) {
+                matrixStatusRule.textContent = isMatrixCompliant
+                    ? `✅ Allowed (Cat ${requiresCatA ? 'A' : allowedCategories.join('/')})`
+                    : `⚠️ Required Cat ${requiresCatA ? 'A' : allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+                matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
             }
+
+            const driverRuleEl = document.getElementById("driver-rule");
+            if (driverRuleEl) {
+                const drv = allocatedBus.driver || "Driver Assigned";
+                const isDrvAssigned = !drv.toLowerCase().includes("no");
+                driverRuleEl.innerHTML = isDrvAssigned
+                    ? `<span style="color:#16a34a;font-weight:700;">✅ Driver Assigned &amp; Ready</span>`
+                    : `<span style="color:#dc2626;font-weight:700;">❌ No Driver Assigned</span>`;
+            }
+
+            updateManualOverrideUI();
+        }
 
         function updateAllocateButton(allocatedBus) {
             const recBtn = document.getElementById("recommend");
             if (!recBtn) return;
             if (!allocatedBus) {
-                recBtn.textContent = "⚡ No Eligible Bus to Allocate";
+                const isNoDriver = document.getElementById("driver") && document.getElementById("driver").value === "not-ready";
+                recBtn.textContent = isNoDriver ? "⚠️ No Driver Assigned — Cannot Allocate" : "⚡ No Eligible Bus to Allocate";
                 recBtn.disabled = true;
                 recBtn.style.opacity = "0.5";
                 recBtn.style.cursor = "not-allowed";
@@ -2548,6 +2581,14 @@
                 };
                 depInput.addEventListener("input", handleDeparture);
                 depInput.addEventListener("change", handleDeparture);
+            }
+
+            const driverSelect = document.getElementById("driver");
+            if (driverSelect) {
+                driverSelect.addEventListener("change", async () => {
+                    currentlyAllocatedBus = null;
+                    await recommend();
+                });
             }
 
             const recBtn = document.getElementById("recommend");
@@ -2922,7 +2963,7 @@
                                     <span>Range: <strong>${b.fullDutyKm} km</strong></span>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:2px;">
-                                    <span style="font-size:0.72rem;color:#065f46;font-weight:700;">● Ready for Dispatch</span>
+                                    <span style="font-size:0.72rem;color:#065f46;font-weight:700;">● Ready for Dispatch • 👤 Driver Assigned</span>
                                     <button type="button" onclick="selectModalAvailableBus('${escapeHtml(b.bm)}')" style="background:linear-gradient(135deg, #7c3aed, #6d28d9);color:#fff;border:none;padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:700;cursor:pointer;">
                                         ${isSelected ? '✓ Selected' : 'Select Bus ➔'}
                                     </button>
