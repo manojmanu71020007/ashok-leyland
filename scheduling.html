@@ -1310,7 +1310,8 @@
                 const scLower = String(matchedSched.category).toLowerCase();
                 if (scLower.includes("comp")) return "complex";
                 if (scLower.includes("mod")) return "moderate";
-                if (scLower.includes("stand") || scLower.includes("simp")) return "simple";
+                if (scLower.includes("stand")) return "standard";
+                if (scLower.includes("simp")) return "simple";
             }
             const rCode = String(routeObj?.code || routeObj?.routeCode || routeObj?.id || "").toUpperCase();
             if (rCode && Array.isArray(datasetSchedules)) {
@@ -1327,24 +1328,35 @@
                             const cLower = String(closest.category).toLowerCase();
                             if (cLower.includes("comp")) return "complex";
                             if (cLower.includes("mod")) return "moderate";
-                            if (cLower.includes("stand") || cLower.includes("simp")) return "simple";
+                            if (cLower.includes("stand")) return "standard";
+                            if (cLower.includes("simp")) return "simple";
                         }
                     }
-                    const counts = { simple: 0, moderate: 0, complex: 0 };
+                    const counts = { simple: 0, standard: 0, moderate: 0, complex: 0 };
                     scheds.forEach(s => {
                         const c = String(s.category).toLowerCase();
                         if (c.includes("comp")) counts.complex++;
                         else if (c.includes("mod")) counts.moderate++;
-                        else if (c.includes("stand") || c.includes("simp")) counts.simple++;
+                        else if (c.includes("stand")) counts.standard++;
+                        else if (c.includes("simp")) counts.simple++;
                     });
+                    if (counts.standard >= counts.moderate && counts.standard >= counts.complex && counts.standard >= counts.simple) return "standard";
                     if (counts.simple >= counts.moderate && counts.simple >= counts.complex) return "simple";
                     if (counts.moderate >= counts.complex) return "moderate";
                     return "complex";
                 }
             }
+            if (routeObj && routeObj.category) {
+                const rCat = String(routeObj.category).toLowerCase();
+                if (rCat.includes("comp")) return "complex";
+                if (rCat.includes("mod")) return "moderate";
+                if (rCat.includes("stand")) return "standard";
+                if (rCat.includes("simp")) return "simple";
+            }
             const dist = Number(routeObj?.distKm || routeObj?.distanceKm || 0);
             if (dist >= 35) return "complex";
             if (dist >= 20) return "moderate";
+            if (dist >= 10) return "standard";
             return "simple";
         }
 
@@ -1480,7 +1492,8 @@
                 timeCatLabel = tInfo.label;
             }
             const complexity = getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort);
-            const isStandard = (complexity === "simple");
+            const isStandard = (complexity === "standard");
+            const isSimple = (complexity === "simple");
             const isModerate = (complexity === "moderate");
             const isComplex = (complexity === "complex");
 
@@ -1525,7 +1538,22 @@
                         reason: `Moderate route (${curRoute}) requires Category B or A bus. Bus ${key} is Category C and cannot cover ${operatingKm.toFixed(1)} km.`
                     };
                 }
-                // For Simple/Standard routes: Category C, B, and A are all eligible candidate tiers!
+
+                // Standard route in normal time: strictly Category A/B only (Category C excluded)
+                if (isStandard && page4Category === "C") {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        liveSoc,
+                        fullDutyKm: usableCoverableKm,
+                        actualRangeKm: busRangeKm,
+                        busCategory: page4Category,
+                        reqSoc: constantMinReqSoc,
+                        reason: `Standard route (${curRoute}) in normal time strictly allows Category A/B buses only. Category C bus ${key} (<100 km range) cannot be allocated.`
+                    };
+                }
+
+                // For Simple routes: Category C, B, and A are all eligible candidate tiers!
             }
 
             const histDischarge = getHistoricalDischargeRate(key, 1.3, isPeak);
