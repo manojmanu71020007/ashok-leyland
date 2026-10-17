@@ -907,20 +907,15 @@
 <!-- ── Top Bar ── -->
 <div class="top-bar">
   <a href="/login.html" class="back-link" data-i18n="nav_back_portal">← Back to Portal</a>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button type="button" class="btn-top-history" onclick="openAllBusesHistoryModal()" data-i18n="btn_history">
-      📜 History
-    </button>
-    <div class="lang-selector-wrap" id="lang-selector-wrap">
-      <span class="lang-globe-icon" aria-hidden="true">🌐</span>
-      <select id="lang-select" class="lang-select" aria-label="Select Language">
-        <option value="en">English</option>
-        <option value="kn">ಕನ್ನಡ (Kannada)</option>
-        <option value="hi">हिन्दी (Hindi)</option>
-        <option value="te">తెలుగు (Telugu)</option>
-        <option value="ta">தமிழ் (Tamil)</option>
-      </select>
-    </div>
+  <div class="lang-selector-wrap" id="lang-selector-wrap">
+    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+    <select id="lang-select" class="lang-select" aria-label="Select Language">
+      <option value="en">English</option>
+      <option value="kn">ಕನ್ನಡ (Kannada)</option>
+      <option value="hi">हिन्दी (Hindi)</option>
+      <option value="te">తెలుగు (Telugu)</option>
+      <option value="ta">தமிழ் (Tamil)</option>
+    </select>
   </div>
 </div>
 
@@ -933,9 +928,6 @@
       <p id="pageSubHeading" data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
     </div>
   </div>
-  <button type="button" class="btn-history-pill" onclick="openAllBusesHistoryModal()" data-i18n="btn_all_buses_history">
-    📜 All Buses History
-  </button>
 </div>
 
 <!-- ── Stats Row ── -->
