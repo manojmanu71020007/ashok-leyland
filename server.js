@@ -1222,28 +1222,34 @@ function githubRequest(method, apiPath, body) {
 let masterBusState = null;
 let githubSyncTimer = null;
 let isSyncingToGitHub = false;
+let pendingGitHubSync = false;
 
 // Push bus_state.json to GitHub with debouncing and conflict safety
 function syncBusStateToGitHub(state) {
     if (!GITHUB_TOKEN) return;
+    pendingGitHubSync = true;
     if (githubSyncTimer) clearTimeout(githubSyncTimer);
     githubSyncTimer = setTimeout(async () => {
         if (isSyncingToGitHub) return;
-        isSyncingToGitHub = true;
-        try {
-            const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
-            const current = await githubRequest("GET", apiPath);
-            const content = Buffer.from(JSON.stringify(state || masterBusState, null, 2)).toString("base64");
-            await githubRequest("PUT", apiPath, {
-                message: "auto: sync bus_state from server",
-                content,
-                sha: current.sha
-            });
-            console.log("[GitHub] bus_state.json synced ✓");
-        } catch (e) {
-            console.warn("[GitHub sync failed]", e.message);
-        } finally {
-            isSyncingToGitHub = false;
+        while (pendingGitHubSync) {
+            pendingGitHubSync = false;
+            isSyncingToGitHub = true;
+            try {
+                const apiPath = `/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`;
+                const current = await githubRequest("GET", apiPath);
+                const content = Buffer.from(JSON.stringify(masterBusState || state, null, 2)).toString("base64");
+                await githubRequest("PUT", apiPath, {
+                    message: "auto: sync bus_state from server",
+                    content,
+                    sha: current.sha
+                });
+                console.log("[GitHub] bus_state.json synced ✓");
+            } catch (e) {
+                console.warn("[GitHub sync failed]", e.message);
+                break;
+            } finally {
+                isSyncingToGitHub = false;
+            }
         }
     }, 1500);
 }

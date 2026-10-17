@@ -322,11 +322,20 @@
         return false;
     }
 
+    const DEFAULT_FLEET_BMS = ["BM001","BM002","BM003","BM004","BM005","BM010","BM012","BM019","BM020","BM024","BM032","BM033","BM038","BM052","BM054","BM056","BM057","BM058","BM062","BM068","BM075","BM080","BM081","BM082","BM086","BM088","BM107","BM116","BM119","BM124","BM151","BM152","BM153","BM157","BM174","BM183","BM185","BM187","BM191","BM193","BM197","BM198","BM199","BM200","BM201","BM202","BM203","BM204","BM205","BM206","BM207","BM208","BM209","BM210","BM212","BM213","BM214","BM215","BM216","BM217","BM218","BM219","BM220","BM221","BM222","BM223","BM224","BM225","BM227","BM238","BM239","BM240","BM245","BM248","BM249","BM250","BM253","BM255","BM256","BM257","BM258","BM259","BM260","BM261","BM263","BM264","BM265","BM267","BM268","BM269","BM271","BM272","BM273","BM274","BM275","BM276","BM277","BM278","BM279","BM280","BM281","BM282","BM283","BM284","BM285","BM286","BM287","BM288","BM289","BM290","BM291","BM292","BM293","BM294","BM295","BM296","BM297","BM298","BM299","BM300","BM303","BM304"];
+
     async function pushDepotAssignment(bm, depot) {
         const cleanBm = String(bm || '').toUpperCase().trim();
         const targetDepot = String(depot || '1').trim();
         try {
-            const local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+            let local = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+            if (Object.keys(local).length < DEFAULT_FLEET_BMS.length) {
+                const fullMap = {};
+                DEFAULT_FLEET_BMS.forEach((b, idx) => {
+                    fullMap[b] = local[b] || (idx < 61 ? '1' : '2');
+                });
+                local = fullMap;
+            }
             local[cleanBm] = targetDepot;
             localStorage.setItem('depot_bus_assignments', JSON.stringify(local));
             const counts = getDepotCountsLocal();
@@ -359,23 +368,31 @@
             const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
             if (map[clean]) return String(map[clean]);
         } catch (e) {}
-        return null;
+        const idx = DEFAULT_FLEET_BMS.indexOf(clean);
+        if (idx !== -1) return (idx < 61) ? '1' : '2';
+        return '1';
     }
 
     function getDepotCountsLocal() {
         let d1 = 0, d2 = 0;
+        let map = {};
         try {
-            const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
-            const keys = Object.keys(map);
-            if (keys.length >= 100) {
-                for (const k of keys) {
-                    if (String(map[k]) === '2') d2++;
-                    else d1++;
-                }
-                return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
-            }
+            map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
         } catch (e) {}
-        return { depot1Count: 61, depot2Count: 61, total: 122 };
+
+        DEFAULT_FLEET_BMS.forEach((bm, idx) => {
+            const assigned = map[bm] || (idx < 61 ? '1' : '2');
+            if (String(assigned) === '2') d2++;
+            else d1++;
+        });
+
+        for (const k of Object.keys(map)) {
+            if (!DEFAULT_FLEET_BMS.includes(k)) {
+                if (String(map[k]) === '2') d2++;
+                else d1++;
+            }
+        }
+        return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
     }
 
     // Initialize immediately on load

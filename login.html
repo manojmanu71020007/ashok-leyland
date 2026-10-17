@@ -1524,6 +1524,11 @@
     // ══════════════════════════════════════════════════════════════════════════
     let selectedDepot = localStorage.getItem('selected_depot') || '1';
     let depotCounts = { depot1Count: 61, depot2Count: 61 };
+    try {
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
+            depotCounts = window.DepotSyncEngine.getDepotCounts();
+        }
+    } catch(e) {}
 
     window.toggleDepotDrawer = function() {
         const drawer = document.getElementById('depotDrawer');
@@ -1621,17 +1626,16 @@
             const res = await fetch('/api/depot-state');
             if (res.ok) {
                 const data = await res.json();
-                    if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
-                        depotCounts.depot1Count = data.depot1Count;
-                        depotCounts.depot2Count = data.depot2Count;
-                    }
-                    if (data.assignments) {
-                        try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
-                    }
-                    updateQuickActionsUI();
-                    updateDepotDrawerUI();
-                    return;
+                if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
+                    depotCounts.depot1Count = data.depot1Count;
+                    depotCounts.depot2Count = data.depot2Count;
                 }
+                if (data.assignments) {
+                    try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+                }
+                updateQuickActionsUI();
+                updateDepotDrawerUI();
+                return;
             }
         } catch (e) {}
 
@@ -1643,6 +1647,16 @@
             updateDepotDrawerUI();
         }
     }
+
+    // Explicit listeners for buttons
+    document.getElementById('depotHamburgerBtn')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.toggleDepotDrawer();
+    });
+    document.getElementById('depotActiveChip')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.toggleDepotDrawer();
+    });
 
     // Real-time synchronization across tabs and server
     try {
@@ -1665,6 +1679,9 @@
             }
             updateQuickActionsUI();
             updateDepotDrawerUI();
+        });
+        window.DepotSyncEngine.on('sync', () => {
+            fetchDepotCounts();
         });
     }
 
