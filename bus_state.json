@@ -18197,7 +18197,40 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [],
+  "_allocatedDuties": [
+    {
+      "id": "duty_BM279_361C_1310_1792207938334",
+      "bm": "BM279",
+      "bmNumber": "BM279",
+      "uniqueId": "BM279",
+      "vehicleId": "BM279",
+      "busId": "BM279",
+      "regNo": "KA51AH6244",
+      "routeId": "361C",
+      "corridorRouteId": "361C",
+      "busNumber": "361C",
+      "busShortName": "361C",
+      "routeShortName": "361C",
+      "routeCode": "361C",
+      "code": "361C",
+      "busCategory": "A",
+      "isComplexRoute": true,
+      "scheduleId": "361C/1",
+      "routeName": "Chandapura ⇔ Kengeri (361C) (Route 361C) — 38 km",
+      "origin": "Chandapura",
+      "destination": "Kengeri (361C)",
+      "departureTime": "13:10",
+      "isManualOverride": false,
+      "shift": "Night Halt",
+      "soc": 96,
+      "fullDutyKm": 101,
+      "routeDist": 38,
+      "tripCount": 8,
+      "allocType": "Committed Duty Allocation",
+      "reason": "• Vehicle & Route: Bus BM279 (Category A) assigned to Route 361C for 13:10 departure (Night Halt).\n• Energy & Battery Feasibility: Current battery SoC of 96% satisfies the Single Charge Operation threshold (51% minimum required) with a reserve margin of +45%, providing 101 km usable range for this 38.0 km scheduled trip without mid-route recharging.\n• Category & Dispatch Rule: Departure at 13:10 falls in Peak (10:00–16:00 & 20:00–23:00), strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus BM279 fulfills this with Category A (124.7 km full duty range).\n• Dispatch Selection: Candidate Match: Bus BM279 is the primary ready-to-dispatch candidate for this timetable departure with driver assigned and maintenance inspection cleared.",
+      "allocatedAt": "09:02 am"
+    }
+  ],
   "_lockedBuses": [
     {
       "bm": "BM001",
