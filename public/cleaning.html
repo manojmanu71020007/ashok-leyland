@@ -527,23 +527,6 @@
   </div>
 </div>
 
-<!-- ── Depot Switcher Bar ── -->
-<div class="depot-switcher-bar">
-  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <span style="font-size:0.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;">Operating Facility:</span>
-    <div style="display:flex;gap:8px;">
-      <button type="button" id="btnDepot1" class="depot-switch-btn active" onclick="switchOperatingDepot('1')">
-        🏢 Depot 1 <span class="depot-pill-badge" id="depot1Badge">61 Buses</span>
-      </button>
-      <button type="button" id="btnDepot2" class="depot-switch-btn" onclick="switchOperatingDepot('2')">
-        🏢 Depot 2 <span class="depot-pill-badge" id="depot2Badge">61 Buses</span>
-      </button>
-    </div>
-  </div>
-  <div class="depot-fleet-summary">
-    Active Facility: <strong>Depot <span id="activeDepotNumLabel">1</span></strong> (<span id="activeDepotCountLabel">61</span> buses assigned)
-  </div>
-</div>
 
 <!-- ── Bus Selection ── -->
 <div class="card">
@@ -762,28 +745,7 @@
   }
 
   function updateDepotUI() {
-    const d1b = document.getElementById('depot1Badge');
-    if (d1b) d1b.textContent = `${depotCounts.depot1Count} Buses`;
-    const d2b = document.getElementById('depot2Badge');
-    if (d2b) d2b.textContent = `${depotCounts.depot2Count} Buses`;
-
-    const btn1 = document.getElementById('btnDepot1');
-    const btn2 = document.getElementById('btnDepot2');
-    if (btn1 && btn2) {
-      if (currentOperatingDepot === '2') {
-        btn1.classList.remove('active');
-        btn2.classList.add('active');
-      } else {
-        btn1.classList.add('active');
-        btn2.classList.remove('active');
-      }
-    }
-
-    const numLabel = document.getElementById('activeDepotNumLabel');
-    if (numLabel) numLabel.textContent = currentOperatingDepot;
-    const cntLabel = document.getElementById('activeDepotCountLabel');
     const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
-    if (cntLabel) cntLabel.textContent = activeCount;
 
     const clnTitle = document.getElementById('cleaningPageTitle');
     if (clnTitle) clnTitle.innerHTML = `Cleaning <span id="cleaningDepotNum">${currentOperatingDepot}</span> Log`;
