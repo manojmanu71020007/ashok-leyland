@@ -753,6 +753,11 @@ const ALLOWED_CATEGORIES = {
         PEAK: ["A", "B"],
         EXTREME_PEAK: ["A", "B"]
     },
+    STANDARD: {
+        NORMAL: ["A", "B"],
+        PEAK: ["A", "B"],
+        EXTREME_PEAK: ["A", "B"]
+    },
     MODERATE: {
         NORMAL: ["A", "B"],
         PEAK: ["A"],
@@ -785,10 +790,10 @@ function getTimeSlot(date = new Date()) {
 }
 
 /**
- * Returns route category ("SIMPLE" | "MODERATE" | "COMPLEX") from distance or explicit tag.
+ * Returns route category ("SIMPLE" | "STANDARD" | "MODERATE" | "COMPLEX") from distance or explicit tag.
  */
 function getRouteCategory(distKm, explicit) {
-    if (explicit && ["SIMPLE", "MODERATE", "COMPLEX"].includes(String(explicit).toUpperCase())) {
+    if (explicit && ["SIMPLE", "STANDARD", "MODERATE", "COMPLEX"].includes(String(explicit).toUpperCase())) {
         return String(explicit).toUpperCase();
     }
     const d = Number(distKm) || 0;

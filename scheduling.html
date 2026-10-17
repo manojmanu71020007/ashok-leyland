@@ -1470,15 +1470,17 @@
                 };
             }
 
-            // 4. Dynamic Page 4 Categorization based on coverable range:
+            // 4. Page 4 Categorization based on dataset and coverable range:
             // Category A: > 120 km | Category B: 100-120 km | Category C: < 100 km
-            let page4Category = "B";
-            if (coverableFullRangeKm > 120) {
-                page4Category = "A";
-            } else if (coverableFullRangeKm >= 100) {
-                page4Category = "B";
-            } else {
-                page4Category = "C";
+            let page4Category = STATIC_BUS_CATEGORIES[key] || getBusCategory(key, liveSoc);
+            if (!page4Category) {
+                if (busRangeKm > 120) {
+                    page4Category = "A";
+                } else if (busRangeKm >= 100) {
+                    page4Category = "B";
+                } else {
+                    page4Category = "C";
+                }
             }
 
             // 5. Time Category & Route Constraints (Page 4 Specifications & Tiered Fallbacks):
@@ -1605,7 +1607,8 @@
             const complexity = getRouteComplexity(routeObj, matchedSched, depShort);
             const isComplexRoute = (complexity === "complex");
             const isModerateRoute = (complexity === "moderate");
-            const isStandardRoute = (complexity === "simple");
+            const isStandardRoute = (complexity === "standard");
+            const isSimpleRoute = (complexity === "simple");
             const targetShift = (matchedSched && matchedSched.shift)
                 ? matchedSched.shift
                 : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
@@ -1714,10 +1717,11 @@
                 let searchPasses = [];
                 if (isPeak || isComplexRoute) {
                     searchPasses = [aKeys, bKeys];
-                } else if (isModerateRoute) {
-                    searchPasses = [bKeys, aKeys, cKeys];
+                } else if (isStandardRoute || isModerateRoute) {
+                    searchPasses = [bKeys, aKeys];
                 } else {
-                    searchPasses = [cKeys, bKeys, aKeys];
+                    // Simple route allows B, C, A
+                    searchPasses = [bKeys, cKeys, aKeys];
                 }
 
                 for (const group of searchPasses) {
@@ -1729,19 +1733,25 @@
                 }
             }
 
-            // 6. Sort Candidates according to Page 4 and user specification:
-            // "for moderate/standard route the primary allocatement bus should be B cateogary bus , if that is not there then A cateogary , only on peak hours categoery A bus should be recommended."
+            // 6. Sort Candidates according to specifications:
+            // Standard route in normal time: "A/B" allowed, more priority is for "B" bus. If no "B", then "A".
+            // Simple route in normal time: "A/B/C" allowed, more priority is for "B" or "C" bus. If no "B" or "C", then "A".
             candidates.sort((a, b) => {
                 let catRankA = 0;
                 let catRankB = 0;
                 if (!isPeak) {
                     if (isStandardRoute) {
-                        // Standard route in off-peak: Category C is primary (conserve higher tiers), then B, then A
-                        const catOrder = { "C": 0, "B": 1, "A": 2 };
+                        // Standard route in normal time: B has priority over A; C is not allowed
+                        const catOrder = { "B": 0, "A": 1, "C": 2 };
+                        catRankA = catOrder[a.busCategory] ?? 3;
+                        catRankB = catOrder[b.busCategory] ?? 3;
+                    } else if (isSimpleRoute) {
+                        // Simple route in normal time: B or C have more priority over A. If no B or C, then A.
+                        const catOrder = { "B": 0, "C": 1, "A": 2 };
                         catRankA = catOrder[a.busCategory] ?? 3;
                         catRankB = catOrder[b.busCategory] ?? 3;
                     } else if (isModerateRoute) {
-                        // Moderate route in off-peak: Category B is primary, A is fallback (C is excluded)
+                        // Moderate route in normal time: Category B is primary, A is fallback (C is excluded)
                         const catOrder = { "B": 0, "A": 1, "C": 2 };
                         catRankA = catOrder[a.busCategory] ?? 3;
                         catRankB = catOrder[b.busCategory] ?? 3;
@@ -1780,20 +1790,28 @@
                         cand.role = "Primary Candidate (Category A — Peak Hour Allocation)";
                     } else if (isComplexRoute) {
                         cand.role = "Primary Candidate (Category A — Complex Route)";
+                    } else if (isStandardRoute) {
+                        cand.role = (cand.busCategory === "B")
+                            ? "Primary Candidate (Category B — Standard Route)"
+                            : "Primary Candidate (Category A — Standard Route Fallback)";
+                    } else if (isSimpleRoute) {
+                        cand.role = (cand.busCategory === "B" || cand.busCategory === "C")
+                            ? `Primary Candidate (Category ${cand.busCategory} — Simple Route)`
+                            : "Primary Candidate (Category A — Simple Route Fallback)";
                     } else if (isModerateRoute) {
                         cand.role = (cand.busCategory === "B")
                             ? "Primary Candidate (Category B — Moderate Route)"
                             : "Primary Candidate (Category A — Fallback Allocation)";
                     } else {
-                        cand.role = (cand.busCategory === "C")
-                            ? "Primary Candidate (Category C — Standard Route)"
-                            : `Primary Candidate (Category ${cand.busCategory} — Standard Route)`;
+                        cand.role = `Primary Candidate (Category ${cand.busCategory})`;
                     }
                 } else if (idx === 1) {
-                    if (!isPeak && isModerateRoute && cand.busCategory === "A") {
+                    if (!isPeak && isStandardRoute && cand.busCategory === "A") {
                         cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
-                    } else if (!isPeak && isStandardRoute && cand.busCategory !== "C") {
-                        cand.role = `Standby Candidate (Category ${cand.busCategory} — Conserving Higher Tier)`;
+                    } else if (!isPeak && isSimpleRoute && cand.busCategory === "A") {
+                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
+                    } else if (!isPeak && isModerateRoute && cand.busCategory === "A") {
+                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
                     } else {
                         cand.role = "Designated Swap / Standby Bus";
                     }
@@ -1828,16 +1846,22 @@
             const complexity = getRouteComplexity(routeObj, null, depTimeClean);
             const isComplex = (complexity === "complex");
             const isModerate = (complexity === "moderate");
+            const isStandard = (complexity === "standard");
+            const isSimple = (complexity === "simple");
 
             let categoryReason = "";
             if (isPeak) {
                 categoryReason = `Departure at ${depTimeClean} falls in ${timeCatLabel}, prioritizing Category A buses (>120 km range) for heavy duty peak operations. Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             } else if (isComplex) {
                 categoryReason = `Route ${routeCode} is classified as a Complex Route in the dataset, requiring Category A/B buses (>100 km range). Bus ${bus.bm} satisfies this with a ${actualRangeKm} km full duty rating.`;
+            } else if (isStandard) {
+                categoryReason = `Route ${routeCode} is classified as a Standard Route in the dataset (Category B preferred, Cat A fallback; Cat C excluded). Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+            } else if (isSimple) {
+                categoryReason = `Route ${routeCode} is classified as a Simple Route in the dataset (Category B/C preferred, Cat A fallback). Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             } else if (isModerate) {
                 categoryReason = `Route ${routeCode} is classified as a Moderate Route in the dataset (Category B preferred, Cat A fallback). Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             } else {
-                categoryReason = `Route ${routeCode} is classified as a Simple/Standard Route in the dataset (Category C preferred, Cat B/A fallback). Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
+                categoryReason = `Route ${routeCode} bus allocation follows timetable and range matrix rules. Bus ${bus.bm} fulfills this with Category ${busCat} (${actualRangeKm} km full duty range).`;
             }
 
             let energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
@@ -1986,32 +2010,42 @@
             });
 
             let allocated = null;
-            if (currentlyAllocatedBus && candidates.some(c => String(c.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase())) {
+            if (currentlyAllocatedBus && currentlyAllocatedBus.isUserSelected && candidates.some(c => String(c.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase())) {
                 allocated = candidates.find(c => String(c.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase());
             } else if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
-                allocated = {
-                    bm: existingDuty.bm,
-                    regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
-                    liveSoc: liveSoc,
-                    fullDutyKm: calculateFullDutyDistance(liveSoc),
-                    busCategory: getBusCategory(existingDuty.bm, liveSoc),
-                    reqSoc: reqSoc,
-                    surplus: Math.round(liveSoc - reqSoc),
-                    role: "Committed Duty",
-                    shift: existingDuty.shift || targetShift,
-                    departureTime: depTimeClean,
-                    routeCode: routeCode,
-                    busShortName: routeCode,
-                    scheduleId: existingDuty.scheduleId || (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
-                    isCommitted: true,
-                    isComplexRoute: isComplexRoute,
-                    isManualOverride: existingDuty.isManualOverride,
-                    allocType: "Committed Duty Allocation",
-                    condition: "Good",
-                    driver: "Assigned",
-                    reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean}.`
-                };
+                const busCat = getBusCategory(existingDuty.bm, liveSoc);
+                const tInfo = getTimeCategory(depShort);
+                const isCatCompliant = tInfo.isPeak
+                    ? (busCat === "A" || busCat === "B")
+                    : (complexity === "standard" ? (busCat === "B" || busCat === "A") : true);
+
+                if (isCatCompliant && liveSoc >= reqSoc - 2) {
+                    allocated = {
+                        bm: existingDuty.bm,
+                        regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
+                        liveSoc: liveSoc,
+                        fullDutyKm: calculateFullDutyDistance(liveSoc),
+                        busCategory: busCat,
+                        reqSoc: reqSoc,
+                        surplus: Math.round(liveSoc - reqSoc),
+                        role: "Committed Duty",
+                        shift: existingDuty.shift || targetShift,
+                        departureTime: depTimeClean,
+                        routeCode: routeCode,
+                        busShortName: routeCode,
+                        scheduleId: existingDuty.scheduleId || (matchedSched ? matchedSched.scheduleId : `SCH-${routeCode}-${depShort}`),
+                        isCommitted: true,
+                        isComplexRoute: isComplexRoute,
+                        isManualOverride: existingDuty.isManualOverride,
+                        allocType: "Committed Duty Allocation",
+                        condition: "Good",
+                        driver: "Assigned",
+                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean}.`
+                    };
+                } else if (candidates.length > 0) {
+                    allocated = candidates[0];
+                }
             } else if (candidates.length > 0) {
                 allocated = candidates[0];
             }
@@ -2218,7 +2252,10 @@
 
             const complexity = getRouteComplexity(routeObj, currentScheduleMatch, departure);
             const isComplexRoute = (complexity === "complex");
-            const routeCategoryLabel = schedCat || (complexity === "simple" ? "Standard" : (complexity === "complex" ? "Complex" : "Moderate"));
+            const isModerateRoute = (complexity === "moderate");
+            const isStandardRoute = (complexity === "standard");
+            const isSimpleRoute = (complexity === "simple");
+            const routeCategoryLabel = schedCat || (isStandardRoute ? "Standard" : (isSimpleRoute ? "Simple" : (isComplexRoute ? "Complex" : "Moderate")));
 
             const busShortName = (allocatedBus && allocatedBus.bm) || (routeObj && (routeObj.code || routeObj.routeShortName)) || "500DC";
             const timeCatInfo = getTimeCategory(departure);
@@ -2228,11 +2265,12 @@
             if (timeRule) timeRule.textContent = timeCategoryLabel;
 
             const allowedMatrix = {
-                simple: { NORMAL: ["A", "B", "C"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
-                moderate: { NORMAL: ["A", "B"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                standard: { NORMAL: ["B", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                simple: { NORMAL: ["B", "C", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                moderate: { NORMAL: ["B", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
             };
-            const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
+            const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.standard)[timeCategoryKey] || ["A"];
             const requiresCatA = isComplexRoute || isPeakTime;
 
             if (!allocatedBus) {
@@ -2246,8 +2284,25 @@
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = routeCategoryLabel;
                 if (busCatRule) {
-                    busCatRule.textContent = isComplexRoute ? "Category A (Required for Complex Route)" : (isPeakTime ? "Category A (Required for Peak Hours)" : (complexity === "moderate" ? "Category B (Moderate Route - Normal Time)" : "Category C (Simple Route - Normal Time)"));
-                    busCatRule.style.color = (isComplexRoute || isPeakTime) ? "#16a34a" : (complexity === "moderate" ? "#2563eb" : "#d97706");
+                    if (isComplexRoute) {
+                        busCatRule.textContent = "Category A (Required for Complex Route)";
+                        busCatRule.style.color = "#16a34a";
+                    } else if (isPeakTime) {
+                        busCatRule.textContent = "Category A (Required for Peak Hours)";
+                        busCatRule.style.color = "#16a34a";
+                    } else if (isStandardRoute) {
+                        busCatRule.textContent = "Category B (Primary) / A (Fallback)";
+                        busCatRule.style.color = "#2563eb";
+                    } else if (isSimpleRoute) {
+                        busCatRule.textContent = "Category B/C (Primary) / A (Fallback)";
+                        busCatRule.style.color = "#2563eb";
+                    } else if (isModerateRoute) {
+                        busCatRule.textContent = "Category B (Moderate Route - Normal Time)";
+                        busCatRule.style.color = "#2563eb";
+                    } else {
+                        busCatRule.textContent = "Category C (Simple Route - Normal Time)";
+                        busCatRule.style.color = "#d97706";
+                    }
                 }
                 if (matrixStatusRule) {
                     matrixStatusRule.textContent = (isComplexRoute || isPeakTime) ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
@@ -2450,6 +2505,7 @@
         function initEventListeners() {
             if (routeSelect) {
                 routeSelect.addEventListener("change", async () => {
+                    currentlyAllocatedBus = null;
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     await recommend();
@@ -2458,6 +2514,7 @@
 
             if (routeSearch) {
                 routeSearch.addEventListener("input", async () => {
+                    currentlyAllocatedBus = null;
                     populateRouteDropdown(routeSearch.value);
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);

@@ -3477,7 +3477,8 @@ let busCategoriesMap = new Map();
                 const scLower = String(matchedSched.category).toLowerCase();
                 if (scLower.includes("comp")) return "complex";
                 if (scLower.includes("mod")) return "moderate";
-                if (scLower.includes("stand") || scLower.includes("simp")) return "simple";
+                if (scLower.includes("stand")) return "standard";
+                if (scLower.includes("simp")) return "simple";
             }
             const rCode = String(routeObj?.code || routeObj?.routeCode || routeObj?.id || "").toUpperCase();
             if (rCode && Array.isArray(datasetSchedules)) {
@@ -3494,24 +3495,35 @@ let busCategoriesMap = new Map();
                             const cLower = String(closest.category).toLowerCase();
                             if (cLower.includes("comp")) return "complex";
                             if (cLower.includes("mod")) return "moderate";
-                            if (cLower.includes("stand") || cLower.includes("simp")) return "simple";
+                            if (cLower.includes("stand")) return "standard";
+                            if (cLower.includes("simp")) return "simple";
                         }
                     }
-                    const counts = { simple: 0, moderate: 0, complex: 0 };
+                    const counts = { simple: 0, standard: 0, moderate: 0, complex: 0 };
                     scheds.forEach(s => {
                         const c = String(s.category).toLowerCase();
                         if (c.includes("comp")) counts.complex++;
                         else if (c.includes("mod")) counts.moderate++;
-                        else if (c.includes("stand") || c.includes("simp")) counts.simple++;
+                        else if (c.includes("stand")) counts.standard++;
+                        else if (c.includes("simp")) counts.simple++;
                     });
+                    if (counts.standard >= counts.moderate && counts.standard >= counts.complex && counts.standard >= counts.simple) return "standard";
                     if (counts.simple >= counts.moderate && counts.simple >= counts.complex) return "simple";
                     if (counts.moderate >= counts.complex) return "moderate";
                     return "complex";
                 }
             }
+            if (routeObj && routeObj.category) {
+                const rCat = String(routeObj.category).toLowerCase();
+                if (rCat.includes("comp")) return "complex";
+                if (rCat.includes("mod")) return "moderate";
+                if (rCat.includes("stand")) return "standard";
+                if (rCat.includes("simp")) return "simple";
+            }
             const dist = Number(routeObj?.distKm || routeObj?.distanceKm || 0);
             if (dist >= 35) return "complex";
             if (dist >= 20) return "moderate";
+            if (dist >= 10) return "standard";
             return "simple";
         }
 
@@ -3644,8 +3656,9 @@ let busCategoriesMap = new Map();
                 timeCatLabel = tInfo.label;
             }
 
-            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort) : "simple";
-            const isStandard = (complexity === "simple");
+            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort) : "standard";
+            const isStandard = (complexity === "standard");
+            const isSimple = (complexity === "simple");
             const isModerate = (complexity === "moderate");
             const isComplex = (complexity === "complex");
 
@@ -3691,7 +3704,7 @@ let busCategoriesMap = new Map();
                     };
                 }
 
-                if (isStandard && page4Category !== "C") {
+                if (isStandard && page4Category === "C") {
                     return {
                         feasible: false,
                         bm: key,
@@ -3700,7 +3713,7 @@ let busCategoriesMap = new Map();
                         actualRangeKm: busRangeKm,
                         busCategory: page4Category,
                         reqSoc: constantMinReqSoc,
-                        reason: `Simple route (${curRoute}) in normal time strictly requires Category C bus (<100 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                        reason: `Standard route (${curRoute}) in normal time strictly allows Category A or B bus. Category C bus ${key} (<100 km range) cannot be allocated.`
                     };
                 }
             }
@@ -3879,8 +3892,12 @@ let busCategoriesMap = new Map();
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
-                            if (complexity === "simple") {
-                                const catOrder = { "C": 0, "B": 1, "A": 2 };
+                            if (complexity === "standard") {
+                                const catOrder = { "B": 0, "A": 1, "C": 2 };
+                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
+                                if (diff !== 0) return diff;
+                            } else if (complexity === "simple") {
+                                const catOrder = { "B": 0, "C": 1, "A": 2 };
                                 const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
                                 if (diff !== 0) return diff;
                             } else if (complexity === "moderate") {
@@ -3916,8 +3933,12 @@ let busCategoriesMap = new Map();
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
-                            if (complexity === "simple") {
-                                const catOrder = { "C": 0, "B": 1, "A": 2 };
+                            if (complexity === "standard") {
+                                const catOrder = { "B": 0, "A": 1, "C": 2 };
+                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
+                                if (diff !== 0) return diff;
+                            } else if (complexity === "simple") {
+                                const catOrder = { "B": 0, "C": 1, "A": 2 };
                                 const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
                                 if (diff !== 0) return diff;
                             } else if (complexity === "moderate") {
@@ -4070,10 +4091,10 @@ let busCategoriesMap = new Map();
                 let priorityKeys = [];
                 if (isPeakTime || isComplexRoute) {
                     priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "A");
-                } else if (complexity === "moderate") {
+                } else if (complexity === "standard" || complexity === "moderate") {
                     priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "B");
                 } else {
-                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "C");
+                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "B" || STATIC_BUS_CATEGORIES[k] === "C");
                 }
                 for (const bm of priorityKeys) {
                     if (candidates.length >= 4) break;
@@ -4085,8 +4106,12 @@ let busCategoriesMap = new Map();
             candidates.sort((a, b) => {
                 if (a.isCommitted !== b.isCommitted) return a.isCommitted ? -1 : 1;
                 if (!isPeakTime) {
-                    if (complexity === "simple") {
-                        const catOrder = { "C": 0, "B": 1, "A": 2 };
+                    if (complexity === "standard") {
+                        const catOrder = { "B": 0, "A": 1, "C": 2 };
+                        const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
+                        if (diff !== 0) return diff;
+                    } else if (complexity === "simple") {
+                        const catOrder = { "B": 0, "C": 1, "A": 2 };
                         const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
                         if (diff !== 0) return diff;
                     } else if (complexity === "moderate") {
