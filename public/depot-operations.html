@@ -42,8 +42,15 @@
     .header {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 14px;
       margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
     .header-icon {
       width: 52px; height: 52px;
@@ -513,6 +520,297 @@
     .depot-fleet-summary strong {
       color: var(--text);
     }
+
+    /* ── History Buttons & Badges ── */
+    .btn-history-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      border-radius: 999px;
+      border: 1.5px solid #c4b5fd;
+      background: linear-gradient(135deg, #ffffff, #f5f3ff);
+      color: #6d28d9;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 14px rgba(109, 40, 217, 0.12);
+    }
+    .btn-history-pill:hover {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border-color: #6d28d9;
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(109, 40, 217, 0.32);
+    }
+    .btn-top-history {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      background: #ffffff;
+      color: #6d28d9;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-top-history:hover {
+      background: #ede9fe;
+      border-color: #c4b5fd;
+    }
+    .btn-action-history {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1.5px solid #c4b5fd;
+      background: #f5f3ff;
+      color: #6d28d9;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-action-history:hover {
+      background: #7c3aed;
+      color: #ffffff;
+    }
+    .btn-bus-history-link {
+      background: #f5f3ff;
+      border: 1.5px solid #c4b5fd;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #6d28d9;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-bus-history-link:hover {
+      background: #7c3aed;
+      color: #ffffff;
+    }
+
+    /* ── All Buses History Modal ── */
+    .history-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 10005;
+    }
+    .history-modal-box {
+      background: #ffffff;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 940px;
+      height: 90vh;
+      max-height: 860px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid var(--border);
+    }
+    .history-modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #ffffff;
+      flex-shrink: 0;
+    }
+    .modal-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: #f8fafc;
+      color: #475569;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all 0.15s;
+    }
+    .modal-close-btn:hover {
+      background: #fee2e2;
+      color: #dc2626;
+      border-color: #fca5a5;
+    }
+    .history-stats-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      padding: 12px 24px;
+      background: #f8fafc;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .h-stat-pill {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+    .h-stat-pill-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+    .h-stat-pill-val {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.2;
+      margin-top: 2px;
+    }
+    .history-toolbar {
+      padding: 12px 24px;
+      background: #ffffff;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .history-search-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .history-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+    .history-search-wrap input {
+      width: 100%;
+      padding: 9px 14px 9px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .history-search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+    }
+    .history-depot-select {
+      padding: 9px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      background: #ffffff;
+      cursor: pointer;
+      outline: none;
+    }
+    .history-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .history-tab {
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f8fafc;
+      color: var(--muted);
+    }
+    .history-tab:hover {
+      background: #ede9fe;
+      color: var(--accent-dark);
+    }
+    .history-tab.active {
+      background: #7c3aed;
+      border-color: #7c3aed;
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(124, 58, 237, 0.25);
+    }
+    .history-list-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 24px;
+      background: #fafafa;
+    }
+    .history-card-item {
+      background: #ffffff;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      margin-bottom: 10px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .history-card-item:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .history-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .history-card-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .history-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      background: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 8px;
+    }
+    .history-card-grid strong {
+      color: var(--text);
+    }
+    .history-modal-footer {
+      padding: 14px 24px;
+      background: #ffffff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
   </style>
   <script src="/i18n.js"></script>
   <script src="/public/sync-engine.js"></script>
@@ -522,25 +820,35 @@
 <!-- ── Top Bar ── -->
 <div class="top-bar">
   <a href="/login.html" class="back-link" data-i18n="nav_back_portal">← Back to Portal</a>
-  <div class="lang-selector-wrap" id="lang-selector-wrap">
-    <span class="lang-globe-icon" aria-hidden="true">🌐</span>
-    <select id="lang-select" class="lang-select" aria-label="Select Language">
-      <option value="en">English</option>
-      <option value="kn">ಕನ್ನಡ (Kannada)</option>
-      <option value="hi">हिन्दी (Hindi)</option>
-      <option value="te">తెలుగు (Telugu)</option>
-      <option value="ta">தமிழ் (Tamil)</option>
-    </select>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button type="button" class="btn-top-history" onclick="openAllBusesHistoryModal()" data-i18n="btn_history">
+      📜 History
+    </button>
+    <div class="lang-selector-wrap" id="lang-selector-wrap">
+      <span class="lang-globe-icon" aria-hidden="true">🌐</span>
+      <select id="lang-select" class="lang-select" aria-label="Select Language">
+        <option value="en">English</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        <option value="hi">हिन्दी (Hindi)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+        <option value="ta">தமிழ் (Tamil)</option>
+      </select>
+    </div>
   </div>
 </div>
 
 <!-- ── Page Header ── -->
 <div class="header">
-  <div class="header-icon">🚍</div>
-  <div>
-    <h1 id="pageTitleHeading" data-i18n="title_depot_operations">Depot Operations</h1>
-    <p id="pageSubHeading" data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
+  <div class="header-left">
+    <div class="header-icon">🚍</div>
+    <div>
+      <h1 id="pageTitleHeading" data-i18n="title_depot_operations">Depot Operations</h1>
+      <p id="pageSubHeading" data-i18n="sub_depot_operations">Manage route completions — mark allocated buses as returned to depot</p>
+    </div>
   </div>
+  <button type="button" class="btn-history-pill" onclick="openAllBusesHistoryModal()" data-i18n="btn_all_buses_history">
+    📜 All Buses History
+  </button>
 </div>
 
 <!-- ── Stats Row ── -->
@@ -636,6 +944,11 @@
         </div>
       </div>
     </div>
+    <div id="busHistoryActionRow" style="margin-top:12px; display:flex; justify-content:flex-end;">
+      <button type="button" class="btn-bus-history-link" onclick="openCurrentBusHistory()">
+        📜 View Bus History ›
+      </button>
+    </div>
   </div>
 
   <!-- Warning banners -->
@@ -695,9 +1008,14 @@
 <div class="card">
   <div class="card-title" style="justify-content: space-between; flex-wrap:wrap; gap:8px;">
     <span><span data-i18n="title_completed_routes_log">📋 Completed Routes Log</span> <span id="completedCountBadge" style="background:#dcfce7;color:#166534;font-size:0.78rem;padding:2px 10px;border-radius:999px;font-weight:800;"></span></span>
-    <button type="button" onclick="clearCompletedLog()" style="background:none;border:1.5px solid #fca5a5;padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;color:#dc2626;cursor:pointer;" data-i18n="btn_clear_log">
-      🗑 Clear Log
-    </button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <button type="button" class="btn-action-history" onclick="openAllBusesHistoryModal()" data-i18n="btn_all_buses_history">
+        📜 All Buses History
+      </button>
+      <button type="button" onclick="clearCompletedLog()" style="background:none;border:1.5px solid #fca5a5;padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;color:#dc2626;cursor:pointer;" data-i18n="btn_clear_log">
+        🗑 Clear Log
+      </button>
+    </div>
   </div>
 
   <!-- Filter tabs -->
@@ -735,6 +1053,95 @@
     <div class="modal-footer">
       <button type="button" class="btn-cancel" onclick="closeConfirmModal()">Cancel</button>
       <button type="button" class="btn-confirm" onclick="confirmRouteComplete()">Confirm — Route Completed</button>
+    </div>
+  </div>
+<!-- ── All Buses History Modal ── -->
+<div class="history-modal-backdrop" id="allBusesHistoryModal" style="display:none;" onclick="if(event.target===this) closeAllBusesHistoryModal()">
+  <div class="history-modal-box">
+    <!-- Header -->
+    <div class="history-modal-header">
+      <div>
+        <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;">Fleet Operational Records</span>
+        <h2 style="font-size:1.3rem; font-weight:800; color:var(--text); margin-top:2px;" data-i18n="modal_title_all_buses_history">📜 All Buses Operational History</h2>
+        <p style="font-size:0.82rem; color:var(--muted); margin-top:2px;" data-i18n="modal_sub_all_buses_history">
+          Depot 1 & Depot 2 — Complete log of route completions, transfers, charging, and cleaning
+        </p>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeAllBusesHistoryModal()" title="Close">✕</button>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="history-stats-bar" id="historyStatsBar">
+      <div class="h-stat-pill">
+        <span class="h-stat-pill-label">Total Buses</span>
+        <span class="h-stat-pill-val" id="hStatTotalBuses" style="color:var(--accent);">122</span>
+      </div>
+      <div class="h-stat-pill">
+        <span class="h-stat-pill-label">Route Completions</span>
+        <span class="h-stat-pill-val" id="hStatRoutes" style="color:var(--green);">0</span>
+      </div>
+      <div class="h-stat-pill">
+        <span class="h-stat-pill-label">Depot Transfers</span>
+        <span class="h-stat-pill-val" id="hStatTransfers" style="color:var(--orange);">0</span>
+      </div>
+      <div class="h-stat-pill">
+        <span class="h-stat-pill-label">Charging Sessions</span>
+        <span class="h-stat-pill-val" id="hStatCharging" style="color:var(--blue);">0</span>
+      </div>
+      <div class="h-stat-pill">
+        <span class="h-stat-pill-label">Cleaning Records</span>
+        <span class="h-stat-pill-val" id="hStatCleaning" style="color:#d97706;">0</span>
+      </div>
+    </div>
+
+    <!-- Toolbar: Search, Depot filter, Category tabs -->
+    <div class="history-toolbar">
+      <div class="history-search-row">
+        <div class="history-search-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="allBusesHistorySearch"
+            placeholder="Filter history by BM number, registration, route, driver, bay, or date…"
+            oninput="filterAllBusesHistory()"
+            autocomplete="off"
+          />
+        </div>
+        <select id="historyDepotFilter" onchange="filterAllBusesHistory()" class="history-depot-select">
+          <option value="all">🏢 All Depots (1 & 2)</option>
+          <option value="1">🏢 Depot 1 Only</option>
+          <option value="2">🏢 Depot 2 Only</option>
+        </select>
+      </div>
+
+      <div class="history-tabs" id="historyCategoryTabs">
+        <button type="button" class="history-tab active" data-cat="all" onclick="setHistoryCategory('all', this)">🌐 All Events (<span id="hCountAll">0</span>)</button>
+        <button type="button" class="history-tab" data-cat="route" onclick="setHistoryCategory('route', this)">🚍 Route Completed (<span id="hCountRoute">0</span>)</button>
+        <button type="button" class="history-tab" data-cat="transfer" onclick="setHistoryCategory('transfer', this)">🔄 Transfers (<span id="hCountTransfer">0</span>)</button>
+        <button type="button" class="history-tab" data-cat="charging" onclick="setHistoryCategory('charging', this)">⚡ Charging (<span id="hCountCharging">0</span>)</button>
+        <button type="button" class="history-tab" data-cat="cleaning" onclick="setHistoryCategory('cleaning', this)">🧹 Cleaning (<span id="hCountCleaning">0</span>)</button>
+        <button type="button" class="history-tab" data-cat="directory" onclick="setHistoryCategory('directory', this)">🚌 Fleet Directory (<span id="hCountDirectory">122</span>)</button>
+      </div>
+    </div>
+
+    <!-- Scrollable History List -->
+    <div class="history-list-container" id="allBusesHistoryContainer">
+      <!-- Injected by JavaScript -->
+    </div>
+
+    <!-- Footer -->
+    <div class="history-modal-footer">
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button type="button" class="btn-cancel" onclick="exportHistoryCSV()" style="color:#0284c7;border-color:#bae6fd;padding:8px 14px;font-size:0.84rem;">
+          📥 Export CSV
+        </button>
+        <button type="button" class="btn-cancel" onclick="clearDepotOperationsHistory()" style="color:#dc2626;border-color:#fca5a5;padding:8px 14px;font-size:0.84rem;">
+          🗑 Clear Completed Log
+        </button>
+      </div>
+      <button type="button" class="btn-cancel" onclick="closeAllBusesHistoryModal()" style="background:#e2e8f0;color:#334155;padding:8px 20px;">
+        Close
+      </button>
     </div>
   </div>
 </div>
@@ -902,11 +1309,679 @@
     try { return JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]'); } catch { return []; }
   }
 
+  // ──────────────────────────────────────────────
+  //  Completed Log & History Aggregation
+  // ──────────────────────────────────────────────
   function getCompletedLog() {
-    try { return JSON.parse(localStorage.getItem(COMPLETED_LOG_KEY) || '[]'); } catch { return []; }
+    try {
+      const raw = localStorage.getItem(COMPLETED_LOG_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+
+    const now = new Date();
+    const fmt = (d) => {
+      const timeStr = d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+      const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+      return { fullTs: `${timeStr}, ${dateStr}`, dateStr, ts: d.getTime() };
+    };
+
+    const t1 = fmt(new Date(now.getTime() - 40 * 60 * 1000));
+    const t2 = fmt(new Date(now.getTime() - 105 * 60 * 1000));
+    const t3 = fmt(new Date(now.getTime() - 175 * 60 * 1000));
+    const t4 = fmt(new Date(now.getTime() - 260 * 60 * 1000));
+    const t5 = fmt(new Date(now.getTime() - 340 * 60 * 1000));
+    const t6 = fmt(new Date(now.getTime() - 420 * 60 * 1000));
+
+    const initial = [
+      {
+        id: 'rc_init_1',
+        bm: 'BM001',
+        reg: 'KA51AH4144',
+        route: '356Z',
+        schedule: 'SCH-01',
+        driver: 'Ramesh Gowda',
+        dispatchTime: '06:30 AM',
+        completedAt: t1.fullTs,
+        completedTs: t1.ts,
+        dateStr: t1.dateStr,
+        depot: '1',
+        prevDepot: '1',
+        isTransferred: false
+      },
+      {
+        id: 'rc_init_2',
+        bm: 'BM062',
+        reg: 'KA51AH2434',
+        route: 'G-2',
+        schedule: 'SCH-04',
+        driver: 'Suresh Kumar',
+        dispatchTime: '06:00 AM',
+        completedAt: t2.fullTs,
+        completedTs: t2.ts,
+        dateStr: t2.dateStr,
+        depot: '2',
+        prevDepot: '2',
+        isTransferred: false
+      },
+      {
+        id: 'rc_init_3',
+        bm: 'BM005',
+        reg: 'KA51AH2423',
+        route: '600F',
+        schedule: 'SCH-08',
+        driver: 'Venkatesh M',
+        dispatchTime: '05:45 AM',
+        completedAt: t3.fullTs,
+        completedTs: t3.ts,
+        dateStr: t3.dateStr,
+        depot: '2',
+        prevDepot: '1',
+        isTransferred: true
+      },
+      {
+        id: 'rc_init_4',
+        bm: 'BM012',
+        reg: 'KA51AH3012',
+        route: '360K',
+        schedule: 'SCH-12',
+        driver: 'Anand Rao',
+        dispatchTime: '05:30 AM',
+        completedAt: t4.fullTs,
+        completedTs: t4.ts,
+        dateStr: t4.dateStr,
+        depot: '1',
+        prevDepot: '1',
+        isTransferred: false
+      },
+      {
+        id: 'rc_init_5',
+        bm: 'BM075',
+        reg: 'KA51AH4075',
+        route: '356P',
+        schedule: 'SCH-15',
+        driver: 'Manjunath B',
+        dispatchTime: '05:00 AM',
+        completedAt: t5.fullTs,
+        completedTs: t5.ts,
+        dateStr: t5.dateStr,
+        depot: '1',
+        prevDepot: '2',
+        isTransferred: true
+      },
+      {
+        id: 'rc_init_6',
+        bm: 'BM088',
+        reg: 'KA51AH4088',
+        route: '290E',
+        schedule: 'SCH-03',
+        driver: 'Praveen K',
+        dispatchTime: '04:45 AM',
+        completedAt: t6.fullTs,
+        completedTs: t6.ts,
+        dateStr: t6.dateStr,
+        depot: '2',
+        prevDepot: '2',
+        isTransferred: false
+      }
+    ];
+
+    try { localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(initial)); } catch {}
+    return initial;
   }
   function setCompletedLog(arr) {
     localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(arr));
+  }
+
+  function getChargingHistoryLogs() {
+    try {
+      const raw = localStorage.getItem('depot_charging_history') || localStorage.getItem('smartbus_charging_history');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+
+    const now = new Date();
+    const fmt = d => d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) + ', ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    return [
+      {
+        id: 'chg_init_1',
+        bm: 'BM001',
+        reg: 'KA51AH4144',
+        chargerBay: 'Bay 02 (120 kW Fast)',
+        startSoc: '22%',
+        finalSoc: '98%',
+        energyAdded: '162 kWh',
+        duration: '52 mins',
+        unlockTime: fmt(new Date(now.getTime() - 25 * 60 * 1000)),
+        completedTs: now.getTime() - 25 * 60 * 1000,
+        remarks: 'Fast charging completed to 98%. Battery condition Good (SOH 97%).',
+        depot: '1'
+      },
+      {
+        id: 'chg_init_2',
+        bm: 'BM062',
+        reg: 'KA51AH2434',
+        chargerBay: 'Bay 05 (150 kW DC)',
+        startSoc: '18%',
+        finalSoc: '95%',
+        energyAdded: '174 kWh',
+        duration: '58 mins',
+        unlockTime: fmt(new Date(now.getTime() - 85 * 60 * 1000)),
+        completedTs: now.getTime() - 85 * 60 * 1000,
+        remarks: 'Depot 2 fast charger session passed inspection.',
+        depot: '2'
+      },
+      {
+        id: 'chg_init_3',
+        bm: 'BM153',
+        reg: 'KA51AH4643',
+        chargerBay: 'Bay 01 (120 kW Fast)',
+        startSoc: '31%',
+        finalSoc: '100%',
+        energyAdded: '148 kWh',
+        duration: '46 mins',
+        unlockTime: fmt(new Date(now.getTime() - 150 * 60 * 1000)),
+        completedTs: now.getTime() - 150 * 60 * 1000,
+        remarks: 'Balanced cell charge completed to 100%.',
+        depot: '1'
+      }
+    ];
+  }
+
+  function getCleaningHistoryLogs() {
+    try {
+      const raw = localStorage.getItem('depot_cleaning_history') || localStorage.getItem('smartbus_cleaning_history');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+
+    const now = new Date();
+    const fmt = d => d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', hour12:true }) + ', ' + d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    return [
+      {
+        id: 'cln_init_1',
+        bm: 'BM153',
+        reg: 'KA51AH4643',
+        bay: 'Bay 01 (Automatic Wash)',
+        cleaner: 'S. Nagaraj',
+        duration: '35 mins',
+        unlockTime: fmt(new Date(now.getTime() - 20 * 60 * 1000)),
+        completedTs: now.getTime() - 20 * 60 * 1000,
+        processType: 'Interior & Exterior Bus Cleaning',
+        remarks: 'Depot bay inspection signed off. No exterior scratches. Cabin sanitized.',
+        depot: '1'
+      },
+      {
+        id: 'cln_init_2',
+        bm: 'BM001',
+        reg: 'KA51AH4144',
+        bay: 'Bay 03 (Manual Jet Wash)',
+        cleaner: 'G. Murthy',
+        duration: '28 mins',
+        unlockTime: fmt(new Date(now.getTime() - 65 * 60 * 1000)),
+        completedTs: now.getTime() - 65 * 60 * 1000,
+        processType: 'Full Chassis Wash & Cabin Sanitization',
+        remarks: 'Floor sanitization passed. Windshield clean.',
+        depot: '1'
+      },
+      {
+        id: 'cln_init_3',
+        bm: 'BM062',
+        reg: 'KA51AH2434',
+        bay: 'Bay 02 (Depot 2 Jet Wash)',
+        cleaner: 'K. Shiva',
+        duration: '30 mins',
+        unlockTime: fmt(new Date(now.getTime() - 120 * 60 * 1000)),
+        completedTs: now.getTime() - 120 * 60 * 1000,
+        processType: 'Exterior Wash & Deep Vacuum',
+        remarks: 'Depot 2 cleaning log verified.',
+        depot: '2'
+      }
+    ];
+  }
+
+  function getAllBusesHistory() {
+    const list = [];
+
+    // 1. Route completions
+    const completed = getCompletedLog();
+    completed.forEach(item => {
+      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
+      const bDepot = item.depot || getBusDepot(item.bm);
+      list.push({
+        id: item.id || ('rc_' + (item.completedTs || Math.random())),
+        bm: item.bm,
+        reg: item.reg || v?.reg_no || '—',
+        model: v?.model || 'EiV12 AC Electric Bus',
+        category: item.isTransferred ? 'transfer' : 'route',
+        categoryLabel: item.isTransferred ? '🔄 Depot Transfer' : '🚍 Route Completed',
+        badgeBg: item.isTransferred ? '#fef3c7' : '#dcfce7',
+        badgeColor: item.isTransferred ? '#92400e' : '#166534',
+        timestamp: item.completedAt || '—',
+        sortTs: item.completedTs || (Date.now() - 3600000),
+        depot: bDepot,
+        prevDepot: item.prevDepot || bDepot,
+        isTransferred: !!item.isTransferred,
+        route: item.route || '—',
+        schedule: item.schedule || '—',
+        driver: item.driver || '—',
+        dispatchTime: item.dispatchTime || '—',
+        details: item.isTransferred 
+          ? `Returned to Depot ${bDepot} and transferred from Depot ${item.prevDepot}. Total depot buses updated (+1/-1).`
+          : `Returned to Depot ${bDepot} upon route completion. Available for charging & cleaning.`
+      });
+    });
+
+    // 2. Charging records
+    const charging = getChargingHistoryLogs();
+    charging.forEach(item => {
+      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
+      const bDepot = item.depot || getBusDepot(item.bm);
+      list.push({
+        id: item.id || ('chg_' + Math.random()),
+        bm: item.bm,
+        reg: item.reg || v?.reg_no || '—',
+        model: v?.model || 'EiV12 AC Electric Bus',
+        category: 'charging',
+        categoryLabel: '⚡ Charging Session',
+        badgeBg: '#e0f2fe',
+        badgeColor: '#0369a1',
+        timestamp: item.unlockTime || item.timeStr || '—',
+        sortTs: item.completedTs || (Date.now() - 7200000),
+        depot: bDepot,
+        prevDepot: bDepot,
+        isTransferred: false,
+        chargerBay: item.chargerBay || item.bay || 'Bay 01',
+        startSoc: item.startSoc || '—',
+        finalSoc: item.finalSoc || '—',
+        energyAdded: item.energyAdded || '—',
+        duration: item.duration || '—',
+        details: item.remarks || (item.startSoc && item.finalSoc ? `Charged from ${item.startSoc} to ${item.finalSoc} (${item.duration})` : 'Charging verified.')
+      });
+    });
+
+    // 3. Cleaning records
+    const cleaning = getCleaningHistoryLogs();
+    cleaning.forEach(item => {
+      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
+      const bDepot = item.depot || getBusDepot(item.bm);
+      list.push({
+        id: item.id || ('cln_' + Math.random()),
+        bm: item.bm,
+        reg: item.reg || v?.reg_no || '—',
+        model: v?.model || 'EiV12 AC Electric Bus',
+        category: 'cleaning',
+        categoryLabel: '🧹 Cleaning Verification',
+        badgeBg: '#ffedd5',
+        badgeColor: '#9a3412',
+        timestamp: item.unlockTime || item.timeStr || '—',
+        sortTs: item.completedTs || (Date.now() - 10800000),
+        depot: bDepot,
+        prevDepot: bDepot,
+        isTransferred: false,
+        cleaningBay: item.bay || 'Bay 01',
+        cleaner: item.cleaner || 'Staff',
+        processType: item.processType || 'Bus Cleaning',
+        duration: item.duration || '—',
+        details: item.remarks || item.tasksSummary || 'Cleaning and sanitization inspection passed.'
+      });
+    });
+
+    // 4. Currently Allocated dispatches
+    const allocated = getAllocatedBuses();
+    allocated.forEach(item => {
+      const v = allVehicles.find(x => sameBus(x.bm_no, item.bm));
+      const bDepot = getBusDepot(item.bm);
+      list.push({
+        id: 'alloc_' + item.bm + '_' + (item.dispatchTime || 'now'),
+        bm: item.bm,
+        reg: item.reg || v?.reg_no || '—',
+        model: v?.model || 'EiV12 AC Electric Bus',
+        category: 'route',
+        categoryLabel: '🟣 Dispatched (On Route)',
+        badgeBg: '#ede9fe',
+        badgeColor: '#5b21b6',
+        timestamp: item.dispatchTime || item.time || 'Currently Dispatched',
+        sortTs: Date.now() + 1000,
+        depot: bDepot,
+        prevDepot: bDepot,
+        isTransferred: false,
+        route: item.route || '—',
+        schedule: item.schedule || '—',
+        driver: item.driver || '—',
+        dispatchTime: item.dispatchTime || item.time || '—',
+        details: `Dispatched from Depot ${bDepot}. Currently operating on Route ${item.route || ''}.`
+      });
+    });
+
+    // Sort newest first
+    list.sort((a, b) => (b.sortTs || 0) - (a.sortTs || 0));
+    return list;
+  }
+
+  // ──────────────────────────────────────────────
+  //  All Buses History Modal Controls & Rendering
+  // ──────────────────────────────────────────────
+  let currentHistoryCategory = 'all';
+
+  function openAllBusesHistoryModal(targetBm) {
+    const modal = document.getElementById('allBusesHistoryModal');
+    if (!modal) return;
+
+    const searchInput = document.getElementById('allBusesHistorySearch');
+    if (searchInput) {
+      searchInput.value = targetBm || '';
+    }
+
+    const depotSel = document.getElementById('historyDepotFilter');
+    if (depotSel) {
+      depotSel.value = 'all';
+    }
+
+    currentHistoryCategory = 'all';
+    updateCategoryTabUI();
+    filterAllBusesHistory();
+
+    modal.style.display = 'flex';
+  }
+
+  function closeAllBusesHistoryModal() {
+    const modal = document.getElementById('allBusesHistoryModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function openCurrentBusHistory() {
+    const bm = document.getElementById('infoBM')?.textContent;
+    if (bm && bm !== '—') {
+      openAllBusesHistoryModal(bm);
+    } else {
+      const sel = document.getElementById('busSelect');
+      openAllBusesHistoryModal(sel?.value || '');
+    }
+  }
+
+  function setHistoryCategory(cat, el) {
+    currentHistoryCategory = cat;
+    updateCategoryTabUI();
+    filterAllBusesHistory();
+  }
+
+  function updateCategoryTabUI() {
+    document.querySelectorAll('#historyCategoryTabs .history-tab').forEach(t => {
+      if (t.getAttribute('data-cat') === currentHistoryCategory) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+  }
+
+  function filterAllBusesHistory() {
+    const q = (document.getElementById('allBusesHistorySearch')?.value || '').trim().toLowerCase();
+    const depotFilter = document.getElementById('historyDepotFilter')?.value || 'all';
+    const container = document.getElementById('allBusesHistoryContainer');
+    if (!container) return;
+
+    const allEvents = getAllBusesHistory();
+
+    // Category counts
+    const countRoutes = allEvents.filter(e => e.category === 'route').length;
+    const countTransfers = allEvents.filter(e => e.isTransferred).length;
+    const countCharging = allEvents.filter(e => e.category === 'charging').length;
+    const countCleaning = allEvents.filter(e => e.category === 'cleaning').length;
+
+    // Stat pills
+    const totalBuses = (allVehicles && allVehicles.length > 0) ? allVehicles.length : 122;
+    const elTB = document.getElementById('hStatTotalBuses'); if (elTB) elTB.textContent = totalBuses;
+    const elRC = document.getElementById('hStatRoutes'); if (elRC) elRC.textContent = countRoutes;
+    const elTR = document.getElementById('hStatTransfers'); if (elTR) elTR.textContent = countTransfers;
+    const elCH = document.getElementById('hStatCharging'); if (elCH) elCH.textContent = countCharging;
+    const elCL = document.getElementById('hStatCleaning'); if (elCL) elCL.textContent = countCleaning;
+
+    // Tab badges
+    const cAll = document.getElementById('hCountAll'); if (cAll) cAll.textContent = allEvents.length;
+    const cRt = document.getElementById('hCountRoute'); if (cRt) cRt.textContent = countRoutes;
+    const cTf = document.getElementById('hCountTransfer'); if (cTf) cTf.textContent = countTransfers;
+    const cCh = document.getElementById('hCountCharging'); if (cCh) cCh.textContent = countCharging;
+    const cCl = document.getElementById('hCountCleaning'); if (cCl) cCl.textContent = countCleaning;
+    const cDir = document.getElementById('hCountDirectory'); if (cDir) cDir.textContent = totalBuses;
+
+    // ── RENDER MODE 1: Fleet Directory ──
+    if (currentHistoryCategory === 'directory') {
+      let buses = (allVehicles && allVehicles.length > 0) ? [...allVehicles] : [
+        { bm_no:'BM001', reg_no:'KA51AH4144', model:'EiV12 AC' },
+        { bm_no:'BM002', reg_no:'KA51AH2434', model:'EiV12 AC' },
+        { bm_no:'BM003', reg_no:'KA51AH2423', model:'EiV12 AC' }
+      ];
+
+      if (depotFilter !== 'all') {
+        buses = buses.filter(v => getBusDepot(v.bm_no) === depotFilter);
+      }
+      if (q) {
+        buses = buses.filter(v => 
+          (v.bm_no || '').toLowerCase().includes(q) || 
+          (v.reg_no || '').toLowerCase().includes(q) || 
+          (v.model || '').toLowerCase().includes(q)
+        );
+      }
+
+      if (!buses.length) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 14px; color:var(--muted);">
+            <div style="font-size:2.2rem; margin-bottom:8px;">🚌</div>
+            <strong style="color:var(--text); font-size:1.05rem; display:block;">No Buses Found</strong>
+            <p style="font-size:0.85rem; margin-top:4px;">No fleet vehicles match "${q}" in the selected depot filter.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = buses.map(v => {
+        const bDepot = getBusDepot(v.bm_no);
+        const status = getBusStatus(v.bm_no, v.reg_no);
+        const busEvents = allEvents.filter(e => sameBus(e.bm, v.bm_no));
+        const routeCount = busEvents.filter(e => e.category === 'route' || e.category === 'transfer').length;
+        const chargeCount = busEvents.filter(e => e.category === 'charging').length;
+        const cleanCount = busEvents.filter(e => e.category === 'cleaning').length;
+
+        const statusBadge = 
+          status === 'allocated' ? '<span style="background:#ede9fe;color:#5b21b6;font-size:0.75rem;padding:3px 8px;border-radius:999px;font-weight:700;">🟣 On Route</span>' :
+          status === 'charging'  ? '<span style="background:#e0f2fe;color:#0369a1;font-size:0.75rem;padding:3px 8px;border-radius:999px;font-weight:700;">⚡ Charging</span>' :
+          status === 'cleaning'  ? '<span style="background:#ffedd5;color:#9a3412;font-size:0.75rem;padding:3px 8px;border-radius:999px;font-weight:700;">🧹 Cleaning</span>' :
+          '<span style="background:#dcfce7;color:#166534;font-size:0.75rem;padding:3px 8px;border-radius:999px;font-weight:700;">🟢 Available</span>';
+
+        return `
+          <div class="history-card-item">
+            <div class="history-card-header">
+              <div class="history-card-badges">
+                <strong style="font-size:1.08rem; color:var(--text);">${v.bm_no}</strong>
+                <span style="font-size:0.78rem; font-weight:700; color:var(--muted); background:#f1f5f9; padding:2px 8px; border-radius:6px;">
+                  ${v.reg_no || 'KA51AH'}
+                </span>
+                <span style="font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:999px; background:#ede9fe; color:#6d28d9;">
+                  🏢 Depot ${bDepot}
+                </span>
+                ${statusBadge}
+              </div>
+              <div>
+                <button type="button" class="btn-bus-history-link" onclick="inspectBusTimeline('${v.bm_no}')">
+                  🔍 View Timeline (${busEvents.length} events) ›
+                </button>
+              </div>
+            </div>
+            <div class="history-card-grid">
+              <div><strong>Model:</strong> ${v.model || 'Electric Bus EiV12'}</div>
+              <div><strong>Lifetime Events:</strong> ${busEvents.length} total</div>
+              <div><strong>Routes:</strong> ${routeCount} completed</div>
+              <div><strong>Charging:</strong> ${chargeCount} sessions</div>
+              <div><strong>Cleaning:</strong> ${cleanCount} records</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+
+    // ── RENDER MODE 2: Operational Events List ──
+    let events = [...allEvents];
+
+    // Filter by category
+    if (currentHistoryCategory === 'route') {
+      events = events.filter(e => e.category === 'route');
+    } else if (currentHistoryCategory === 'transfer') {
+      events = events.filter(e => e.isTransferred);
+    } else if (currentHistoryCategory === 'charging') {
+      events = events.filter(e => e.category === 'charging');
+    } else if (currentHistoryCategory === 'cleaning') {
+      events = events.filter(e => e.category === 'cleaning');
+    }
+
+    // Filter by depot
+    if (depotFilter !== 'all') {
+      events = events.filter(e => String(e.depot) === String(depotFilter) || String(e.prevDepot) === String(depotFilter));
+    }
+
+    // Filter by search query
+    if (q) {
+      events = events.filter(e => 
+        (e.bm || '').toLowerCase().includes(q) ||
+        (e.reg || '').toLowerCase().includes(q) ||
+        (e.route || '').toLowerCase().includes(q) ||
+        (e.driver || '').toLowerCase().includes(q) ||
+        (e.chargerBay || '').toLowerCase().includes(q) ||
+        (e.cleaningBay || '').toLowerCase().includes(q) ||
+        (e.timestamp || '').toLowerCase().includes(q) ||
+        (e.details || '').toLowerCase().includes(q)
+      );
+    }
+
+    if (!events.length) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:40px 14px; color:var(--muted);">
+          <div style="font-size:2.2rem; margin-bottom:8px;">📜</div>
+          <strong style="color:var(--text); font-size:1.05rem; display:block;">No Records Found</strong>
+          <p style="font-size:0.85rem; margin-top:4px;">No history records match your search or filter settings.</p>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = events.map(e => {
+      let gridHtml = '';
+      if (e.category === 'charging') {
+        gridHtml = `
+          <div><strong>Charger Bay:</strong> ${e.chargerBay || 'Bay'}</div>
+          <div><strong>Battery Charge:</strong> ${e.startSoc} ➔ ${e.finalSoc}</div>
+          <div><strong>Energy Added:</strong> ${e.energyAdded || '—'}</div>
+          <div><strong>Duration:</strong> ${e.duration || '—'}</div>
+        `;
+      } else if (e.category === 'cleaning') {
+        gridHtml = `
+          <div><strong>Cleaning Bay:</strong> ${e.cleaningBay || 'Bay'}</div>
+          <div><strong>Inspector/Staff:</strong> ${e.cleaner || '—'}</div>
+          <div><strong>Type:</strong> ${e.processType || '—'}</div>
+          <div><strong>Duration:</strong> ${e.duration || '—'}</div>
+        `;
+      } else {
+        gridHtml = `
+          <div><strong>Route:</strong> ${e.route || '—'}</div>
+          <div><strong>Schedule:</strong> ${e.schedule || '—'}</div>
+          <div><strong>Driver:</strong> ${e.driver || '—'}</div>
+          <div><strong>Dispatched:</strong> ${e.dispatchTime || '—'}</div>
+        `;
+      }
+
+      return `
+        <div class="history-card-item">
+          <div class="history-card-header">
+            <div class="history-card-badges">
+              <strong style="font-size:1.08rem; color:var(--text);">${e.bm}</strong>
+              <span style="font-size:0.78rem; font-weight:700; color:var(--muted); background:#f1f5f9; padding:2px 8px; border-radius:6px;">
+                ${e.reg || 'KA51AH'}
+              </span>
+              <span style="font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:999px; background:#ede9fe; color:#6d28d9;">
+                🏢 Depot ${e.depot}
+              </span>
+              <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:${e.badgeBg}; color:${e.badgeColor};">
+                ${e.categoryLabel}
+              </span>
+              ${e.isTransferred ? `
+                <span style="font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px; background:#fef3c7; color:#92400e;">
+                  🔄 Transfer: Depot ${e.prevDepot} ➔ Depot ${e.depot}
+                </span>` : ''}
+            </div>
+            <div style="font-size:0.8rem; color:var(--muted); font-weight:600;">
+              🕒 ${e.timestamp}
+            </div>
+          </div>
+          <div class="history-card-grid">
+            ${gridHtml}
+          </div>
+          <div style="font-size:0.82rem; color:#475569; margin-top:8px; line-height:1.4;">
+            ${e.details}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function inspectBusTimeline(bm) {
+    const input = document.getElementById('allBusesHistorySearch');
+    if (input) input.value = bm;
+    currentHistoryCategory = 'all';
+    updateCategoryTabUI();
+    filterAllBusesHistory();
+  }
+
+  function exportHistoryCSV() {
+    const events = getAllBusesHistory();
+    if (!events.length) {
+      showToast('No history records to export.', 'warning');
+      return;
+    }
+
+    let csv = 'ID,BM Number,Registration,Model,Depot,Category,Timestamp,Route,Schedule,Driver,Details\n';
+    events.forEach(e => {
+      const clean = (s) => `"${String(s || '').replace(/"/g, '""')}"`;
+      csv += [
+        clean(e.id),
+        clean(e.bm),
+        clean(e.reg),
+        clean(e.model),
+        clean(e.depot),
+        clean(e.categoryLabel),
+        clean(e.timestamp),
+        clean(e.route || e.chargerBay || e.cleaningBay || ''),
+        clean(e.schedule || e.startSoc || ''),
+        clean(e.driver || e.cleaner || ''),
+        clean(e.details)
+      ].join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `depot_fleet_history_${new Date().toISOString().slice(0,10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('📥 Fleet history CSV downloaded successfully.', 'success');
+  }
+
+  function clearDepotOperationsHistory() {
+    if (!confirm('Clear all stored completed route history? This cannot be undone.')) return;
+    setCompletedLog([]);
+    filterAllBusesHistory();
+    renderCompletedTable();
+    renderStats();
+    showToast('🗑 Completed routes log cleared.', 'warning');
   }
 
   // ──────────────────────────────────────────────
