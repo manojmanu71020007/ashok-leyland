@@ -18197,7 +18197,40 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [],
+  "_allocatedDuties": [
+    {
+      "id": "duty_BM279_399C_1315_1792207765287",
+      "bm": "BM279",
+      "bmNumber": "BM279",
+      "uniqueId": "BM279",
+      "vehicleId": "BM279",
+      "busId": "BM279",
+      "regNo": "KA51AH6244",
+      "routeId": "399C",
+      "corridorRouteId": "399C",
+      "busNumber": "399C",
+      "busShortName": "399C",
+      "routeShortName": "399C",
+      "routeCode": "399C",
+      "code": "399C",
+      "busCategory": "A",
+      "isComplexRoute": true,
+      "scheduleId": "399C/3",
+      "routeName": "Chandapura ⇔ Kanakapura (399C) (Route 399C) — 44 km",
+      "origin": "Chandapura",
+      "destination": "Kanakapura (399C)",
+      "departureTime": "13:15",
+      "isManualOverride": false,
+      "shift": "Night Halt",
+      "soc": 96,
+      "fullDutyKm": 101,
+      "routeDist": 44,
+      "tripCount": 8,
+      "allocType": "Committed Duty Allocation",
+      "reason": "• Vehicle & Route: Bus BM279 (Category A) assigned to Route 399C for 13:15 departure (Night Halt).\n• Energy & Battery Feasibility: Current battery SoC of 96% satisfies the Single Charge Operation threshold (61% minimum required) with a reserve margin of +35%, providing 101 km usable range for this 44.0 km scheduled trip without mid-route recharging.\n• Category & Dispatch Rule: Departure at 13:15 falls in Peak (10:00–16:00 & 20:00–23:00), strictly requiring Category A buses (>120 km range) for heavy duty peak operations. Bus BM279 fulfills this with Category A (124.7 km full duty range).\n• Dispatch Selection: Operator Choice: Bus BM279 was selected from the candidate list as the preferred vehicle for this route and departure time.",
+      "allocatedAt": "08:59 am"
+    }
+  ],
   "_lockedBuses": [
     {
       "bm": "BM001",
