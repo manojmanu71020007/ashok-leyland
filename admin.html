@@ -2113,7 +2113,7 @@
                     <div class="btn-nav-main">
                         <span class="btn-nav-icon">✅</span>
                         <div class="btn-nav-meta">
-                            <span class="btn-nav-title" data-i18n="heading_allocated_routes">Allocated Buses</span>
+                            <span class="btn-nav-title" data-i18n="btn_nav_allocated_buses">Allocated Buses</span>
                             <span class="btn-nav-desc">Ready for Departure</span>
                         </div>
                     </div>
@@ -2127,7 +2127,7 @@
                     <div class="btn-nav-main">
                         <span class="btn-nav-icon">⛔</span>
                         <div class="btn-nav-meta">
-                            <span class="btn-nav-title" data-i18n="heading_unassigned_routes">Non-Allocated Buses</span>
+                            <span class="btn-nav-title" data-i18n="btn_nav_not_allocated_buses">Not-Allocated Buses</span>
                             <span class="btn-nav-desc">Ineligible or In Reserve</span>
                         </div>
                     </div>
@@ -2173,7 +2173,7 @@
             <div id="view-panel-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-allocated">
                 <section class="panel" aria-label="Allocated buses">
                     <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;">
-                        <h2 style="color:#08755f; margin:0;">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
+                        <h2 style="color:#08755f; margin:0;" data-i18n="heading_allocated_buses">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
                         <button id="reset-allocations-btn" type="button" class="btn-reset-allocations" style="display:none;" title="Reset all allocations">✕ Reset All</button>
                     </div>
                     <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
@@ -2210,11 +2210,11 @@
                 </section>
             </div>
 
-            <!-- Panel 2: Non-Allocated Buses -->
+            <!-- Panel 2: Not-Allocated Buses -->
             <div id="view-panel-not-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-not-allocated">
                 <section class="panel" aria-label="Not allocated buses">
                     <div class="panel-heading-row">
-                        <h2 style="color:#a94b15; margin:0;">⛔ Not Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
+                        <h2 style="color:#a94b15; margin:0;" data-i18n="heading_not_allocated_buses">⛔ Not-Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
                     </div>
                     <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
                     <!-- Sort strip for Not Allocated -->
@@ -3245,7 +3245,8 @@
         ];
 
         let directionalRoutes = [...CORRIDOR_ROUTES];
-        let datasetSchedules = [];
+        const INITIAL_CORRIDOR_SCHEDULES = [{"scheduleId":"328H/1","route":"328H","shift":"Night Halt","fixBm":"BM153","fixReg":"KA51AH4643","swapBm":"BM024","swapReg":"KA51AH2619","outTime":"13:10:00","inTime":"10:30:00"},{"scheduleId":"328H/10","route":"328H","shift":"Night Halt","fixBm":"BM285","fixReg":"KA51AH6252","swapBm":"BM285","swapReg":"KA51AH6252","outTime":"13:45:00","inTime":"11:45:00"},{"scheduleId":"328H/12","route":"328H","shift":"Night Halt","fixBm":"BM224","fixReg":"KA51AH8185","swapBm":"BM224","swapReg":"KA51AH8185","outTime":"13:50:00","inTime":"11:10:00"},{"scheduleId":"328H/13","route":"328H","shift":"Night Halt","fixBm":"BM283","fixReg":"KA51AH6249","swapBm":"BM075","swapReg":"KA51AH3122","outTime":"14:00:00","inTime":"12:00:00"},{"scheduleId":"328H/14","route":"328H","shift":"Night Halt","fixBm":"BM222","fixReg":"KA51AH8183","swapBm":"BM222","swapReg":"KA51AH8183","outTime":"14:00:00","inTime":"11:20:00"},{"scheduleId":"328H/16","route":"328H","shift":"Night Halt","fixBm":"BM227","fixReg":"KA51AH4544","swapBm":"BM124","swapReg":"KA51AH4146","outTime":"14:15:00","inTime":"12:15:00"},{"scheduleId":"328H/19","route":"328H","shift":"Night Halt","fixBm":"BM279","fixReg":"KA51AH6244","swapBm":"BM279","swapReg":"KA51AH6244","outTime":"14:10:00","inTime":"11:30:00"},{"scheduleId":"328H/2","route":"328H","shift":"Night Halt","fixBm":"BM294","fixReg":"KA51AH6777","swapBm":"BM294","swapReg":"KA51AH6777","outTime":"13:00:00","inTime":"10:45:00"},{"scheduleId":"328H/20","route":"328H","shift":"Night Halt","fixBm":"BM204","fixReg":"KA51AH7666","swapBm":"","swapReg":"","outTime":"14:30:00","inTime":"12:30:00"},{"scheduleId":"328H/21","route":"328H","shift":"Night Halt","fixBm":"BM191","fixReg":"KA51AH6038","swapBm":"BM119","swapReg":"KA51AH4129","outTime":"15:20:00","inTime":"11:50:00"},{"scheduleId":"328H/22","route":"328H","shift":"Night Halt","fixBm":"BM157","fixReg":"KA51AH4800","swapBm":"BM058","swapReg":"KA51AH3603","outTime":"15:00:00","inTime":"13:00:00"},{"scheduleId":"328H/23","route":"328H","shift":"Night Halt","fixBm":"BM212","fixReg":"KA51AH7779","swapBm":"BM212","swapReg":"KA51AH7779","outTime":"14:45:00","inTime":"12:45:00"},{"scheduleId":"328H/25","route":"328H","shift":"Night Halt","fixBm":"BM088","fixReg":"KA51AH3127","swapBm":"BM010","swapReg":"KA51AH2424","outTime":"16:00:00","inTime":"12:20:00"},{"scheduleId":"328H/28","route":"328H","shift":"Night Halt","fixBm":"BM012","fixReg":"KA51AH2551","swapBm":"BM038","swapReg":"KA51AH2741","outTime":"15:40:00","inTime":"12:00:00"},{"scheduleId":"328H/3","route":"328H","shift":"Night Halt","fixBm":"BM183","fixReg":"KA51AH5825","swapBm":"BM068","swapReg":"KA51AH3266","outTime":"13:20:00","inTime":"10:40:00"},{"scheduleId":"328H/4","route":"328H","shift":"Night Halt","fixBm":"BM124","fixReg":"KA51AH4146","swapBm":"BM185","swapReg":"KA51AH5820","outTime":"15:50:00","inTime":"13:50:00"},{"scheduleId":"328H/6","route":"328H","shift":"Night Halt","fixBm":"BM068","fixReg":"KA51AH3266","swapBm":"BM057","swapReg":"KA51AH2956","outTime":"13:20:00","inTime":"11:25:00"},{"scheduleId":"328H/7","route":"328H","shift":"Night Halt","fixBm":"BM185","fixReg":"KA51AH5820","swapBm":"BM227","swapReg":"KA51AH4544","outTime":"15:30:00","inTime":"13:30:00"},{"scheduleId":"328H/8","route":"328H","shift":"Night Halt","fixBm":"BM057","fixReg":"KA51AH2956","swapBm":"BM157","swapReg":"KA51AH4800","outTime":"15:10:00","inTime":"13:10:00"},{"scheduleId":"328H/9","route":"328H","shift":"Night Halt","fixBm":"BM207","fixReg":"KA51AH7671","swapBm":"BM207","swapReg":"KA51AH7671","outTime":"13:30:00","inTime":"10:50:00"},{"scheduleId":"356Z/3","route":"356Z","shift":"Night Halt","fixBm":"BM238","fixReg":"KA51AH4540","swapBm":"BM278","swapReg":"KA51AH6246","outTime":"14:25:00","inTime":"12:10:00"},{"scheduleId":"356Z/6","route":"356Z","shift":"Shift B","fixBm":"BM217","fixReg":"KA51AH8284","swapBm":"BM256","swapReg":"KA51AH8284","outTime":"14:00:00","inTime":"13:15:00"},{"scheduleId":"356Z/7","route":"356Z","shift":"Shift B","fixBm":"BM256","fixReg":"KA51AH5641","swapBm":"BM205","swapReg":"KA51AH5641","outTime":"13:45:00","inTime":"13:00:00"},{"scheduleId":"356Z/8","route":"356Z","shift":"Night Halt","fixBm":"BM218","fixReg":"KA51AH8182","swapBm":"BM303","swapReg":"KA51AJ0138","outTime":"14:35:00","inTime":"12:20:00"},{"scheduleId":"360K/15","route":"360K","shift":"Shift B","fixBm":"BM291","fixReg":"KA51AH6466","swapBm":"BM264","swapReg":"KA51AH6466","outTime":"14:25:00","inTime":"13:40:00"},{"scheduleId":"360K/3","route":"360K","shift":"Shift B","fixBm":"BM205","fixReg":"KA51AH7673","swapBm":"BM056","swapReg":"KA51AH7673","outTime":"14:05:00","inTime":"13:20:00"},{"scheduleId":"360K/30","route":"360K","shift":"Shift B","fixBm":"BM292","fixReg":"KA51AH6468","swapBm":"BM198","swapReg":"KA51AH6468","outTime":"14:35:00","inTime":"13:50:00"},{"scheduleId":"360K/38","route":"360K","shift":"Shift B","fixBm":"BM199","fixReg":"KA51AH7662","swapBm":"BM005","swapReg":"KA51AH7662","outTime":"14:45:00","inTime":"14:00:00"},{"scheduleId":"360K/4","route":"360K","shift":"Shift B","fixBm":"BM282","fixReg":"KA51AH7667","swapBm":"BM080","swapReg":"KA51AH7667","outTime":"14:15:00","inTime":"13:30:00"},{"scheduleId":"361C/1","route":"361C","shift":"Night Halt","fixBm":"BM299","fixReg":"KA51AH7663","swapBm":"BM299","swapReg":"KA51AH7663","outTime":"13:10:00","inTime":"11:40:00"},{"scheduleId":"361C/11","route":"361C","shift":"Night Halt","fixBm":"BM304","fixReg":"KA51AJ0137","swapBm":"BM304","swapReg":"KA51AJ0137","outTime":"14:30:00","inTime":"13:00:00"},{"scheduleId":"361C/2","route":"361C","shift":"Night Halt","fixBm":"BM054","fixReg":"KA51AH2951","swapBm":"BM054","swapReg":"KA51AH2951","outTime":"13:30:00","inTime":"12:00:00"},{"scheduleId":"361C/3","route":"361C","shift":"Night Halt","fixBm":"BM289","fixReg":"KA51AH6471","swapBm":"BM289","swapReg":"KA51AH6471","outTime":"13:50:00","inTime":"12:20:00"},{"scheduleId":"361C/4","route":"361C","shift":"Night Halt","fixBm":"BM020","fixReg":"KA51AH2556","swapBm":"BM191","swapReg":"KA51AH6038","outTime":"14:10:00","inTime":"12:40:00"},{"scheduleId":"361C/6","route":"361C","shift":"Night Halt","fixBm":"BM225","fixReg":"KA51AH8349","swapBm":"BM225","swapReg":"KA51AH8349","outTime":"14:50:00","inTime":"13:20:00"},{"scheduleId":"361C/7","route":"361C","shift":"Night Halt","fixBm":"BM280","fixReg":"KA51AH6247","swapBm":"BM280","swapReg":"KA51AH6247","outTime":"15:10:00","inTime":"13:40:00"},{"scheduleId":"361C/8","route":"361C","shift":"Night Halt","fixBm":"BM303","fixReg":"KA51AJ0138","swapBm":"BM174","swapReg":"KA51AH5823","outTime":"15:30:00","inTime":"14:00:00"},{"scheduleId":"361C/9","route":"361C","shift":"Night Halt","fixBm":"BM174","fixReg":"KA51AH5823","swapBm":"BM204","swapReg":"KA51AH7666","outTime":"15:50:00","inTime":"14:20:00"},{"scheduleId":"399C/3","route":"399C","shift":"Night Halt","fixBm":"BM216","fixReg":"KA51AH8281","swapBm":"BM088","swapReg":"KA51AH3127","outTime":"13:15:00","inTime":"11:10:00"},{"scheduleId":"399C/4","route":"399C","shift":"Night Halt","fixBm":"BM282","fixReg":"KA51AH7667","swapBm":"BM216","swapReg":"KA51AH8281","outTime":"14:00:00","inTime":"12:25:00"},{"scheduleId":"399C/5","route":"399C","shift":"Night Halt","fixBm":"BM272","fixReg":"KA51AH6097","swapBm":"BM272","swapReg":"KA51AH6097","outTime":"14:40:00","inTime":"13:50:00"},{"scheduleId":"399C/6","route":"399C","shift":"Night Halt","fixBm":"BM286","fixReg":"KA51AH6469","swapBm":"BM286","swapReg":"KA51AH6469","outTime":"15:35:00","inTime":"13:45:00"},{"scheduleId":"600F/16","route":"600F","shift":"General","fixBm":"BM003","fixReg":"KA51AH2423","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/17","route":"600F","shift":"General","fixBm":"BM277","fixReg":"KA51AH6245","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/21","route":"600F","shift":"General","fixBm":"BM298","fixReg":"KA51AH6778","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/26","route":"600F","shift":"General","fixBm":"BM258","fixReg":"KA51AH5643","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/27","route":"600F","shift":"General","fixBm":"BM208","fixReg":"KA51AH7775","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/3","route":"600F","shift":"General","fixBm":"BM249","fixReg":"KA51AH6029","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/31","route":"600F","shift":"General","fixBm":"BM265","fixReg":"KA51AH5723","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/32","route":"600F","shift":"Night Halt","fixBm":"BM002","fixReg":"KA51AH2434","swapBm":"BM086","swapReg":"KA51AH3125","outTime":"16:25:00","inTime":"14:55:00"},{"scheduleId":"600F/42","route":"600F","shift":"General","fixBm":"BM261","fixReg":"KA51AH5717","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/43","route":"600F","shift":"General","fixBm":"BM203","fixReg":"KA51AH7670","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/45","route":"600F","shift":"General","fixBm":"BM010","fixReg":"KA51AH2424","swapBm":"","swapReg":"","outTime":"","inTime":""},{"scheduleId":"600F/49","route":"600F","shift":"Night Halt","fixBm":"BM255","fixReg":"KA51AH5640","swapBm":"BM255","swapReg":"KA51AH5640","outTime":"13:35:00","inTime":"12:05:00"},{"scheduleId":"600F/5","route":"600F","shift":"Night Halt","fixBm":"BM274","fixReg":"KA51AH6099","swapBm":"BM274","swapReg":"KA51AH6099","outTime":"13:55:00","inTime":"12:25:00"},{"scheduleId":"600F/51","route":"600F","shift":"Night Halt","fixBm":"BM273","fixReg":"KA51AH6098","swapBm":"BM273","swapReg":"KA51AH6098","outTime":"13:45:00","inTime":"12:15:00"},{"scheduleId":"600F/52","route":"600F","shift":"Night Halt","fixBm":"BM281","fixReg":"KA51AH6251","swapBm":"BM281","swapReg":"KA51AH6251","outTime":"13:15:00","inTime":"11:45:00"},{"scheduleId":"600F/53","route":"600F","shift":"Shift B","fixBm":"BM264","fixReg":"KA51AH6037","swapBm":"BM291","swapReg":"KA51AH6037","outTime":"14:30:00","inTime":"13:45:00"},{"scheduleId":"600F/57","route":"600F","shift":"Night Halt","fixBm":"BM215","fixReg":"KA51AH8346","swapBm":"","swapReg":"","outTime":"13:25:00","inTime":"11:55:00"},{"scheduleId":"600F/6","route":"600F","shift":"Night Halt","fixBm":"BM202","fixReg":"KA51AH7658","swapBm":"BM202","swapReg":"KA51AH7658","outTime":"14:05:00","inTime":"12:35:00"},{"scheduleId":"600F/66","route":"600F","shift":"Shift B","fixBm":"BM198","fixReg":"KA51AH7664","swapBm":"BM292","swapReg":"KA51AH7664","outTime":"14:40:00","inTime":"13:55:00"},{"scheduleId":"600F/67","route":"600F","shift":"Night Halt","fixBm":"BM288","fixReg":"KA51AH7672","swapBm":"BM203","swapReg":"KA51AH7670","outTime":"15:35:00","inTime":"14:05:00"},{"scheduleId":"600F/68","route":"600F","shift":"Night Halt","fixBm":"BM024","fixReg":"KA51AH2619","swapBm":"BM288","swapReg":"KA51AH7672","outTime":"15:45:00","inTime":"14:15:00"},{"scheduleId":"600F/69","route":"600F","shift":"Night Halt","fixBm":"BM240","fixReg":"KA51AH4789","swapBm":"BM240","swapReg":"KA51AH4789","outTime":"15:55:00","inTime":"14:25:00"},{"scheduleId":"600F/72","route":"600F","shift":"Night Halt","fixBm":"BM300","fixReg":"KA51AH6782","swapBm":"BM300","swapReg":"KA51AH6782","outTime":"14:15:00","inTime":"12:45:00"},{"scheduleId":"600F/74","route":"600F","shift":"Night Halt","fixBm":"BM271","fixReg":"KA51AH6095","swapBm":"BM271","swapReg":"KA51AH6095","outTime":"14:35:00","inTime":"13:05:00"},{"scheduleId":"600F/75","route":"600F","shift":"Night Halt","fixBm":"BM058","fixReg":"KA51AH3603","swapBm":"BM214","swapReg":"KA51AH8348","outTime":"14:45:00","inTime":"13:15:00"},{"scheduleId":"600F/78","route":"600F","shift":"Night Halt","fixBm":"BM001","fixReg":"KA51AH4144","swapBm":"BM297","swapReg":"KA51AH6472","outTime":"16:05:00","inTime":"14:35:00"},{"scheduleId":"600F/79","route":"600F","shift":"Night Halt","fixBm":"BM295","fixReg":"KA51AH6780","swapBm":"BM245","swapReg":"KA51AH4799","outTime":"14:55:00","inTime":"13:25:00"},{"scheduleId":"600F/8","route":"600F","shift":"Night Halt","fixBm":"BM290","fixReg":"KA51AH6467","swapBm":"BM290","swapReg":"KA51AH6467","outTime":"14:25:00","inTime":"12:55:00"},{"scheduleId":"600F/80","route":"600F","shift":"Shift B","fixBm":"BM056","fixReg":"KA51AH2953","swapBm":"BM217","swapReg":"KA51AH2953","outTime":"14:15:00","inTime":"13:30:00"},{"scheduleId":"600F/81","route":"600F","shift":"Night Halt","fixBm":"BM003","fixReg":"KA51AH2423","swapBm":"BM292","swapReg":"KA51AH6468","outTime":"16:15:00","inTime":"14:45:00"},{"scheduleId":"600F/91","route":"600F","shift":"Night Halt","fixBm":"BM248","fixReg":"KA51AH4797","swapBm":"BM248","swapReg":"KA51AH4797","outTime":"12:30:00","inTime":"10:40:00"},{"scheduleId":"600F/92","route":"600F","shift":"Night Halt","fixBm":"BM278","fixReg":"KA51AH6246","swapBm":"BM283","swapReg":"KA51AH6249","outTime":"12:40:00","inTime":"10:55:00"},{"scheduleId":"600F/93","route":"600F","shift":"Night Halt","fixBm":"BM200","fixReg":"KA51AH7659","swapBm":"BM200","swapReg":"KA51AH7659","outTime":"12:50:00","inTime":"11:05:00"},{"scheduleId":"600F/94","route":"600F","shift":"Night Halt","fixBm":"BM201","fixReg":"KA51AH7656","swapBm":"BM215","swapReg":"KA51AH8346","outTime":"13:00:00","inTime":"11:15:00"},{"scheduleId":"600F/95","route":"600F","shift":"Night Halt","fixBm":"BM223","fixReg":"KA51AH8283","swapBm":"BM223","swapReg":"KA51AH8283","outTime":"13:10:00","inTime":"11:25:00"},{"scheduleId":"KBS3A/2","route":"KBS3A","shift":"Night Halt","fixBm":"BM086","fixReg":"KA51AH3125","swapBm":"BM081","swapReg":"KA51AH3129","outTime":"13:35:00","inTime":"10:35:00"},{"scheduleId":"KBS3A/20","route":"KBS3A","shift":"Night Halt","fixBm":"BM268","fixReg":"KA51AH6035","swapBm":"BM268","swapReg":"KA51AH6035","outTime":"13:45:00","inTime":"10:45:00"},{"scheduleId":"KBS3A/23","route":"KBS3A","shift":"Night Halt","fixBm":"BM259","fixReg":"KA51AH5642","swapBm":"BM259","swapReg":"KA51AH5642","outTime":"13:55:00","inTime":"10:55:00"},{"scheduleId":"KBS3A/26","route":"KBS3A","shift":"Night Halt","fixBm":"BM210","fixReg":"KA51AH8350","swapBm":"BM210","swapReg":"KA51AH8350","outTime":"14:05:00","inTime":"11:05:00"},{"scheduleId":"KBS3A/77","route":"KBS3A","shift":"Night Halt","fixBm":"BM062","fixReg":"KA51AH3269","swapBm":"BM062","swapReg":"KA51AH3269","outTime":"14:35:00","inTime":"11:35:00"},{"scheduleId":"KBS3A/78","route":"KBS3A","shift":"Night Halt","fixBm":"BM245","fixReg":"KA51AH4799","swapBm":"BM005","swapReg":"KA51AH2421","outTime":"14:45:00","inTime":"11:45:00"},{"scheduleId":"KBS3A/79","route":"KBS3A","shift":"Night Halt","fixBm":"BM297","fixReg":"KA51AH6472","swapBm":"BM209","swapReg":"KA51AH7668","outTime":"14:55:00","inTime":"11:55:00"},{"scheduleId":"KBS3A/8","route":"KBS3A","shift":"Night Halt","fixBm":"BM152","fixReg":"KA51AH4652","swapBm":"BM152","swapReg":"KA51AH4652","outTime":"14:15:00","inTime":"11:15:00"},{"scheduleId":"KBS3A/80","route":"KBS3A","shift":"Night Halt","fixBm":"BM010","fixReg":"KA51AH2424","swapBm":"BM020","swapReg":"KA51AH2556","outTime":"15:05:00","inTime":"12:05:00"},{"scheduleId":"KBS3A/9","route":"KBS3A","shift":"Night Halt","fixBm":"BM209","fixReg":"KA51AH7668","swapBm":"BM201","swapReg":"KA51AH7656","outTime":"14:25:00","inTime":"11:25:00"},{"scheduleId":"KBS3F/15","route":"KBS3F","shift":"Night Halt","fixBm":"BM293","fixReg":"KA51AH6470","swapBm":"BM293","swapReg":"KA51AH6470","outTime":"14:10:00","inTime":"12:00:00"},{"scheduleId":"KBS3F/16","route":"KBS3F","shift":"Night Halt","fixBm":"BM082","fixReg":"KA51AH3131","swapBm":"BM082","swapReg":"KA51AH3131","outTime":"13:50:00","inTime":"11:40:00"},{"scheduleId":"KBS3F/17","route":"KBS3F","shift":"Night Halt","fixBm":"BM275","fixReg":"KA51AH6096","swapBm":"BM275","swapReg":"KA51AH6096","outTime":"15:45:00","inTime":"12:50:00"},{"scheduleId":"KBS3F/18","route":"KBS3F","shift":"Night Halt","fixBm":"BM250","fixReg":"KA51AH4801","swapBm":"BM250","swapReg":"KA51AH4801","outTime":"16:00:00","inTime":"13:05:00"},{"scheduleId":"500DC/12","route":"500DC","shift":"General","fixBm":"BM240","fixReg":"KA51AH7979","swapBm":"BM255","swapReg":"KA51AH5639","outTime":"07:45:00","inTime":"14:45:00"},{"scheduleId":"500DC/13","route":"500DC","shift":"General","fixBm":"BM255","fixReg":"KA51AH5639","swapBm":"BM274","swapReg":"KA51AH6236","outTime":"08:00:00","inTime":"15:00:00"},{"scheduleId":"500DC/14","route":"500DC","shift":"General","fixBm":"BM274","fixReg":"KA51AH6236","swapBm":"BM240","swapReg":"KA51AH7979","outTime":"08:15:00","inTime":"15:15:00"},{"scheduleId":"500DC/15","route":"500DC","shift":"General","fixBm":"BM240","fixReg":"KA51AH7979","swapBm":"BM274","swapReg":"KA51AH6236","outTime":"08:30:00","inTime":"15:30:00"},{"scheduleId":"500DC/1","route":"500DC","shift":"Shift B","fixBm":"BM255","fixReg":"KA51AH5639","swapBm":"BM240","swapReg":"KA51AH7979","outTime":"13:10:00","inTime":"21:10:00"}];
+        let datasetSchedules = INITIAL_CORRIDOR_SCHEDULES.slice();
         const STATIC_BUS_CATEGORIES = {
     "BM221":"C","BM304":"C","BM088":"C","BM057":"C","BM224":"C","BM218":"C","BM296":"C","BM082":"C","BM012":"C","BM225":"C",
     "BM260":"C","BM288":"C","BM005":"C","BM185":"C","BM032":"C","BM068":"C","BM004":"C","BM024":"C","BM261":"C","BM227":"C",
@@ -3492,8 +3493,8 @@ let busCategoriesMap = new Map();
             const totalDistanceEl = document.getElementById("route-distance-rule");
             if (totalDistanceEl) totalDistanceEl.textContent = `${Number(routeObj.distKm).toFixed(2)} km`;
 
-            const routeCode = routeObj.code;
-            const matchingSchedules = datasetSchedules.filter(s => s.route === routeCode && s.outTime);
+            const routeCode = String(routeObj.code || routeObj.routeShortName || routeObj.id || "").toUpperCase().trim();
+            const matchingSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase().trim() === routeCode && s.outTime);
 
             const timeMap = new Map();
             matchingSchedules.forEach(s => {
@@ -3508,10 +3509,12 @@ let busCategoriesMap = new Map();
             const depInput = document.getElementById("departure");
 
             if (timeSelect) {
-                const needsRebuild = (timeSelect.dataset.lastRoute !== String(selectedRouteId) || timeSelect.options.length === 0);
+                const buildKey = `${routeCode}_${sortedTimes.length}`;
+                const needsRebuild = (timeSelect.dataset.lastBuildKey !== buildKey || (sortedTimes.length > 0 && timeSelect.options.length <= 1));
                 if (needsRebuild) {
+                    timeSelect.dataset.lastBuildKey = buildKey;
                     timeSelect.dataset.lastRoute = String(selectedRouteId);
-                    const matchingSchedules = datasetSchedules.filter(s => s.route === routeCode && s.outTime);
+                    const matchingSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase().trim() === routeCode && s.outTime);
 
                     const timeMap = new Map();
                     matchingSchedules.forEach(s => {
@@ -3571,6 +3574,21 @@ let busCategoriesMap = new Map();
                     }
                 }
             }
+        }
+
+        function isDepartureManualOverride(timeStr, routeCode) {
+            if (window._manualDepartureFlag === true) return true;
+            const timeSelect = document.getElementById("scheduled-time-select");
+            if (timeSelect) {
+                const selOpt = timeSelect.selectedOptions ? timeSelect.selectedOptions[0] : null;
+                if (selOpt && selOpt.dataset.manual === "true") return true;
+            }
+            const cleanTime = (timeStr || "").substring(0, 5);
+            const rCode = String(routeCode || "").toUpperCase().trim();
+            const matching = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase().trim() === rCode && s.outTime);
+            if (!matching.length) return false;
+            const isDatasetTime = matching.some(s => s.outTime.substring(0, 5) === cleanTime);
+            return !isDatasetTime;
         }
 
                 function getTimeCategory(timeStr) {
@@ -4636,18 +4654,20 @@ let busCategoriesMap = new Map();
             card.style.borderLeftColor = "#16a34a";
             card.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
 
-            const isCommitted = !!alloc.isCommitted;
-            const badgeText = isCommitted ? "🔒 Allocated & Locked to this Duty" : "💡 Recommended Candidate Bus";
-            const badgeBg = isCommitted ? "#dcfce7" : "#e0f2fe";
-            const badgeColor = isCommitted ? "#15803d" : "#0369a1";
-            const badgeBorder = isCommitted ? "#86efac" : "#bae6fd";
+            const isManualOverride = Boolean(result && (result.isManualOverride || (alloc && alloc.isManualOverride)));
+            const isCommitted = !isManualOverride && !!alloc.isCommitted;
+            const badgeText = isManualOverride ? "⚙️ Manual Override" : (isCommitted ? "🔒 Allocated & Locked to this Duty" : "💡 Recommended Candidate Bus");
+            const badgeBg = isManualOverride ? "#fef3c7" : (isCommitted ? "#dcfce7" : "#e0f2fe");
+            const badgeColor = isManualOverride ? "#b45309" : (isCommitted ? "#15803d" : "#0369a1");
+            const badgeBorder = isManualOverride ? "#fde68a" : (isCommitted ? "#86efac" : "#bae6fd");
+            const allocTypeLabel = isManualOverride ? "Manual Departure Override" : (alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus"));
 
             card.innerHTML = `
                 <div class="auto-alloc-header">
                     <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
                     <span class="cat-pill ${catClass}" style="font-size:0.75rem;padding:3px 9px;">Category ${escapeHtml(busCat)}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
-                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus"))}</span>
+                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(allocTypeLabel)}</span>
                 </div>
                 <div class="auto-alloc-body">
                     <div class="auto-alloc-main">
@@ -4670,7 +4690,7 @@ let busCategoriesMap = new Map();
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Time Slot</span>
-                            <strong id="alloc-timeslot" class="metric-val">${escapeHtml(alloc.departureTime || (result && result.departureTime) || "—")}</strong>
+                            <strong id="alloc-timeslot" class="metric-val">${escapeHtml(alloc.departureTime || (result && result.departureTime) || "—")}${isManualOverride ? ' <span style="font-size:0.72rem;color:#b45309;font-weight:700;background:#fef3c7;padding:1px 6px;border-radius:4px;border:1px solid #fde68a;margin-left:4px;">Manual</span>' : ''}</strong>
                         </div>
                         <div class="alloc-metric-item" style="background:#fef3c7;border-radius:8px;padding:6px 10px;">
                             <span class="metric-label" style="color:#92400e;font-weight:700;">Estimated Required SOC</span>
@@ -4863,29 +4883,30 @@ let busCategoriesMap = new Map();
             if (routeObj) {
                 const allocResult = allocateBus(routeObj, departureTime);
                 currentScheduleMatch = allocResult.matchedSched;
-                if (allocResult && allocResult.allocated && allocResult.allocated.isCommitted) {
-                    currentlyAllocatedBus = allocResult.allocated;
-                    userSelectedBusForDeparture = true;
+                const isManualOverride = isDepartureManualOverride(departureTime, routeObj.code);
+                if (allocResult && allocResult.allocated) {
+                    if (!userSelectedBusForDeparture || !currentlyAllocatedBus || (currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(routeObj.code))) {
+                        currentlyAllocatedBus = allocResult.allocated;
+                        currentlyAllocatedBus.isManualOverride = isManualOverride;
+                    }
                     renderAllocatedCard({
                         allocated: currentlyAllocatedBus,
                         matchedSched: currentScheduleMatch,
                         shift: currentlyAllocatedBus.shift,
                         departureTime: departureTime,
-                        reqSoc: currentlyAllocatedBus.reqSoc
+                        reqSoc: currentlyAllocatedBus.reqSoc,
+                        isManualOverride: isManualOverride
                     });
-                } else if (!userSelectedBusForDeparture || !currentlyAllocatedBus || (currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(routeObj.code))) {
+                } else if (!userSelectedBusForDeparture || !currentlyAllocatedBus) {
                     currentlyAllocatedBus = null;
-                    userSelectedBusForDeparture = false;
                     const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
-                } else {
-                    renderAllocatedCard({
-                        allocated: currentlyAllocatedBus,
-                        matchedSched: currentScheduleMatch,
-                        shift: currentlyAllocatedBus.shift,
-                        departureTime: departureTime,
-                        reqSoc: currentlyAllocatedBus.reqSoc
-                    });
+                    if (card) {
+                        renderAllocatedCard({
+                            shift: getShiftForTimeAndRoute(departureTime, routeObj.code),
+                            departureTime: departureTime,
+                            reqSoc: getRequiredSingleChargeSoc(routeObj.distKm, currentScheduleMatch)
+                        });
+                    }
                 }
             }
 
@@ -6551,14 +6572,27 @@ let busCategoriesMap = new Map();
                 currentScheduleMatch = allocResult.matchedSched;
             }
 
-            // Do NOT auto-assign bus. Only retain bus if user explicitly selected it from Buses Available for Departure for this route, or if officially allocated.
-            if (!userSelectedBusForDeparture || !currentlyAllocatedBus || (selectedRouteObj && currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(selectedRouteObj.code))) {
-                if (allocResult && allocResult.allocated && allocResult.allocated.isCommitted) {
-                    currentlyAllocatedBus = allocResult.allocated;
-                    userSelectedBusForDeparture = true;
-                } else {
-                    currentlyAllocatedBus = null;
-                    userSelectedBusForDeparture = false;
+            const isManualOverride = isDepartureManualOverride(departure, selectedRouteObj ? selectedRouteObj.code : "");
+
+            // If user explicitly selected a bus from the available list, retain it if valid for route
+            const hasValidUserSelection = userSelectedBusForDeparture && currentlyAllocatedBus &&
+                (!selectedRouteObj || !currentlyAllocatedBus.routeCode || normalizeRoute(currentlyAllocatedBus.routeCode) === normalizeRoute(selectedRouteObj.code));
+
+            if (hasValidUserSelection) {
+                // Keep user selection
+            } else if (allocResult && allocResult.allocated) {
+                currentlyAllocatedBus = allocResult.allocated;
+                userSelectedBusForDeparture = false;
+            } else {
+                currentlyAllocatedBus = null;
+                userSelectedBusForDeparture = false;
+            }
+
+            if (currentlyAllocatedBus) {
+                currentlyAllocatedBus.isManualOverride = isManualOverride;
+                if (isManualOverride) {
+                    currentlyAllocatedBus.allocType = "Manual Departure Allocation";
+                    currentlyAllocatedBus.departureTime = departure;
                 }
             }
 
@@ -6645,13 +6679,14 @@ let busCategoriesMap = new Map();
                 return;
             }
 
-            // A bus has been selected! Render its details:
+            // A bus has been selected or candidate recommended! Render its details:
             renderAllocatedCard({
                 allocated: currentlyAllocatedBus,
                 matchedSched: currentScheduleMatch,
                 shift: currentlyAllocatedBus.shift,
                 departureTime: departure,
-                reqSoc: currentlyAllocatedBus.reqSoc
+                reqSoc: currentlyAllocatedBus.reqSoc,
+                isManualOverride: isManualOverride
             });
 
             const assignedVehicle = currentlyAllocatedBus.bm;
@@ -6660,7 +6695,11 @@ let busCategoriesMap = new Map();
             const grossDutyDist = Math.round(liveSoc * 1.42);
 
             if (titleEl) {
-                titleEl.innerHTML = `Allocation result of ${escapeHtml(assignedVehicle)} (${escapeHtml(busShortName)})`;
+                if (isManualOverride) {
+                    titleEl.innerHTML = `Allocation result of ${escapeHtml(assignedVehicle)} (${escapeHtml(busShortName)}) <span class="badge-manual-override" style="font-size:0.75rem;font-weight:700;background:#fef3c7;color:#b45309;padding:2px 8px;border-radius:6px;border:1px solid #fde68a;vertical-align:middle;margin-left:6px;">⚙️ Manual Override</span>`;
+                } else {
+                    titleEl.innerHTML = `Allocation result of ${escapeHtml(assignedVehicle)} (${escapeHtml(busShortName)})`;
+                }
             }
             if (socKpi) socKpi.style.opacity = "1";
             if (rangeKpi) rangeKpi.style.opacity = "1";
@@ -6747,10 +6786,9 @@ let busCategoriesMap = new Map();
 
             if (routeSelect) {
                 routeSelect.addEventListener("change", async () => {
+                    window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
                     userSelectedBusForDeparture = false;
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
@@ -6783,10 +6821,9 @@ let busCategoriesMap = new Map();
 
             if (scheduledTimeSelect) {
                 scheduledTimeSelect.addEventListener("change", async () => {
-                    currentlyAllocatedBus = null;
+                    const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
+                    window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
                     userSelectedBusForDeparture = false;
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
                     const depInput = document.getElementById("departure");
                     if (depInput && scheduledTimeSelect.value) {
                         depInput.value = scheduledTimeSelect.value;
@@ -6804,15 +6841,14 @@ let busCategoriesMap = new Map();
             const depInput = document.getElementById("departure");
             if (depInput) {
                 const handleDeparture = async () => {
-                    currentlyAllocatedBus = null;
+                    window._manualDepartureFlag = true;
                     userSelectedBusForDeparture = false;
-                    const card = document.getElementById("auto-allocated-card");
-                    if (card) card.style.display = "none";
                     const val = depInput.value;
                     if (scheduledTimeSelect && val) {
-                        const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
+                        const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]:not([data-manual="true"])`);
                         if (exactOpt) {
                             scheduledTimeSelect.value = val;
+                            window._manualDepartureFlag = false;
                         } else {
                             let manualOpt = scheduledTimeSelect.querySelector('option[data-manual="true"]');
                             if (!manualOpt) {
@@ -6826,6 +6862,7 @@ let busCategoriesMap = new Map();
                             manualOpt.value = val;
                             manualOpt.textContent = `Manual Time: ${val} (Shift: ${shiftName})`;
                             scheduledTimeSelect.value = val;
+                            window._manualDepartureFlag = true;
                         }
                     }
                     syncScheduleTiming();
