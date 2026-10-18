@@ -1885,8 +1885,14 @@
 <script>
     // ── Auth guard: redirect to login if not authenticated ──
     (function() {
-        const loggedIn = sessionStorage.getItem("isLoggedIn");
-        const accessMode = localStorage.getItem("accessMode");
+        let loggedIn = null;
+        let accessMode = null;
+        try {
+            loggedIn = sessionStorage.getItem("isLoggedIn") || localStorage.getItem("isLoggedIn");
+        } catch(e) {}
+        try {
+            accessMode = localStorage.getItem("accessMode");
+        } catch(e) {}
         if (loggedIn !== "true" && accessMode !== "ignore") {
             window.location.href = "/login.html";
         }
@@ -1900,6 +1906,9 @@
         try {
             localStorage.setItem("smartbus_loggedout", "1");
             localStorage.removeItem("accessMode");
+            localStorage.removeItem("isLoggedIn");
+            localStorage.removeItem("userEmail");
+            localStorage.removeItem("userName");
             sessionStorage.removeItem("isLoggedIn");
             sessionStorage.removeItem("userEmail");
             sessionStorage.removeItem("userName");

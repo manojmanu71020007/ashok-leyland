@@ -822,6 +822,12 @@
                     </div>
 
                     <button type="submit" class="primary-btn" id="btn-login" data-i18n="btn_login_submit">Sign In</button>
+
+                    <div style="text-align:center; margin-top:14px;">
+                        <button type="button" id="btn-bypass-login" style="background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.35); color:#ffffff; font-size:0.84rem; font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer; width:100%; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <span>⚡</span> <span>Continue as Depot Operator / Guest</span>
+                        </button>
+                    </div>
                 </form>
 
                 <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
@@ -1104,20 +1110,34 @@
         if (pendingLogout === "1" || isExplicitLogout) {
             isExplicitLogout = true;
             // User clicked Sign Out — kill the Firebase session and stay here
-            localStorage.removeItem("smartbus_loggedout");
-            localStorage.removeItem("accessMode");
-            sessionStorage.removeItem("isLoggedIn");
-            sessionStorage.removeItem("userEmail");
-            sessionStorage.removeItem("userName");
+            try { localStorage.removeItem("smartbus_loggedout"); } catch(e){}
+            try { localStorage.removeItem("accessMode"); } catch(e){}
+            try { localStorage.removeItem("isLoggedIn"); } catch(e){}
+            try { localStorage.removeItem("userEmail"); } catch(e){}
+            try { localStorage.removeItem("userName"); } catch(e){}
+            try { sessionStorage.removeItem("isLoggedIn"); } catch(e){}
+            try { sessionStorage.removeItem("userEmail"); } catch(e){}
+            try { sessionStorage.removeItem("userName"); } catch(e){}
             try { await signOut(auth); } catch(e){}
             return; // onAuthStateChanged will fire again with user=null — no redirect
         }
 
         // ── Normal sign-in: redirect to the scheduling app ──
-        localStorage.setItem("accessMode", "login");
-        sessionStorage.setItem("isLoggedIn", "true");
-        sessionStorage.setItem("userEmail", user.email || "");
-        sessionStorage.setItem("userName",  user.displayName || "");
+        try { localStorage.setItem("accessMode", "login"); } catch(e){}
+        try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
+        try { localStorage.setItem("userEmail", user.email || ""); } catch(e){}
+        try { localStorage.setItem("userName",  user.displayName || user.email || ""); } catch(e){}
+        try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
+        try { sessionStorage.setItem("userEmail", user.email || ""); } catch(e){}
+        try { sessionStorage.setItem("userName",  user.displayName || user.email || ""); } catch(e){}
+        window.location.href = "/admin.html";
+    });
+
+    // ── Quick Access / Bypass for Mobile & Field Operators ──
+    document.getElementById("btn-bypass-login")?.addEventListener("click", () => {
+        try { localStorage.setItem("accessMode", "ignore"); } catch(e){}
+        try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
+        try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
         window.location.href = "/admin.html";
     });
 
@@ -1188,18 +1208,6 @@
             return;
         }
 
-        // Check if user exists
-        try {
-            const methods = await fetchSignInMethodsForEmail(auth, email);
-            if (methods.length === 0) {
-                showAlert("login-alert", "error", "No account found with this email. Please sign up first.");
-                return;
-            }
-        } catch (err) {
-            showAlert("login-alert", "error", friendlyError(err));
-            return;
-        }
-
         setLoading(btn, true, "Signing in…");
 
         try {
@@ -1212,7 +1220,7 @@
     });
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  SIGN UP FORM — Google-verified email + custom password
+    //  SIGN UP FORM — Email + Password
     // ══════════════════════════════════════════════════════════════════════════
     document.getElementById("form-signup").addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -1231,12 +1239,8 @@
             showAlert("signup-alert", "error", "Please enter your full name.");
             return;
         }
-        if (!email) {
-            showAlert("signup-alert", "error", "Please enter your Google email address.");
-            return;
-        }
-        if (!email.toLowerCase().endsWith("@gmail.com") && !window._googleUser) {
-            showAlert("signup-alert", "error", "Please click \"Sign up with Google\" first to verify your Google account.");
+        if (!email || !email.includes("@")) {
+            showAlert("signup-alert", "error", "Please enter a valid email address.");
             return;
         }
         if (password.length < 8) {
@@ -1254,25 +1258,22 @@
             let user;
 
             if (window._googleUser) {
-                // ── Path A: Google sign-in already done — sign out then re-create with email+password ──
-                // We sign out the Google session and create a proper email/password account.
-                await signOut(auth);
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                user = cred.user;
-            } else {
-                // ── Path B: No Google popup done yet — create the account and require Google email ──
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                user = cred.user;
+                try { await signOut(auth); } catch(e){}
             }
+            const cred = await createUserWithEmailAndPassword(auth, email, password);
+            user = cred.user;
 
             // Update display name
-            await updateProfile(user, { displayName: name });
+            try { await updateProfile(user, { displayName: name }); } catch(e){}
 
-            // Store registration info
-            localStorage.setItem("accessMode", "login");
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", user.email || "");
-            sessionStorage.setItem("userName",  name);
+            // Store registration info safely in both localStorage & sessionStorage
+            try { localStorage.setItem("accessMode", "login"); } catch(e){}
+            try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
+            try { localStorage.setItem("userEmail", user.email || ""); } catch(e){}
+            try { localStorage.setItem("userName",  name); } catch(e){}
+            try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
+            try { sessionStorage.setItem("userEmail", user.email || ""); } catch(e){}
+            try { sessionStorage.setItem("userName",  name); } catch(e){}
 
             // Redirect
             window.location.href = "/admin.html";
