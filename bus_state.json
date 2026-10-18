@@ -1225,19 +1225,19 @@
     "soc": 80,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-12T13:53:13.031Z",
+    "updatedAt": "2026-10-18T17:40:58.624Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "On Time": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "Ahead": {
-        "arrival": "13:05",
-        "departure": "13:00"
+        "arrival": "13:15",
+        "departure": "13:10"
       }
     },
     "operation": "Single Charge Operation",
@@ -1292,6 +1292,12 @@
       },
       {
         "timestamp": "2026-10-12T13:53:13.031Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-18T17:40:58.624Z",
         "soc": 80,
         "condition": "Good",
         "status": "On Time"
@@ -8479,41 +8485,80 @@
     "soc": 88,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-12T16:11:05.199Z",
+    "updatedAt": "2026-10-18T17:40:58.624Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "15:10",
-        "departure": "15:15"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "On Time": {
-        "arrival": "15:00",
-        "departure": "15:05"
+        "arrival": "13:15",
+        "departure": "13:10"
       },
       "Ahead": {
-        "arrival": "14:50",
-        "departure": "14:55"
+        "arrival": "13:15",
+        "departure": "13:10"
       }
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 62,
-    "socAfter": 96,
-    "fullDutyDistanceKm": 122,
-    "lastChargedTime": "09:41:01 pm",
-    "socPerKm": null,
-    "rangeKmAtFullSoc": null,
-    "rangeCategory": null,
+    "socBefore": 0,
+    "socAfter": 80,
+    "fullDutyDistanceKm": 99,
+    "lastChargedTime": "09:46:27 pm",
     "history": [
       {
-        "timestamp": "2026-10-11T02:29:13.472Z",
-        "soc": 94,
+        "timestamp": "2026-10-02T05:21:03.785Z",
+        "soc": 100,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-12T16:11:05.199Z",
-        "soc": 96,
+        "timestamp": "2026-10-03T04:45:42.167Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-03T12:29:27.893Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-03T12:45:14.381Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T02:57:35.092Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T13:18:14.724Z",
+        "soc": 43,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-09T16:16:29.567Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-12T13:53:13.031Z",
+        "soc": 80,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-18T17:40:58.624Z",
+        "soc": 80,
         "condition": "Good",
         "status": "On Time"
       }
