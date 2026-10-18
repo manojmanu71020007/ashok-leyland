@@ -2848,16 +2848,7 @@
             }
         }
 
-        let lastToggleSectionTime = 0;
-        let lastToggleSectionKey = "";
         function toggleFleetSection(sectionKey) {
-            const now = Date.now();
-            if (sectionKey === lastToggleSectionKey && now - lastToggleSectionTime < 200) {
-                return;
-            }
-            lastToggleSectionTime = now;
-            lastToggleSectionKey = sectionKey;
-
             const panelMap = getSectionPanelMap();
             const item = panelMap[sectionKey];
             if (!item || !item.panel) return;
@@ -2867,8 +2858,7 @@
                 return;
             }
 
-            const isCurrentlyOpen = item.panel.style.display === "block" ||
-                (!item.panel.style.display && window.getComputedStyle(item.panel).display === "block");
+            const isCurrentlyOpen = item.panel.style.display === "block";
             if (isCurrentlyOpen) {
                 item.panel.style.display = "none";
                 if (item.btn) {
@@ -2936,31 +2926,9 @@
         window.toggleAllFleetSections = toggleAllFleetSections;
 
         function initSectionViewSwitcher() {
-            const btnAllocated = document.getElementById("btn-tab-allocated");
-            const btnNotAllocated = document.getElementById("btn-tab-not-allocated");
-            const btnScheduled = document.getElementById("btn-tab-scheduled");
-            const btnAvailableScheduling = document.getElementById("btn-tab-available-scheduling");
-            const btnToggleAll = document.getElementById("btn-toggle-all-sections");
-
-            if (btnAllocated && !btnAllocated._bound) {
-                btnAllocated._bound = true;
-                btnAllocated.addEventListener("click", () => toggleFleetSection("allocated"));
-            }
-            if (btnNotAllocated && !btnNotAllocated._bound) {
-                btnNotAllocated._bound = true;
-                btnNotAllocated.addEventListener("click", () => toggleFleetSection("not-allocated"));
-            }
-            if (btnScheduled && !btnScheduled._bound) {
-                btnScheduled._bound = true;
-                btnScheduled.addEventListener("click", () => toggleFleetSection("scheduled"));
-            }
-            if (btnAvailableScheduling && !btnAvailableScheduling._bound) {
-                btnAvailableScheduling._bound = true;
-                btnAvailableScheduling.addEventListener("click", () => toggleFleetSection("available-scheduling"));
-            }
-            if (btnToggleAll && !btnToggleAll._bound) {
-                btnToggleAll._bound = true;
-                btnToggleAll.addEventListener("click", toggleAllFleetSections);
+            // Initialize available scheduling badge pill count
+            if (typeof updateAvailableSchedulingNavPill === "function") {
+                updateAvailableSchedulingNavPill();
             }
         }
 
@@ -6732,110 +6700,52 @@ let busCategoriesMap = new Map();
             updateRouteKpis(selectedRouteObj, departure);
         }
 
-        async function loadData() {
-            // Sync localStorage immediately so first render has accurate SoC data
-            syncLocalStorageBusStates();
-            updateSelectedRouteDistance();
-            updateScheduledTimesForSelectedRoute();
-            // NOTE: renderRoutes() is called AFTER API data loads below, not here with empty data
-
+        async function fetchWithTimeout(resource, options = {}, timeoutMs = 2500) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
             try {
-                const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
-                    fetch("/api/routes").catch(() => null),
-                    fetch("/api/gtfs-schedules").catch(() => null),
-                    fetch("/api/bus-state").catch(() => null),
-                    fetch("/api/bus-assignments").catch(() => null),
-                    fetch("/api/corridor-schedules").catch(() => null),
-                    fetch("/api/bus-categories").catch(() => fetch("/vehicles/bus_categories.json").catch(() => null))
-                ]);
+                const response = await fetch(resource, {
+                    ...options,
+                    signal: controller.signal
+                });
+                clearTimeout(id);
+                return response;
+            } catch (err) {
+                clearTimeout(id);
+                return null;
+            }
+        }
 
-                const routesPayload = routesResponse && routesResponse.ok ? await routesResponse.json() : {};
-                routes = Array.isArray(routesPayload.routes) ? routesPayload.routes : [];
-
-                if (busCategoriesResponse && busCategoriesResponse.ok) {
-                    try {
-                        const bcData = await busCategoriesResponse.json();
-                        const rawBuses = Array.isArray(bcData.buses) ? bcData.buses : (bcData.buses ? Object.values(bcData.buses) : (Array.isArray(bcData) ? bcData : []));
-                        rawBuses.forEach(b => {
-                            if (b && b.bm_number && b.category) {
-                                busCategoriesMap.set(String(b.bm_number).toUpperCase().trim(), String(b.category).toUpperCase().trim());
-                            }
-                        });
-                    } catch (e) {
-                        console.warn("Could not parse bus categories:", e);
-                    }
+        function getInitialRoutes() {
+            try {
+                const cached = localStorage.getItem("smartbus_cached_routes");
+                if (cached) {
+                    const parsed = JSON.parse(cached);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
                 }
+            } catch(e) {}
+            // Fallback immediately to standard corridor fleet so UI renders in <50ms without network wait
+            return CORRIDOR_ROUTES.map((c, idx) => ({
+                uniqueId: `BM${String(idx + 1).padStart(3, "0")}`,
+                vehicleId: `BM${String(idx + 1).padStart(3, "0")}`,
+                bmNumber: `BM${String(idx + 1).padStart(3, "0")}`,
+                busNumber: c.code || c.id,
+                routeShortName: c.code || c.id,
+                routeName: c.label || `${c.origin} ⇔ ${c.destination}`,
+                origin: c.origin,
+                destination: c.destination,
+                routeId: c.code || c.id,
+                tripCount: c.trips || 8,
+                distKm: c.distKm
+            }));
+        }
 
-                if (busStateResponse && busStateResponse.ok) {
-                    const busStatePayload = await busStateResponse.json();
-                    busStates = busStatePayload?.state || {};
-                }
-                syncLocalStorageBusStates();
+        let _uiListenersInitialized = false;
+        function initAllUiListeners() {
+            if (_uiListenersInitialized) return;
+            _uiListenersInitialized = true;
 
-                if (assignResponse && assignResponse.ok) {
-                    const assignPayload = await assignResponse.json();
-                    busAssignments = assignPayload.assignments || {};
-                    blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
-                    assignmentRanges = assignPayload.ranges || {};
-                    serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
-                }
-
-                if (corridorResponse && corridorResponse.ok) {
-                    const corridorData = await corridorResponse.json();
-                    if (corridorData && corridorData.ok) {
-                        if (Array.isArray(corridorData.directionalRoutes) && corridorData.directionalRoutes.length) {
-                            directionalRoutes = corridorData.directionalRoutes;
-                        }
-                        if (Array.isArray(corridorData.schedules) && corridorData.schedules.length) {
-                            datasetSchedules = corridorData.schedules;
-                        }
-                    }
-                }
-
-                // Build GTFS route schedule timetable map
-                gtfsScheduleMap.clear();
-                let schedulesLoaded = false;
-                if (schedulesResponse && schedulesResponse.ok) {
-                    const schedulesPayload = await schedulesResponse.json();
-                    if (schedulesPayload && schedulesPayload.schedules) {
-                        for (const [rId, info] of Object.entries(schedulesPayload.schedules)) {
-                            gtfsScheduleMap.set(String(rId), info);
-                        }
-                        schedulesLoaded = true;
-                    }
-                }
-
-                // Fallback to /api/gtfs only if lightweight schedules endpoint was unavailable
-                if (!schedulesLoaded) {
-                    try {
-                        const gtfsRes = await fetch("/api/gtfs");
-                        if (gtfsRes.ok) {
-                            const gtfsPayload = await gtfsRes.json();
-                            const rawTrips = Array.isArray(gtfsPayload.trips) ? gtfsPayload.trips : (Array.isArray(gtfsPayload.trips?.trips) ? gtfsPayload.trips.trips : []);
-                            const rawStopTimes = Array.isArray(gtfsPayload.stopTimes) ? gtfsPayload.stopTimes : (Array.isArray(gtfsPayload.stopTimes?.stopTimes) ? gtfsPayload.stopTimes.stopTimes : []);
-                            const tripToRoute = new Map();
-                            rawTrips.forEach((t) => tripToRoute.set(String(t.tripId), String(t.routeId)));
-                            rawStopTimes.forEach((st) => {
-                                const rId = tripToRoute.get(String(st.tripId));
-                                if (!rId) return;
-                                const dep = st.departureTime || st.arrivalTime;
-                                const arr = st.arrivalTime || st.departureTime;
-                                if (!gtfsScheduleMap.has(rId)) {
-                                    gtfsScheduleMap.set(rId, { firstDep: dep, lastArr: arr, count: 0 });
-                                }
-                                const item = gtfsScheduleMap.get(rId);
-                                item.count += 1;
-                                if (dep && (!item.firstDep || dep < item.firstDep)) item.firstDep = dep;
-                                if (arr && (!item.lastArr || arr > item.lastArr)) item.lastArr = arr;
-                            });
-                        }
-                    } catch {}
-                }
-
-                updateSelectedRouteDistance();
-                updateScheduledTimesForSelectedRoute(false);
-                renderRoutes(true);
-
+            if (routeSelect) {
                 routeSelect.addEventListener("change", async () => {
                     currentlyAllocatedBus = null;
                     userSelectedBusForDeparture = false;
@@ -6851,6 +6761,9 @@ let busCategoriesMap = new Map();
                         renderAvailableBusesForDeparture();
                     }
                 });
+            }
+
+            if (routeSearch) {
                 routeSearch.addEventListener("input", async () => {
                     currentlyAllocatedBus = null;
                     userSelectedBusForDeparture = false;
@@ -6866,399 +6779,523 @@ let busCategoriesMap = new Map();
                         renderAvailableBusesForDeparture();
                     }
                 });
-                if (scheduledTimeSelect) {
-                    scheduledTimeSelect.addEventListener("change", async () => {
-                        currentlyAllocatedBus = null;
-                        userSelectedBusForDeparture = false;
-                        const card = document.getElementById("auto-allocated-card");
-                        if (card) card.style.display = "none";
-                        const depInput = document.getElementById("departure");
-                        if (depInput && scheduledTimeSelect.value) {
-                            depInput.value = scheduledTimeSelect.value;
-                        }
-                        syncScheduleTiming();
-                        renderRoutes(true);
-                        await recommend();
-                        const availContainer = document.getElementById("available-buses-container");
-                        if (availContainer && availContainer.style.display !== "none") {
-                            renderAvailableBusesForDeparture();
-                        }
-                    });
-                }
-                const depInput = document.getElementById("departure");
-                if (depInput) {
-                    const handleDeparture = async () => {
-                        currentlyAllocatedBus = null;
-                        userSelectedBusForDeparture = false;
-                        const card = document.getElementById("auto-allocated-card");
-                        if (card) card.style.display = "none";
-                        const val = depInput.value;
-                        if (scheduledTimeSelect && val) {
-                            const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
-                            if (exactOpt) {
-                                scheduledTimeSelect.value = val;
-                            } else {
-                                let manualOpt = scheduledTimeSelect.querySelector('option[data-manual="true"]');
-                                if (!manualOpt) {
-                                    manualOpt = document.createElement("option");
-                                    manualOpt.dataset.manual = "true";
-                                    scheduledTimeSelect.prepend(manualOpt);
-                                }
-                                const selectedRouteId = routeSelect ? routeSelect.value : "";
-                                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
-                                const shiftName = getShiftForTimeAndRoute(val, routeObj ? routeObj.code : "");
-                                manualOpt.value = val;
-                                manualOpt.textContent = `Manual Time: ${val} (Shift: ${shiftName})`;
-                                scheduledTimeSelect.value = val;
-                            }
-                        }
-                        syncScheduleTiming();
-                        renderRoutes(true);
-                        await recommend();
-                        const availContainer = document.getElementById("available-buses-container");
-                        if (availContainer && availContainer.style.display !== "none") {
-                            renderAvailableBusesForDeparture();
-                        }
-                    };
-                    depInput.addEventListener("input", handleDeparture);
-                    depInput.addEventListener("change", handleDeparture);
-                }
+            }
 
-                // ── Interactive Buses Available for Departure KPI and dropdown ──
-                const kpiBusDep = document.getElementById("kpi-bus-departure");
-                if (kpiBusDep && !kpiBusDep.getAttribute("onclick") && !kpiBusDep._bound) {
-                    kpiBusDep._bound = true;
-                    kpiBusDep.addEventListener("click", () => {
-                        toggleAvailableBusesList();
-                    });
-                }
-                const btnCloseAvail = document.getElementById("btn-close-available-buses");
-                if (btnCloseAvail && !btnCloseAvail.getAttribute("onclick") && !btnCloseAvail._bound) {
-                    btnCloseAvail._bound = true;
-                    btnCloseAvail.addEventListener("click", () => {
-                        toggleAvailableBusesList(false);
-                    });
-                }
-
-                const recBtn = document.getElementById("recommend");
-                if (recBtn) {
-                    recBtn.addEventListener("click", async () => {
-                        updateSelectedRouteDistance();
-                        syncScheduleTiming();
-
-                        const selectedRouteId = routeSelect ? routeSelect.value : "";
-                        const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
-                        const depInput = document.getElementById("departure");
-                        const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
-
-                        if (!routeObj) {
-                            showAllocationToast("⚠️ Please select a route first.", "error");
-                            return;
-                        }
-
-                        // Run bus allocation engine for this route, shift, time & battery state
-                        let allocResult = null;
-                        if (currentlyAllocatedBus) {
-                            allocResult = {
-                                allocated: currentlyAllocatedBus,
-                                matchedSched: currentScheduleMatch,
-                                shift: currentlyAllocatedBus.shift,
-                                departureTime: departureTime,
-                                reqSoc: currentlyAllocatedBus.reqSoc
-                            };
-                        } else {
-                            allocResult = allocateBus(routeObj, departureTime);
-                            currentlyAllocatedBus = allocResult.allocated;
-                            currentScheduleMatch = allocResult.matchedSched;
-                        }
-                        renderAllocatedCard(allocResult);
-
-                        if (!allocResult || !allocResult.allocated) {
-                            const reason = (allocResult && allocResult.swapLog && allocResult.swapLog.length)
-                                ? allocResult.swapLog.join(". ")
-                                : "No eligible bus available with sufficient battery and range for this departure.";
-                            showAllocationToast(`⚠️ Cannot allocate bus: ${reason}`, "error");
-                            return;
-                        }
-
-                        const alloc = allocResult.allocated;
-                        const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
-
-                        // Check if this bus is already allocated
-                        const existingDuty = findAllocatedDutyForBm(alloc.bm, allocatedDuties);
-                        if (existingDuty) {
-                            const exRoute = normalizeRoute(existingDuty.routeCode || existingDuty.busNumber || existingDuty.routeId);
-                            const curRoute = normalizeRoute(routeObj.code);
-                            if (exRoute && curRoute && exRoute !== curRoute) {
-                                showAllocationToast(`⚠️ Bus ${alloc.bm} is already allocated to Route ${existingDuty.routeCode || existingDuty.busNumber} at ${existingDuty.departureTime}. It cannot be allocated to Route ${routeObj.code}!`, "error");
-                                return;
-                            }
-                            if (existingDuty.departureTime === departureTime) {
-                                showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
-                                scrollToAllocatedDuty(existingDuty.id);
-                                return;
-                            }
-                        }
-                        const existingIndex = allocatedDuties.findIndex(d => {
-                            return [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normalizeBm(alloc.bm));
-                        });
-
-                        const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
-                        const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
-
-                        const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
-                        const newDuty = {
-                            id: dutyId,
-                            bm: alloc.bm,
-                            bmNumber: alloc.bm,
-                            uniqueId: alloc.bm,
-                            vehicleId: alloc.bm,
-                            busId: alloc.bm,
-                            regNo: alloc.regNo || getBusRegNo(alloc.bm),
-                            routeId: routeObj.code || routeObj.routeId || routeObj.id || alloc.bm,
-                            corridorRouteId: routeObj.id,
-                            busNumber: routeObj.code,
-                            busShortName: routeObj.code,
-                            routeShortName: routeObj.code,
-                            routeCode: routeObj.code,
-                            code: routeObj.code,
-                            scheduleId: targetScheduleId,
-                            routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
-                            origin: routeObj.origin,
-                            destination: routeObj.destination,
-                            departureTime: departureTime,
-                            shift: targetShift,
-                            soc: alloc.liveSoc,
-                            fullDutyKm: alloc.fullDutyKm,
-                            routeDist: Number(routeObj.distKm || routeObj.distanceKm || 28.7),
-                            tripCount: targetTripCount,
-                            allocType: alloc.allocType || "Primary Bus",
-                            reason: alloc.reason || "",
-                            allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                            _isJustAdded: true
-                        };
-
-                        if (existingIndex >= 0) {
-                            allocatedDuties[existingIndex] = newDuty;
-                        } else {
-                            allocatedDuties.unshift(newDuty);
-                        }
-
-                        saveAllocatedDuties(allocatedDuties);
-
-                        // Re-render routes and list panels
-                        renderRoutes(true);
-                        await recommend();
-
-                        showAllocationToast(`⚡ Bus ${alloc.bm} (${alloc.regNo || ''}) successfully added to Allocated Buses region for Route ${routeObj.code} at ${departureTime} (${targetShift})!`, "success");
-
-                        setTimeout(() => {
-                            scrollToAllocatedDuty(dutyId);
-                            setTimeout(() => {
-                                delete newDuty._isJustAdded;
-                            }, 3000);
-                        }, 120);
-                    });
-                }
-
-                const resetAllocBtn = document.getElementById("reset-allocations-btn");
-                if (resetAllocBtn) {
-                    resetAllocBtn.addEventListener("click", () => {
-                        if (!allocatedDuties.length) return;
-                        if (confirm("Are you sure you want to reset all allocated buses? They will return to depot reserve.")) {
-                            allocatedDuties = [];
-                            saveAllocatedDuties([]);
-                            renderRoutes(true);
-                            showAllocationToast("All bus allocations have been reset.", "info");
-                        }
-                    });
-                }
-                const driverSelectInput = document.getElementById("driver");
-                if (driverSelectInput) {
-                    driverSelectInput.addEventListener("change", () => {
-                        updateAssignedDriverCount();
-                        renderRoutes();
-                        renderAllocatedList(lastAllocatedRoutes);
-                        renderNotAllocatedList(lastNotAllocatedRoutes);
-                    });
-                }
-
-                const complexityEl = document.getElementById("complexity");
-                if (complexityEl) {
-                    complexityEl.addEventListener("change", async () => {
-                        await recommend();
-                        // Also re-sort the allocation panels based on the new route category
-                        renderAllocatedList(lastAllocatedRoutes);
-                        renderNotAllocatedList(lastNotAllocatedRoutes);
-                    });
-                }
-
-                ["interior", "exterior", "maintenance"].forEach((id) => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        el.addEventListener("change", async () => {
-                            await recommend();
-                        });
+            if (scheduledTimeSelect) {
+                scheduledTimeSelect.addEventListener("change", async () => {
+                    currentlyAllocatedBus = null;
+                    userSelectedBusForDeparture = false;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
+                    const depInput = document.getElementById("departure");
+                    if (depInput && scheduledTimeSelect.value) {
+                        depInput.value = scheduledTimeSelect.value;
+                    }
+                    syncScheduleTiming();
+                    renderRoutes(true);
+                    await recommend();
+                    const availContainer = document.getElementById("available-buses-container");
+                    if (availContainer && availContainer.style.display !== "none") {
+                        renderAvailableBusesForDeparture();
                     }
                 });
+            }
 
-                const distanceEl = document.getElementById("distance");
-                if (distanceEl) {
-                    distanceEl.addEventListener("input", async () => {
+            const depInput = document.getElementById("departure");
+            if (depInput) {
+                const handleDeparture = async () => {
+                    currentlyAllocatedBus = null;
+                    userSelectedBusForDeparture = false;
+                    const card = document.getElementById("auto-allocated-card");
+                    if (card) card.style.display = "none";
+                    const val = depInput.value;
+                    if (scheduledTimeSelect && val) {
+                        const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
+                        if (exactOpt) {
+                            scheduledTimeSelect.value = val;
+                        } else {
+                            let manualOpt = scheduledTimeSelect.querySelector('option[data-manual="true"]');
+                            if (!manualOpt) {
+                                manualOpt = document.createElement("option");
+                                manualOpt.dataset.manual = "true";
+                                scheduledTimeSelect.prepend(manualOpt);
+                            }
+                            const selectedRouteId = routeSelect ? routeSelect.value : "";
+                            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
+                            const shiftName = getShiftForTimeAndRoute(val, routeObj ? routeObj.code : "");
+                            manualOpt.value = val;
+                            manualOpt.textContent = `Manual Time: ${val} (Shift: ${shiftName})`;
+                            scheduledTimeSelect.value = val;
+                        }
+                    }
+                    syncScheduleTiming();
+                    renderRoutes(true);
+                    await recommend();
+                    const availContainer = document.getElementById("available-buses-container");
+                    if (availContainer && availContainer.style.display !== "none") {
+                        renderAvailableBusesForDeparture();
+                    }
+                };
+                depInput.addEventListener("input", handleDeparture);
+                depInput.addEventListener("change", handleDeparture);
+            }
+
+            // Interactive Buses Available for Departure KPI and dropdown
+            const kpiBusDep = document.getElementById("kpi-bus-departure");
+            if (kpiBusDep && !kpiBusDep.getAttribute("onclick") && !kpiBusDep._bound) {
+                kpiBusDep._bound = true;
+                kpiBusDep.addEventListener("click", () => toggleAvailableBusesList());
+            }
+            const btnCloseAvail = document.getElementById("btn-close-available-buses");
+            if (btnCloseAvail && !btnCloseAvail.getAttribute("onclick") && !btnCloseAvail._bound) {
+                btnCloseAvail._bound = true;
+                btnCloseAvail.addEventListener("click", () => toggleAvailableBusesList(false));
+            }
+
+            const recBtn = document.getElementById("recommend");
+            if (recBtn && !recBtn._bound) {
+                recBtn._bound = true;
+                recBtn.addEventListener("click", async () => {
+                    updateSelectedRouteDistance();
+                    syncScheduleTiming();
+
+                    const selectedRouteId = routeSelect ? routeSelect.value : "";
+                    const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
+                    const depInput = document.getElementById("departure");
+                    const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
+
+                    if (!routeObj) {
+                        showAllocationToast("⚠️ Please select a route first.", "error");
+                        return;
+                    }
+
+                    let allocResult = null;
+                    if (currentlyAllocatedBus) {
+                        allocResult = {
+                            allocated: currentlyAllocatedBus,
+                            matchedSched: currentScheduleMatch,
+                            shift: currentlyAllocatedBus.shift,
+                            departureTime: departureTime,
+                            reqSoc: currentlyAllocatedBus.reqSoc
+                        };
+                    } else {
+                        allocResult = allocateBus(routeObj, departureTime);
+                        currentlyAllocatedBus = allocResult.allocated;
+                        currentScheduleMatch = allocResult.matchedSched;
+                    }
+                    renderAllocatedCard(allocResult);
+
+                    if (!allocResult || !allocResult.allocated) {
+                        const reason = (allocResult && allocResult.swapLog && allocResult.swapLog.length)
+                            ? allocResult.swapLog.join(". ")
+                            : "No eligible bus available with sufficient battery and range for this departure.";
+                        showAllocationToast(`⚠️ Cannot allocate bus: ${reason}`, "error");
+                        return;
+                    }
+
+                    const alloc = allocResult.allocated;
+                    const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
+
+                    const existingDuty = findAllocatedDutyForBm(alloc.bm, allocatedDuties);
+                    if (existingDuty) {
+                        const exRoute = normalizeRoute(existingDuty.routeCode || existingDuty.busNumber || existingDuty.routeId);
+                        const curRoute = normalizeRoute(routeObj.code);
+                        if (exRoute && curRoute && exRoute !== curRoute) {
+                            showAllocationToast(`⚠️ Bus ${alloc.bm} is already allocated to Route ${existingDuty.routeCode || existingDuty.busNumber} at ${existingDuty.departureTime}. It cannot be allocated to Route ${routeObj.code}!`, "error");
+                            return;
+                        }
+                        if (existingDuty.departureTime === departureTime) {
+                            showAllocationToast(`ℹ️ Bus ${alloc.bm} is already in the Allocated Buses region for this duty.`, "info");
+                            scrollToAllocatedDuty(existingDuty.id);
+                            return;
+                        }
+                    }
+                    const existingIndex = allocatedDuties.findIndex(d => {
+                        return [d.bm, d.bmNumber, d.uniqueId, d.vehicleId, d.busId].some(x => x && normalizeBm(x) === normalizeBm(alloc.bm));
+                    });
+
+                    const targetScheduleId = alloc.scheduleId || (currentScheduleMatch ? currentScheduleMatch.scheduleId : "") || `${routeObj.code}/12`;
+                    const targetTripCount = (currentScheduleMatch && currentScheduleMatch.totalTasks) || (routeObj && routeObj.trips) || 8;
+
+                    const dutyId = `duty_${alloc.bm}_${routeObj.code}_${departureTime.replace(/[^0-9]/g, '')}_${Date.now()}`;
+                    const newDuty = {
+                        id: dutyId,
+                        bm: alloc.bm,
+                        bmNumber: alloc.bm,
+                        uniqueId: alloc.bm,
+                        vehicleId: alloc.bm,
+                        busId: alloc.bm,
+                        regNo: alloc.regNo || getBusRegNo(alloc.bm),
+                        routeId: routeObj.code || routeObj.routeId || routeObj.id || alloc.bm,
+                        corridorRouteId: routeObj.id,
+                        busNumber: routeObj.code,
+                        busShortName: routeObj.code,
+                        routeShortName: routeObj.code,
+                        routeCode: routeObj.code,
+                        code: routeObj.code,
+                        scheduleId: targetScheduleId,
+                        routeName: routeObj.label || `${routeObj.origin} ➔ ${routeObj.destination}`,
+                        origin: routeObj.origin,
+                        destination: routeObj.destination,
+                        departureTime: departureTime,
+                        shift: targetShift,
+                        soc: alloc.liveSoc,
+                        fullDutyKm: alloc.fullDutyKm,
+                        routeDist: Number(routeObj.distKm || routeObj.distanceKm || 28.7),
+                        tripCount: targetTripCount,
+                        allocType: alloc.allocType || "Primary Bus",
+                        reason: alloc.reason || "",
+                        allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                        _isJustAdded: true
+                    };
+
+                    if (existingIndex >= 0) {
+                        allocatedDuties[existingIndex] = newDuty;
+                    } else {
+                        allocatedDuties.unshift(newDuty);
+                    }
+
+                    saveAllocatedDuties(allocatedDuties);
+                    renderRoutes(true);
+                    await recommend();
+
+                    showAllocationToast(`⚡ Bus ${alloc.bm} (${alloc.regNo || ''}) successfully added to Allocated Buses region for Route ${routeObj.code} at ${departureTime} (${targetShift})!`, "success");
+
+                    setTimeout(() => {
+                        scrollToAllocatedDuty(dutyId);
+                        setTimeout(() => {
+                            delete newDuty._isJustAdded;
+                        }, 3000);
+                    }, 120);
+                });
+            }
+
+            const resetAllocBtn = document.getElementById("reset-allocations-btn");
+            if (resetAllocBtn && !resetAllocBtn._bound) {
+                resetAllocBtn._bound = true;
+                resetAllocBtn.addEventListener("click", () => {
+                    if (!allocatedDuties.length) return;
+                    if (confirm("Are you sure you want to reset all allocated buses? They will return to depot reserve.")) {
+                        allocatedDuties = [];
+                        saveAllocatedDuties([]);
+                        renderRoutes(true);
+                        showAllocationToast("All bus allocations have been reset.", "info");
+                    }
+                });
+            }
+
+            const driverSelectInput = document.getElementById("driver");
+            if (driverSelectInput && !driverSelectInput._bound) {
+                driverSelectInput._bound = true;
+                driverSelectInput.addEventListener("change", () => {
+                    updateAssignedDriverCount();
+                    renderRoutes();
+                    renderAllocatedList(lastAllocatedRoutes);
+                    renderNotAllocatedList(lastNotAllocatedRoutes);
+                });
+            }
+
+            const complexityEl = document.getElementById("complexity");
+            if (complexityEl && !complexityEl._bound) {
+                complexityEl._bound = true;
+                complexityEl.addEventListener("change", async () => {
+                    await recommend();
+                    renderAllocatedList(lastAllocatedRoutes);
+                    renderNotAllocatedList(lastNotAllocatedRoutes);
+                });
+            }
+
+            ["interior", "exterior", "maintenance"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el && !el._bound) {
+                    el._bound = true;
+                    el.addEventListener("change", async () => {
                         await recommend();
                     });
                 }
+            });
 
-                document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((btn) => {
-                    btn.addEventListener("click", () => {
-                        document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((b) => b.classList.remove("active"));
-                        btn.classList.add("active");
-                        scheduledFilter = btn.dataset.filter || "all";
-                        renderScheduledTime();
-                    });
+            const distanceEl = document.getElementById("distance");
+            if (distanceEl && !distanceEl._bound) {
+                distanceEl._bound = true;
+                distanceEl.addEventListener("input", async () => {
+                    await recommend();
                 });
+            }
 
-                // Region-specific search listeners
-                if (allocatedSearchInput) {
-                    allocatedSearchInput.addEventListener("input", () => {
+            document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((btn) => {
+                if (btn._bound) return;
+                btn._bound = true;
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll("#scheduled-filter-tabs .tab-btn").forEach((b) => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    scheduledFilter = btn.dataset.filter || "all";
+                    renderScheduledTime();
+                });
+            });
+
+            if (allocatedSearchInput && !allocatedSearchInput._bound) {
+                allocatedSearchInput._bound = true;
+                allocatedSearchInput.addEventListener("input", () => {
+                    renderAllocatedList(lastAllocatedRoutes);
+                });
+                allocatedSearchInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        allocatedSearchInput.value = "";
                         renderAllocatedList(lastAllocatedRoutes);
-                    });
-                    allocatedSearchInput.addEventListener("keydown", (e) => {
-                        if (e.key === "Escape") {
-                            allocatedSearchInput.value = "";
-                            renderAllocatedList(lastAllocatedRoutes);
-                        }
-                    });
-                }
-                if (clearAllocatedBtn) {
-                    clearAllocatedBtn.addEventListener("click", () => {
-                        if (allocatedSearchInput) {
-                            allocatedSearchInput.value = "";
-                            allocatedSearchInput.focus();
-                        }
-                        renderAllocatedList(lastAllocatedRoutes);
-                    });
-                }
+                    }
+                });
+            }
+            if (clearAllocatedBtn && !clearAllocatedBtn._bound) {
+                clearAllocatedBtn._bound = true;
+                clearAllocatedBtn.addEventListener("click", () => {
+                    if (allocatedSearchInput) {
+                        allocatedSearchInput.value = "";
+                        allocatedSearchInput.focus();
+                    }
+                    renderAllocatedList(lastAllocatedRoutes);
+                });
+            }
 
-                if (notAllocatedSearchInput) {
-                    notAllocatedSearchInput.addEventListener("input", () => {
+            if (notAllocatedSearchInput && !notAllocatedSearchInput._bound) {
+                notAllocatedSearchInput._bound = true;
+                notAllocatedSearchInput.addEventListener("input", () => {
+                    renderNotAllocatedList(lastNotAllocatedRoutes);
+                });
+                notAllocatedSearchInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        notAllocatedSearchInput.value = "";
                         renderNotAllocatedList(lastNotAllocatedRoutes);
-                    });
-                    notAllocatedSearchInput.addEventListener("keydown", (e) => {
-                        if (e.key === "Escape") {
-                            notAllocatedSearchInput.value = "";
-                            renderNotAllocatedList(lastNotAllocatedRoutes);
-                        }
-                    });
-                }
-                if (clearNotAllocatedBtn) {
-                    clearNotAllocatedBtn.addEventListener("click", () => {
-                        if (notAllocatedSearchInput) {
-                            notAllocatedSearchInput.value = "";
-                            notAllocatedSearchInput.focus();
-                        }
-                        renderNotAllocatedList(lastNotAllocatedRoutes);
-                    });
-                }
+                    }
+                });
+            }
+            if (clearNotAllocatedBtn && !clearNotAllocatedBtn._bound) {
+                clearNotAllocatedBtn._bound = true;
+                clearNotAllocatedBtn.addEventListener("click", () => {
+                    if (notAllocatedSearchInput) {
+                        notAllocatedSearchInput.value = "";
+                        notAllocatedSearchInput.focus();
+                    }
+                    renderNotAllocatedList(lastNotAllocatedRoutes);
+                });
+            }
 
-                if (scheduledSearchInput) {
-                    scheduledSearchInput.addEventListener("input", () => {
+            if (scheduledSearchInput && !scheduledSearchInput._bound) {
+                scheduledSearchInput._bound = true;
+                scheduledSearchInput.addEventListener("input", () => {
+                    renderScheduledTime();
+                });
+                scheduledSearchInput.addEventListener("keydown", (e) => {
+                    if (e.key === "Escape") {
+                        scheduledSearchInput.value = "";
                         renderScheduledTime();
-                    });
-                    scheduledSearchInput.addEventListener("keydown", (e) => {
-                        if (e.key === "Escape") {
-                            scheduledSearchInput.value = "";
-                            renderScheduledTime();
-                        }
-                    });
-                }
-                if (clearScheduledBtn) {
-                    clearScheduledBtn.addEventListener("click", () => {
-                        if (scheduledSearchInput) {
-                            scheduledSearchInput.value = "";
-                            scheduledSearchInput.focus();
-                        }
-                        renderScheduledTime();
-                    });
-                }
+                    }
+                });
+            }
+            if (clearScheduledBtn && !clearScheduledBtn._bound) {
+                clearScheduledBtn._bound = true;
+                clearScheduledBtn.addEventListener("click", () => {
+                    if (scheduledSearchInput) {
+                        scheduledSearchInput.value = "";
+                        scheduledSearchInput.focus();
+                    }
+                    renderScheduledTime();
+                });
+            }
 
-                if (closeTasksModalBtn) {
-                    closeTasksModalBtn.addEventListener("click", closeBusTasksModal);
-                }
-                if (busTasksModalBackdrop) {
-                    busTasksModalBackdrop.addEventListener("click", (e) => {
-                        if (e.target === busTasksModalBackdrop) {
-                            closeBusTasksModal();
-                        }
-                    });
-                }
-
-                // ── Locked Buses modal listeners ──
-                const lockedBusesBtn = document.getElementById("locked-buses-topbar-btn");
-                if (lockedBusesBtn) {
-                    lockedBusesBtn.addEventListener("click", openLockedBusesModal);
-                }
-                const viewLockedDetailsBtn = document.getElementById("view-locked-details-btn");
-                if (viewLockedDetailsBtn) {
-                    viewLockedDetailsBtn.addEventListener("click", openLockedBusesModal);
-                }
-                const closeLockedModalBtn = document.getElementById("close-locked-modal-btn");
-                if (closeLockedModalBtn) {
-                    closeLockedModalBtn.addEventListener("click", closeLockedBusesModal);
-                }
-                const lockedBusesModalBackdrop = document.getElementById("locked-buses-modal-backdrop");
-                if (lockedBusesModalBackdrop) {
-                    lockedBusesModalBackdrop.addEventListener("click", (e) => {
-                        if (e.target === lockedBusesModalBackdrop) closeLockedBusesModal();
-                    });
-                }
-                const lockedBusSearchInput = document.getElementById("locked-bus-search-input");
-                if (lockedBusSearchInput) {
-                    lockedBusSearchInput.addEventListener("input", () => {
-                        renderLockedBusesModalContent(lockedBusSearchInput.value);
-                    });
-                }
-
-                window.addEventListener("keydown", (e) => {
-                    if (e.key === "Escape" && busTasksModalBackdrop && busTasksModalBackdrop.style.display === "flex") {
+            const closeTasksModalBtn = document.getElementById("close-tasks-modal-btn");
+            if (closeTasksModalBtn && !closeTasksModalBtn._bound) {
+                closeTasksModalBtn._bound = true;
+                closeTasksModalBtn.addEventListener("click", closeBusTasksModal);
+            }
+            if (busTasksModalBackdrop && !busTasksModalBackdrop._bound) {
+                busTasksModalBackdrop._bound = true;
+                busTasksModalBackdrop.addEventListener("click", (e) => {
+                    if (e.target === busTasksModalBackdrop) {
                         closeBusTasksModal();
                     }
-                    if (e.key === "Escape" && lockedBusesModalBackdrop && lockedBusesModalBackdrop.style.display === "flex") {
+                });
+            }
+
+            const lockedBusesBtn = document.getElementById("locked-buses-topbar-btn");
+            if (lockedBusesBtn && !lockedBusesBtn._bound) {
+                lockedBusesBtn._bound = true;
+                lockedBusesBtn.addEventListener("click", openLockedBusesModal);
+            }
+            const viewLockedDetailsBtn = document.getElementById("view-locked-details-btn");
+            if (viewLockedDetailsBtn && !viewLockedDetailsBtn._bound) {
+                viewLockedDetailsBtn._bound = true;
+                viewLockedDetailsBtn.addEventListener("click", openLockedBusesModal);
+            }
+            const closeLockedModalBtn = document.getElementById("close-locked-modal-btn");
+            if (closeLockedModalBtn && !closeLockedModalBtn._bound) {
+                closeLockedModalBtn._bound = true;
+                closeLockedModalBtn.addEventListener("click", closeLockedBusesModal);
+            }
+            const lockedBusesModalBackdrop = document.getElementById("locked-buses-modal-backdrop");
+            if (lockedBusesModalBackdrop && !lockedBusesModalBackdrop._bound) {
+                lockedBusesModalBackdrop._bound = true;
+                lockedBusesModalBackdrop.addEventListener("click", (e) => {
+                    if (e.target === lockedBusesModalBackdrop) closeLockedBusesModal();
+                });
+            }
+            const lockedBusSearchInput = document.getElementById("locked-bus-search-input");
+            if (lockedBusSearchInput && !lockedBusSearchInput._bound) {
+                lockedBusSearchInput._bound = true;
+                lockedBusSearchInput.addEventListener("input", () => {
+                    renderLockedBusesModalContent(lockedBusSearchInput.value);
+                });
+            }
+
+            const allocSortRouteEl = document.getElementById("alloc-sort-route");
+            if (allocSortRouteEl && !allocSortRouteEl._bound) {
+                allocSortRouteEl._bound = true;
+                allocSortRouteEl.addEventListener("change", () => renderAllocatedList(lastAllocatedRoutes));
+            }
+            const notAllocSortRouteEl = document.getElementById("not-alloc-sort-route");
+            if (notAllocSortRouteEl && !notAllocSortRouteEl._bound) {
+                notAllocSortRouteEl._bound = true;
+                notAllocSortRouteEl.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
+            }
+
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    if (busTasksModalBackdrop && busTasksModalBackdrop.style.display === "flex") {
+                        closeBusTasksModal();
+                    }
+                    if (lockedBusesModalBackdrop && lockedBusesModalBackdrop.style.display === "flex") {
                         closeLockedBusesModal();
                     }
+                }
+            });
+
+            const logoutBtn = document.getElementById("logout-btn");
+            if (logoutBtn && !logoutBtn._bound) {
+                logoutBtn._bound = true;
+                logoutBtn.addEventListener("click", () => {
+                    localStorage.setItem("smartbus_loggedout", "1");
+                    localStorage.removeItem("accessMode");
+                    sessionStorage.removeItem("isLoggedIn");
+                    sessionStorage.removeItem("userEmail");
+                    sessionStorage.removeItem("userName");
+                    window.location.href = "/login.html";
                 });
+            }
+        }
 
+        async function loadData() {
+            // 1. Sync local states and load allocated duties immediately
+            syncLocalStorageBusStates();
+            allocatedDuties = loadAllocatedDuties();
+
+            // 2. Pre-seed routes from cache or fallback so UI renders in <50ms without network wait
+            if (!routes || !routes.length) {
+                routes = getInitialRoutes();
+            }
+
+            // 3. Immediately initialize all UI event listeners (once)
+            initAllUiListeners();
+
+            // 4. Synchronously render full interface right away
+            updateSelectedRouteDistance();
+            updateScheduledTimesForSelectedRoute(false);
+            renderRoutes(false);
+            renderScheduledTime();
+            updateAvailableSchedulingNavPill();
+            openFleetSection("allocated");
+            updateAddDeleteBadgeCount();
+
+            // 5. Asynchronously fetch latest data in background without blocking
+            try {
+                const [routesResponse, schedulesResponse, busStateResponse, assignResponse, corridorResponse, busCategoriesResponse] = await Promise.all([
+                    fetchWithTimeout("/api/routes", {}, 3000),
+                    fetchWithTimeout("/api/gtfs-schedules", {}, 3000),
+                    fetchWithTimeout("/api/bus-state", {}, 3000),
+                    fetchWithTimeout("/api/bus-assignments", {}, 3000),
+                    fetchWithTimeout("/api/corridor-schedules", {}, 3000),
+                    fetchWithTimeout("/api/bus-categories", {}, 3000)
+                ]);
+
+                if (routesResponse && routesResponse.ok) {
+                    try {
+                        const routesPayload = await routesResponse.json();
+                        if (Array.isArray(routesPayload.routes) && routesPayload.routes.length > 0) {
+                            routes = routesPayload.routes;
+                            try { localStorage.setItem("smartbus_cached_routes", JSON.stringify(routes)); } catch(e) {}
+                        }
+                    } catch(e) {}
+                }
+
+                if (busCategoriesResponse && busCategoriesResponse.ok) {
+                    try {
+                        const bcData = await busCategoriesResponse.json();
+                        const rawBuses = Array.isArray(bcData.buses) ? bcData.buses : (bcData.buses ? Object.values(bcData.buses) : (Array.isArray(bcData) ? bcData : []));
+                        rawBuses.forEach(b => {
+                            if (b && b.bm_number && b.category) {
+                                busCategoriesMap.set(String(b.bm_number).toUpperCase().trim(), String(b.category).toUpperCase().trim());
+                            }
+                        });
+                    } catch (e) {}
+                }
+
+                if (busStateResponse && busStateResponse.ok) {
+                    try {
+                        const busStatePayload = await busStateResponse.json();
+                        if (busStatePayload?.state) busStates = busStatePayload.state;
+                    } catch (e) {}
+                }
+                syncLocalStorageBusStates();
+
+                if (assignResponse && assignResponse.ok) {
+                    try {
+                        const assignPayload = await assignResponse.json();
+                        busAssignments = assignPayload.assignments || {};
+                        blockedRouteIds = new Set(assignPayload.blockedRouteIds || []);
+                        assignmentRanges = assignPayload.ranges || {};
+                        serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
+                    } catch (e) {}
+                }
+
+                if (corridorResponse && corridorResponse.ok) {
+                    try {
+                        const corridorData = await corridorResponse.json();
+                        if (corridorData && corridorData.ok) {
+                            if (Array.isArray(corridorData.directionalRoutes) && corridorData.directionalRoutes.length) {
+                                directionalRoutes = corridorData.directionalRoutes;
+                            }
+                            if (Array.isArray(corridorData.schedules) && corridorData.schedules.length) {
+                                datasetSchedules = corridorData.schedules;
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                if (schedulesResponse && schedulesResponse.ok) {
+                    try {
+                        const schedulesPayload = await schedulesResponse.json();
+                        if (schedulesPayload && schedulesPayload.schedules) {
+                            gtfsScheduleMap.clear();
+                            for (const [rId, info] of Object.entries(schedulesPayload.schedules)) {
+                                gtfsScheduleMap.set(String(rId), info);
+                            }
+                        }
+                    } catch (e) {}
+                }
+
+                // Update UI smoothly with fresh server data
+                updateSelectedRouteDistance();
+                updateScheduledTimesForSelectedRoute(false);
+                renderRoutes(true);
+                renderScheduledTime();
+                updateAvailableSchedulingNavPill();
                 await recommend();
+            } catch (err) {
+                console.warn("Background fleet sync warning:", err);
+            }
 
-                // ── Sort strip event listeners ──
-                const allocSortRouteEl = document.getElementById("alloc-sort-route");
-                if (allocSortRouteEl) {
-                    allocSortRouteEl.addEventListener("change", () => renderAllocatedList(lastAllocatedRoutes));
-                }
-                const notAllocSortRouteEl = document.getElementById("not-alloc-sort-route");
-                if (notAllocSortRouteEl) {
-                    notAllocSortRouteEl.addEventListener("change", () => renderNotAllocatedList(lastNotAllocatedRoutes));
-                }
-
-                // ── Initialize Fleet View Switcher Buttons ──
-                initSectionViewSwitcher();
-
-                // ── Logout button ──
-                const logoutBtn = document.getElementById("logout-btn");
-                if (logoutBtn) {
-                    logoutBtn.addEventListener("click", () => {
-                        // Set a persistent flag so login.html knows to sign out of Firebase
-                        localStorage.setItem("smartbus_loggedout", "1");
-                        localStorage.removeItem("accessMode");
-                        sessionStorage.removeItem("isLoggedIn");
-                        sessionStorage.removeItem("userEmail");
-                        sessionStorage.removeItem("userName");
-                        window.location.href = "/login.html";
-                    });
-                }
-
-                // Live polling every 10 seconds — refresh telemetry AND swap assignments
-                setInterval(async () => {
+            // Live polling every 12 seconds
+            if (!window._fleetPollingInterval) {
+                window._fleetPollingInterval = setInterval(async () => {
                     try {
                         const [stateRes, assignRes] = await Promise.all([
                             fetch("/api/bus-state"),
@@ -7279,15 +7316,6 @@ let busCategoriesMap = new Map();
                         renderRoutes();
                     } catch {}
                 }, 12000);
-            } catch (error) {
-                routeSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
-                if (notAllocatedSummary) {
-                    notAllocatedSummary.innerHTML = '<div class="route-row"><strong>Route schedule feed</strong><span>GTFS data unavailable</span></div>';
-                }
-                if (scheduledTimeTbody) {
-                    scheduledTimeTbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">GTFS schedule data unavailable</td></tr>';
-                }
-                document.getElementById("route-distance-rule").textContent = "N/A";
             }
         }
 
@@ -7366,38 +7394,40 @@ let busCategoriesMap = new Map();
         }
 
         function switchAddDeleteTab(tabName) {
-            const btnDel = document.getElementById("tab-btn-delete-bus");
+            const isDel = (tabName === "del" || tabName === "delete" || !tabName);
+            const isAdd = (tabName === "add");
+            const isHist = (tabName === "hist" || tabName === "history");
+
+            const btnDel = document.getElementById("tab-btn-del-bus") || document.getElementById("tab-btn-delete-bus");
             const btnAdd = document.getElementById("tab-btn-add-bus");
             const btnHist = document.getElementById("tab-btn-hist-bus");
-            const contentDel = document.getElementById("tab-content-delete-bus");
+            const contentDel = document.getElementById("tab-content-del-bus") || document.getElementById("tab-content-delete-bus");
             const contentAdd = document.getElementById("tab-content-add-bus");
             const contentHist = document.getElementById("tab-content-hist-bus");
 
-            if (btnDel) btnDel.classList.remove("active");
-            if (btnAdd) btnAdd.classList.remove("active");
-            if (btnHist) btnHist.classList.remove("active");
-            if (contentDel) contentDel.style.display = "none";
-            if (contentAdd) contentAdd.style.display = "none";
-            if (contentHist) contentHist.style.display = "none";
+            if (btnDel) btnDel.classList.toggle("active", isDel);
+            if (btnAdd) btnAdd.classList.toggle("active", isAdd);
+            if (btnHist) btnHist.classList.toggle("active", isHist);
 
-            if (tabName === "add") {
-                if (btnAdd) btnAdd.classList.add("active");
-                if (contentAdd) contentAdd.style.display = "block";
-            } else if (tabName === "hist") {
-                if (btnHist) btnHist.classList.add("active");
-                if (contentHist) contentHist.style.display = "block";
+            // Strict tab isolation: ONLY the selected tab is displayed, all other tabs are hidden
+            if (contentDel) contentDel.style.display = isDel ? "block" : "none";
+            if (contentAdd) contentAdd.style.display = isAdd ? "block" : "none";
+            if (contentHist) contentHist.style.display = isHist ? "block" : "none";
+
+            if (isAdd) {
+                const bmInput = document.getElementById("add-bus-bm");
+                if (bmInput) setTimeout(() => bmInput.focus(), 50);
+            } else if (isHist) {
                 renderFleetHistoryTab();
             } else {
-                if (btnDel) btnDel.classList.add("active");
-                if (contentDel) contentDel.style.display = "block";
                 populateDeleteBusSelectors();
             }
         }
 
         function populateDeleteBusSelectors() {
-            const selectEl = document.getElementById("delete-bus-select");
-            const bmInput = document.getElementById("delete-bus-bm");
-            const regInput = document.getElementById("delete-bus-reg");
+            const selectEl = document.getElementById("del-bus-select") || document.getElementById("delete-bus-select");
+            const bmInput = document.getElementById("del-bus-bm") || document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("del-bus-reg") || document.getElementById("delete-bus-reg");
             if (!selectEl) return;
 
             const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
@@ -7425,9 +7455,9 @@ let busCategoriesMap = new Map();
         }
 
         function onDeleteBusSelectChange(bmVal) {
-            const bmInput = document.getElementById("delete-bus-bm");
-            const regInput = document.getElementById("delete-bus-reg");
-            const selectEl = document.getElementById("delete-bus-select");
+            const bmInput = document.getElementById("del-bus-bm") || document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("del-bus-reg") || document.getElementById("delete-bus-reg");
+            const selectEl = document.getElementById("del-bus-select") || document.getElementById("delete-bus-select");
             if (!bmVal) {
                 if (bmInput) bmInput.value = "";
                 if (regInput) regInput.value = "";
@@ -7448,8 +7478,8 @@ let busCategoriesMap = new Map();
 
         function onDeleteBusBmChange(bmVal) {
             const cleanBm = String(bmVal || "").toUpperCase().trim();
-            const selectEl = document.getElementById("delete-bus-select");
-            const regInput = document.getElementById("delete-bus-reg");
+            const selectEl = document.getElementById("del-bus-select") || document.getElementById("delete-bus-select");
+            const regInput = document.getElementById("del-bus-reg") || document.getElementById("delete-bus-reg");
             if (!cleanBm) return;
             if (selectEl) {
                 const opt = Array.from(selectEl.options).find(o => o.value.toUpperCase() === cleanBm);
@@ -7464,8 +7494,8 @@ let busCategoriesMap = new Map();
             }
         }
 
-        function onDeleteReasonSelectChange(val) {
-            const txt = document.getElementById("delete-bus-reason-text");
+        function onDelReasonSelectChange(val) {
+            const txt = document.getElementById("del-bus-reason-text") || document.getElementById("delete-bus-reason-text");
             if (!txt) return;
             if (val === "Other") {
                 txt.focus();
@@ -7473,6 +7503,8 @@ let busCategoriesMap = new Map();
                 txt.value = val;
             }
         }
+        window.onDelReasonSelectChange = onDelReasonSelectChange;
+        window.onDeleteReasonSelectChange = onDelReasonSelectChange;
 
         function onAddReasonSelectChange(val) {
             const txt = document.getElementById("add-bus-reason-text");
@@ -7483,12 +7515,13 @@ let busCategoriesMap = new Map();
                 txt.value = val;
             }
         }
+        window.onAddReasonSelectChange = onAddReasonSelectChange;
 
         async function submitDeleteBus() {
-            const bmInput = document.getElementById("delete-bus-bm");
-            const regInput = document.getElementById("delete-bus-reg");
-            const reasonSelect = document.getElementById("delete-bus-reason-select");
-            const reasonText = document.getElementById("delete-bus-reason-text");
+            const bmInput = document.getElementById("del-bus-bm") || document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("del-bus-reg") || document.getElementById("delete-bus-reg");
+            const reasonSelect = document.getElementById("del-bus-reason-select") || document.getElementById("delete-bus-reason-select");
+            const reasonText = document.getElementById("del-bus-reason-text") || document.getElementById("delete-bus-reason-text");
             const btn = document.getElementById("btn-submit-delete-bus");
 
             const busNumber = (bmInput ? bmInput.value : "").trim().toUpperCase();
@@ -7775,15 +7808,20 @@ let busCategoriesMap = new Map();
         }
 
         function updateAddDeleteBadgeCount() {
-            const badge = document.getElementById("newly-added-count-badge");
-            if (!badge) return;
+            const topbarBadge = document.getElementById("topbar-newly-added-count");
+            const modalBadge = document.getElementById("fleet-added-count-badge") || document.getElementById("newly-added-count-badge");
             const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
             const count = Object.keys(addedBuses).length;
-            if (count > 0) {
-                badge.style.display = "inline-flex";
-                badge.textContent = `+${count}`;
-            } else {
-                badge.style.display = "none";
+            if (topbarBadge) {
+                if (count > 0) {
+                    topbarBadge.style.display = "inline-flex";
+                    topbarBadge.textContent = `+${count}`;
+                } else {
+                    topbarBadge.style.display = "none";
+                }
+            }
+            if (modalBadge) {
+                modalBadge.textContent = `${count} Newly Added`;
             }
         }
 

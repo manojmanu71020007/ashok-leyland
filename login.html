@@ -742,12 +742,12 @@
                 </div>
             </a>
             <!-- Scheduling Tile (Separate Standalone Portal) -->
-            <a id="linkScheduling" href="/scheduling" style="text-decoration:none;">
+            <a id="linkScheduling" href="/scheduling.html?depot=1" style="text-decoration:none;">
                 <div class="quick-tile" style="border-color:rgba(14,165,233,0.45);background:rgba(255,255,255,0.12);"
                      onmouseover="this.style.background='rgba(14,165,233,0.22)';this.style.transform='translateY(-2px)'"
                      onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
                     <div style="font-size:1.8rem;margin-bottom:6px;">🎯</div>
-                    <div id="tileSchedulingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Scheduling</div>
+                    <div id="tileSchedulingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Scheduling 1</div>
                     <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_scheduling_sub">Smart allocation</div>
                 </div>
             </a>
@@ -1665,7 +1665,7 @@
         const clnText = document.getElementById('tileCleaningText');
         if (clnText) clnText.textContent = `Cleaning ${num}`;
         const schText = document.getElementById('tileSchedulingText');
-        if (schText) schText.textContent = `Scheduling`;
+        if (schText) schText.textContent = `Scheduling ${num}`;
         const dopsText = document.getElementById('tileDepotOpsText');
         if (dopsText) dopsText.textContent = `Depot Ops ${num}`;
 
@@ -1675,7 +1675,7 @@
         const lCln = document.getElementById('linkCleaning');
         if (lCln) lCln.href = `/public/cleaning.html?depot=${num}`;
         const lSch = document.getElementById('linkScheduling');
-        if (lSch) lSch.href = `/scheduling`;
+        if (lSch) lSch.href = `/scheduling.html?depot=${num}`;
         const lOps = document.getElementById('linkDepotOps');
         if (lOps) lOps.href = `/public/depot-operations.html?depot=${num}`;
     }
