@@ -592,124 +592,6 @@
             color: #ffffff;
         }
 
-        /* ── Biometric Terminal Kiosk Styles ── */
-        .bio-kiosk-panel {
-            background: linear-gradient(145deg, #0f172a 0%, #1e293b 100%);
-            border: 1.5px solid #334155;
-            border-radius: 16px;
-            color: #f8fafc;
-            padding: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-        }
-        .bio-scanner-box {
-            position: relative;
-            width: 140px;
-            height: 160px;
-            margin: 0 auto;
-            background: #020617;
-            border: 2px solid #06b6d4;
-            border-radius: 20px;
-            box-shadow: 0 0 25px rgba(6, 182, 212, 0.25), inset 0 0 15px rgba(6, 182, 212, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .bio-scanner-box:hover {
-            border-color: #10b981;
-            box-shadow: 0 0 35px rgba(16, 185, 129, 0.4), inset 0 0 20px rgba(16, 185, 129, 0.25);
-            transform: scale(1.02);
-        }
-        .bio-scanner-box.scanning {
-            border-color: #10b981;
-            animation: bio-pulse 1.2s infinite alternate;
-        }
-        @keyframes bio-pulse {
-            0% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.3); }
-            100% { box-shadow: 0 0 45px rgba(16, 185, 129, 0.7); }
-        }
-        .bio-laser-beam {
-            position: absolute;
-            left: 0;
-            width: 100%;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #10b981, #06b6d4, transparent);
-            box-shadow: 0 0 12px #10b981;
-            top: 0;
-            display: none;
-        }
-        .bio-scanner-box.scanning .bio-laser-beam {
-            display: block;
-            animation: bio-laser-sweep 1.4s ease-in-out infinite alternate;
-        }
-        @keyframes bio-laser-sweep {
-            0% { top: 6%; opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { top: 92%; opacity: 0.3; }
-        }
-        .bio-fingerprint-svg {
-            width: 80px;
-            height: 95px;
-            stroke: #06b6d4;
-            stroke-width: 2.2;
-            fill: none;
-            opacity: 0.85;
-            transition: all 0.2s;
-        }
-        .bio-scanner-box.scanning .bio-fingerprint-svg {
-            stroke: #10b981;
-            opacity: 1;
-        }
-        .bio-terminal-log {
-            background: #020617;
-            border: 1px solid #1e293b;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 0.75rem;
-            color: #38bdf8;
-            max-height: 160px;
-            overflow-y: auto;
-            line-height: 1.5;
-        }
-        .bio-pill-verified {
-            background: #ecfdf5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-            padding: 2px 7px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .bio-pill-pending {
-            background: #fffbeb;
-            color: #92400e;
-            border: 1px solid #fde68a;
-            padding: 2px 7px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .bio-pill-failed {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecdd3;
-            padding: 2px 7px;
-            border-radius: 6px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
 
         /* ── Button ── */
         button.btn-allocate {
@@ -822,63 +704,7 @@
         .allocation-toast.success { background: linear-gradient(135deg, #064e3b, #065f46); color: #ecfdf5; border: 1px solid #059669; }
         .allocation-toast.error   { background: linear-gradient(135deg, #7f1d1d, #991b1b); color: #fef2f2; border: 1px solid #dc2626; }
         .allocation-toast.info    { background: linear-gradient(135deg, #0c4a6e, #075985); color: #f0f9ff; border: 1px solid #0284c7; }
-        /* ── Depot Switcher Bar ── */
-        .depot-switcher-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 12px 18px;
-            border-radius: var(--radius-md);
-            border: 1.5px solid var(--line);
-            box-shadow: var(--shadow-sm);
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .depot-switch-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 999px;
-            border: 1.5px solid var(--line);
-            background: #f8fafc;
-            color: var(--muted);
-            font-size: 0.88rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .depot-switch-btn:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-        .depot-switch-btn.active {
-            background: #0284c7;
-            border-color: #0284c7;
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
-        }
-        .depot-switch-btn .depot-pill-badge {
-            background: rgba(0, 0, 0, 0.08);
-            color: inherit;
-            font-size: 0.75rem;
-            padding: 2px 8px;
-            border-radius: 999px;
-            font-weight: 800;
-        }
-        .depot-switch-btn.active .depot-pill-badge {
-            background: rgba(255, 255, 255, 0.25);
-            color: #fff;
-        }
-        .depot-fleet-summary {
-            font-size: 0.84rem;
-            color: var(--muted);
-        }
-        .depot-fleet-summary strong {
-            color: var(--ink);
-        }
+
     </style>
     <script src="i18n.js"></script>
     <script src="sync-engine.js"></script>
@@ -899,23 +725,7 @@
             </div>
         </div>
 
-        <!-- ── Depot Switcher Bar ── -->
-        <div class="depot-switcher-bar">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <span style="font-size:0.78rem; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted);">OPERATING DEPOT:</span>
-                <button type="button" class="depot-switch-btn active" id="btnDepot1" onclick="switchOperatingDepot('1')">
-                    🏢 Depot 1 (Chandapura)
-                    <span class="depot-pill-badge" id="badgeDepot1Count">62 Buses</span>
-                </button>
-                <button type="button" class="depot-switch-btn" id="btnDepot2" onclick="switchOperatingDepot('2')">
-                    🏢 Depot 2 (Attibele)
-                    <span class="depot-pill-badge" id="badgeDepot2Count">60 Buses</span>
-                </button>
-            </div>
-            <div class="depot-fleet-summary">
-                Active Fleet: <strong id="activeDepotFleetSummary">Depot 1 • Chandapura (62 Buses)</strong>
-            </div>
-        </div>
+
 
         <header class="topbar">
             <div>
@@ -972,19 +782,11 @@
                     </label>
                     <label>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                            <span data-i18n="label_driver">Assigned Driver</span>
-                            <div style="display:flex; gap:6px; align-items:center;">
-                                <button type="button" id="btn-open-biometric-kiosk" onclick="openBiometricKioskModal()" style="background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; font-size:0.73rem; font-weight:700; cursor:pointer; padding:2px 8px; border-radius:6px; transition:all 0.15s;" title="Open Depot 32 Gate Biometric Scanner Terminal">
-                                    👆 Biometric Kiosk
-                                </button>
-                                <button type="button" id="btn-open-driver-roster" onclick="openDriverRosterModal()" style="background:#e0f2fe; border:1px solid #bae6fd; color:#0369a1; font-size:0.73rem; font-weight:700; cursor:pointer; padding:2px 8px; border-radius:6px; transition:all 0.15s;" title="Manage roll call, leave, and attendance for all 10 drivers">
-                                    📋 Roster (<span id="driver-present-count-badge">8/10</span>)
-                                </button>
-                            </div>
+                            <span data-i18n="label_driver">Assigned Driver <span style="color:#dc2626; font-weight:800;">*</span></span>
+                            <span id="driver-depot-badge" style="font-size:0.75rem; font-weight:700; color:var(--blue); background:#eff6ff; border:1px solid #bfdbfe; padding:2px 8px; border-radius:6px;">Depot 1 Drivers (10 Available)</span>
                         </div>
-                        <select id="driver" title="Driver assignment status for this schedule">
-                            <option value="auto" selected>⚡ Auto-Assign Next Available Driver</option>
-                            <option value="not-ready">⚠️ No Driver Assigned</option>
+                        <select id="driver" title="Select a driver from the dropdown to allocate bus" style="font-weight:600;">
+                            <option value="">-- Choose / Select Driver --</option>
                         </select>
                     </label>
                 </div>
@@ -1091,161 +893,7 @@
         </div>
     </div>
 
-    <!-- ── Driver Roster & Attendance Modal Dialog ── -->
-    <div id="driver-roster-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center;" onclick="if(event.target===this)closeDriverRosterModal()">
-        <div class="modal-dialog" style="max-width:920px; width:94%; max-height:88vh; background:#fff; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3);" role="dialog" aria-modal="true">
-            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
-                <div>
-                    <h2 style="margin:0; font-size:1.25rem; color:#0369a1; display:flex; align-items:center; gap:8px;">
-                        <span>👥 Depot 32 Driver Roster &amp; Daily Attendance</span>
-                        <span id="modal-driver-present-badge" style="background:#dcfce7; color:#15803d; font-size:.8rem; padding:2px 10px; border-radius:12px; font-weight:800;">8 Present</span>
-                    </h2>
-                    <p style="margin:4px 0 0; color:var(--muted); font-size:.8rem;">
-                        Track attendance, approved leave, and real-time duty assignments for all 10 depot drivers.
-                    </p>
-                </div>
-                <button type="button" class="modal-close-btn" onclick="closeDriverRosterModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;" aria-label="Close">✕</button>
-            </div>
 
-            <!-- Attendance Stats Bar -->
-            <div style="padding:12px 24px; background:#f1f5f9; border-bottom:1px solid #e2e8f0; display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:0.82rem;">
-                <span style="font-weight:700; color:#334155;">Today's Roll Call:</span>
-                <span style="background:#fff; border:1px solid #86efac; color:#166534; padding:4px 10px; border-radius:8px; font-weight:700;">🟢 Present: <strong id="stat-present-count">8</strong></span>
-                <span style="background:#fff; border:1px solid #fde047; color:#854d0e; padding:4px 10px; border-radius:8px; font-weight:700;">🟡 On Leave: <strong id="stat-leave-count">1</strong></span>
-                <span style="background:#fff; border:1px solid #cbd5e1; color:#475569; padding:4px 10px; border-radius:8px; font-weight:700;">⚪ Weekly Off: <strong id="stat-off-count">1</strong></span>
-                <span style="background:#fff; border:1px solid #fca5a5; color:#991b1b; padding:4px 10px; border-radius:8px; font-weight:700;">🔴 Absent: <strong id="stat-absent-count">0</strong></span>
-            </div>
-
-            <!-- Search and Filter Bar -->
-            <div style="padding:12px 24px; border-bottom:1px solid #f1f5f9; background:#fff; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                <input type="text" id="driver-modal-search" placeholder="Search driver by name, ID, badge (e.g. Ramesh, DRV-01, 4101)..." style="flex:1; min-width:220px; padding:8px 14px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" oninput="renderDriverRosterModalList()" />
-                <select id="driver-modal-filter-att" style="padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" onchange="renderDriverRosterModalList()">
-                    <option value="all">All Attendance Statuses</option>
-                    <option value="present">🟢 Present Only</option>
-                    <option value="leave">🟡 On Leave Only</option>
-                    <option value="weekly_off">⚪ Weekly Off Only</option>
-                    <option value="absent">🔴 Absent Only</option>
-                </select>
-                <select id="driver-modal-filter-shift" style="padding:8px 12px; border:1.5px solid #e2e8f0; border-radius:8px; font-size:0.85rem;" onchange="renderDriverRosterModalList()">
-                    <option value="all">All Shifts</option>
-                    <option value="Shift 1">Shift 1 (06:00 - 14:00)</option>
-                    <option value="General">General (08:30 - 17:30)</option>
-                    <option value="Shift 2">Shift 2 (14:00 - 22:00)</option>
-                    <option value="Night Halt">Night Halt (20:00 - 05:00)</option>
-                </select>
-            </div>
-
-            <!-- Modal Body (Cards for 10 drivers) -->
-            <div id="driver-roster-modal-body" style="padding:18px 24px; overflow-y:auto; flex:1; max-height:calc(88vh - 200px); display:grid; grid-template-columns:repeat(auto-fill, minmax(270px, 1fr)); gap:12px;">
-                <!-- Rendered dynamically -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Gate Biometric Attendance & Breathalyzer Terminal Kiosk Modal ── -->
-    <div id="biometric-kiosk-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.78); backdrop-filter:blur(6px); z-index:10000; justify-content:center; align-items:center;" onclick="if(event.target===this)closeBiometricKioskModal()">
-        <div class="modal-dialog bio-kiosk-panel" style="max-width:760px; width:92%; max-height:92vh; border-radius:20px; display:flex; flex-direction:column; overflow:hidden;" role="dialog" aria-modal="true">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid #334155; padding-bottom:14px;">
-                <div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:1.4rem;">👆</span>
-                        <h2 style="margin:0; font-size:1.25rem; color:#38bdf8; font-weight:800; letter-spacing:-0.01em;">
-                            Depot 32 Gate Biometric &amp; Breathalyzer Kiosk
-                        </h2>
-                    </div>
-                    <p style="margin:4px 0 0; color:#94a3b8; font-size:0.8rem;">
-                        Gate Turnstile Check-In • Optical Fingerprint ID • Digital Breathalyzer Safety Clearance
-                    </p>
-                </div>
-                <button type="button" onclick="closeBiometricKioskModal()" style="background:#1e293b; border:1px solid #475569; color:#cbd5e1; font-size:1.1rem; width:34px; height:34px; border-radius:8px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s;" aria-label="Close" onmouseover="this.style.background='#334155'" onmouseout="this.style.background='#1e293b'">✕</button>
-            </div>
-
-            <!-- Terminal Live Info Bar -->
-            <div style="display:flex; justify-content:space-between; align-items:center; background:#020617; border:1px solid #1e293b; border-radius:10px; padding:8px 14px; margin:12px 0; font-size:0.78rem;">
-                <div style="display:flex; gap:16px; align-items:center;">
-                    <span>📍 Terminal: <strong style="color:#38bdf8;">GATE-01 (In-Gate Turnstile)</strong></span>
-                    <span>🕒 Depot Time: <strong id="bio-live-clock" style="color:#10b981;">--:--:--</strong></span>
-                </div>
-                <div style="display:flex; gap:12px; align-items:center;">
-                    <span style="color:#10b981; font-weight:700;">● Online</span>
-                    <span style="background:#1e293b; color:#94a3b8; padding:2px 8px; border-radius:6px; font-weight:700;">FW v4.8.2-BMTC</span>
-                </div>
-            </div>
-
-            <!-- Main Scanner & Driver Selection Section -->
-            <div style="display:grid; grid-template-columns:220px 1fr; gap:16px; align-items:stretch; margin-bottom:12px;">
-                <!-- Left: Scanner Animation Box -->
-                <div style="background:#020617; border:1px solid #1e293b; border-radius:14px; padding:16px 12px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
-                    <div id="bio-scanner-box" class="bio-scanner-box" onclick="triggerSelectedDriverScan(false)" title="Touch scanner to punch fingerprint">
-                        <div class="bio-laser-beam"></div>
-                        <svg class="bio-fingerprint-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                            <path d="M12 2C6.48 2 2 6.48 2 12c0 2.85 1.2 5.41 3.12 7.23" stroke-linecap="round"/>
-                            <path d="M12 6c-3.31 0-6 2.69-6 6 0 1.78.78 3.37 2.01 4.47" stroke-linecap="round"/>
-                            <path d="M12 10c-1.1 0-2 .9-2 2 0 .61.27 1.16.71 1.53" stroke-linecap="round"/>
-                            <path d="M12 14c.55 0 1-.45 1-1 0-.55-.45-1-1-1" stroke-linecap="round"/>
-                            <path d="M15.5 8.5C14.5 7.6 13.3 7 12 7" stroke-linecap="round"/>
-                            <path d="M18.88 19.23C20.8 17.41 22 14.85 22 12c0-5.52-4.48-10-10-10" stroke-linecap="round"/>
-                            <path d="M16 12c0 2.21-1.79 4-4 4" stroke-linecap="round"/>
-                            <path d="M17.99 16.47C19.22 15.37 20 13.78 20 12" stroke-linecap="round"/>
-                        </svg>
-                    </div>
-                    <span id="bio-scanner-caption" style="font-size:0.75rem; color:#94a3b8; margin-top:10px; font-weight:600;">Touch Scanner to Punch</span>
-                    <div id="bio-bac-status" style="margin-top:8px; font-size:0.72rem; background:#064e3b; color:#6ee7b7; border:1px solid #059669; padding:2px 8px; border-radius:6px; font-weight:700;">
-                        🌬️ 0.00% BAC (Zero Alcohol)
-                    </div>
-                </div>
-
-                <!-- Right: Driver Selection & Punch Actions -->
-                <div style="background:#020617; border:1px solid #1e293b; border-radius:14px; padding:14px 16px; display:flex; flex-direction:column; justify-content:space-between;">
-                    <div>
-                        <label style="display:block; font-size:0.76rem; font-weight:700; color:#cbd5e1; margin-bottom:6px; text-transform:uppercase; letter-spacing:0.02em;">
-                            Select Driver At Gate Turnstile:
-                        </label>
-                        <select id="bio-driver-select" style="width:100%; padding:9px 12px; background:#0f172a; border:1.5px solid #334155; border-radius:8px; color:#f8fafc; font-size:0.86rem; font-weight:600; outline:none;" onchange="updateBioDriverSelectionPreview()">
-                            <!-- Populated dynamically with all 10 drivers -->
-                        </select>
-
-                        <!-- Selected Driver Details Preview Pill -->
-                        <div id="bio-selected-preview" style="margin-top:10px; padding:10px 12px; background:#0f172a; border:1px solid #1e293b; border-radius:8px; font-size:0.78rem; display:flex; flex-direction:column; gap:4px;">
-                            <!-- Populated dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:12px;">
-                        <button type="button" id="btn-punch-bio" onclick="triggerSelectedDriverScan(false)" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); color:#fff; border:none; padding:9px 12px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; box-shadow:0 4px 12px rgba(16,185,129,0.3);">
-                            👆 Punch Fingerprint
-                        </button>
-                        <button type="button" onclick="autoScanShiftRollCall()" style="background:#1e293b; color:#38bdf8; border:1px solid #0284c7; padding:9px 12px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
-                            ⚡ Auto-Punch Shift
-                        </button>
-                    </div>
-
-                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px;">
-                        <button type="button" onclick="triggerSelectedDriverScan(true)" style="background:#450a0a; color:#fca5a5; border:1px solid #991b1b; padding:7px 10px; border-radius:8px; font-size:0.74rem; font-weight:700; cursor:pointer;" title="Simulate positive BAC breathalyzer failure to test depot safety lockout">
-                            🧪 Test Alcohol Fail (>0.05%)
-                        </button>
-                        <button type="button" onclick="resetBiometricCheckins()" style="background:#1e293b; color:#94a3b8; border:1px solid #334155; padding:7px 10px; border-radius:8px; font-size:0.74rem; font-weight:700; cursor:pointer;">
-                            🔄 Reset To Pending
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom: Live Audit Log Terminal -->
-            <div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                    <span style="font-size:0.74rem; font-weight:700; color:#94a3b8; text-transform:uppercase; letter-spacing:0.04em;">
-                        📋 Gate Biometric Audit &amp; Attendance Log:
-                    </span>
-                    <button type="button" onclick="clearBioAuditLog()" style="background:none; border:none; color:#64748b; font-size:0.7rem; cursor:pointer;">Clear Log</button>
-                </div>
-                <div id="bio-terminal-log" class="bio-terminal-log">
-                    <!-- Populated dynamically with timestamped log lines -->
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script>
         // ──────────────────────────────────────────────
@@ -1313,19 +961,6 @@
             const pageSub = document.getElementById('schedulingPageSubtitle');
             if (pageSub) pageSub.textContent = `Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC for Depot ${currentOperatingDepot} (${activeCount} Active Buses • ${depotCorridor}).`;
 
-            const btn1 = document.getElementById('btnDepot1');
-            const btn2 = document.getElementById('btnDepot2');
-            if (btn1) btn1.classList.toggle('active', currentOperatingDepot === '1');
-            if (btn2) btn2.classList.toggle('active', currentOperatingDepot === '2');
-
-            const b1Badge = document.getElementById('badgeDepot1Count');
-            const b2Badge = document.getElementById('badgeDepot2Count');
-            if (b1Badge) b1Badge.textContent = `${depotCounts.depot1Count} Buses`;
-            if (b2Badge) b2Badge.textContent = `${depotCounts.depot2Count} Buses`;
-
-            const fleetSummary = document.getElementById('activeDepotFleetSummary');
-            if (fleetSummary) fleetSummary.textContent = `Depot ${currentOperatingDepot} • ${depotName} (${activeCount} Buses)`;
-
             document.title = `Smart Bus Allocation – Scheduling ${currentOperatingDepot}`;
         }
 
@@ -1342,6 +977,9 @@
             updateDepotUI();
             currentlyAllocatedBus = null;
 
+            const driverSelect = document.getElementById("driver");
+            if (driverSelect) driverSelect.value = "";
+
             populateRouteDropdown(routeSearch ? routeSearch.value : "");
             updateSelectedRouteDistance();
             updateScheduledTimesForSelectedRoute(false);
@@ -1352,15 +990,6 @@
             const modalBackdrop = document.getElementById("avail-scheduling-modal-backdrop");
             if (modalBackdrop && modalBackdrop.style.display === "flex") {
                 renderModalAvailableBuses();
-            }
-            const driverModalBackdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (driverModalBackdrop && driverModalBackdrop.style.display === "flex") {
-                renderDriverRosterModalList();
-            }
-            const bioModalBackdrop = document.getElementById("biometric-kiosk-modal-backdrop");
-            if (bioModalBackdrop && bioModalBackdrop.style.display === "flex") {
-                updateBioDriverSelectionPreview();
-                renderBioTerminalLogs();
             }
         };
 
@@ -1468,458 +1097,62 @@
         ];
 
         // ══════════════════════════════════════════════════════════════════════════
-        //  DEPOT 32 DRIVER ROSTER & BIOMETRIC ATTENDANCE DATA MODEL (10 DRIVERS)
+        //  DEPOT 1 & DEPOT 2 DRIVER ROSTERS (10 RANDOM DRIVERS PER DEPOT)
         // ══════════════════════════════════════════════════════════════════════════
-        const DEFAULT_DRIVERS = [
-            { 
-                id: "DRV-01", 
-                name: "Ramesh Kumar", 
-                badge: "BMTC-4101", 
-                biometricId: "BIO-4101",
-                phone: "+91 98450 12301", 
-                depot: "1",
-                depotName: "Depot 1 (Chandapura)",
-                shift: "Shift 1", 
-                shiftHours: "06:00 - 14:00", 
-                startMin: 360, 
-                endMin: 840, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "05:52 AM", 
-                biometricTerminal: "Gate-01 (Depot 32 Chandapura)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-02", 
-                name: "Suresh Gowda", 
-                badge: "BMTC-4102", 
-                biometricId: "BIO-4102",
-                phone: "+91 98450 12302", 
-                depot: "1",
-                depotName: "Depot 1 (Chandapura)",
-                shift: "Shift 1", 
-                shiftHours: "06:00 - 14:00", 
-                startMin: 360, 
-                endMin: 840, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "05:58 AM", 
-                biometricTerminal: "Gate-01 (Depot 32 Chandapura)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-03", 
-                name: "Anand Murthy", 
-                badge: "BMTC-4103", 
-                biometricId: "BIO-4103",
-                phone: "+91 98450 12303", 
-                depot: "1",
-                depotName: "Depot 1 (Chandapura)",
-                shift: "Shift 1", 
-                shiftHours: "06:00 - 14:00", 
-                startMin: 360, 
-                endMin: 840, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "06:04 AM", 
-                biometricTerminal: "Gate-01 (Depot 32 Chandapura)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-04", 
-                name: "Manjunath H.", 
-                badge: "BMTC-4104", 
-                biometricId: "BIO-4104",
-                phone: "+91 98450 12304", 
-                depot: "1",
-                depotName: "Depot 1 (Chandapura)",
-                shift: "Shift 1", 
-                shiftHours: "06:00 - 14:00", 
-                startMin: 360, 
-                endMin: 840, 
-                attendance: "leave", 
-                biometricStatus: "pending", 
-                biometricPunchTime: null, 
-                biometricTerminal: null, 
-                bac: null,
-                leaveNote: "Casual Leave (Medical)" 
-            },
-            { 
-                id: "DRV-05", 
-                name: "Venkatesh P.", 
-                badge: "BMTC-4105", 
-                biometricId: "BIO-4105",
-                phone: "+91 98450 12305", 
-                depot: "1",
-                depotName: "Depot 1 (Chandapura)",
-                shift: "General", 
-                shiftHours: "08:30 - 17:30", 
-                startMin: 510, 
-                endMin: 1050, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "08:14 AM", 
-                biometricTerminal: "Gate-01 (Depot 32 Chandapura)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-06", 
-                name: "Basavaraju K.", 
-                badge: "BMTC-4106", 
-                biometricId: "BIO-4106",
-                phone: "+91 98450 12306", 
-                depot: "2",
-                depotName: "Depot 2 (Attibele)",
-                shift: "General", 
-                shiftHours: "08:30 - 17:30", 
-                startMin: 510, 
-                endMin: 1050, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "08:22 AM", 
-                biometricTerminal: "Gate-02 (Depot 33 Attibele)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-07", 
-                name: "Prakash Nayak", 
-                badge: "BMTC-4107", 
-                biometricId: "BIO-4107",
-                phone: "+91 98450 12307", 
-                depot: "2",
-                depotName: "Depot 2 (Attibele)",
-                shift: "Shift 2", 
-                shiftHours: "14:00 - 22:00", 
-                startMin: 840, 
-                endMin: 1320, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "13:35 PM", 
-                biometricTerminal: "Gate-02 (Depot 33 Attibele)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-08", 
-                name: "Girish Reddy", 
-                badge: "BMTC-4108", 
-                biometricId: "BIO-4108",
-                phone: "+91 98450 12308", 
-                depot: "2",
-                depotName: "Depot 2 (Attibele)",
-                shift: "Shift 2", 
-                shiftHours: "14:00 - 22:00", 
-                startMin: 840, 
-                endMin: 1320, 
-                attendance: "weekly_off", 
-                biometricStatus: "pending", 
-                biometricPunchTime: null, 
-                biometricTerminal: null, 
-                bac: null,
-                leaveNote: "Weekly Rest" 
-            },
-            { 
-                id: "DRV-09", 
-                name: "Shanthakumar", 
-                badge: "BMTC-4109", 
-                biometricId: "BIO-4109",
-                phone: "+91 98450 12309", 
-                depot: "2",
-                depotName: "Depot 2 (Attibele)",
-                shift: "Shift 2", 
-                shiftHours: "14:00 - 22:00", 
-                startMin: 840, 
-                endMin: 1320, 
-                attendance: "present", 
-                biometricStatus: "verified", 
-                biometricPunchTime: "13:42 PM", 
-                biometricTerminal: "Gate-02 (Depot 33 Attibele)", 
-                bac: "0.00% (PASSED)",
-                leaveNote: "" 
-            },
-            { 
-                id: "DRV-10", 
-                name: "Chandrashekar", 
-                badge: "BMTC-4110", 
-                biometricId: "BIO-4110",
-                phone: "+91 98450 12310", 
-                depot: "2",
-                depotName: "Depot 2 (Attibele)",
-                shift: "Night Halt", 
-                shiftHours: "20:00 - 05:00", 
-                startMin: 1200, 
-                endMin: 1740, 
-                attendance: "present", 
-                biometricStatus: "pending", 
-                biometricPunchTime: null, 
-                biometricTerminal: null, 
-                bac: null,
-                leaveNote: "" 
-            }
-        ];
+        const DEPOT_DRIVERS = {
+            "1": [
+                { id: "DRV-101", name: "Ramesh Kumar", badge: "BMTC-4101", phone: "+91 98450 11001", shift: "Morning Shift (06:00 - 14:00)", depot: "1" },
+                { id: "DRV-102", name: "Suresh Gowda", badge: "BMTC-4102", phone: "+91 98450 11002", shift: "Morning Shift (06:00 - 14:00)", depot: "1" },
+                { id: "DRV-103", name: "Anand Murthy", badge: "BMTC-4103", phone: "+91 98450 11003", shift: "Morning Shift (06:00 - 14:00)", depot: "1" },
+                { id: "DRV-104", name: "Manjunath H.", badge: "BMTC-4104", phone: "+91 98450 11004", shift: "General Shift (08:30 - 17:30)", depot: "1" },
+                { id: "DRV-105", name: "Venkatesh P.", badge: "BMTC-4105", phone: "+91 98450 11005", shift: "General Shift (08:30 - 17:30)", depot: "1" },
+                { id: "DRV-106", name: "Ravi Shankar", badge: "BMTC-4106", phone: "+91 98450 11006", shift: "General Shift (08:30 - 17:30)", depot: "1" },
+                { id: "DRV-107", name: "Kiran Kumar", badge: "BMTC-4107", phone: "+91 98450 11007", shift: "Afternoon Shift (14:00 - 22:00)", depot: "1" },
+                { id: "DRV-108", name: "Nagaraj V.", badge: "BMTC-4108", phone: "+91 98450 11008", shift: "Afternoon Shift (14:00 - 22:00)", depot: "1" },
+                { id: "DRV-109", name: "Shivanna M.", badge: "BMTC-4109", phone: "+91 98450 11009", shift: "Evening / Night Shift (16:00 - 00:00)", depot: "1" },
+                { id: "DRV-110", name: "Lokesh Gowda", badge: "BMTC-4110", phone: "+91 98450 11010", shift: "Night Halt (20:00 - 05:00)", depot: "1" }
+            ],
+            "2": [
+                { id: "DRV-201", name: "Basavaraju K.", badge: "BMTC-4201", phone: "+91 98450 22001", shift: "Morning Shift (06:00 - 14:00)", depot: "2" },
+                { id: "DRV-202", name: "Prakash Nayak", badge: "BMTC-4202", phone: "+91 98450 22002", shift: "Morning Shift (06:00 - 14:00)", depot: "2" },
+                { id: "DRV-203", name: "Girish Reddy", badge: "BMTC-4203", phone: "+91 98450 22003", shift: "Morning Shift (06:00 - 14:00)", depot: "2" },
+                { id: "DRV-204", name: "Shanthakumar", badge: "BMTC-4204", phone: "+91 98450 22004", shift: "General Shift (08:30 - 17:30)", depot: "2" },
+                { id: "DRV-205", name: "Chandrashekar", badge: "BMTC-4205", phone: "+91 98450 22005", shift: "General Shift (08:30 - 17:30)", depot: "2" },
+                { id: "DRV-206", name: "Harish Babu", badge: "BMTC-4206", phone: "+91 98450 22006", shift: "General Shift (08:30 - 17:30)", depot: "2" },
+                { id: "DRV-207", name: "Jagadish Patil", badge: "BMTC-4207", phone: "+91 98450 22007", shift: "Afternoon Shift (14:00 - 22:00)", depot: "2" },
+                { id: "DRV-208", name: "Mohan Rao", badge: "BMTC-4208", phone: "+91 98450 22008", shift: "Afternoon Shift (14:00 - 22:00)", depot: "2" },
+                { id: "DRV-209", name: "Umesh Nayak", badge: "BMTC-4209", phone: "+91 98450 22009", shift: "Evening / Night Shift (16:00 - 00:00)", depot: "2" },
+                { id: "DRV-210", name: "Vijay Kumar", badge: "BMTC-4210", phone: "+91 98450 22010", shift: "Night Halt (20:00 - 05:00)", depot: "2" }
+            ]
+        };
 
-        const DRIVER_ROSTER_KEY = "bmtc_driver_roster_v1";
+        function getDepotDrivers(depot = currentOperatingDepot) {
+            return DEPOT_DRIVERS[String(depot)] || DEPOT_DRIVERS["1"];
+        }
 
         function loadDriverRoster() {
-            try {
-                const saved = localStorage.getItem(DRIVER_ROSTER_KEY);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    if (Array.isArray(parsed) && parsed.length >= 10) {
-                        let updated = false;
-                        parsed.forEach(d => {
-                            const def = DEFAULT_DRIVERS.find(x => x.id === d.id);
-                            const calcDepot = def ? def.depot : (parseInt(d.id.replace('DRV-', '')) <= 5 ? '1' : '2');
-                            if (!d.depot) {
-                                d.depot = calcDepot;
-                                d.depotName = calcDepot === '2' ? 'Depot 2 (Attibele)' : 'Depot 1 (Chandapura)';
-                                updated = true;
-                            }
-                            if (!d.biometricId && def) { d.biometricId = def.biometricId; updated = true; }
-                            if (!d.biometricStatus) {
-                                d.biometricStatus = (d.attendance === "present") ? (def ? def.biometricStatus : "verified") : "pending";
-                                d.biometricPunchTime = d.biometricPunchTime || (def?.biometricPunchTime || (d.biometricStatus === "verified" ? "06:00 AM" : null));
-                                d.biometricTerminal = d.biometricTerminal || (d.biometricStatus === "verified" ? (calcDepot === '2' ? "Gate-02 (Depot 33 Attibele)" : "Gate-01 (Depot 32 Chandapura)") : null);
-                                d.bac = d.bac || (d.biometricStatus === "verified" ? "0.00% (PASSED)" : null);
-                                updated = true;
-                            }
-                        });
-                        if (updated) {
-                            try { localStorage.setItem(DRIVER_ROSTER_KEY, JSON.stringify(parsed)); } catch(e){}
-                        }
-                        return parsed;
-                    }
-                }
-            } catch (e) {}
-            return JSON.parse(JSON.stringify(DEFAULT_DRIVERS));
-        }
-
-        function saveDriverRoster(roster) {
-            try {
-                localStorage.setItem(DRIVER_ROSTER_KEY, JSON.stringify(roster));
-                try {
-                    const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'DRIVER_ATTENDANCE_UPDATED' });
-                } catch(e) {}
-            } catch (e) {}
-        }
-
-        function getDriverAvailabilityStatus(driver, departureTime, targetRouteCode, allocatedDutiesList) {
-            // 1. Attendance Check (Leave / Weekly Off / Absent)
-            if (driver.attendance === "leave") {
-                return {
-                    available: false,
-                    status: "leave",
-                    badge: "🟡 On Leave",
-                    icon: "🟡",
-                    reason: `Approved Leave (${driver.leaveNote || 'Casual Leave'})`
-                };
-            }
-            if (driver.attendance === "weekly_off") {
-                return {
-                    available: false,
-                    status: "weekly_off",
-                    badge: "⚪ Weekly Off",
-                    icon: "⚪",
-                    reason: "Scheduled Weekly Rest Day"
-                };
-            }
-            if (driver.attendance === "absent") {
-                return {
-                    available: false,
-                    status: "absent",
-                    badge: "🔴 Absent",
-                    icon: "🔴",
-                    reason: "Reported Absent for Duty Roll Call"
-                };
-            }
-
-            // 2. Biometric Verification & Breathalyzer Check (Gate Access Control)
-            if (driver.biometricStatus === "failed") {
-                return {
-                    available: false,
-                    status: "biometric_failed",
-                    badge: "⛔ Gate Lockout (Bio/Alcohol Fail)",
-                    icon: "⛔",
-                    reason: `Safety Lockout: Breathalyzer or Biometric Check Failed (${driver.bac || 'Positive BAC'})`
-                };
-            }
-            if (driver.biometricStatus !== "verified") {
-                return {
-                    available: false,
-                    status: "biometric_pending",
-                    badge: "⚠️ Biometric Punch Pending",
-                    icon: "⚠️",
-                    reason: "Driver has not yet punched biometric fingerprint & breathalyzer at Depot Gate"
-                };
-            }
-
-            // 3. Active Duty Conflict Check (Is driver currently driving another bus?)
-            const depMin = timeToMinutes(departureTime);
-            const duties = Array.isArray(allocatedDutiesList) ? allocatedDutiesList : [];
-            const activeDuty = duties.find(d => {
-                if (d.driverId !== driver.id) return false;
-                const dDepMin = timeToMinutes(d.departureTime);
-                const dRoute = d.routeCode || d.busNumber || '';
-                // If it's the exact same route and time, they are currently assigned to this departure!
-                if (dRoute === targetRouteCode && Math.abs(dDepMin - depMin) < 5) return false;
-                // Average round trip + turnaround rest is 75 minutes
-                const tripDurationMin = 75;
-                return Math.abs(dDepMin - depMin) < tripDurationMin;
-            });
-
-            if (activeDuty) {
-                return {
-                    available: false,
-                    status: "busy",
-                    badge: "🔴 Busy",
-                    icon: "🔴",
-                    reason: `Driving Bus ${activeDuty.bm} on Route ${activeDuty.routeCode} (${activeDuty.departureTime})`
-                };
-            }
-
-            // 4. Shift Working Hours Check
-            let inShift = false;
-            if (driver.shift === "Night Halt") {
-                inShift = (depMin >= 1200 || depMin <= 330);
-            } else {
-                inShift = (depMin >= (driver.startMin - 30) && depMin <= (driver.endMin + 30));
-            }
-
-            if (!inShift) {
-                return {
-                    available: false,
-                    status: "off_shift",
-                    badge: "⚪ Off Shift",
-                    icon: "⚪",
-                    reason: `Outside Shift Hours (${driver.shiftHours})`
-                };
-            }
-
-            // 5. Fully Available & Bio-Verified
-            return {
-                available: true,
-                status: "available",
-                badge: "🟢 Available (Bio-Verified)",
-                icon: "🟢",
-                reason: `Bio-Verified (${driver.biometricPunchTime || 'Gate-01'}) • 0.00% BAC • Ready for Dispatch`
-            };
+            return getDepotDrivers(currentOperatingDepot);
         }
 
         function populateDriverDropdown() {
             const driverSelect = document.getElementById("driver");
             if (!driverSelect) return;
 
-            const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
-            const routeObj = getSelectedRouteObj();
-            const curRoute = routeObj ? (routeObj.code || "356Z") : "356Z";
-            const roster = loadDriverRoster();
-            const duties = (typeof allocatedDuties !== 'undefined' && Array.isArray(allocatedDuties)) ? allocatedDuties : loadAllocatedDuties();
+            const currentVal = driverSelect.value || "";
+            const drivers = getDepotDrivers(currentOperatingDepot);
 
-            const currentVal = driverSelect.value || "auto";
+            const badge = document.getElementById("driver-depot-badge");
+            if (badge) {
+                badge.textContent = `Depot ${currentOperatingDepot} Drivers (${drivers.length} Available)`;
+            }
 
-            let availableList = [];
-            let otherAvailableList = [];
-            let bioPendingList = [];
-            let busyList = [];
-            let leaveList = [];
-            let offShiftList = [];
-
-            let depotTotal = 0;
-            let depotBioVerifiedCount = 0;
-
-            roster.forEach(d => {
-                const dDepot = String(d.depot || (parseInt(d.id.replace('DRV-', '')) <= 5 ? '1' : '2'));
-                const isThisDepot = (dDepot === currentOperatingDepot);
-                if (isThisDepot) {
-                    depotTotal++;
-                    if (d.biometricStatus === "verified") depotBioVerifiedCount++;
-                }
-
-                const avail = getDriverAvailabilityStatus(d, departureTime, curRoute, duties);
-                if (avail.available) {
-                    if (isThisDepot) availableList.push({ driver: d, avail });
-                    else otherAvailableList.push({ driver: d, avail });
-                } else if (avail.status === "biometric_pending" || avail.status === "biometric_failed") {
-                    bioPendingList.push({ driver: d, avail });
-                } else if (avail.status === "busy") {
-                    busyList.push({ driver: d, avail });
-                } else if (avail.status === "leave" || avail.status === "weekly_off" || avail.status === "absent") {
-                    leaveList.push({ driver: d, avail });
-                } else {
-                    offShiftList.push({ driver: d, avail });
-                }
+            let html = `<option value="" ${!currentVal ? "selected" : ""}>-- Choose / Select Driver --</option>`;
+            html += `<optgroup label="🏢 Depot ${currentOperatingDepot} Rostered Drivers (${drivers.length})">`;
+            drivers.forEach(d => {
+                const sel = (currentVal === d.id) ? "selected" : "";
+                html += `<option value="${d.id}" ${sel}>👤 ${d.name} (${d.badge}) - ${d.shift}</option>`;
             });
-
-            // Update attendance badge on form
-            const presentBadge = document.getElementById("driver-present-count-badge");
-            if (presentBadge) {
-                presentBadge.textContent = `${depotBioVerifiedCount}/${depotTotal} Bio-Verified (Depot ${currentOperatingDepot})`;
-            }
-
-            let html = `
-                <option value="auto" ${currentVal === "auto" ? "selected" : ""}>
-                    ⚡ Auto-Assign Next Available Driver [Depot ${currentOperatingDepot}] (${availableList.length} Bio-Verified &amp; Ready)
-                </option>
-            `;
-
-            if (availableList.length > 0) {
-                html += `<optgroup label="🟢 Available &amp; Bio-Verified Drivers – Depot ${currentOperatingDepot} (${availableList.length})">`;
-                availableList.forEach(({ driver, avail }) => {
-                    const sel = (currentVal === driver.id) ? "selected" : "";
-                    html += `<option value="${driver.id}" ${sel}>🟢 ${driver.id}: ${driver.name} [Depot ${driver.depot || currentOperatingDepot}] (${driver.shift} • 0.00% BAC)</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            if (otherAvailableList.length > 0) {
-                const otherDepotNum = (currentOperatingDepot === '1') ? '2' : '1';
-                html += `<optgroup label="🏢 Cross-Depot Available Drivers – Depot ${otherDepotNum} (${otherAvailableList.length})">`;
-                otherAvailableList.forEach(({ driver, avail }) => {
-                    const sel = (currentVal === driver.id) ? "selected" : "";
-                    html += `<option value="${driver.id}" ${sel}>🟢 ${driver.id}: ${driver.name} [Depot ${driver.depot || otherDepotNum}] (${driver.shift} • 0.00% BAC)</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            if (bioPendingList.length > 0) {
-                html += `<optgroup label="⚠️ Biometric Punch Pending / Safety Lockout (${bioPendingList.length})">`;
-                bioPendingList.forEach(({ driver, avail }) => {
-                    html += `<option value="${driver.id}" disabled>${avail.icon} ${driver.id}: ${driver.name} [Depot ${driver.depot || '1'}] (${avail.reason})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            if (busyList.length > 0) {
-                html += `<optgroup label="🔴 Busy Drivers (On Active Duty)">`;
-                busyList.forEach(({ driver, avail }) => {
-                    html += `<option value="${driver.id}" disabled>🔴 ${driver.id}: ${driver.name} [Depot ${driver.depot || '1'}] (${avail.reason})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            if (leaveList.length > 0) {
-                html += `<optgroup label="🟡 On Leave / Absent / Weekly Off (${leaveList.length})">`;
-                leaveList.forEach(({ driver, avail }) => {
-                    html += `<option value="${driver.id}" disabled>${avail.icon} ${driver.id}: ${driver.name} [Depot ${driver.depot || '1'}] (${avail.reason})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            if (offShiftList.length > 0) {
-                html += `<optgroup label="⚪ Off-Duty (Outside Shift Hours)">`;
-                offShiftList.forEach(({ driver, avail }) => {
-                    html += `<option value="${driver.id}" disabled>⚪ ${driver.id}: ${driver.name} [Depot ${driver.depot || '1'}] (${avail.reason})</option>`;
-                });
-                html += `</optgroup>`;
-            }
-
-            html += `<option value="not-ready" ${currentVal === "not-ready" ? "selected" : ""}>⚠️ No Driver Assigned (Disqualify Schedule)</option>`;
+            html += `</optgroup>`;
 
             driverSelect.innerHTML = html;
         }
@@ -1947,8 +1180,12 @@
         let isManualOverride = false;
 
         function getSelectedRouteObj() {
-            const selectedRouteId = (routeSelect && routeSelect.value) ? routeSelect.value : "356Z";
-            return directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
+            const depotRoutes = directionalRoutes.filter(r => getRouteDepot(r) === currentOperatingDepot);
+            const defaultRoute = depotRoutes[0] || directionalRoutes[0];
+            const defaultId = defaultRoute ? (defaultRoute.id || defaultRoute.code) : "356Z";
+            const selectedRouteId = (routeSelect && routeSelect.value) ? routeSelect.value : defaultId;
+            return depotRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId)
+                || defaultRoute;
         }
 
         function updateManualOverrideUI() {
@@ -2393,47 +1630,22 @@
             const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : (depInput ? (depInput.value || "13:10") : "13:10");
 
             const driverSelectEl = document.getElementById("driver");
-            const manualDriverVal = driverSelectEl ? (driverSelectEl.value || "auto") : "auto";
+            const manualDriverVal = driverSelectEl ? (driverSelectEl.value || "") : "";
 
             let assignedDriver = null;
-            let driver = "Driver Assigned";
+            let driver = "";
 
-            if (manualDriverVal === "not-ready") {
-                return { feasible: false, bm: key, reason: `No driver currently assigned to bus ${key}.` };
-            }
-
-            const roster = loadDriverRoster();
-            const dutiesList = (typeof allocatedDuties !== 'undefined' && Array.isArray(allocatedDuties)) ? allocatedDuties : loadAllocatedDuties();
-
-            if (manualDriverVal === "auto" || manualDriverVal === "ready") {
-                const availDriver = roster.find(d => String(d.depot || (parseInt(d.id.replace('DRV-', '')) <= 5 ? '1' : '2')) === currentOperatingDepot && getDriverAvailabilityStatus(d, depTimeShort, curRoute, dutiesList).available);
-                if (availDriver) {
-                    assignedDriver = availDriver;
-                    driver = `${availDriver.name} (${availDriver.id})`;
-                } else {
-                    return { feasible: false, bm: key, reason: `No available driver cleared for Depot ${currentOperatingDepot} at this departure (all Depot ${currentOperatingDepot} rostered drivers are either awaiting gate biometric punch, busy on active trips, on leave, or off-duty).` };
-                }
-            } else {
-                const specDriver = roster.find(d => d.id === manualDriverVal);
+            if (manualDriverVal) {
+                const drivers = getDepotDrivers(currentOperatingDepot);
+                const specDriver = drivers.find(d => d.id === manualDriverVal);
                 if (specDriver) {
-                    const st = getDriverAvailabilityStatus(specDriver, depTimeShort, curRoute, dutiesList);
-                    if (st.available) {
-                        assignedDriver = specDriver;
-                        driver = `${specDriver.name} (${specDriver.id})`;
-                    } else {
-                        return { feasible: false, bm: key, reason: `Driver ${specDriver.name} is ${st.reason}.` };
-                    }
-                } else {
-                    driver = state.driver || "Driver Assigned";
+                    assignedDriver = specDriver;
+                    driver = `${specDriver.name} (${specDriver.badge})`;
                 }
             }
 
             if (condition === "Not Good") {
                 return { feasible: false, bm: key, reason: `Bus ${key} flagged for maintenance inspection.` };
-            }
-
-            if (driver.toLowerCase().includes("no")) {
-                return { feasible: false, bm: key, reason: `No driver currently assigned to bus ${key}.` };
             }
 
             // 1. Matched Schedule & Constant Minimum Required SoC Estimation (Actual km + Dead km)
@@ -3228,7 +2440,7 @@
                         </div>
                         <div class="alloc-metric-item">
                             <span class="metric-label">Driver Status</span>
-                            <strong id="alloc-driver" class="metric-val" style="color:#059669;">👤 ${escapeHtml(alloc.driver || "Driver Assigned")}</strong>
+                            <strong id="alloc-driver" class="metric-val" style="color:${(alloc.driverName || (document.getElementById('driver') && document.getElementById('driver').value)) ? '#059669' : '#dc2626'};">👤 ${escapeHtml(alloc.driver || (document.getElementById('driver') && document.getElementById('driver').value ? (getDepotDrivers(currentOperatingDepot).find(d => d.id === document.getElementById('driver').value)?.name || "Driver Selected") : "⚠️ Please Select Driver"))}</strong>
                         </div>
                     </div>
                 </div>
@@ -3415,11 +2627,17 @@
 
             const driverRuleEl = document.getElementById("driver-rule");
             if (driverRuleEl) {
-                const drv = allocatedBus.driver || "Driver Assigned";
-                const isDrvAssigned = !drv.toLowerCase().includes("no");
-                driverRuleEl.innerHTML = isDrvAssigned
-                    ? `<span style="color:#16a34a;font-weight:700;">✅ ${escapeHtml(drv)} (Present)</span>`
-                    : `<span style="color:#dc2626;font-weight:700;">❌ No Driver Assigned</span>`;
+                const driverSelectEl = document.getElementById("driver");
+                if (allocatedBus && allocatedBus.driverName) {
+                    driverRuleEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Driver: ${escapeHtml(allocatedBus.driverName)}</span>`;
+                } else if (driverSelectEl && driverSelectEl.value) {
+                    const selDrv = (getDepotDrivers(currentOperatingDepot) || []).find(d => d.id === driverSelectEl.value);
+                    driverRuleEl.innerHTML = selDrv 
+                        ? `<span style="color:#16a34a;font-weight:700;">✅ Driver: ${escapeHtml(selDrv.name)} (${escapeHtml(selDrv.badge)})</span>`
+                        : `<span style="color:#16a34a;font-weight:700;">✅ Driver Selected</span>`;
+                } else {
+                    driverRuleEl.innerHTML = `<span style="color:#dc2626;font-weight:700;">⚠️ Select driver from dropdown</span>`;
+                }
             }
 
             updateManualOverrideUI();
@@ -3427,10 +2645,10 @@
 
         function updateAllocateButton(allocatedBus) {
             const recBtn = document.getElementById("recommend");
+            const driverSelect = document.getElementById("driver");
             if (!recBtn) return;
             if (!allocatedBus) {
-                const isNoDriver = document.getElementById("driver") && document.getElementById("driver").value === "not-ready";
-                recBtn.textContent = isNoDriver ? "⚠️ No Driver Assigned — Cannot Allocate" : "⚡ No Eligible Bus to Allocate";
+                recBtn.textContent = "⚡ No Eligible Bus to Allocate";
                 recBtn.disabled = true;
                 recBtn.style.opacity = "0.5";
                 recBtn.style.cursor = "not-allowed";
@@ -3444,8 +2662,17 @@
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
                 recBtn.style.background = "#dc2626";
+            } else if (!driverSelect || !driverSelect.value) {
+                recBtn.textContent = `⚠️ Select Driver to Allocate Bus ${allocatedBus.bm}`;
+                recBtn.disabled = false;
+                recBtn.style.opacity = "1";
+                recBtn.style.cursor = "pointer";
+                recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
             } else {
-                recBtn.textContent = `⚡ Allocate Bus ${allocatedBus.bm} to Route ${allocatedBus.routeCode}`;
+                const drivers = getDepotDrivers(currentOperatingDepot);
+                const selDriver = drivers.find(d => d.id === driverSelect.value);
+                const drvName = selDriver ? selDriver.name : "Driver";
+                recBtn.textContent = `⚡ Allocate Bus ${allocatedBus.bm} (Driver: ${drvName})`;
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
@@ -3532,71 +2759,42 @@
 
         function populateRouteDropdown(filterText = "") {
             const query = (filterText || "").trim().toLowerCase();
-            let filtered = directionalRoutes.filter(r => {
-                if (!query) return true;
-                const text = `${r.origin} ${r.destination} ${r.code} ${r.label}`.toLowerCase();
-                return text.includes(query);
-            });
-
-            // Prioritize / sort routes matching currentOperatingDepot
-            filtered.sort((a, b) => {
-                const aD = getRouteDepot(a);
-                const bD = getRouteDepot(b);
-                if (aD === currentOperatingDepot && bD !== currentOperatingDepot) return -1;
-                if (aD !== currentOperatingDepot && bD === currentOperatingDepot) return 1;
-                return 0;
-            });
-
-            const depotRoutesCount = filtered.filter(r => getRouteDepot(r) === currentOperatingDepot).length;
+            // STRICTLY isolate routes belonging only to currentOperatingDepot!
+            let filtered = directionalRoutes.filter(r => getRouteDepot(r) === currentOperatingDepot);
+            if (query) {
+                filtered = filtered.filter(r => {
+                    const text = `${r.origin} ${r.destination} ${r.code} ${r.label}`.toLowerCase();
+                    return text.includes(query);
+                });
+            }
 
             if (routeCountBadge) {
                 routeCountBadge.textContent = query
-                    ? `${filtered.length} of ${directionalRoutes.length} available (${depotRoutesCount} Depot ${currentOperatingDepot})`
-                    : `${depotRoutesCount} Depot ${currentOperatingDepot} Routes (${filtered.length} Total)`;
+                    ? `${filtered.length} matching routes (Depot ${currentOperatingDepot})`
+                    : `${filtered.length} Routes (Depot ${currentOperatingDepot})`;
             }
 
             if (filtered.length === 0) {
-                routeSelect.innerHTML = `<option value="">No matching routes found</option>`;
+                routeSelect.innerHTML = `<option value="">No matching routes found for Depot ${currentOperatingDepot}</option>`;
                 return;
             }
 
             const currentVal = routeSelect ? routeSelect.value : "";
-            
-            // Group by depot
-            const thisDepotRoutes = filtered.filter(r => getRouteDepot(r) === currentOperatingDepot);
-            const otherDepotRoutes = filtered.filter(r => getRouteDepot(r) !== currentOperatingDepot);
 
-            let html = "";
-            if (thisDepotRoutes.length > 0) {
-                html += `<optgroup label="🏢 Depot ${currentOperatingDepot} (${currentOperatingDepot === '2' ? 'Attibele / Hosakote' : 'Chandapura / Bommasandra'})">`;
-                thisDepotRoutes.forEach(r => {
-                    const optVal = r.id || r.code;
-                    const isSel = (optVal === currentVal || r.code === currentVal);
-                    html += `<option value="${optVal}" ${isSel ? 'selected' : ''}>[Depot ${currentOperatingDepot}] ${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
-                });
-                html += `</optgroup>`;
-            }
-            if (otherDepotRoutes.length > 0) {
-                const otherDepotNum = (currentOperatingDepot === '1') ? '2' : '1';
-                html += `<optgroup label="🏢 Depot ${otherDepotNum} (${otherDepotNum === '2' ? 'Attibele / Hosakote' : 'Chandapura / Bommasandra'})">`;
-                otherDepotRoutes.forEach(r => {
-                    const optVal = r.id || r.code;
-                    const isSel = (optVal === currentVal || r.code === currentVal);
-                    html += `<option value="${optVal}" ${isSel ? 'selected' : ''}>[Depot ${getRouteDepot(r)}] ${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
-                });
-                html += `</optgroup>`;
-            }
+            let html = `<optgroup label="🏢 Depot ${currentOperatingDepot} Routes (${currentOperatingDepot === '2' ? 'Attibele / Hosakote' : 'Chandapura / Bommasandra'})">`;
+            filtered.forEach(r => {
+                const optVal = r.id || r.code;
+                const isSel = (optVal === currentVal || r.code === currentVal);
+                html += `<option value="${optVal}" ${isSel ? 'selected' : ''}>[Depot ${currentOperatingDepot}] ${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
+            });
+            html += `</optgroup>`;
 
             routeSelect.innerHTML = html;
 
-            // If current route does not belong to active depot or is not in filtered, default to first active depot route
-            const activeValObj = directionalRoutes.find(r => r.id === currentVal || r.code === currentVal);
-            if (!activeValObj || getRouteDepot(activeValObj) !== currentOperatingDepot) {
-                if (thisDepotRoutes.length > 0) {
-                    routeSelect.value = thisDepotRoutes[0].id || thisDepotRoutes[0].code;
-                } else if (filtered.length > 0) {
-                    routeSelect.value = filtered[0].id || filtered[0].code;
-                }
+            // Ensure routeSelect value belongs strictly to this filtered depot routes list
+            const matchedInFiltered = filtered.find(r => r.id === routeSelect.value || r.code === routeSelect.value);
+            if (!matchedInFiltered) {
+                routeSelect.value = filtered[0].id || filtered[0].code;
             }
         }
 
@@ -3668,7 +2866,19 @@
             const driverSelect = document.getElementById("driver");
             if (driverSelect) {
                 driverSelect.addEventListener("change", async () => {
-                    currentlyAllocatedBus = null;
+                    if (currentlyAllocatedBus) {
+                        const drivers = getDepotDrivers(currentOperatingDepot);
+                        const selDriver = drivers.find(d => d.id === driverSelect.value);
+                        if (selDriver) {
+                            currentlyAllocatedBus.driver = `${selDriver.name} (${selDriver.badge})`;
+                            currentlyAllocatedBus.driverId = selDriver.id;
+                            currentlyAllocatedBus.driverName = selDriver.name;
+                        } else {
+                            currentlyAllocatedBus.driver = "";
+                            currentlyAllocatedBus.driverId = null;
+                            currentlyAllocatedBus.driverName = null;
+                        }
+                    }
                     await recommend();
                 });
             }
@@ -3693,6 +2903,29 @@
                         await recommend();
                         showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
                     } else {
+                        // STRICT DRIVER SELECTION CHECK: Must select driver from dropdown
+                        const driverSelect = document.getElementById("driver");
+                        if (!driverSelect || !driverSelect.value) {
+                            showAllocationToast("⚠️ Please select a driver from the dropdown menu before allocating the bus!", "error");
+                            if (driverSelect) {
+                                driverSelect.focus();
+                                driverSelect.style.borderColor = "#dc2626";
+                                driverSelect.style.boxShadow = "0 0 0 3px rgba(220, 38, 38, 0.25)";
+                                setTimeout(() => {
+                                    driverSelect.style.borderColor = "";
+                                    driverSelect.style.boxShadow = "";
+                                }, 3000);
+                            }
+                            return;
+                        }
+
+                        const drivers = getDepotDrivers(currentOperatingDepot);
+                        const selDriver = drivers.find(d => d.id === driverSelect.value);
+                        if (!selDriver) {
+                            showAllocationToast("⚠️ Please select a valid driver from the dropdown menu before allocating the bus!", "error");
+                            return;
+                        }
+
                         // Allocate this bus to this route and time only
                         const alloc = currentlyAllocatedBus;
 
@@ -3755,9 +2988,9 @@
                             tripCount: (routeObj && routeObj.trips) || 8,
                             allocType: isManualOverride ? "Committed Duty Allocation (Manual Over-ride)" : "Committed Duty Allocation",
                             reason: alloc.reason || "",
-                            driver: alloc.driver || "Driver Assigned",
-                            driverId: alloc.driverId || null,
-                            driverName: alloc.driverName || null,
+                            driver: `${selDriver.name} (${selDriver.badge})`,
+                            driverId: selDriver.id,
+                            driverName: selDriver.name,
                             allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                         };
 
@@ -3769,7 +3002,7 @@
                         saveAllocatedDuties(allocatedDuties);
 
                         await recommend();
-                        showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
+                        showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
                     }
                 });
             }
@@ -4102,575 +3335,11 @@
         window.renderModalAvailableBuses = renderModalAvailableBuses;
         window.selectModalAvailableBus = selectModalAvailableBus;
 
-        // ══════════════════════════════════════════════════════════════════════════
-        //  BIOMETRIC KIOSK & TURNSTILE GATE CONTROLLERS
-        // ══════════════════════════════════════════════════════════════════════════
-        let bioLiveClockInterval = null;
-
-        function playBiometricAudio(type = "success") {
-            try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-
-                if (type === "success") {
-                    osc.type = "sine";
-                    osc.frequency.setValueAtTime(880, ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.12);
-                    gain.gain.setValueAtTime(0.14, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.22);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.24);
-                } else if (type === "fail") {
-                    osc.type = "sawtooth";
-                    osc.frequency.setValueAtTime(220, ctx.currentTime);
-                    osc.frequency.setValueAtTime(180, ctx.currentTime + 0.12);
-                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.38);
-                } else if (type === "scan") {
-                    osc.type = "triangle";
-                    osc.frequency.setValueAtTime(620, ctx.currentTime);
-                    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.08);
-                    osc.start();
-                    osc.stop(ctx.currentTime + 0.09);
-                }
-            } catch (e) {}
-        }
-
-        const BIO_AUDIT_LOG_KEY = "bmtc_bio_audit_logs";
-        const DEFAULT_BIO_LOGS = [
-            `[GATE-INIT] System booted: Optical Sensor OK • Breathalyzer Sensor Calibrated (0.00% Zero BAC baseline).`,
-            `[AUTH-OK] 05:52:14 - BMTC-4101 (Ramesh Kumar) - Biometric Verified • BAC: 0.00% • Turnstile Gate-01 Unlocked.`,
-            `[AUTH-OK] 05:58:30 - BMTC-4102 (Suresh Gowda) - Biometric Verified • BAC: 0.00% • Turnstile Gate-01 Unlocked.`,
-            `[AUTH-OK] 06:04:19 - BMTC-4103 (Anand Murthy) - Biometric Verified • BAC: 0.00% • Turnstile Gate-01 Unlocked.`,
-            `[NOTICE] 06:15:00 - DRV-04 (Manjunath H.) - Approved Medical Leave logged in system. Gate access bypassed.`,
-            `[AUTH-OK] 08:14:02 - BMTC-4105 (Venkatesh P.) - Biometric Verified • BAC: 0.00% • Turnstile Gate-01 Unlocked.`,
-            `[AUTH-OK] 08:22:45 - BMTC-4106 (Basavaraju K.) - Biometric Verified • BAC: 0.00% • Turnstile Gate-01 Unlocked.`
-        ];
-
-        function loadBioAuditLogs() {
-            try {
-                const raw = localStorage.getItem(BIO_AUDIT_LOG_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed)) return parsed;
-                }
-            } catch (e) {}
-            return [...DEFAULT_BIO_LOGS];
-        }
-
-        function addBioAuditLog(action, driver, message) {
-            const logs = loadBioAuditLogs();
-            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const drvBadge = driver ? (driver.badge || driver.id) : "DEPOT";
-            const drvName = driver ? ` (${driver.name})` : "";
-            const entry = `[${action}] ${timeStr} - ${drvBadge}${drvName} - ${message}`;
-            logs.unshift(entry);
-            if (logs.length > 50) logs.pop();
-            try { localStorage.setItem(BIO_AUDIT_LOG_KEY, JSON.stringify(logs)); } catch (e) {}
-            renderBioTerminalLogs();
-        }
-
-        function clearBioAuditLog() {
-            try {
-                const logs = [`[SYSTEM-RESET] ${new Date().toLocaleTimeString()} - Gate audit log cleared by operator.`];
-                localStorage.setItem(BIO_AUDIT_LOG_KEY, JSON.stringify(logs));
-                renderBioTerminalLogs();
-            } catch (e) {}
-        }
-
-        function renderBioTerminalLogs() {
-            const terminal = document.getElementById("bio-terminal-log");
-            if (!terminal) return;
-            const logs = loadBioAuditLogs();
-            terminal.innerHTML = logs.map(line => {
-                let col = "#38bdf8";
-                if (line.includes("ALARM") || line.includes("FAIL") || line.includes("DENIED")) col = "#f87171";
-                else if (line.includes("AUTH-OK") || line.includes("Verified")) col = "#4ade80";
-                else if (line.includes("NOTICE") || line.includes("Leave")) col = "#fbbf24";
-                return `<div style="color:${col}; margin-bottom:2px;">${escapeHtml(line)}</div>`;
-            }).join("");
-        }
-
-        function openBiometricKioskModal(preselectedDriverId = null) {
-            const backdrop = document.getElementById("biometric-kiosk-modal-backdrop");
-            if (!backdrop) return;
-            backdrop.style.display = "flex";
-
-            // Populate driver select in kiosk, prioritizing current operating depot
-            const select = document.getElementById("bio-driver-select");
-            const roster = loadDriverRoster();
-            if (select) {
-                const sortedRoster = [...roster].sort((a,b) => {
-                    const aD = String(a.depot || (parseInt(a.id.replace('DRV-', '')) <= 5 ? '1' : '2'));
-                    const bD = String(b.depot || (parseInt(b.id.replace('DRV-', '')) <= 5 ? '1' : '2'));
-                    if (aD === currentOperatingDepot && bD !== currentOperatingDepot) return -1;
-                    if (aD !== currentOperatingDepot && bD === currentOperatingDepot) return 1;
-                    return 0;
-                });
-                const defaultDriverId = (currentOperatingDepot === '2') ? 'DRV-06' : 'DRV-01';
-                select.innerHTML = sortedRoster.map(d => {
-                    const dDepot = String(d.depot || (parseInt(d.id.replace('DRV-', '')) <= 5 ? '1' : '2'));
-                    const bioIcon = d.biometricStatus === "verified" ? "✅" : (d.biometricStatus === "failed" ? "⛔" : "⚠️");
-                    const isSel = preselectedDriverId ? (d.id === preselectedDriverId) : (d.id === defaultDriverId);
-                    return `<option value="${d.id}" ${isSel ? 'selected' : ''}>${bioIcon} ${d.id}: ${d.name} [Depot ${dDepot}] (${d.shift} • ${d.badge})</option>`;
-                }).join("");
-            }
-
-            // Live clock in kiosk
-            const clockEl = document.getElementById("bio-live-clock");
-            if (clockEl) {
-                clockEl.textContent = new Date().toLocaleTimeString();
-                if (bioLiveClockInterval) clearInterval(bioLiveClockInterval);
-                bioLiveClockInterval = setInterval(() => {
-                    if (clockEl) clockEl.textContent = new Date().toLocaleTimeString();
-                }, 1000);
-            }
-
-            updateBioDriverSelectionPreview();
-            renderBioTerminalLogs();
-        }
-
-        function closeBiometricKioskModal() {
-            const backdrop = document.getElementById("biometric-kiosk-modal-backdrop");
-            if (backdrop) backdrop.style.display = "none";
-            if (bioLiveClockInterval) {
-                clearInterval(bioLiveClockInterval);
-                bioLiveClockInterval = null;
-            }
-        }
-
-        function openBiometricKioskForDriver(driverId) {
-            closeDriverRosterModal();
-            openBiometricKioskModal(driverId);
-        }
-
-        function updateBioDriverSelectionPreview() {
-            const select = document.getElementById("bio-driver-select");
-            const preview = document.getElementById("bio-selected-preview");
-            const bacStatus = document.getElementById("bio-bac-status");
-            if (!select || !preview) return;
-
-            const roster = loadDriverRoster();
-            const driverId = select.value;
-            const driver = roster.find(d => d.id === driverId) || roster[0];
-            if (!driver) return;
-
-            let bioBadge = '';
-            if (driver.biometricStatus === 'verified') {
-                bioBadge = `<span class="bio-pill-verified">✅ Bio-Verified (${driver.biometricPunchTime || 'Gate-01'})</span>`;
-            } else if (driver.biometricStatus === 'failed') {
-                bioBadge = `<span class="bio-pill-failed">⛔ Gate Lockout (${driver.bac || 'Failed'})</span>`;
-            } else {
-                bioBadge = `<span class="bio-pill-pending">⚠️ Biometric Punch Pending</span>`;
-            }
-
-            let bacText = driver.bac || "Awaiting Breathalyzer Scan";
-            if (bacStatus) {
-                if (driver.biometricStatus === 'failed') {
-                    bacStatus.style.background = "#450a0a";
-                    bacStatus.style.borderColor = "#991b1b";
-                    bacStatus.style.color = "#fca5a5";
-                    bacStatus.innerHTML = `⛔ ${driver.bac || '0.06% BAC (SAFETY FAIL)'}`;
-                } else if (driver.biometricStatus === 'verified') {
-                    bacStatus.style.background = "#064e3b";
-                    bacStatus.style.borderColor = "#059669";
-                    bacStatus.style.color = "#6ee7b7";
-                    bacStatus.innerHTML = `🌬️ 0.00% BAC (Zero Alcohol PASSED)`;
-                } else {
-                    bacStatus.style.background = "#1e293b";
-                    bacStatus.style.borderColor = "#334155";
-                    bacStatus.style.color = "#94a3b8";
-                    bacStatus.innerHTML = `🌬️ Ready: 0.00% BAC Sensor`;
-                }
-            }
-
-            preview.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong style="color:#f8fafc; font-size:0.92rem;">👤 ${escapeHtml(driver.name)}</strong>
-                    <span style="color:#38bdf8; font-weight:700;">${escapeHtml(driver.badge)}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; color:#94a3b8;">
-                    <span>Shift: <strong style="color:#e2e8f0;">${escapeHtml(driver.shift)} (${driver.shiftHours})</strong></span>
-                    <span>Bio-ID: <strong style="color:#38bdf8;">${escapeHtml(driver.biometricId || 'BIO-' + driver.id)}</strong></span>
-                </div>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:2px;">
-                    <span>Gate Attendance:</span>
-                    ${bioBadge}
-                </div>
-                ${driver.attendance === 'leave' || driver.attendance === 'weekly_off' ? `
-                    <div style="background:#451a03; border:1px solid #b45309; color:#fde68a; padding:4px 8px; border-radius:6px; font-size:0.72rem; margin-top:2px;">
-                        ⚠️ Driver has scheduled ${driver.attendance === 'leave' ? 'Leave (' + driver.leaveNote + ')' : 'Weekly Rest Day'}. Gate scanner will deny turnstile entry.
-                    </div>
-                ` : ''}
-            `;
-        }
-
-        function triggerSelectedDriverScan(failAlcohol = false) {
-            const select = document.getElementById("bio-driver-select");
-            const box = document.getElementById("bio-scanner-box");
-            const caption = document.getElementById("bio-scanner-caption");
-            if (!select) return;
-
-            const driverId = select.value;
-            if (box) box.classList.add("scanning");
-            if (caption) caption.textContent = "Scanning Fingerprint & Breathalyzer...";
-            playBiometricAudio("scan");
-
-            setTimeout(() => {
-                if (box) box.classList.remove("scanning");
-                if (caption) caption.textContent = "Touch Scanner to Punch";
-                scanDriverBiometric(driverId, failAlcohol);
-            }, 850);
-        }
-
-        function scanDriverBiometric(driverId, failAlcohol = false) {
-            const roster = loadDriverRoster();
-            const driver = roster.find(d => d.id === driverId);
-            if (!driver) return;
-
-            // Check if driver is on leave or weekly off
-            if (driver.attendance === "leave" || driver.attendance === "weekly_off" || driver.attendance === "absent") {
-                playBiometricAudio("fail");
-                addBioAuditLog("ACCESS-DENIED", driver, `Gate turnstile locked. Driver is on ${driver.attendance} (${driver.leaveNote || 'Rest Day'}). Biometric punch prohibited.`);
-                showAllocationToast(`⛔ Gate Access Denied: Driver ${driver.name} is on ${driver.attendance}!`, "error");
-                updateBioDriverSelectionPreview();
-                return;
-            }
-
-            const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const terminalName = (currentOperatingDepot === '2') ? "Gate-02 (Depot 33 Attibele)" : "Gate-01 (Depot 32 Chandapura)";
-            const gateName = (currentOperatingDepot === '2') ? "Gate-02" : "Gate-01";
-
-            if (failAlcohol) {
-                playBiometricAudio("fail");
-                driver.biometricStatus = "failed";
-                driver.bac = "0.06% BAC (SAFETY FAIL)";
-                driver.biometricPunchTime = nowTime;
-                driver.biometricTerminal = terminalName;
-                saveDriverRoster(roster);
-                addBioAuditLog("ALARM-BAC-FAIL", driver, `BREATHALYZER SAFETY FAIL: 0.06% BAC detected at ${gateName}! Depot safety lockout engaged. Driver barred from duty dispatch.`);
-                showAllocationToast(`⛔ SAFETY LOCKOUT: Driver ${driver.name} failed breathalyzer test (0.06% BAC) at ${gateName}. Barred from vehicle dispatch!`, "error");
-            } else {
-                playBiometricAudio("success");
-                driver.biometricStatus = "verified";
-                driver.attendance = "present";
-                driver.bac = "0.00% (PASSED)";
-                driver.biometricTerminal = terminalName;
-                driver.biometricPunchTime = nowTime;
-                driver.leaveNote = "";
-                saveDriverRoster(roster);
-                addBioAuditLog("AUTH-PUNCH-OK", driver, `Turnstile Unlocked at ${gateName}. BAC: 0.00% PASSED. Fingerprint Matched (Token: ${driver.biometricId || 'BIO-4101'}). Ready for dispatch.`);
-                showAllocationToast(`✅ Biometric Verified: ${driver.name} punched in at ${gateName} (0.00% BAC). Cleared for vehicle assignment!`, "success");
-            }
-
-            populateDriverDropdown();
-            recommend();
-            updateBioDriverSelectionPreview();
-            renderBioTerminalLogs();
-            const rosterBackdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (rosterBackdrop && rosterBackdrop.style.display === "flex") {
-                renderDriverRosterModalList();
-            }
-        }
-
-        function quickScanFromRoster(driverId) {
-            scanDriverBiometric(driverId, false);
-        }
-
-        function autoScanShiftRollCall() {
-            const roster = loadDriverRoster();
-            let count = 0;
-            const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const terminalName = (currentOperatingDepot === '2') ? "Gate-02 (Depot 33 Attibele)" : "Gate-01 (Depot 32 Chandapura)";
-            const gateName = (currentOperatingDepot === '2') ? "Gate-02" : "Gate-01";
-
-            roster.forEach(d => {
-                const dDepot = String(d.depot || (parseInt(d.id.replace('DRV-', '')) <= 5 ? '1' : '2'));
-                if (dDepot === currentOperatingDepot && d.attendance !== "leave" && d.attendance !== "weekly_off" && d.attendance !== "absent") {
-                    d.biometricStatus = "verified";
-                    d.attendance = "present";
-                    d.bac = "0.00% (PASSED)";
-                    d.biometricTerminal = terminalName;
-                    d.biometricPunchTime = d.biometricPunchTime || nowTime;
-                    d.leaveNote = "";
-                    count++;
-                }
-            });
-
-            saveDriverRoster(roster);
-            playBiometricAudio("success");
-            addBioAuditLog("SHIFT-ROLLCALL", null, `Automated Gate Turnstile Rush for Depot ${currentOperatingDepot}: ${count} drivers verified and cleared with 0.00% BAC at ${gateName}.`);
-            showAllocationToast(`⚡ Auto-Rollcall Complete: ${count} Depot ${currentOperatingDepot} drivers scanned and bio-verified at ${gateName}!`, "success");
-
-            populateDriverDropdown();
-            recommend();
-            updateBioDriverSelectionPreview();
-            renderBioTerminalLogs();
-            const rosterBackdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (rosterBackdrop && rosterBackdrop.style.display === "flex") {
-                renderDriverRosterModalList();
-            }
-        }
-
-        function resetBiometricCheckins() {
-            const roster = loadDriverRoster();
-            let count = 0;
-            roster.forEach(d => {
-                if (d.attendance !== "leave" && d.attendance !== "weekly_off") {
-                    d.biometricStatus = "pending";
-                    d.biometricPunchTime = null;
-                    d.biometricTerminal = null;
-                    d.bac = null;
-                    count++;
-                }
-            });
-
-            saveDriverRoster(roster);
-            addBioAuditLog("RESET", null, `Depot operator reset biometric attendance check-in status to PENDING for ${count} drivers.`);
-            showAllocationToast(`🔄 Reset complete: ${count} drivers reset to "Biometric Punch Pending". Drivers now gated from dispatch until scanned.`, "info");
-
-            populateDriverDropdown();
-            recommend();
-            updateBioDriverSelectionPreview();
-            renderBioTerminalLogs();
-            const rosterBackdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (rosterBackdrop && rosterBackdrop.style.display === "flex") {
-                renderDriverRosterModalList();
-            }
-        }
-
-        window.openBiometricKioskModal = openBiometricKioskModal;
-        window.closeBiometricKioskModal = closeBiometricKioskModal;
-        window.openBiometricKioskForDriver = openBiometricKioskForDriver;
-        window.triggerSelectedDriverScan = triggerSelectedDriverScan;
-        window.scanDriverBiometric = scanDriverBiometric;
-        window.quickScanFromRoster = quickScanFromRoster;
-        window.autoScanShiftRollCall = autoScanShiftRollCall;
-        window.resetBiometricCheckins = resetBiometricCheckins;
-        window.clearBioAuditLog = clearBioAuditLog;
-        window.updateBioDriverSelectionPreview = updateBioDriverSelectionPreview;
-
-        // ══════════════════════════════════════════════════════════════════════════
-        //  DRIVER ROSTER & ATTENDANCE MODAL CONTROLLERS
-        // ══════════════════════════════════════════════════════════════════════════
-        function openDriverRosterModal() {
-            const backdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (backdrop) {
-                backdrop.style.display = "flex";
-                renderDriverRosterModalList();
-            }
-        }
-
-        function closeDriverRosterModal() {
-            const backdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (backdrop) backdrop.style.display = "none";
-        }
-
-        function setDriverAttendance(driverId, newStatus, note = "") {
-            const roster = loadDriverRoster();
-            const driver = roster.find(d => d.id === driverId);
-            if (!driver) return;
-
-            driver.attendance = newStatus;
-            if (newStatus === "leave") {
-                driver.leaveNote = note || "Approved Casual Leave";
-                driver.biometricStatus = "pending";
-            } else if (newStatus === "weekly_off") {
-                driver.leaveNote = "Weekly Rest Day";
-                driver.biometricStatus = "pending";
-            } else if (newStatus === "absent") {
-                driver.leaveNote = "Unscheduled Absence";
-                driver.biometricStatus = "pending";
-            } else {
-                driver.leaveNote = "";
-                // If marked present manually, ensure biometric status is verified
-                if (driver.biometricStatus !== "failed") {
-                    driver.biometricStatus = "verified";
-                    driver.biometricPunchTime = driver.biometricPunchTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    driver.bac = "0.00% (PASSED)";
-                }
-            }
-
-            saveDriverRoster(roster);
-            renderDriverRosterModalList();
-            populateDriverDropdown();
-            recommend();
-
-            const statusNames = {
-                present: "🟢 Present & Bio-Verified",
-                leave: "🟡 On Leave",
-                weekly_off: "⚪ Weekly Off",
-                absent: "🔴 Reported Absent"
-            };
-            showAllocationToast(`Driver ${driver.name} status updated to: ${statusNames[newStatus] || newStatus}`, "info");
-        }
-
-        function renderDriverRosterModalList() {
-            const body = document.getElementById("driver-roster-modal-body");
-            if (!body) return;
-
-            const roster = loadDriverRoster();
-            const duties = (typeof allocatedDuties !== 'undefined' && Array.isArray(allocatedDuties)) ? allocatedDuties : loadAllocatedDuties();
-            const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
-            const routeObj = getSelectedRouteObj();
-            const curRoute = routeObj ? (routeObj.code || "356Z") : "356Z";
-
-            // Compute counts
-            let presentCount = 0, leaveCount = 0, offCount = 0, absentCount = 0, bioVerifiedCount = 0;
-            roster.forEach(d => {
-                if (d.attendance === "present") presentCount++;
-                else if (d.attendance === "leave") leaveCount++;
-                else if (d.attendance === "weekly_off") offCount++;
-                else if (d.attendance === "absent") absentCount++;
-                if (d.biometricStatus === "verified") bioVerifiedCount++;
-            });
-
-            const statPres = document.getElementById("stat-present-count");
-            const statLeav = document.getElementById("stat-leave-count");
-            const statOff = document.getElementById("stat-off-count");
-            const statAbs = document.getElementById("stat-absent-count");
-            const modalBadge = document.getElementById("modal-driver-present-badge");
-            const formBadge = document.getElementById("driver-present-count-badge");
-
-            if (statPres) statPres.textContent = presentCount;
-            if (statLeav) statLeav.textContent = leaveCount;
-            if (statOff) statOff.textContent = offCount;
-            if (statAbs) statAbs.textContent = absentCount;
-            if (modalBadge) modalBadge.textContent = `${bioVerifiedCount} Bio-Verified / ${roster.length} Total`;
-            if (formBadge) formBadge.textContent = `${bioVerifiedCount}/${roster.length} Bio-Verified`;
-
-            // Filters
-            const searchInput = document.getElementById("driver-modal-search");
-            const filterAtt = document.getElementById("driver-modal-filter-att");
-            const filterShift = document.getElementById("driver-modal-filter-shift");
-
-            const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
-            const attVal = filterAtt ? filterAtt.value : "all";
-            const shiftVal = filterShift ? filterShift.value : "all";
-
-            let filtered = roster.filter(d => {
-                if (attVal !== "all" && d.attendance !== attVal) return false;
-                if (shiftVal !== "all" && d.shift !== shiftVal) return false;
-                if (query) {
-                    const matchText = `${d.id} ${d.name} ${d.badge} ${d.biometricId || ''} ${d.phone} ${d.shift}`.toLowerCase();
-                    if (!matchText.includes(query)) return false;
-                }
-                return true;
-            });
-
-            if (filtered.length === 0) {
-                body.innerHTML = `
-                    <div style="grid-column:1/-1;padding:32px;text-align:center;color:#64748b;">
-                        <span style="font-size:2rem;display:block;margin-bottom:6px;">🔍</span>
-                        <strong>No drivers match your search / filter criteria</strong>
-                    </div>
-                `;
-                return;
-            }
-
-            body.innerHTML = filtered.map(d => {
-                const avail = getDriverAvailabilityStatus(d, departureTime, curRoute, duties);
-                const isPresent = d.attendance === "present";
-                const isLeave = d.attendance === "leave";
-                const isOff = d.attendance === "weekly_off";
-                const isAbsent = d.attendance === "absent";
-                const isBioVerified = d.biometricStatus === "verified";
-                const isBioFailed = d.biometricStatus === "failed";
-
-                let borderCol = "#e2e8f0";
-                let topBg = "#f8fafc";
-                if (isBioFailed) { borderCol = "#fca5a5"; topBg = "#fef2f2"; }
-                else if (isPresent && isBioVerified) { borderCol = "#86efac"; topBg = "#f0fdf4"; }
-                else if (isPresent && !isBioVerified) { borderCol = "#fde047"; topBg = "#fefce8"; }
-                else if (isLeave) { borderCol = "#fde047"; topBg = "#fefce8"; }
-                else if (isAbsent) { borderCol = "#fca5a5"; topBg = "#fef2f2"; }
-
-                let bioPillHtml = '';
-                if (isBioVerified) {
-                    bioPillHtml = `<span class="bio-pill-verified">✅ Bio-Verified (${escapeHtml(d.biometricPunchTime || 'Gate-01')}) • 0.00% BAC</span>`;
-                } else if (isBioFailed) {
-                    bioPillHtml = `<span class="bio-pill-failed">⛔ Gate Lockout (${escapeHtml(d.bac || 'Failed')})</span>`;
-                } else {
-                    bioPillHtml = `<span class="bio-pill-pending">⚠️ Biometric Punch Pending</span>`;
-                }
-
-                return `
-                    <div style="background:#fff;border:1.5px solid ${borderCol};border-radius:12px;padding:12px 14px;box-shadow:0 2px 6px rgba(0,0,0,0.03);display:flex;flex-direction:column;gap:7px;">
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;background:${topBg};margin:-12px -14px 4px -14px;padding:10px 14px;border-bottom:1px solid ${borderCol};border-top-left-radius:10px;border-top-right-radius:10px;">
-                            <div>
-                                <strong style="font-size:0.95rem;color:#0f172a;display:block;">${escapeHtml(d.name)}</strong>
-                                <span style="font-size:0.74rem;color:#64748b;font-weight:600;">ID: ${escapeHtml(d.id)} • Badge: ${escapeHtml(d.badge)}</span>
-                            </div>
-                            <span style="font-size:0.72rem;font-weight:800;padding:2px 8px;border-radius:6px;background:#e0f2fe;color:#0369a1;">${escapeHtml(d.shift)}</span>
-                        </div>
-
-                        <div style="font-size:0.75rem;display:flex;justify-content:space-between;align-items:center;color:#475569;">
-                            <span>🕒 Shift Hours:</span>
-                            <strong>${escapeHtml(d.shiftHours)}</strong>
-                        </div>
-                        <div style="font-size:0.75rem;display:flex;justify-content:space-between;align-items:center;color:#475569;">
-                            <span>📱 Contact:</span>
-                            <span>${escapeHtml(d.phone)}</span>
-                        </div>
-
-                        <!-- Biometric Gate Pill -->
-                        <div style="font-size:0.75rem;display:flex;justify-content:space-between;align-items:center;color:#475569;">
-                            <span>👆 Gate Biometrics:</span>
-                            ${bioPillHtml}
-                        </div>
-
-                        <!-- Real-time duty / availability badge -->
-                        <div style="font-size:0.75rem;padding:6px 8px;border-radius:6px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
-                            <span style="color:#64748b;">Live Duty Status:</span>
-                            <strong style="color:${avail.available ? '#16a34a' : (avail.status === 'busy' ? '#dc2626' : '#854d0e')};">${avail.badge}</strong>
-                        </div>
-                        ${avail.reason ? `<div style="font-size:0.7rem;color:#64748b;line-height:1.2;">• ${escapeHtml(avail.reason)}</div>` : ''}
-
-                        <!-- Biometric Quick Action Buttons -->
-                        <div style="display:flex; gap:6px; margin-top:2px;">
-                            <button type="button" onclick="quickScanFromRoster('${d.id}')" style="flex:1; background:${isBioVerified ? '#f0fdf4' : '#ecfdf5'}; border:1px solid ${isBioVerified ? '#86efac' : '#a7f3d0'}; color:#065f46; font-size:0.72rem; font-weight:700; padding:4px 6px; border-radius:6px; cursor:pointer;" title="Punch driver fingerprint at Gate-01 turnstile">
-                                ${isBioVerified ? '✓ Re-Punch Bio' : '👆 Punch Bio Gate'}
-                            </button>
-                            <button type="button" onclick="openBiometricKioskForDriver('${d.id}')" style="background:#0f172a; border:1px solid #334155; color:#38bdf8; font-size:0.72rem; font-weight:700; padding:4px 8px; border-radius:6px; cursor:pointer;" title="Open Kiosk Scanner Terminal for this driver">
-                                🖥️ Kiosk
-                            </button>
-                        </div>
-
-                        <!-- Quick Attendance Toggle Buttons -->
-                        <div style="margin-top:4px;padding-top:6px;border-top:1px dashed #e2e8f0;">
-                            <span style="display:block;font-size:0.68rem;font-weight:700;color:#64748b;margin-bottom:4px;">DEPOT ROLL CALL:</span>
-                            <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:4px;">
-                                <button type="button" onclick="setDriverAttendance('${d.id}', 'present')" style="padding:4px 2px;font-size:0.68rem;font-weight:700;border-radius:6px;cursor:pointer;border:1px solid ${isPresent ? '#16a34a' : '#cbd5e1'};background:${isPresent ? '#16a34a' : '#fff'};color:${isPresent ? '#fff' : '#334155'};">
-                                    🟢 Present
-                                </button>
-                                <button type="button" onclick="setDriverAttendance('${d.id}', 'leave')" style="padding:4px 2px;font-size:0.68rem;font-weight:700;border-radius:6px;cursor:pointer;border:1px solid ${isLeave ? '#ca8a04' : '#cbd5e1'};background:${isLeave ? '#ca8a04' : '#fff'};color:${isLeave ? '#fff' : '#334155'};">
-                                    🟡 Leave
-                                </button>
-                                <button type="button" onclick="setDriverAttendance('${d.id}', 'weekly_off')" style="padding:4px 2px;font-size:0.68rem;font-weight:700;border-radius:6px;cursor:pointer;border:1px solid ${isOff ? '#475569' : '#cbd5e1'};background:${isOff ? '#475569' : '#fff'};color:${isOff ? '#fff' : '#334155'};">
-                                    ⚪ Off
-                                </button>
-                                <button type="button" onclick="setDriverAttendance('${d.id}', 'absent')" style="padding:4px 2px;font-size:0.68rem;font-weight:700;border-radius:6px;cursor:pointer;border:1px solid ${isAbsent ? '#dc2626' : '#cbd5e1'};background:${isAbsent ? '#dc2626' : '#fff'};color:${isAbsent ? '#fff' : '#334155'};">
-                                    🔴 Absent
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        window.openDriverRosterModal = openDriverRosterModal;
-        window.closeDriverRosterModal = closeDriverRosterModal;
-        window.setDriverAttendance = setDriverAttendance;
-        window.renderDriverRosterModalList = renderDriverRosterModalList;
+        // Biometric / Roster Modals Removed (Simplified 10-Driver per depot model)
+        window.openBiometricKioskModal = () => {};
+        window.closeBiometricKioskModal = () => {};
+        window.openDriverRosterModal = () => {};
+        window.closeDriverRosterModal = () => {};
 
         async function handleSyncStateUpdate() {
             syncLocalStorageBusStates();
@@ -4682,15 +3351,6 @@
             const modalBackdrop = document.getElementById("avail-scheduling-modal-backdrop");
             if (modalBackdrop && modalBackdrop.style.display === "flex") {
                 renderModalAvailableBuses();
-            }
-            const driverModalBackdrop = document.getElementById("driver-roster-modal-backdrop");
-            if (driverModalBackdrop && driverModalBackdrop.style.display === "flex") {
-                renderDriverRosterModalList();
-            }
-            const bioModalBackdrop = document.getElementById("biometric-kiosk-modal-backdrop");
-            if (bioModalBackdrop && bioModalBackdrop.style.display === "flex") {
-                updateBioDriverSelectionPreview();
-                renderBioTerminalLogs();
             }
         }
 
