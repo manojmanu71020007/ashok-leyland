@@ -253,7 +253,18 @@ function loadRoutes() {
         return cachedRoutes;
     }
 
-    cachedRoutes = vehicles.map((v) => {
+    const currentState = loadBusState();
+    const deletedBuses = (currentState && currentState._deletedBuses) ? currentState._deletedBuses : {};
+    const addedBuses = (currentState && currentState._addedBuses) ? currentState._addedBuses : {};
+
+    const activeVehicles = vehicles.filter((v) => {
+        const bm = String(v.bmNo || "").toUpperCase().trim();
+        if (v.status && String(v.status).toLowerCase() === "deleted") return false;
+        if (deletedBuses[bm]) return false;
+        return true;
+    });
+
+    cachedRoutes = activeVehicles.map((v) => {
         const bm = v.bmNo;
         const assign = assignByFixBm.get(bm) || assignBySwapBm.get(bm);
         const routeShort = assign ? assign.route : "600F";
@@ -262,12 +273,14 @@ function loadRoutes() {
         const corr = corridorByShort.get(routeShort) || defaultCorridor;
         const distKm = corr.distanceKm || calculateRouteDistanceByRouteId(corr.routeId) || 28.7;
         const tripCount = corr.tripCount || 8;
+        const addedInfo = addedBuses[bm] || null;
+        const isNewlyAdded = Boolean(addedInfo || (currentState[bm] && currentState[bm].isNewlyAdded));
 
         return {
             uniqueId: bm,
             vehicleId: bm,
             bmNumber: bm,
-            regNo: v.regNo || (assign && assign.regNo) || "",
+            regNo: (addedInfo && addedInfo.regNo) || v.regNo || (assign && assign.regNo) || "",
             busNumber: routeShort,
             scheduleId,
             shift,
@@ -285,7 +298,10 @@ function loadRoutes() {
             make: v.make,
             model: v.model,
             depot: v.depot,
-            status: v.status
+            status: v.status,
+            isNewlyAdded: isNewlyAdded,
+            additionReason: (addedInfo && addedInfo.reason) || (currentState[bm] && currentState[bm].additionReason) || "",
+            addedAt: (addedInfo && addedInfo.addedAt) || (currentState[bm] && currentState[bm].addedAt) || ""
         };
     });
 
@@ -1344,6 +1360,249 @@ function saveBusState(state) {
     syncBusStateToGitHub(clean); // persist to GitHub in background with debounce
 }
 
+// ── Fleet Bus Management (Add / Delete Buses with Reason Tracking) ──
+function addFleetBus(params) {
+    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+    const regNo = String(params.regNo || params.reg_no || params.registrationNo || "").toUpperCase().trim();
+    const reason = String(params.reason || "").trim();
+    const depotNum = String(params.depot || "1").trim();
+    const depotName = depotNum === "2" ? "Depot 2 (Central)" : "Chandapura (BMT-32)";
+    const category = String(params.category || "A").toUpperCase().trim();
+    const soc = Number.isFinite(Number(params.soc)) ? Math.max(0, Math.min(100, Number(params.soc))) : 100;
+    const model = String(params.model || "ELECTRIC BUS AC EiV12").trim();
+    const make = String(params.make || "Ashok Leyland").trim();
+
+    if (!bm || !regNo || !reason) {
+        throw new Error("Bus Number, Registration Number, and Reason are all mandatory.");
+    }
+
+    // 1. Update vehicles.txt
+    try {
+        let lines = [];
+        if (fs.existsSync(VEHICLES_FILE)) {
+            lines = fs.readFileSync(VEHICLES_FILE, "utf8").split(/\r?\n/).filter(Boolean);
+        }
+        let found = false;
+        const newLines = lines.map((line, idx) => {
+            if (idx === 0) return line;
+            const parts = parseCsvLine(line);
+            if (parts[0] && parts[0].trim().toUpperCase() === bm) {
+                found = true;
+                return `${bm},${bm},${regNo},${make},${model},${depotName},Active`;
+            }
+            return line;
+        });
+        if (!found) {
+            newLines.push(`${bm},${bm},${regNo},${make},${model},${depotName},Active`);
+        }
+        fs.writeFileSync(VEHICLES_FILE, newLines.join("\n") + "\n", "utf8");
+    } catch (e) {
+        console.warn("Could not write to vehicles.txt in addFleetBus:", e.message);
+    }
+
+    // 2. Update bus_categories.json
+    try {
+        const busCatPath = path.join(BASE_DIR, "vehicles", "bus_categories.json");
+        let categories = [];
+        if (fs.existsSync(busCatPath)) {
+            categories = JSON.parse(fs.readFileSync(busCatPath, "utf8"));
+        }
+        const existingCat = categories.find(c => String(c.bm_number).toUpperCase().trim() === bm);
+        if (existingCat) {
+            existingCat.category = category;
+        } else {
+            categories.push({
+                sl_no: categories.length + 1,
+                bm_number: bm,
+                actual_range_km: category === "A" ? 155.0 : category === "B" ? 120.0 : 85.0,
+                category: category
+            });
+        }
+        fs.writeFileSync(busCatPath, JSON.stringify(categories, null, 2), "utf8");
+    } catch (e) {
+        console.warn("Could not write bus_categories.json in addFleetBus:", e.message);
+    }
+
+    // 3. Update bus_state.json
+    const currentState = loadBusState();
+    if (!currentState._addedBuses) currentState._addedBuses = {};
+    if (!currentState._deletedBuses) currentState._deletedBuses = {};
+
+    delete currentState._deletedBuses[bm];
+
+    const addedInfo = {
+        bm,
+        regNo,
+        reason,
+        depot: depotNum,
+        category,
+        soc,
+        model,
+        make,
+        addedAt: new Date().toISOString(),
+        timestamp: Date.now(),
+        isNewlyAdded: true
+    };
+    currentState._addedBuses[bm] = addedInfo;
+
+    if (!currentState._depotAssignments) currentState._depotAssignments = {};
+    currentState._depotAssignments[bm] = depotNum;
+
+    currentState[bm] = Object.assign({}, currentState[bm] || {}, {
+        uniqueId: bm,
+        bmNumber: bm,
+        busNumber: "600F",
+        regNo,
+        status: "On Time",
+        soc,
+        condition: "Good",
+        driver: "Driver Assigned",
+        busCategory: category,
+        isNewlyAdded: true,
+        additionReason: reason,
+        addedAt: addedInfo.addedAt,
+        deleted: false,
+        isDeleted: false
+    });
+
+    saveBusState(currentState);
+
+    // 4. Invalidate routes cache
+    cachedRoutes = null;
+    cachedRouteBmMap = null;
+
+    // 5. Broadcast sync event
+    broadcastSyncEvent("fleet-bus-added", {
+        bm,
+        regNo,
+        reason,
+        addedInfo,
+        addedBuses: currentState._addedBuses,
+        deletedBuses: currentState._deletedBuses
+    });
+
+    return addedInfo;
+}
+
+function deleteFleetBus(params) {
+    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+    const regNo = String(params.regNo || params.reg_no || params.registrationNo || "").toUpperCase().trim();
+    const reason = String(params.reason || "").trim();
+
+    if (!bm || !reason) {
+        throw new Error("Bus Number and Reason are mandatory for deleting a bus.");
+    }
+
+    // 1. Update vehicles.txt
+    try {
+        if (fs.existsSync(VEHICLES_FILE)) {
+            const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).filter(Boolean);
+            const newLines = lines.map((line, idx) => {
+                if (idx === 0) return line;
+                const parts = parseCsvLine(line);
+                if (parts[0] && parts[0].trim().toUpperCase() === bm) {
+                    const rNo = regNo || parts[2] || "";
+                    const make = parts[3] || "Ashok Leyland";
+                    const model = parts[4] || "ELECTRIC BUS AC EiV12";
+                    const depot = parts[5] || "Chandapura (BMT-32)";
+                    return `${bm},${bm},${rNo},${make},${model},${depot},Deleted`;
+                }
+                return line;
+            });
+            fs.writeFileSync(VEHICLES_FILE, newLines.join("\n") + "\n", "utf8");
+        }
+    } catch (e) {
+        console.warn("Could not update vehicles.txt in deleteFleetBus:", e.message);
+    }
+
+    // 2. Update bus_state.json
+    const currentState = loadBusState();
+    if (!currentState._deletedBuses) currentState._deletedBuses = {};
+    if (!currentState._addedBuses) currentState._addedBuses = {};
+
+    const regToUse = regNo || (currentState[bm] && currentState[bm].regNo) || "";
+    delete currentState._addedBuses[bm];
+
+    const deletedInfo = {
+        bm,
+        regNo: regToUse,
+        reason,
+        deletedAt: new Date().toISOString(),
+        timestamp: Date.now()
+    };
+    currentState._deletedBuses[bm] = deletedInfo;
+
+    if (currentState[bm]) {
+        currentState[bm].status = "Deleted";
+        currentState[bm].deleted = true;
+        currentState[bm].isDeleted = true;
+        currentState[bm].deletionReason = reason;
+        currentState[bm].deletedAt = deletedInfo.deletedAt;
+        currentState[bm].isNewlyAdded = false;
+    } else {
+        currentState[bm] = {
+            uniqueId: bm,
+            bmNumber: bm,
+            regNo: regToUse,
+            status: "Deleted",
+            deleted: true,
+            isDeleted: true,
+            deletionReason: reason,
+            deletedAt: deletedInfo.deletedAt,
+            isNewlyAdded: false
+        };
+    }
+
+    if (Array.isArray(currentState._lockedBuses)) {
+        currentState._lockedBuses = currentState._lockedBuses.filter(x => String(x.bm || '').toUpperCase() !== bm);
+    }
+
+    if (Array.isArray(currentState._allocatedDuties)) {
+        currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.bm || '').toUpperCase() !== bm);
+    }
+
+    saveBusState(currentState);
+
+    // 3. Invalidate routes cache
+    cachedRoutes = null;
+    cachedRouteBmMap = null;
+
+    // 4. Broadcast sync event
+    broadcastSyncEvent("fleet-bus-deleted", {
+        bm,
+        regNo: regToUse,
+        reason,
+        deletedInfo,
+        addedBuses: currentState._addedBuses,
+        deletedBuses: currentState._deletedBuses
+    });
+
+    return deletedInfo;
+}
+
+function restoreFleetBus(params) {
+    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+    if (!bm) throw new Error("Bus Number is required to restore.");
+
+    const currentState = loadBusState();
+    const deletedInfo = (currentState._deletedBuses && currentState._deletedBuses[bm]) || {};
+    const regNo = String(params.regNo || deletedInfo.regNo || (currentState[bm] && currentState[bm].regNo) || "").toUpperCase().trim();
+    const reason = String(params.reason || "Restored back to available fleet").trim();
+
+    return addFleetBus({
+        bm,
+        regNo: regNo || "KA51AH4144",
+        reason,
+        depot: "1",
+        category: (currentState[bm] && currentState[bm].busCategory) || "A",
+        soc: (currentState[bm] && currentState[bm].soc) || 100
+    });
+}
+
 function normalizeBusStatus(status) {
     return status === "Delayed" || status === "On Time" || status === "Ahead"
         ? status
@@ -1998,6 +2257,8 @@ const server = http.createServer(async (req, res) => {
                 busState: currentState,
                 allocatedDuties: currentState._allocatedDuties || [],
                 lockedBuses: currentState._lockedBuses || [],
+                addedBuses: currentState._addedBuses || {},
+                deletedBuses: currentState._deletedBuses || {},
                 depotAssignments: assignments,
                 depot1Count: counts.depot1Count,
                 depot2Count: counts.depot2Count,
@@ -2099,6 +2360,60 @@ const server = http.createServer(async (req, res) => {
             });
             return;
         }
+    }
+
+    // ── Fleet Bus Management Endpoints (Add / Delete / Restore / Changes) ──
+    if (pathname === "/api/fleet/add-bus" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const result = addFleetBus(payload);
+                sendJson(res, { ok: true, message: `Bus ${result.bm} added successfully`, bus: result });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 400);
+            }
+        });
+        return;
+    }
+
+    if (pathname === "/api/fleet/delete-bus" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const result = deleteFleetBus(payload);
+                sendJson(res, { ok: true, message: `Bus ${result.bm} deleted successfully from available fleet`, bus: result });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 400);
+            }
+        });
+        return;
+    }
+
+    if (pathname === "/api/fleet/restore-bus" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const result = restoreFleetBus(payload);
+                sendJson(res, { ok: true, message: `Bus ${result.bm} restored successfully to available fleet`, bus: result });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 400);
+            }
+        });
+        return;
+    }
+
+    if (pathname === "/api/fleet/changes" && req.method === "GET") {
+        try {
+            const currentState = loadBusState();
+            sendJson(res, {
+                ok: true,
+                addedBuses: currentState._addedBuses || {},
+                deletedBuses: currentState._deletedBuses || {}
+            });
+        } catch (err) {
+            sendJson(res, { ok: false, error: err.message }, 500);
+        }
+        return;
     }
 
     if (pathname === "/api/routes") {

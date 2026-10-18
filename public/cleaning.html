@@ -1394,7 +1394,7 @@
           model:  (parts[4] || 'ELECTRIC BUS AC EiV12').trim(),
           status: (parts[6] || 'Active').trim(),
         };
-      }).filter(v => v.bm_no);
+      }).filter(v => v.bm_no && v.status !== 'Deleted' && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(v.bm_no)));
     } catch(e) {
       allVehicles = [
         {bm_no:'BM001',reg_no:'KA51AH4144',model:'EiV12 AC',status:'Active'},
@@ -1426,7 +1426,9 @@
         } else if (isBusInCharging(v.bm_no, v.reg_no)) {
           tag = ' [⚡ In Charging Bay]';
         }
-        opt.textContent = `${v.bm_no}  —  ${v.reg_no}${tag}`;
+        const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
+        const newPrefix = isNew ? '✨ [NEW] ' : '';
+        opt.textContent = `${newPrefix}${v.bm_no}  —  ${v.reg_no}${tag}`;
         if (v.bm_no === cur) opt.selected = true;
         optGroupAvail.appendChild(opt);
       });
@@ -1480,7 +1482,9 @@
     const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
     if (!v) { box.classList.remove('show'); return; }
 
-    document.getElementById('infoBM').textContent    = v.bm_no;
+    const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
+    const newBadge = isNew ? ' <span style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle;">✨ Newly Added Bus</span>' : '';
+    document.getElementById('infoBM').innerHTML      = escapeHtml(v.bm_no) + newBadge;
     document.getElementById('infoReg').textContent   = v.reg_no;
     document.getElementById('infoModel').textContent = v.model;
     document.getElementById('infoStatus').textContent = v.status;
@@ -1555,6 +1559,9 @@
       loadDepotAssignments();
       handleSyncCleaningState();
     }
+    if (e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated') {
+      loadVehicles();
+    }
   });
 
   try {
@@ -1573,6 +1580,9 @@
     window.DepotSyncEngine.on('allocated-duties', handleSyncCleaningState);
     window.DepotSyncEngine.on('bus-state', handleSyncCleaningState);
     window.DepotSyncEngine.on('sync', handleSyncCleaningState);
+    window.DepotSyncEngine.on('fleet-bus-added', () => { loadVehicles(); });
+    window.DepotSyncEngine.on('fleet-bus-deleted', () => { loadVehicles(); });
+    window.DepotSyncEngine.on('fleet-updated', () => { loadVehicles(); });
     window.DepotSyncEngine.on('depot-updated', () => {
       loadDepotAssignments();
       handleSyncCleaningState();

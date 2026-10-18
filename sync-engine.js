@@ -19,6 +19,8 @@
     const ALLOCATED_KEY = 'smartbus_allocated_duties';
     const LOCKED_KEY = 'depot_locked_buses';
     const BUS_STATES_KEY = 'depot_bus_states';
+    const ADDED_BUSES_KEY = 'depot_added_buses';
+    const DELETED_BUSES_KEY = 'depot_deleted_buses';
 
     let currentVersion = 0;
     let eventSource = null;
@@ -30,6 +32,7 @@
         'allocated-duties': new Set(),
         'locked-buses': new Set(),
         'depot-updated': new Set(),
+        'fleet-updated': new Set(),
         'sync': new Set()
     };
 
@@ -100,6 +103,21 @@
                 depot1Count: counts.depot1Count,
                 depot2Count: counts.depot2Count
             });
+        }
+        // 5. Sync added buses (newly inducted fleet)
+        if (stateData.addedBuses && typeof stateData.addedBuses === 'object') {
+            try {
+                localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(stateData.addedBuses));
+            } catch (e) {}
+            notify('fleet-updated', { type: 'added-sync', buses: stateData.addedBuses });
+        }
+
+        // 6. Sync deleted buses (withdrawn from available fleet)
+        if (stateData.deletedBuses && typeof stateData.deletedBuses === 'object') {
+            try {
+                localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(stateData.deletedBuses));
+            } catch (e) {}
+            notify('fleet-updated', { type: 'deleted-sync', buses: stateData.deletedBuses });
         }
 
         notify('sync', stateData);
@@ -231,6 +249,51 @@
                         notify('depot-updated', d);
                     } else {
                         fetchFullSync();
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('fleet-bus-added', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    if (payload && payload.data) {
+                        const { bm, addedInfo, addedBuses, deletedBuses } = payload.data;
+                        if (addedBuses) localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(addedBuses));
+                        if (deletedBuses) localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deletedBuses));
+                        notify('fleet-updated', { type: 'add', bm, data: addedInfo });
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('fleet-bus-deleted', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    if (payload && payload.data) {
+                        const { bm, deletedInfo, addedBuses, deletedBuses } = payload.data;
+                        if (addedBuses) localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(addedBuses));
+                        if (deletedBuses) localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deletedBuses));
+                        notify('fleet-updated', { type: 'delete', bm, data: deletedInfo });
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('fleet-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    if (payload && payload.data) {
+                        const { addedBuses, deletedBuses } = payload.data;
+                        if (addedBuses) localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(addedBuses));
+                        if (deletedBuses) localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deletedBuses));
+                        notify('fleet-updated', payload.data);
                     }
                 } catch (err) {
                     fetchFullSync();
@@ -384,20 +447,205 @@
             map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
         } catch (e) {}
 
-        DEFAULT_FLEET_BMS.forEach((bm) => {
-            const assigned = map[bm] || DEFAULT_DEPOT_MAP[bm] || '1';
+        const deleted = getDeletedBusesLocal();
+        const added = getAddedBusesLocal();
+        const allBms = Array.from(new Set([...DEFAULT_FLEET_BMS, ...Object.keys(added)]));
+
+        allBms.forEach((bm) => {
+            if (deleted[bm]) return;
+            const assigned = map[bm] || (added[bm] ? added[bm].depot : null) || DEFAULT_DEPOT_MAP[bm] || '1';
             if (String(assigned) === '2') d2++;
             else d1++;
         });
 
-        for (const k of Object.keys(map)) {
-            if (!DEFAULT_FLEET_BMS.includes(k)) {
-                if (String(map[k]) === '2') d2++;
-                else d1++;
-            }
-        }
         return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
     }
+
+    // ── Fleet Bus Management Helper Functions ──
+    function getAddedBusesLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(ADDED_BUSES_KEY) || '{}');
+        } catch(e) { return {}; }
+    }
+
+    function getDeletedBusesLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(DELETED_BUSES_KEY) || '{}');
+        } catch(e) { return {}; }
+    }
+
+    function isNewlyAddedBus(bm) {
+        if (!bm) return false;
+        const clean = String(bm).toUpperCase().trim();
+        const added = getAddedBusesLocal();
+        if (added[clean]) return true;
+        try {
+            const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
+            if (states[clean] && states[clean].isNewlyAdded) return true;
+        } catch(e) {}
+        return false;
+    }
+
+    function getNewlyAddedInfo(bm) {
+        if (!bm) return null;
+        const clean = String(bm).toUpperCase().trim();
+        const added = getAddedBusesLocal();
+        if (added[clean]) return added[clean];
+        try {
+            const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
+            if (states[clean] && states[clean].isNewlyAdded) {
+                return {
+                    bm: clean,
+                    regNo: states[clean].regNo || '',
+                    reason: states[clean].additionReason || 'Newly added to fleet',
+                    addedAt: states[clean].addedAt || ''
+                };
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    function isDeletedBus(bm) {
+        if (!bm) return false;
+        const clean = String(bm).toUpperCase().trim();
+        const deleted = getDeletedBusesLocal();
+        if (deleted[clean]) return true;
+        try {
+            const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
+            if (states[clean] && (states[clean].status === 'Deleted' || states[clean].deleted === true)) return true;
+        } catch(e) {}
+        return false;
+    }
+
+    function getDeletedInfo(bm) {
+        if (!bm) return null;
+        const clean = String(bm).toUpperCase().trim();
+        const deleted = getDeletedBusesLocal();
+        if (deleted[clean]) return deleted[clean];
+        try {
+            const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
+            if (states[clean] && (states[clean].status === 'Deleted' || states[clean].deleted === true)) {
+                return {
+                    bm: clean,
+                    regNo: states[clean].regNo || '',
+                    reason: states[clean].deletionReason || 'Removed from fleet',
+                    deletedAt: states[clean].deletedAt || ''
+                };
+            }
+        } catch(e) {}
+        return null;
+    }
+
+    async function addFleetBusApi(data) {
+        try {
+            const res = await fetch(API_BASE + '/api/fleet/add-bus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result && result.ok) {
+                const bm = String(data.bm).toUpperCase().trim();
+                const added = getAddedBusesLocal();
+                added[bm] = result.bus || data;
+                localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
+                const deleted = getDeletedBusesLocal();
+                delete deleted[bm];
+                localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
+
+                try {
+                    const bc = new BroadcastChannel('depot_operations_sync');
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: result.bus });
+                } catch(e) {}
+
+                notify('fleet-updated', { type: 'add', bm, data: result.bus });
+                return result;
+            } else {
+                throw new Error(result.error || 'Failed to add bus');
+            }
+        } catch(e) {
+            console.error('[SyncEngine] addFleetBusApi error:', e);
+            throw e;
+        }
+    }
+
+    async function deleteFleetBusApi(data) {
+        try {
+            const res = await fetch(API_BASE + '/api/fleet/delete-bus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result && result.ok) {
+                const bm = String(data.bm).toUpperCase().trim();
+                const deleted = getDeletedBusesLocal();
+                deleted[bm] = result.bus || data;
+                localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
+                const added = getAddedBusesLocal();
+                delete added[bm];
+                localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
+
+                try {
+                    const bc = new BroadcastChannel('depot_operations_sync');
+                    bc.postMessage({ type: 'FLEET_BUS_DELETED', bm, data: result.bus });
+                } catch(e) {}
+
+                notify('fleet-updated', { type: 'delete', bm, data: result.bus });
+                return result;
+            } else {
+                throw new Error(result.error || 'Failed to delete bus');
+            }
+        } catch(e) {
+            console.error('[SyncEngine] deleteFleetBusApi error:', e);
+            throw e;
+        }
+    }
+
+    async function restoreFleetBusApi(data) {
+        try {
+            const res = await fetch(API_BASE + '/api/fleet/restore-bus', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result && result.ok) {
+                const bm = String(data.bm).toUpperCase().trim();
+                const deleted = getDeletedBusesLocal();
+                delete deleted[bm];
+                localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
+                const added = getAddedBusesLocal();
+                added[bm] = result.bus || data;
+                localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
+
+                try {
+                    const bc = new BroadcastChannel('depot_operations_sync');
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: result.bus });
+                } catch(e) {}
+
+                notify('fleet-updated', { type: 'restore', bm, data: result.bus });
+                return result;
+            } else {
+                throw new Error(result.error || 'Failed to restore bus');
+            }
+        } catch(e) {
+            console.error('[SyncEngine] restoreFleetBusApi error:', e);
+            throw e;
+        }
+    }
+
+    // Cross-tab broadcast receiver
+    try {
+        const bc = new BroadcastChannel('depot_operations_sync');
+        bc.onmessage = (ev) => {
+            const msgType = String(ev.data?.type || '').toUpperCase();
+            if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
+                fetchFullSync();
+                notify('fleet-updated', ev.data);
+            }
+        };
+    } catch(e) {}
 
     // Initialize immediately on load
     initEventSource();
@@ -416,6 +664,15 @@
         saveDepotAssignment: pushDepotAssignment,
         getDepotForBus: getDepotForBus,
         getDepotCounts: getDepotCountsLocal,
+        getAddedBuses: getAddedBusesLocal,
+        getDeletedBuses: getDeletedBusesLocal,
+        isNewlyAddedBus: isNewlyAddedBus,
+        getNewlyAddedInfo: getNewlyAddedInfo,
+        isDeletedBus: isDeletedBus,
+        getDeletedInfo: getDeletedInfo,
+        addBus: addFleetBusApi,
+        deleteBus: deleteFleetBusApi,
+        restoreBus: restoreFleetBusApi,
         getVersion: () => currentVersion
     };
 })(window);

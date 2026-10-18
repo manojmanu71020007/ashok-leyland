@@ -15,6 +15,27 @@
     ];
 
     const TRANSLATIONS = {
+        "admin_btn_add_delete_buses": {
+            en: "Add / Delete Buses",
+            kn: "ಬಸ್ಸುಗಳನ್ನು ಸೇರಿಸಿ / ತೆಗೆದುಹಾಕಿ",
+            hi: "बसें जोड़ें / हटाएं",
+            te: "బస్సులను జోడించండి / తొలగించండి",
+            ta: "பேருந்துகளைச் சேர் / நீக்கு"
+        },
+        "badge_newly_added_bus": {
+            en: "✨ Newly Added Bus",
+            kn: "✨ ಹೊಸದಾಗಿ ಸೇರಿಸಲಾದ ಬಸ್",
+            hi: "✨ नई जोड़ी गई बस",
+            te: "✨ కొత్తగా చేర్చబడిన బస్సు",
+            ta: "✨ புதிதாக சேர்க்கப்பட்ட பேருந்து"
+        },
+        "badge_deleted_bus": {
+            en: "⚠️ Deleted / Withdrawn Bus",
+            kn: "⚠️ ತೆಗೆದುಹಾಕಲಾದ ಬಸ್",
+            hi: "⚠️ हटाई गई बस",
+            te: "⚠️ తొలగించబడిన బస్సు",
+            ta: "⚠️ நீக்கப்பட்ட பேருந்து"
+        },
         // ── Brand & Navigation ──
         "brand_name": {
             en: "Ashok Leyland BTS",

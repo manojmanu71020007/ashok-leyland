@@ -1830,6 +1830,9 @@
           ? '<span style="background:#ede9fe;color:#5b21b6;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟣 On Route</span>'
           : '<span style="background:#dcfce7;color:#166534;font-size:0.75rem;padding:2px 8px;border-radius:999px;font-weight:700;">🟢 Available</span>';
 
+        const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
+        const newBadge = isNew ? '<span class="badge-newly-added" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 1px 4px rgba(16,185,129,0.3);">✨ Newly Added Bus</span>' : '';
+
         return `
           <div class="history-bus-row" onclick="selectBusForHistory('${v.bm_no}')">
             <div class="history-bus-main">
@@ -1838,6 +1841,7 @@
                 <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                   <span class="history-bus-bm">${v.bm_no}</span>
                   <span class="history-bus-reg">${v.reg_no || 'KA51AH'}</span>
+                  ${newBadge}
                   <span style="font-size:0.75rem;font-weight:800;padding:2px 8px;border-radius:999px;background:#ede9fe;color:#6d28d9;">
                     🏢 Depot ${bDepot}
                   </span>
@@ -2164,7 +2168,7 @@
         const obj  = {};
         headers.forEach((h, i) => obj[h] = cols[i] || '');
         return obj;
-      }).filter(v => v.bm_no);
+      }).filter(v => v.bm_no && v.status !== 'Deleted' && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(v.bm_no)));
     } catch {
       // Fallback sample data
       allVehicles = [
@@ -2191,9 +2195,11 @@
       const isAlloc = isBusAllocated(v.bm_no);
       const emoji   = isAlloc ? '🟣' : '🟢';
       const bDepot  = getBusDepot(v.bm_no);
+      const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
+      const newPrefix = isNew ? '✨ [NEW] ' : '';
       const opt = document.createElement('option');
       opt.value       = v.bm_no;
-      opt.textContent = `${emoji} ${v.bm_no}  |  ${v.reg_no || '—'}  (Depot ${bDepot})`;
+      opt.textContent = `${newPrefix}${emoji} ${v.bm_no}  |  ${v.reg_no || '—'}  (Depot ${bDepot})`;
       sel.appendChild(opt);
     });
 
@@ -2677,15 +2683,22 @@
   });
 
   // Auto-refresh when other tabs or devices update allocations or depot assignments
-  window.addEventListener('storage', e => {
+  window.addEventListener('storage', async e => {
     if ([ALLOCATED_KEY, SMARTBUS_ALLOCATED_KEY, LOCKED_KEY, COMPLETED_LOG_KEY, 'depot_bus_assignments'].includes(e.key)) {
       loadDepotAssignments();
+      refreshAll();
+    }
+    if (['depot_added_buses', 'depot_deleted_buses', 'depot_fleet_updated'].includes(e.key)) {
+      await loadVehicles();
       refreshAll();
     }
   });
 
   if (window.DepotSyncEngine) {
     window.DepotSyncEngine.on('sync', () => { loadDepotAssignments(); refreshAll(); });
+    window.DepotSyncEngine.on('fleet-bus-added', async () => { await loadVehicles(); refreshAll(); });
+    window.DepotSyncEngine.on('fleet-bus-deleted', async () => { await loadVehicles(); refreshAll(); });
+    window.DepotSyncEngine.on('fleet-updated', async () => { await loadVehicles(); refreshAll(); });
     window.DepotSyncEngine.on('depot-updated', (data) => {
       if (data && data.assignments) depotAssignments = data.assignments;
       if (data && data.depot1Count !== undefined) {

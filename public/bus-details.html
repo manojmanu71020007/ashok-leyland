@@ -286,6 +286,23 @@
             // Update UI elements
             document.getElementById("pageHeading").textContent = `Vehicle ${physicalBusName} Battery Analytics`;
             document.getElementById("busIdLabel").textContent = physicalBusName;
+            const isNew = (window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(physicalBusName)) || info.isNewlyAdded;
+            if (isNew) {
+              const addInfo = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === 'function') ? window.DepotSyncEngine.getNewlyAddedInfo(physicalBusName) : null;
+              const reasonText = addInfo?.reason || info.additionReason || "Newly added fleet vehicle";
+              const badgeEl = document.createElement("span");
+              badgeEl.style.cssText = "display:inline-block; margin-left:8px; vertical-align:middle; font-size:0.75rem; font-weight:800; background:linear-gradient(135deg, #10b981, #059669); color:#fff; padding:3px 10px; border-radius:6px; box-shadow:0 2px 6px rgba(16,185,129,0.3);";
+              badgeEl.textContent = "✨ Newly Added Bus";
+              badgeEl.title = `Reason: ${reasonText}`;
+              document.getElementById("busIdLabel").appendChild(badgeEl);
+            }
+            const isDel = window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(physicalBusName);
+            if (isDel) {
+              const badgeEl = document.createElement("span");
+              badgeEl.style.cssText = "display:inline-block; margin-left:8px; vertical-align:middle; font-size:0.75rem; font-weight:800; background:#dc2626; color:#fff; padding:3px 10px; border-radius:6px;";
+              badgeEl.textContent = "🗑️ Deleted from Fleet";
+              document.getElementById("busIdLabel").appendChild(badgeEl);
+            }
             const odText = (info.origin && info.destination) ? ` • ${info.origin} ➔ ${info.destination}` : "";
             document.getElementById("routeIdSub").textContent = assignedRouteDisplay ? `Assigned: ${assignedRouteDisplay}${odText}` : "Assigned: Active";
 

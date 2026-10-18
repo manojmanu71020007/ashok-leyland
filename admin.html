@@ -1664,6 +1664,92 @@
         .btn-view-locked-details:hover {
             background: #fecaca;
         }
+
+        /* ── Add / Delete Buses Topbar Button & Badges ── */
+        .add-delete-buses-topbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #ffffff;
+            color: #4f46e5;
+            border: 1.5px solid #c7d2fe;
+            border-radius: 999px;
+            padding: 7px 15px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.10);
+            transition: all 0.2s ease;
+        }
+        .add-delete-buses-topbar-btn:hover {
+            background: #eef2ff;
+            border-color: #6366f1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.20);
+        }
+        .add-delete-buses-topbar-btn:active {
+            transform: translateY(0);
+        }
+        .newly-added-badge-count {
+            background: #4f46e5;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .badge-newly-added {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%);
+            color: #854d0e;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid #facc15;
+            box-shadow: 0 1px 3px rgba(234, 179, 8, 0.25);
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .badge-deleted-bus {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid #fca5a5;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .modal-tab-btn {
+            padding: 10px 18px;
+            border: none;
+            background: transparent;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            border-bottom: 2.5px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .modal-tab-btn:hover {
+            color: #0f172a;
+        }
+        .modal-tab-btn.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
         .locked-table-wrap {
             border: 1px solid #e2e8f0;
             border-radius: 10px;
@@ -1856,6 +1942,11 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                         <span style="pointer-events:none;" data-i18n="admin_locked_buses">Locked Buses</span>
                         <span id="topbar-locked-count" class="locked-badge-count" style="pointer-events:none;">0</span>
+                    </button>
+                    <button id="add-delete-buses-topbar-btn" class="add-delete-buses-topbar-btn" type="button" title="Add new buses or delete buses from available fleet" onclick="openAddDeleteBusesModal()">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M8 6v6m-3-3h6m3 3h6m-18 8h20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+                        <span style="pointer-events:none;" data-i18n="admin_btn_add_delete_buses">Add / Delete Buses</span>
+                        <span id="topbar-newly-added-count" class="newly-added-badge-count" style="pointer-events:none; display:none;">0</span>
                     </button>
                     <div class="live-chip" data-i18n="admin_workspace_title">Admin Workspace</div>
                     <button id="logout-btn" class="logout-btn" type="button" onclick="handleLogout(event)" title="Sign out and return to login">
@@ -2316,6 +2407,188 @@
                 </div>
             </div>
         </div>
+
+        <!-- Add / Delete Buses Modal Dialog -->
+        <div id="add-delete-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeAddDeleteBusesModal()">
+            <div class="modal-dialog" style="max-width:840px;" role="dialog" aria-modal="true" aria-labelledby="add-del-modal-title">
+                <div class="modal-header">
+                    <div>
+                        <div class="eyebrow" style="margin-bottom:4px; color:#4f46e5;">Fleet Management</div>
+                        <h2 id="add-del-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+                            <span>🚌 Add / Delete Buses</span>
+                            <span id="fleet-added-count-badge" style="background:#e0e7ff; color:#3730a3; font-weight:800; font-size:.82rem; padding:3px 10px; border-radius:6px; border:1px solid #c7d2fe;">0 Newly Added</span>
+                        </h2>
+                        <p style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
+                            Add new electric buses to the fleet or withdraw/delete buses from available service with mandatory reason tracking.
+                        </p>
+                    </div>
+                    <button type="button" class="modal-close-btn" aria-label="Close dialog" onclick="closeAddDeleteBusesModal()">✕</button>
+                </div>
+
+                <!-- Tabs: Delete Bus | Add Bus | Change History -->
+                <div style="display:flex; border-bottom:1px solid var(--line); background:#f8fafc; padding:0 24px; gap:8px;">
+                    <button type="button" id="tab-btn-del-bus" class="modal-tab-btn active" onclick="switchAddDeleteTab('del')">
+                        🗑️ Delete Bus (Remove from Fleet)
+                    </button>
+                    <button type="button" id="tab-btn-add-bus" class="modal-tab-btn" onclick="switchAddDeleteTab('add')">
+                        ➕ Add Bus (New Induction)
+                    </button>
+                    <button type="button" id="tab-btn-hist-bus" class="modal-tab-btn" onclick="switchAddDeleteTab('hist')">
+                        📋 Fleet Audit Log &amp; Changes
+                    </button>
+                </div>
+
+                <div class="modal-body" style="padding:22px 24px; max-height:calc(85vh - 160px); overflow-y:auto;">
+                    <!-- TAB 1: DELETE BUS -->
+                    <div id="tab-content-del-bus" style="display:block;">
+                        <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:12px 16px; margin-bottom:18px; font-size:0.85rem; color:#9f1239;">
+                            <strong>⚠️ Important:</strong> Deleting a bus removes it from the available fleet across all scheduling, departure, charging, and cleaning operations.
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Select Existing Active Bus
+                                </label>
+                                <select id="del-bus-select" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" onchange="onDeleteBusSelectChange(this.value)">
+                                    <option value="">— Choose a bus to delete —</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Bus Number (e.g. BM001) <span style="color:#ef4444;">*</span>
+                                </label>
+                                <input type="text" id="del-bus-bm" placeholder="e.g. BM001" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" oninput="onDeleteBusBmChange(this.value)" />
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Bus Registration No. (e.g. KA51AH4144) <span style="color:#ef4444;">*</span>
+                                </label>
+                                <input type="text" id="del-bus-reg" placeholder="e.g. KA51AH4144" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Reason Category <span style="color:#ef4444;">*</span>
+                                </label>
+                                <select id="del-bus-reason-select" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" onchange="onDelReasonSelectChange(this.value)">
+                                    <option value="Major Breakdown / Motor Defect">Major Breakdown / Motor Defect</option>
+                                    <option value="Battery Pack Degradation / Cell Failure">Battery Pack Degradation / Cell Failure</option>
+                                    <option value="Severe Accident Damage">Severe Accident Damage</option>
+                                    <option value="Periodic Heavy Maintenance / Overhaul">Periodic Heavy Maintenance / Overhaul</option>
+                                    <option value="Transferred to Depot 18">Transferred to Depot 18</option>
+                                    <option value="Transferred to Central Workshop">Transferred to Central Workshop</option>
+                                    <option value="Decommissioned from BMTC Service">Decommissioned from BMTC Service</option>
+                                    <option value="Other">Other (Specify below)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                Detailed Reason for Deleting Bus <span style="color:#ef4444;">*</span>
+                            </label>
+                            <textarea id="del-bus-reason-text" rows="3" placeholder="Explain why this bus is being removed from the available fleet (e.g. Bus BM001 (KA51AH4144) has inverter fault requiring manufacturer depot service)..." style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; font-family:inherit; resize:vertical;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button type="button" class="btn-util-toggle" onclick="closeAddDeleteBusesModal()">Cancel</button>
+                            <button type="button" id="btn-submit-delete-bus" onclick="submitDeleteBus()" style="background:#dc2626; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9rem; box-shadow:0 2px 6px rgba(220,38,38,0.25);">
+                                🗑️ Delete Bus from Available Fleet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 2: ADD BUS -->
+                    <div id="tab-content-add-bus" style="display:none;">
+                        <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px 16px; margin-bottom:18px; font-size:0.85rem; color:#1e40af;">
+                            <strong>✨ Note:</strong> Adding a new bus will register it in the available fleet and automatically mark it with a distinct <strong>✨ Newly Added Bus</strong> badge across all system dashboards.
+                        </div>
+
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px; margin-bottom:16px;">
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Bus Number (e.g. BM001 or BM305) <span style="color:#ef4444;">*</span>
+                                </label>
+                                <input type="text" id="add-bus-bm" placeholder="e.g. BM001 or BM305" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Bus Registration No. (e.g. KA51AH4144) <span style="color:#ef4444;">*</span>
+                                </label>
+                                <input type="text" id="add-bus-reg" placeholder="e.g. KA51AH4144" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Reason Category <span style="color:#ef4444;">*</span>
+                                </label>
+                                <select id="add-bus-reason-select" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" onchange="onAddReasonSelectChange(this.value)">
+                                    <option value="New Electric Bus Induction (Ashok Leyland EiV12)">New Electric Bus Induction (Ashok Leyland EiV12)</option>
+                                    <option value="Fleet Expansion (Depot 32)">Fleet Expansion (Depot 32)</option>
+                                    <option value="Re-inducted after Major Overhaul">Re-inducted after Major Overhaul</option>
+                                    <option value="Transferred from Depot 18">Transferred from Depot 18</option>
+                                    <option value="Replacement for Decommissioned Vehicle">Replacement for Decommissioned Vehicle</option>
+                                    <option value="Other">Other (Specify below)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Operating Depot
+                                </label>
+                                <select id="add-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;">
+                                    <option value="1">Depot 1 — Chandapura (BMT-32)</option>
+                                    <option value="2">Depot 2 — Central Depot</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Fleet Range Category
+                                </label>
+                                <select id="add-bus-cat" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;">
+                                    <option value="A">Category A — High Range (&gt;150 km Single Charge)</option>
+                                    <option value="B" selected>Category B — Standard Range (100–150 km)</option>
+                                    <option value="C">Category C — Short Range (&lt;100 km)</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Initial Battery SoC (%)
+                                </label>
+                                <input type="number" id="add-bus-soc" min="10" max="100" value="100" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:18px;">
+                            <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                Detailed Reason for Adding Bus <span style="color:#ef4444;">*</span>
+                            </label>
+                            <textarea id="add-bus-reason-text" rows="3" placeholder="Explain why this bus is being added to the fleet (e.g. New Ashok Leyland electric bus inducted under BMTC Phase-2 expansion)..." style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem; font-family:inherit; resize:vertical;"></textarea>
+                        </div>
+
+                        <div style="display:flex; justify-content:flex-end; gap:10px;">
+                            <button type="button" class="btn-util-toggle" onclick="closeAddDeleteBusesModal()">Cancel</button>
+                            <button type="button" id="btn-submit-add-bus" onclick="submitAddBus()" style="background:#16a34a; color:#fff; border:none; padding:10px 22px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.9rem; box-shadow:0 2px 6px rgba(22,163,74,0.25);">
+                                ➕ Confirm &amp; Add Bus to Fleet
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: AUDIT LOG & HISTORY -->
+                    <div id="tab-content-hist-bus" style="display:none;">
+                        <div id="fleet-history-content">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <script>
@@ -2686,7 +2959,16 @@
         //  AVAILABLE BUSES FOR SCHEDULING (Excluding Cleaning & Charging Buses)
         // ══════════════════════════════════════════════════════════════════════════
         function getAvailableBusesForSchedulingList() {
-            const allFleetKeys = Object.keys(STATIC_BUS_CATEGORIES);
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function")
+                ? window.DepotSyncEngine.getAddedBuses() : {};
+            const rawKeys = [
+                ...Object.keys(STATIC_BUS_CATEGORIES || {}),
+                ...Object.keys(addedBuses || {}),
+                ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
+            ];
+            const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
+                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+
             const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
             if (!Array.isArray(allocatedDuties) && typeof loadAllocatedDuties === "function") {
                 allocatedDuties = loadAllocatedDuties();
@@ -2735,6 +3017,8 @@
                 const fullDutyKm = typeof calculateFullDutyDistance === "function" ? calculateFullDutyDistance(liveSoc) : 100;
                 const busCat = typeof getBusCategory === "function" ? getBusCategory(bm, liveSoc) : (STATIC_BUS_CATEGORIES[bm] || "B");
                 const allocatedDuty = typeof findAllocatedDutyForBm === "function" ? findAllocatedDutyForBm(bm, allocatedDuties) : null;
+                const isNewlyAdded = Boolean(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(bm));
+                const newlyAddedInfo = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === "function") ? window.DepotSyncEngine.getNewlyAddedInfo(bm) : null;
 
                 available.push({
                     bm: bm,
@@ -2745,7 +3029,9 @@
                     condition: cond,
                     driver: bState.driver || "Driver Assigned",
                     isAllocated: Boolean(allocatedDuty),
-                    allocatedDuty: allocatedDuty
+                    allocatedDuty: allocatedDuty,
+                    isNewlyAdded: isNewlyAdded,
+                    additionReason: newlyAddedInfo ? newlyAddedInfo.reason : ""
                 });
             });
 
@@ -2837,6 +3123,7 @@
                             <div class="avail-sched-bm-wrap">
                                 <span class="avail-sched-bm">🚌 ${escapeHtml(bus.bm)}</span>
                                 ${bus.regNo ? `<span class="avail-sched-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
+                                ${bus.isNewlyAdded ? `<span class="badge-newly-added" title="${escapeHtml(bus.additionReason || 'Newly Added Bus')}">✨ Newly Added Bus</span>` : ''}
                                 <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(bus.bm)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
                                         <circle cx="12" cy="12" r="10"></circle>
@@ -4020,6 +4307,9 @@ let busCategoriesMap = new Map();
             function addCandidate(bm, role, isDuty = false) {
                 if (!bm) return;
                 const key = String(bm).toUpperCase().trim();
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(key)) {
+                    return;
+                }
                 const normKey = normalizeBm(key);
                 if (!normKey || seenBms.has(normKey)) return;
                 seenBms.add(normKey);
@@ -4036,6 +4326,8 @@ let busCategoriesMap = new Map();
                     const busCat = feas.busCategory || getBusCategory(key, liveSoc);
                     const regNo = getBusRegNo(key);
                     const surplus = liveSoc - reqSoc;
+                    const isNewlyAdded = Boolean(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(key));
+                    const newlyAddedInfo = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === "function") ? window.DepotSyncEngine.getNewlyAddedInfo(key) : null;
 
                     candidates.push({
                         bm: key,
@@ -4056,6 +4348,8 @@ let busCategoriesMap = new Map();
                         allocType: role,
                         condition: feas.condition || "Good",
                         driver: feas.driver || "Assigned",
+                        isNewlyAdded: isNewlyAdded,
+                        additionReason: newlyAddedInfo ? newlyAddedInfo.reason : "",
                         reason: `Bus ${key} (Category ${busCat}) is available for ${depTimeClean} departure on Route ${routeCode} in ${targetShift}. Live battery SoC (${liveSoc}%) satisfies required Single Charge Operation level (${reqSoc}% required; surplus: +${surplus}%) delivering ${fullDutyKm} km Full Duty Range for ${routeDist.toFixed(1)} km route.`
                     });
                 }
@@ -4087,14 +4381,19 @@ let busCategoriesMap = new Map();
 
             // 4. Depot reserve fleet search to guarantee eligible candidate buses for the required tier
             if (candidates.length < 2) {
-                const allFleetKeys = Object.keys(STATIC_BUS_CATEGORIES);
+                const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+                const allFleetKeys = Array.from(new Set([
+                    ...Object.keys(STATIC_BUS_CATEGORIES || {}),
+                    ...Object.keys(addedBuses || {})
+                ])).filter(k => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(k)));
+
                 let priorityKeys = [];
                 if (isPeakTime || isComplexRoute) {
-                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "A");
+                    priorityKeys = allFleetKeys.filter(k => (STATIC_BUS_CATEGORIES[k] || "B") === "A");
                 } else if (complexity === "standard" || complexity === "moderate") {
-                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "B");
+                    priorityKeys = allFleetKeys.filter(k => (STATIC_BUS_CATEGORIES[k] || "B") === "B");
                 } else {
-                    priorityKeys = allFleetKeys.filter(k => STATIC_BUS_CATEGORIES[k] === "B" || STATIC_BUS_CATEGORIES[k] === "C");
+                    priorityKeys = allFleetKeys.filter(k => (STATIC_BUS_CATEGORIES[k] || "B") === "B" || (STATIC_BUS_CATEGORIES[k] || "B") === "C");
                 }
                 for (const bm of priorityKeys) {
                     if (candidates.length >= 4) break;
@@ -4247,6 +4546,7 @@ let busCategoriesMap = new Map();
                                 <span class="avail-bus-bm">🚌 ${escapeHtml(bus.bm)}</span>
                                 ${bus.regNo ? `<span class="avail-bus-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
                                 <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                                ${bus.isNewlyAdded ? `<span class="badge-newly-added" title="${escapeHtml(bus.additionReason || 'Newly Added Bus')}">✨ Newly Added Bus</span>` : ''}
                             </div>
                             <div class="avail-bus-sub">
                                 <span>${escapeHtml(bus.role || 'Designated Bus')}</span>
@@ -4621,10 +4921,15 @@ let busCategoriesMap = new Map();
             // Allocated list comes directly from committed allocatedDuties
             renderAllocatedList(allocatedDuties);
 
-            // Not Allocated list contains all depot buses that are NOT in allocatedDuties
+            // Not Allocated list contains all depot buses that are NOT in allocatedDuties, excluding deleted buses
             const notAllocatedRoutes = routes.filter((r) => {
                 const assignedVehicle = String(getAssignedBusName(r) || "").toUpperCase().trim();
                 const candBm = String(r.bmNumber || r.uniqueId || "").toUpperCase().trim();
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function") {
+                    if (window.DepotSyncEngine.isDeletedBus(assignedVehicle) || window.DepotSyncEngine.isDeletedBus(candBm)) {
+                        return false;
+                    }
+                }
                 if (allocatedBmSet.has(assignedVehicle) || allocatedBmSet.has(candBm)) {
                     return false; // This bus is allocated, so remove from Not Allocated!
                 }
@@ -4796,7 +5101,9 @@ let busCategoriesMap = new Map();
             const tripsBadge = `<span style="background:#eff6ff;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #bfdbfe;">🎯 ${tripCount} Trips</span>`;
             const typeBadge = `<span style="background:#f8fafc;color:#475569;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:600;border:1px solid #e2e8f0;">${allocType}</span>`;
 
-            const titleHtml = `<strong>${routeCode} <span style="font-size:.72rem;background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:4px;font-weight:800;vertical-align:middle;border:1px solid #bbf7d0;">🚌 BM Number: ${bm}</span> ${regNo}</strong>`;
+            const isNewlyAdded = Boolean((window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(bm)) || duty.isNewlyAdded);
+            const newlyAddedBadge = isNewlyAdded ? `<span class="badge-newly-added" style="margin-left:6px;">✨ Newly Added Bus</span>` : "";
+            const titleHtml = `<strong>${routeCode} <span style="font-size:.72rem;background:#f0fdf4;color:#166534;padding:2px 8px;border-radius:4px;font-weight:800;vertical-align:middle;border:1px solid #bbf7d0;">🚌 BM Number: ${bm}</span> ${regNo} ${newlyAddedBadge}</strong>`;
             const subtitleHtml = allocAt ? `<span style="color:var(--muted);font-size:.72rem;">Allocated at ${allocAt}</span>` : "";
 
             const highlightStyle = duty._isJustAdded ? "border-left: 4px solid #16a34a; background: #f0fdf4; transition: background 1.5s ease;" : "";
@@ -5100,8 +5407,9 @@ let busCategoriesMap = new Map();
             const catBadge = `<span style="background:#fee2e2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">${routeCat}</span>`;
             const tierBadge = `<span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;">Tier ${busCat}</span>`;
             const tripCount = route.tripCount || gtfsScheduleMap.get(String(route.routeId))?.tripCount || 0;
-            const tripsBadge = `<span style="background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fecaca;">🎯 ${tripCount} Trips</span>`;
-            const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span></strong>`;
+            const isNewlyAdded = Boolean((window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(assignedVehicle)) || route.isNewlyAdded);
+            const newlyAddedBadge = isNewlyAdded ? `<span class="badge-newly-added" style="margin-left:6px;">✨ Newly Added Bus</span>` : "";
+            const titleHtml = `<strong>${route.busNumber} <span style="font-size:.68rem;background:#fef2f2;color:#991b1b;padding:2px 6px;border-radius:4px;font-weight:700;vertical-align:middle;">🚌 BM Number: ${assignedVehicle}</span> ${newlyAddedBadge}</strong>`;
             const subtitleHtml = `<span style="color:#a94b15;font-size:.72rem;">Route ID: ${route.routeId}</span>`;
 
             return `
@@ -7026,6 +7334,450 @@ let busCategoriesMap = new Map();
         } catch(e) {}
 
 
+        // ══════════════════════════════════════════════════════════════════════════
+        //  ADD / DELETE BUSES FLEET MANAGEMENT MODAL
+        // ══════════════════════════════════════════════════════════════════════════
+        function openAddDeleteBusesModal(tab = 'delete') {
+            const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (!backdrop) return;
+            backdrop.style.display = "flex";
+            backdrop.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+            populateDeleteBusSelectors();
+            switchAddDeleteTab(tab);
+            updateAddDeleteBadgeCount();
+        }
+
+        function closeAddDeleteBusesModal() {
+            const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (!backdrop) return;
+            backdrop.style.display = "none";
+            backdrop.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        function switchAddDeleteTab(tabName) {
+            const btnDel = document.getElementById("tab-btn-delete-bus");
+            const btnAdd = document.getElementById("tab-btn-add-bus");
+            const btnHist = document.getElementById("tab-btn-hist-bus");
+            const contentDel = document.getElementById("tab-content-delete-bus");
+            const contentAdd = document.getElementById("tab-content-add-bus");
+            const contentHist = document.getElementById("tab-content-hist-bus");
+
+            if (btnDel) btnDel.classList.remove("active");
+            if (btnAdd) btnAdd.classList.remove("active");
+            if (btnHist) btnHist.classList.remove("active");
+            if (contentDel) contentDel.style.display = "none";
+            if (contentAdd) contentAdd.style.display = "none";
+            if (contentHist) contentHist.style.display = "none";
+
+            if (tabName === "add") {
+                if (btnAdd) btnAdd.classList.add("active");
+                if (contentAdd) contentAdd.style.display = "block";
+            } else if (tabName === "hist") {
+                if (btnHist) btnHist.classList.add("active");
+                if (contentHist) contentHist.style.display = "block";
+                renderFleetHistoryTab();
+            } else {
+                if (btnDel) btnDel.classList.add("active");
+                if (contentDel) contentDel.style.display = "block";
+                populateDeleteBusSelectors();
+            }
+        }
+
+        function populateDeleteBusSelectors() {
+            const selectEl = document.getElementById("delete-bus-select");
+            const bmInput = document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("delete-bus-reg");
+            if (!selectEl) return;
+
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+            const rawKeys = [
+                ...Object.keys(STATIC_BUS_CATEGORIES || {}),
+                ...Object.keys(addedBuses || {}),
+                ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
+            ];
+            const allKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
+                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)))
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+
+            selectEl.innerHTML = '<option value="">— Select an active bus from available fleet (' + allKeys.length + ' buses) —</option>' +
+                allKeys.map(bm => {
+                    const reg = (typeof getBusRegNo === "function") ? getBusRegNo(bm) : (addedBuses[bm]?.regNumber || "KA51AH");
+                    const cat = (typeof getBusCategory === "function") ? getBusCategory(bm) : (STATIC_BUS_CATEGORIES[bm] || "B");
+                    const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(bm);
+                    const newPrefix = isNew ? "✨ [NEW] " : "";
+                    return `<option value="${escapeHtml(bm)}" data-reg="${escapeHtml(reg)}">${newPrefix}${escapeHtml(bm)} — ${escapeHtml(reg)} (Cat ${cat})</option>`;
+                }).join("");
+
+            if (bmInput && bmInput.value) {
+                selectEl.value = bmInput.value.toUpperCase();
+            }
+        }
+
+        function onDeleteBusSelectChange(bmVal) {
+            const bmInput = document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("delete-bus-reg");
+            const selectEl = document.getElementById("delete-bus-select");
+            if (!bmVal) {
+                if (bmInput) bmInput.value = "";
+                if (regInput) regInput.value = "";
+                return;
+            }
+            const cleanBm = String(bmVal).toUpperCase().trim();
+            if (bmInput) bmInput.value = cleanBm;
+            let reg = typeof getBusRegNo === "function" ? getBusRegNo(cleanBm) : "";
+            if (!reg && selectEl && selectEl.selectedOptions && selectEl.selectedOptions[0]) {
+                reg = selectEl.selectedOptions[0].getAttribute("data-reg") || "";
+            }
+            if (!reg) {
+                const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+                if (addedBuses[cleanBm]) reg = addedBuses[cleanBm].regNumber;
+            }
+            if (regInput && reg) regInput.value = reg;
+        }
+
+        function onDeleteBusBmChange(bmVal) {
+            const cleanBm = String(bmVal || "").toUpperCase().trim();
+            const selectEl = document.getElementById("delete-bus-select");
+            const regInput = document.getElementById("delete-bus-reg");
+            if (!cleanBm) return;
+            if (selectEl) {
+                const opt = Array.from(selectEl.options).find(o => o.value.toUpperCase() === cleanBm);
+                if (opt) {
+                    selectEl.value = opt.value;
+                    if (regInput && !regInput.value) regInput.value = opt.getAttribute("data-reg") || "";
+                }
+            }
+            if (regInput && !regInput.value && typeof getBusRegNo === "function") {
+                const r = getBusRegNo(cleanBm);
+                if (r) regInput.value = r;
+            }
+        }
+
+        function onDeleteReasonSelectChange(val) {
+            const txt = document.getElementById("delete-bus-reason-text");
+            if (!txt) return;
+            if (val === "Other") {
+                txt.focus();
+            } else if (!txt.value || txt.value.trim().length === 0) {
+                txt.value = val;
+            }
+        }
+
+        function onAddReasonSelectChange(val) {
+            const txt = document.getElementById("add-bus-reason-text");
+            if (!txt) return;
+            if (val === "Other") {
+                txt.focus();
+            } else if (!txt.value || txt.value.trim().length === 0) {
+                txt.value = val;
+            }
+        }
+
+        async function submitDeleteBus() {
+            const bmInput = document.getElementById("delete-bus-bm");
+            const regInput = document.getElementById("delete-bus-reg");
+            const reasonSelect = document.getElementById("delete-bus-reason-select");
+            const reasonText = document.getElementById("delete-bus-reason-text");
+            const btn = document.getElementById("btn-submit-delete-bus");
+
+            const busNumber = (bmInput ? bmInput.value : "").trim().toUpperCase();
+            const regNumber = (regInput ? regInput.value : "").trim().toUpperCase();
+            const reasonVal = (reasonText && reasonText.value.trim()) ? reasonText.value.trim() : (reasonSelect ? reasonSelect.value : "Fleet Maintenance Off-road");
+
+            if (!busNumber) {
+                alert("Please select or enter a Bus Number (e.g. BM001).");
+                if (bmInput) bmInput.focus();
+                return;
+            }
+            if (!regNumber) {
+                alert("Please enter the Bus Registration Number (e.g. KA51AH4144).");
+                if (regInput) regInput.focus();
+                return;
+            }
+            if (!reasonVal) {
+                alert("Please enter the reason for deleting this bus from the fleet.");
+                if (reasonText) reasonText.focus();
+                return;
+            }
+
+            const confirmed = confirm(`Are you sure you want to delete Bus ${busNumber} (${regNumber}) from the available fleet?\n\nReason: ${reasonVal}\n\nThis will remove it from all scheduling and operational portals.`);
+            if (!confirmed) return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "⏳ Deleting Bus...";
+            }
+
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.deleteBus === "function") {
+                    await window.DepotSyncEngine.deleteBus({ busNumber, regNumber, reason: reasonVal });
+                } else {
+                    await fetch('/api/fleet/delete-bus', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ busNumber, regNumber, reason: reasonVal })
+                    });
+                }
+
+                // If deleted bus was in allocatedDuties, remove it
+                if (Array.isArray(allocatedDuties)) {
+                    const filteredDuties = allocatedDuties.filter(d => String(d.bm || '').toUpperCase().trim() !== busNumber);
+                    if (filteredDuties.length !== allocatedDuties.length) {
+                        allocatedDuties = filteredDuties;
+                        localStorage.setItem("smartbus_allocated_duties", JSON.stringify(allocatedDuties));
+                        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === "function") {
+                            window.DepotSyncEngine.saveAllocatedDuties(allocatedDuties);
+                        }
+                    }
+                }
+
+                // Reset inputs
+                if (bmInput) bmInput.value = "";
+                if (regInput) regInput.value = "";
+                if (reasonText) reasonText.value = "";
+
+                handleSyncStateUpdate();
+                populateDeleteBusSelectors();
+                updateAddDeleteBadgeCount();
+
+                alert(`✅ Bus ${busNumber} (${regNumber}) has been deleted from the available fleet.\n\nReason recorded: ${reasonVal}`);
+                switchAddDeleteTab('hist');
+            } catch (err) {
+                console.error("Failed to delete bus:", err);
+                alert("Error deleting bus: " + (err.message || "Network error"));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "🗑️ Delete Bus from Available Fleet";
+                }
+            }
+        }
+
+        async function submitAddBus() {
+            const bmInput = document.getElementById("add-bus-bm");
+            const regInput = document.getElementById("add-bus-reg");
+            const reasonSelect = document.getElementById("add-bus-reason-select");
+            const reasonText = document.getElementById("add-bus-reason-text");
+            const depotSelect = document.getElementById("add-bus-depot");
+            const catSelect = document.getElementById("add-bus-cat");
+            const socInput = document.getElementById("add-bus-soc");
+            const btn = document.getElementById("btn-submit-add-bus");
+
+            const busNumber = (bmInput ? bmInput.value : "").trim().toUpperCase();
+            const regNumber = (regInput ? regInput.value : "").trim().toUpperCase();
+            const reasonVal = (reasonText && reasonText.value.trim()) ? reasonText.value.trim() : (reasonSelect ? reasonSelect.value : "New Electric Bus Induction");
+            const depot = depotSelect ? depotSelect.value : "1";
+            const busCategory = catSelect ? catSelect.value : "B";
+            const soc = socInput ? Number(socInput.value) || 100 : 100;
+
+            if (!busNumber) {
+                alert("Please enter a Bus Number (e.g. BM001 or BM305).");
+                if (bmInput) bmInput.focus();
+                return;
+            }
+            if (!regNumber) {
+                alert("Please enter the Bus Registration Number (e.g. KA51AH4144).");
+                if (regInput) regInput.focus();
+                return;
+            }
+            if (!reasonVal) {
+                alert("Please enter the reason for adding this bus to the fleet.");
+                if (reasonText) reasonText.focus();
+                return;
+            }
+
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "⏳ Adding Bus...";
+            }
+
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.addBus === "function") {
+                    await window.DepotSyncEngine.addBus({
+                        busNumber,
+                        regNumber,
+                        reason: reasonVal,
+                        depot,
+                        busCategory,
+                        soc
+                    });
+                } else {
+                    await fetch('/api/fleet/add-bus', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            busNumber,
+                            regNumber,
+                            reason: reasonVal,
+                            depot,
+                            busCategory,
+                            soc
+                        })
+                    });
+                }
+
+                // Set SoC in local state
+                if (!busStates[busNumber]) busStates[busNumber] = {};
+                busStates[busNumber].soc = soc;
+                busStates[busNumber].fullDutyDistanceKm = Math.round(soc * 1.42);
+                busStates[busNumber].condition = "Good";
+                localStorage.setItem("depot_bus_soc_" + busNumber, String(soc));
+
+                // Reset inputs
+                if (bmInput) bmInput.value = "";
+                if (regInput) regInput.value = "";
+                if (reasonText) reasonText.value = "";
+
+                handleSyncStateUpdate();
+                populateDeleteBusSelectors();
+                updateAddDeleteBadgeCount();
+
+                alert(`✨ Bus ${busNumber} (${regNumber}) added to fleet successfully!\n\nIt is now active and marked as "✨ Newly Added Bus" across all system dashboards.`);
+                switchAddDeleteTab('hist');
+            } catch (err) {
+                console.error("Failed to add bus:", err);
+                alert("Error adding bus: " + (err.message || "Network error"));
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "➕ Confirm & Add Bus to Fleet";
+                }
+            }
+        }
+
+        async function restoreDeletedBus(busNumber) {
+            if (!busNumber) return;
+            const confirmed = confirm(`Do you want to restore Bus ${busNumber} back to the active fleet?`);
+            if (!confirmed) return;
+
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.restoreBus === "function") {
+                    await window.DepotSyncEngine.restoreBus(busNumber);
+                } else {
+                    await fetch('/api/fleet/restore-bus', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ busNumber })
+                    });
+                }
+                handleSyncStateUpdate();
+                populateDeleteBusSelectors();
+                renderFleetHistoryTab();
+                updateAddDeleteBadgeCount();
+                alert(`✅ Bus ${busNumber} restored to active fleet.`);
+            } catch (err) {
+                console.error("Failed to restore bus:", err);
+                alert("Error restoring bus: " + (err.message || "Network error"));
+            }
+        }
+
+        function renderFleetHistoryTab() {
+            const container = document.getElementById("fleet-history-content");
+            if (!container) return;
+
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+            const deletedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === "function") ? window.DepotSyncEngine.getDeletedBuses() : {};
+
+            const addedList = Object.values(addedBuses);
+            const deletedList = Object.values(deletedBuses);
+
+            let html = `
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px;">
+                    <!-- ADDED BUSES -->
+                    <div style="background:#fff; border:1.5px solid #bbf7d0; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1.5px solid #f0fdf4; padding-bottom:8px;">
+                            <strong style="color:#166534; font-size:0.95rem; display:flex; align-items:center; gap:6px;">
+                                ✨ Newly Added Buses
+                                <span style="background:#dcfce7; color:#15803d; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:800;">${addedList.length}</span>
+                            </strong>
+                        </div>
+                        ${addedList.length === 0 ? `
+                            <div style="text-align:center; padding:24px 10px; color:#64748b; font-size:0.84rem;">
+                                No newly added buses in current fleet archive.
+                            </div>
+                        ` : `
+                            <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
+                                ${addedList.map(b => `
+                                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <div>
+                                                <strong style="color:#0f172a; font-size:0.9rem;">🚌 ${escapeHtml(b.busNumber)}</strong>
+                                                <span style="color:#475569; font-size:0.8rem; margin-left:6px;">(${escapeHtml(b.regNumber)})</span>
+                                            </div>
+                                            <span class="badge-newly-added">✨ Newly Added</span>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:#15803d; margin-top:4px;">
+                                            <strong>Reason:</strong> ${escapeHtml(b.reason || "Fleet Induction")}
+                                        </div>
+                                        <div style="font-size:0.72rem; color:#64748b; margin-top:4px; display:flex; gap:8px;">
+                                            <span>Depot: ${escapeHtml(b.depot || '1')}</span>
+                                            <span>•</span>
+                                            <span>Cat: ${escapeHtml(b.busCategory || 'B')}</span>
+                                            <span>•</span>
+                                            <span>Added: ${b.addedAt ? new Date(b.addedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Recently'}</span>
+                                        </div>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- DELETED BUSES -->
+                    <div style="background:#fff; border:1.5px solid #fecaca; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1.5px solid #fef2f2; padding-bottom:8px;">
+                            <strong style="color:#991b1b; font-size:0.95rem; display:flex; align-items:center; gap:6px;">
+                                🗑️ Deleted / Off-Road Buses
+                                <span style="background:#fee2e2; color:#b91c1c; padding:2px 8px; border-radius:12px; font-size:0.75rem; font-weight:800;">${deletedList.length}</span>
+                            </strong>
+                        </div>
+                        ${deletedList.length === 0 ? `
+                            <div style="text-align:center; padding:24px 10px; color:#64748b; font-size:0.84rem;">
+                                No buses have been deleted from the available fleet.
+                            </div>
+                        ` : `
+                            <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
+                                ${deletedList.map(b => `
+                                    <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px 12px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                                            <div>
+                                                <strong style="color:#991b1b; font-size:0.9rem; text-decoration:line-through;">🚌 ${escapeHtml(b.busNumber)}</strong>
+                                                <span style="color:#64748b; font-size:0.8rem; margin-left:6px;">(${escapeHtml(b.regNumber)})</span>
+                                            </div>
+                                            <button type="button" onclick="restoreDeletedBus('${escapeHtml(b.busNumber)}')" style="background:#fff; color:#2563eb; border:1px solid #bfdbfe; padding:3px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;" title="Restore this bus back to active fleet">
+                                                ↺ Restore Bus
+                                            </button>
+                                        </div>
+                                        <div style="font-size:0.8rem; color:#b91c1c; margin-top:4px;">
+                                            <strong>Reason:</strong> ${escapeHtml(b.reason || "Deleted")}
+                                        </div>
+                                        <div style="font-size:0.72rem; color:#64748b; margin-top:4px;">
+                                            Deleted at: ${b.deletedAt ? new Date(b.deletedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Recently'}
+                                        </div>
+                                    </div>
+                                `).join("")}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function updateAddDeleteBadgeCount() {
+            const badge = document.getElementById("newly-added-count-badge");
+            if (!badge) return;
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+            const count = Object.keys(addedBuses).length;
+            if (count > 0) {
+                badge.style.display = "inline-flex";
+                badge.textContent = `+${count}`;
+            } else {
+                badge.style.display = "none";
+            }
+        }
+
         function handleSyncStateUpdate() {
             syncLocalStorageBusStates();
             allocatedDuties = loadAllocatedDuties();
@@ -7047,9 +7799,20 @@ let busCategoriesMap = new Map();
             if (typeof updateAvailableSchedulingNavPill === "function") {
                 updateAvailableSchedulingNavPill();
             }
+
+            // Sync Add/Delete buses modal state
+            updateAddDeleteBadgeCount();
+            const addDelBackdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (addDelBackdrop && addDelBackdrop.style.display === "flex") {
+                populateDeleteBusSelectors();
+                const histContent = document.getElementById("tab-content-hist-bus");
+                if (histContent && histContent.style.display !== "none") {
+                    renderFleetHistoryTab();
+                }
+            }
         }
 
-        // Auto-refresh when localStorage changes (e.g. bus locked/unlocked in cleaning or charging tab, or SoC updated, or allocated in AD portal)
+        // Auto-refresh when localStorage changes
         window.addEventListener('storage', (e) => {
             if (e.key === 'depot_locked_buses') {
                 renderRoutes();
@@ -7066,7 +7829,7 @@ let busCategoriesMap = new Map();
                     updateAvailableSchedulingNavPill();
                 }
             }
-            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties') {
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated') {
                 handleSyncStateUpdate();
             }
         });
@@ -7077,7 +7840,13 @@ let busCategoriesMap = new Map();
             window.DepotSyncEngine.on('allocated-duties', handleSyncStateUpdate);
             window.DepotSyncEngine.on('locked-buses', handleSyncStateUpdate);
             window.DepotSyncEngine.on('sync', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('fleet-bus-added', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
         }
+
+        // Initialize badge count on startup
+        setTimeout(updateAddDeleteBadgeCount, 500);
 
         // Auto-sync when switching back to this tab
         window.addEventListener('focus', () => {
