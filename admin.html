@@ -2055,31 +2055,13 @@
                 <h2 id="allocation-title">Allocation result</h2>
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
-                    <div class="kpi"><strong id="bus-total">0</strong><span>Total buses available</span></div>
-                    <div class="kpi kpi-clickable" id="kpi-bus-departure" onclick="toggleAvailableBusesList()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ')toggleAvailableBusesList()" title="Click to view list of buses available for departure">
-                        <strong id="bus-departure">0</strong>
-                        <span>Buses available for departure</span>
-                        <span class="kpi-action-hint">👆 Click to view buses</span>
+                    <div class="kpi"><strong id="bus-total">0</strong><span id="bus-total-label">Total buses available</span></div>
+                    <div class="kpi" id="kpi-bus-allocated">
+                        <strong id="bus-allocated-kpi">0</strong>
+                        <span id="bus-allocated-kpi-label">Allocated buses</span>
                     </div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
                     <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span>Full Duty Distance (Single Charge)</span></div>
-                </div>
-
-                <!-- ── Interactive Dropdown / List for Buses Available for Departure ── -->
-                <div id="available-buses-container" class="available-buses-container" style="display:none;">
-                    <div class="available-buses-header">
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <span style="font-size:1.15rem;">🚌</span>
-                            <div>
-                                <strong id="available-buses-title" style="font-size:0.86rem;color:#0f172a;display:block;">Buses Available for Departure</strong>
-                                <span id="available-buses-sub" style="font-size:0.73rem;color:#64748b;">Click a bus to select and view full allocation details</span>
-                            </div>
-                        </div>
-                        <button type="button" id="btn-close-available-buses" class="btn-close-avail" onclick="toggleAvailableBusesList(false)" title="Close list">✕</button>
-                    </div>
-                    <div id="available-buses-list" class="available-buses-list">
-                        <!-- Populated dynamically -->
-                    </div>
                 </div>
                 <div class="rules">
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
@@ -4464,30 +4446,7 @@ let busCategoriesMap = new Map();
             return candidates;
         }
 
-        let lastToggleAvailTime = 0;
-        function toggleAvailableBusesList(forceOpen = null) {
-            const now = Date.now();
-            if (forceOpen === null && now - lastToggleAvailTime < 200) {
-                return;
-            }
-            lastToggleAvailTime = now;
-
-            const container = document.getElementById("available-buses-container");
-            if (!container) return;
-            const isHidden = !container.style.display || container.style.display === "none" || window.getComputedStyle(container).display === "none";
-            const shouldOpen = (forceOpen !== null) ? forceOpen : isHidden;
-            if (shouldOpen) {
-                container.style.display = "block";
-                try {
-                    renderAvailableBusesForDeparture();
-                } catch (err) {
-                    console.warn("Could not render available buses:", err);
-                }
-                container.scrollIntoView({ behavior: "smooth", block: "nearest" });
-            } else {
-                container.style.display = "none";
-            }
-        }
+        function toggleAvailableBusesList() {}
         window.toggleAvailableBusesList = toggleAvailableBusesList;
 
         function selectBusForDepartureByBm(bm) {
@@ -4768,23 +4727,6 @@ let busCategoriesMap = new Map();
 
         function updateRouteKpis(routeObj, departureTime) {
             const routeCodeVal = routeObj ? (routeObj.code || "356Z") : "356Z";
-            const routeDistKmVal = routeObj ? Number(routeObj.distKm || 28.7) : 28.7;
-            const depTimeClean = (departureTime || document.getElementById("departure")?.value || "13:10").trim();
-            const depShort = depTimeClean.substring(0, 5);
-            const depMin = timeToMinutes(depShort);
-
-            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCodeVal.toUpperCase());
-            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
-            if (!matchedSched && routeSchedules.length > 0) {
-                matchedSched = routeSchedules.slice().sort((a, b) => {
-                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
-                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
-                    return diffA - diffB;
-                })[0];
-            }
-            const complexity = getRouteComplexity(routeObj, matchedSched, depShort);
-            const isComplexRoute = (complexity === "complex");
-            const reqSoc = getRequiredSingleChargeSoc(routeDistKmVal, matchedSched);
 
             // Collect all unique BM numbers designated for this particular route only
             const routeDesignatedBms = new Set();
@@ -4804,24 +4746,24 @@ let busCategoriesMap = new Map();
 
             const totalBusesForRoute = routeDesignatedBms.size > 0 ? routeDesignatedBms.size : 7;
 
-            // Compute available buses for departure (on complex routes, strictly Category A!)
-            const availableBuses = getBusesAvailableForDeparture(routeObj, depTimeClean);
-            const busesAvailableForDeparture = availableBuses.length;
+            // Ultra-fast instant computation of allocated buses for this route
+            if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
+            const routeAllocDuties = (allocatedDuties || []).filter(d => {
+                const r = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
+                return r === normalizeRoute(routeCodeVal);
+            });
+            const allocatedCount = routeAllocDuties.length;
 
             const busTotalEl = document.getElementById("bus-total");
             if (busTotalEl) busTotalEl.textContent = String(totalBusesForRoute);
-            const busDepEl = document.getElementById("bus-departure");
-            if (busDepEl) busDepEl.textContent = String(busesAvailableForDeparture);
+            const busTotalLabel = document.getElementById("bus-total-label") || (busTotalEl && busTotalEl.parentElement ? busTotalEl.parentElement.querySelector("span") : null);
+            if (busTotalLabel) busTotalLabel.textContent = `Total buses (${routeCodeVal})`;
 
-            const busTotalSpan = busTotalEl && busTotalEl.parentElement ? busTotalEl.parentElement.querySelector("span") : null;
-            if (busTotalSpan) busTotalSpan.textContent = `Total buses (${routeCodeVal})`;
-            const busDepSpan = busDepEl && busDepEl.parentElement ? busDepEl.parentElement.querySelector("span") : null;
-            if (busDepSpan) {
-                const depTimeCat = getTimeCategory(depShort);
-                const reqCatA = isComplexRoute || depTimeCat.isPeak;
-                busDepSpan.textContent = reqCatA
-                    ? `Buses available for departure (${routeCodeVal} • Cat A & SoC ≥ ${reqSoc}%)`
-                    : `Buses available for departure (${routeCodeVal} • SoC ≥ ${reqSoc}%)`;
+            const busAllocEl = document.getElementById("bus-allocated-kpi") || document.getElementById("bus-departure");
+            if (busAllocEl) busAllocEl.textContent = String(allocatedCount);
+            const busAllocLabel = document.getElementById("bus-allocated-kpi-label") || (busAllocEl && busAllocEl.parentElement ? busAllocEl.parentElement.querySelector("span") : null);
+            if (busAllocLabel) {
+                busAllocLabel.textContent = allocatedCount > 0 ? `Allocated buses (${routeCodeVal})` : `Allocated buses`;
             }
         }
 
@@ -6621,18 +6563,10 @@ let busCategoriesMap = new Map();
 
             const isManualOverride = isDepartureManualOverride(departure, selectedRouteObj ? selectedRouteObj.code : "");
 
-            // If user explicitly selected a bus from the available list, retain it if valid for route
-            const hasValidUserSelection = userSelectedBusForDeparture && currentlyAllocatedBus &&
-                (!selectedRouteObj || !currentlyAllocatedBus.routeCode || normalizeRoute(currentlyAllocatedBus.routeCode) === normalizeRoute(selectedRouteObj.code));
-
-            if (hasValidUserSelection) {
-                // Keep user selection
-            } else if (allocResult && allocResult.allocated) {
+            if (allocResult && allocResult.allocated) {
                 currentlyAllocatedBus = allocResult.allocated;
-                userSelectedBusForDeparture = false;
-            } else {
+            } else if (!currentlyAllocatedBus || (selectedRouteObj && currentlyAllocatedBus.routeCode && normalizeRoute(currentlyAllocatedBus.routeCode) !== normalizeRoute(selectedRouteObj.code))) {
                 currentlyAllocatedBus = null;
-                userSelectedBusForDeparture = false;
             }
 
             if (currentlyAllocatedBus) {
@@ -6694,11 +6628,17 @@ let busCategoriesMap = new Map();
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.simple)[timeCategoryKey] || ["A"];
             const isPeakTimeHours = (timeCategoryKey === "PEAK" || timeCategoryKey === "EXTREME_PEAK");
 
-            // When no bus is selected yet from Buses Available for Departure:
-            // Do NOT show Recommended Candidate Bus card until user selects one.
-            if (!userSelectedBusForDeparture || !currentlyAllocatedBus) {
+            // When no bus could be allocated:
+            if (!currentlyAllocatedBus) {
                 const card = document.getElementById("auto-allocated-card");
-                if (card) card.style.display = "none";
+                if (card) {
+                    renderAllocatedCard({
+                        shift: (allocResult && allocResult.shift) || getShiftForTimeAndRoute(departure, selectedRouteObj ? selectedRouteObj.code : ""),
+                        departureTime: departure,
+                        reqSoc: (allocResult && allocResult.reqSoc) || getRequiredSingleChargeSoc(routeDistance, currentScheduleMatch),
+                        swapLog: (allocResult && allocResult.swapLog) || []
+                    });
+                }
                 if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
                 if (socResult) socResult.textContent = "—";
                 if (rangeResult) rangeResult.textContent = "—";
@@ -6718,15 +6658,15 @@ let busCategoriesMap = new Map();
                     busCatRule.style.color = (isComplexRoute || isPeakTimeHours) ? "#16a34a" : (complexity === "moderate" ? "#2563eb" : "#d97706");
                 }
                 if (matrixStatusRule) {
-                    matrixStatusRule.textContent = (isComplexRoute || isPeakTimeHours) ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
-                    matrixStatusRule.style.color = (isComplexRoute || isPeakTimeHours) ? "#b45309" : "#64748b";
+                    matrixStatusRule.textContent = (isComplexRoute || isPeakTimeHours) ? "⚠️ No eligible Category A bus available" : `⚠️ No eligible bus available (Cat ${allowedCategories.join('/')})`;
+                    matrixStatusRule.style.color = "#dc2626";
                 }
                 updateSelectedBusDutyBanner();
                 updateRouteKpis(selectedRouteObj, departure);
                 return;
             }
 
-            // A bus has been selected or candidate recommended! Render its details:
+            // Candidate bus is allocated — render its details directly:
             renderAllocatedCard({
                 allocated: currentlyAllocatedBus,
                 matchedSched: currentScheduleMatch,
@@ -6832,21 +6772,15 @@ let busCategoriesMap = new Map();
             _uiListenersInitialized = true;
 
             if (routeSelect) {
-                routeSelect.addEventListener("change", async () => {
+                routeSelect.addEventListener("change", () => {
                     window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
-                    userSelectedBusForDeparture = false;
 
                     // Ultra-fast responsive route switch: update distance, route schedule dropdown and recommendation
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
-                    await recommend();
-
-                    const availContainer = document.getElementById("available-buses-container");
-                    if (availContainer && availContainer.style.display !== "none") {
-                        renderAvailableBusesForDeparture();
-                    }
+                    recommend();
 
                     // Only update the Scheduled Time timetable table if that section is currently opened
                     const schedPanel = document.getElementById("view-panel-scheduled");
@@ -6860,27 +6794,19 @@ let busCategoriesMap = new Map();
                 let routeSearchDebounce = null;
                 routeSearch.addEventListener("input", () => {
                     if (routeSearchDebounce) clearTimeout(routeSearchDebounce);
-                    routeSearchDebounce = setTimeout(async () => {
+                    routeSearchDebounce = setTimeout(() => {
                         currentlyAllocatedBus = null;
-                        userSelectedBusForDeparture = false;
-                        const card = document.getElementById("auto-allocated-card");
-                        if (card) card.style.display = "none";
                         updateSelectedRouteDistance();
                         renderRoutes(false);
-                        await recommend();
-                        const availContainer = document.getElementById("available-buses-container");
-                        if (availContainer && availContainer.style.display !== "none") {
-                            renderAvailableBusesForDeparture();
-                        }
+                        recommend();
                     }, 120);
                 });
             }
 
             if (scheduledTimeSelect) {
-                scheduledTimeSelect.addEventListener("change", async () => {
+                scheduledTimeSelect.addEventListener("change", () => {
                     const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
                     window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
-                    userSelectedBusForDeparture = false;
                     const depInput = document.getElementById("departure");
                     if (depInput && scheduledTimeSelect.value) {
                         depInput.value = scheduledTimeSelect.value;
@@ -6888,12 +6814,7 @@ let busCategoriesMap = new Map();
 
                     // Ultra-fast responsive departure time switch (<2ms)
                     syncScheduleTiming();
-                    await recommend();
-
-                    const availContainer = document.getElementById("available-buses-container");
-                    if (availContainer && availContainer.style.display !== "none") {
-                        renderAvailableBusesForDeparture();
-                    }
+                    recommend();
 
                     // Only update timetable table if the scheduled section is currently visible
                     const schedPanel = document.getElementById("view-panel-scheduled");
@@ -6908,9 +6829,8 @@ let busCategoriesMap = new Map();
                 let depDebounce = null;
                 const handleDeparture = () => {
                     if (depDebounce) clearTimeout(depDebounce);
-                    depDebounce = setTimeout(async () => {
+                    depDebounce = setTimeout(() => {
                         window._manualDepartureFlag = true;
-                        userSelectedBusForDeparture = false;
                         const val = depInput.value;
                         if (scheduledTimeSelect && val) {
                             const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]:not([data-manual="true"])`);
@@ -6934,27 +6854,11 @@ let busCategoriesMap = new Map();
                             }
                         }
                         syncScheduleTiming();
-                        await recommend();
-                        const availContainer = document.getElementById("available-buses-container");
-                        if (availContainer && availContainer.style.display !== "none") {
-                            renderAvailableBusesForDeparture();
-                        }
-                    }, 100);
+                        recommend();
+                    }, 80);
                 };
                 depInput.addEventListener("input", handleDeparture);
                 depInput.addEventListener("change", handleDeparture);
-            }
-
-            // Interactive Buses Available for Departure KPI and dropdown
-            const kpiBusDep = document.getElementById("kpi-bus-departure");
-            if (kpiBusDep && !kpiBusDep.getAttribute("onclick") && !kpiBusDep._bound) {
-                kpiBusDep._bound = true;
-                kpiBusDep.addEventListener("click", () => toggleAvailableBusesList());
-            }
-            const btnCloseAvail = document.getElementById("btn-close-available-buses");
-            if (btnCloseAvail && !btnCloseAvail.getAttribute("onclick") && !btnCloseAvail._bound) {
-                btnCloseAvail._bound = true;
-                btnCloseAvail.addEventListener("click", () => toggleAvailableBusesList(false));
             }
 
             const recBtn = document.getElementById("recommend");
@@ -7935,10 +7839,6 @@ let busCategoriesMap = new Map();
             allocatedDuties = loadAllocatedDuties();
             renderRoutes();
             recommend();
-            const availContainer = document.getElementById("available-buses-container");
-            if (availContainer && availContainer.style.display !== "none") {
-                renderAvailableBusesForDeparture();
-            }
             const lockedBackdrop = document.getElementById("locked-buses-modal-backdrop");
             if (lockedBackdrop && lockedBackdrop.style.display === "flex") {
                 const searchInput = document.getElementById("locked-bus-search-input");
