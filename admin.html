@@ -7448,20 +7448,25 @@ let busCategoriesMap = new Map();
             _uiListenersInitialized = true;
 
             if (routeSelect) {
+                let _routeChangeDebounce = null;
                 routeSelect.addEventListener("change", () => {
                     window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
 
-                    // Immediately update lightweight UI (distance + schedule dropdown + recommendation) — zero lag
+                    // Lightweight UI updates are instant
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
-                    recommend();
 
-                    const schedPanel = document.getElementById("view-panel-scheduled");
-                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                        renderScheduledTime();
-                    }
+                    // Debounce the heavy recommend() so fast scrolling through routes doesn't lag
+                    if (_routeChangeDebounce) clearTimeout(_routeChangeDebounce);
+                    _routeChangeDebounce = setTimeout(() => {
+                        recommend();
+                        const schedPanel = document.getElementById("view-panel-scheduled");
+                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                            renderScheduledTime();
+                        }
+                    }, 200);
                 });
             }
 
@@ -7479,6 +7484,7 @@ let busCategoriesMap = new Map();
             }
 
             if (scheduledTimeSelect) {
+                let _schedTimeDebounce = null;
                 scheduledTimeSelect.addEventListener("change", () => {
                     const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
                     window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
@@ -7488,12 +7494,16 @@ let busCategoriesMap = new Map();
                     }
 
                     syncScheduleTiming();
-                    recommend();
 
-                    const schedPanel = document.getElementById("view-panel-scheduled");
-                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                        renderScheduledTime();
-                    }
+                    // Debounce heavy recommend() — prevents lag when scrolling through 100+ time slots
+                    if (_schedTimeDebounce) clearTimeout(_schedTimeDebounce);
+                    _schedTimeDebounce = setTimeout(() => {
+                        recommend();
+                        const schedPanel = document.getElementById("view-panel-scheduled");
+                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                            renderScheduledTime();
+                        }
+                    }, 200);
                 });
             }
 

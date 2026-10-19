@@ -879,10 +879,16 @@
   function isBusAllocatedOnRoute(bm, reg) {
     if (!bm && !reg) return false;
     const duties = getAllocatedDuties();
+    const now = Date.now();
     return duties.some(d => {
       // Only match on d.bm (the actual BM number) and registration number.
       // Do NOT use d.bmNumber/d.busId/d.uniqueId/d.vehicleId — those store route codes, not bus IDs.
       if (d.isCompleted || d.completed) return false; // skip completed duties
+      // Treat duties older than 20 hours as stale (prevents yesterday's duty from blocking lock button)
+      if (d.allocatedAt) {
+        const age = now - new Date(d.allocatedAt).getTime();
+        if (age > 20 * 60 * 60 * 1000) return false;
+      }
       const bmTarget = d.bm;
       const regTarget = d.regNo || d.reg_no;
       return (bm && bmTarget && isSameBusId(bmTarget, bm)) || (reg && regTarget && isSameBusId(regTarget, reg));
@@ -892,10 +898,16 @@
   function getBusAllocatedDuty(bm, reg) {
     if (!bm && !reg) return null;
     const duties = getAllocatedDuties();
+    const now = Date.now();
     return duties.find(d => {
       // Only match on d.bm (the actual BM number) and registration number.
       // Do NOT use d.bmNumber/d.busId/d.uniqueId/d.vehicleId — those store route codes, not bus IDs.
       if (d.isCompleted || d.completed) return false; // skip completed duties
+      // Treat duties older than 20 hours as stale (prevents yesterday's duty from blocking lock button)
+      if (d.allocatedAt) {
+        const age = now - new Date(d.allocatedAt).getTime();
+        if (age > 20 * 60 * 60 * 1000) return false;
+      }
       const bmTarget = d.bm;
       const regTarget = d.regNo || d.reg_no;
       return (bm && bmTarget && isSameBusId(bmTarget, bm)) || (reg && regTarget && isSameBusId(regTarget, reg));
