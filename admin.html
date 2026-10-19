@@ -3783,29 +3783,27 @@ let busCategoriesMap = new Map();
             return _isBusLocked(bm);
         }
 
+        const _busCategoryFastCache = new Map();
         function getBusCategory(bm, liveSoc) {
             if (!bm) return "C";
             const key = String(bm).toUpperCase().trim();
+            if (_busCategoryFastCache.has(key)) {
+                return _busCategoryFastCache.get(key);
+            }
+            let cat = null;
             if (busCategoriesMap && busCategoriesMap.has(key)) {
-                return busCategoriesMap.get(key);
+                cat = busCategoriesMap.get(key);
+            } else if (busStates && busStates[key] && busStates[key].busCategory) {
+                cat = String(busStates[key].busCategory).toUpperCase();
+            } else if (STATIC_BUS_CATEGORIES && STATIC_BUS_CATEGORIES[key]) {
+                cat = STATIC_BUS_CATEGORIES[key];
+            } else {
+                const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
+                const range = calculateFullDutyDistance(soc);
+                cat = range > 120 ? "A" : (range >= 106 ? "B" : "C");
             }
-            if (busStates && busStates[key] && busStates[key].busCategory) {
-                return String(busStates[key].busCategory).toUpperCase();
-            }
-            if (busStates) {
-                for (const k in busStates) {
-                    if (k.toUpperCase().trim() === key && busStates[k].busCategory) {
-                        return String(busStates[k].busCategory).toUpperCase();
-                    }
-                }
-            }
-            if (Array.isArray(routes)) {
-                const r = routes.find(x => String(x.bmNumber || x.uniqueId || "").toUpperCase().trim() === key);
-                if (r && r.busCategory) return String(r.busCategory).toUpperCase();
-            }
-            const soc = (typeof liveSoc === "number" && !isNaN(liveSoc)) ? liveSoc : getBusSocByBm(key);
-            const range = calculateFullDutyDistance(soc);
-            return range > 120 ? "A" : (range >= 106 ? "B" : "C");
+            _busCategoryFastCache.set(key, cat);
+            return cat;
         }
 
         function getRouteComplexity(routeObj, matchedSched, depTimeStr) {
@@ -3863,7 +3861,7 @@ let busCategoriesMap = new Map();
             return "simple";
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false, precomputedSched = null, precomputedAllocMap = null, precomputedLockMap = null) {
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false, precomputedSched = null, precomputedAllocMap = null, precomputedLockMap = null, precomputedComplexity = null) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
             const key = String(bm).toUpperCase().trim();
@@ -3992,7 +3990,7 @@ let busCategoriesMap = new Map();
                 timeCatLabel = tInfo.label;
             }
 
-            const complexity = getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort) : "standard";
+            const complexity = precomputedComplexity || (getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort) : "standard");
             const isStandard = (complexity === "standard");
             const isSimple = (complexity === "simple");
             const isModerate = (complexity === "moderate");
@@ -4200,7 +4198,7 @@ let busCategoriesMap = new Map();
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity);
 
                 if (primaryEval.feasible) {
                     const surplus = primaryEval.liveSoc - reqSoc;
@@ -4221,7 +4219,7 @@ let busCategoriesMap = new Map();
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity);
                         if (swapEval.feasible) {
                             const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
@@ -4249,7 +4247,7 @@ let busCategoriesMap = new Map();
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
@@ -4290,7 +4288,7 @@ let busCategoriesMap = new Map();
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = (routes || [])
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
@@ -5055,7 +5053,6 @@ let busCategoriesMap = new Map();
                     ? `${filtered.length} of ${sourceList.length}`
                     : String(sourceList.length);
             }
-            const navAllocPill = document.getElementById("nav-count-allocated");
             if (navAllocPill) {
                 navAllocPill.textContent = String(sourceList.length);
             }
@@ -5351,7 +5348,6 @@ let busCategoriesMap = new Map();
                     ? `${filtered.length} of ${sourceList.length}`
                     : String(sourceList.length);
             }
-            const navNotAllocPill = document.getElementById("nav-count-not-allocated");
             if (navNotAllocPill) {
                 navNotAllocPill.textContent = String(sourceList.length);
             }
@@ -6914,7 +6910,7 @@ let busCategoriesMap = new Map();
                             const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]:not([data-manual="true"])`);
                             if (exactOpt) {
                                 scheduledTimeSelect.value = val;
-                                window._manualDepartureFlag = false;
+                                window._manualDepartureFlag = true;
                             } else {
                                 let manualOpt = scheduledTimeSelect.querySelector('option[data-manual="true"]');
                                 if (!manualOpt) {
@@ -7369,11 +7365,22 @@ let busCategoriesMap = new Map();
                     } catch (e) {}
                 }
 
-                // Update UI smoothly with fresh server data
+                // Update UI smoothly with fresh server data while preserving active user selections
+                const curRoute = routeSelect ? routeSelect.value : "";
+                const curTime = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+                const curDep = document.getElementById("departure") ? document.getElementById("departure").value : "";
+
                 updateSelectedRouteDistance();
-                updateScheduledTimesForSelectedRoute(false);
+                if (curRoute && routeSelect) routeSelect.value = curRoute;
+                updateScheduledTimesForSelectedRoute(true);
+                if (curTime && scheduledTimeSelect) scheduledTimeSelect.value = curTime;
+                if (curDep && document.getElementById("departure")) document.getElementById("departure").value = curDep;
+
                 renderRoutes(true);
-                renderScheduledTime();
+                const schedPanel = document.getElementById("view-panel-scheduled");
+                if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                    renderScheduledTime();
+                }
                 updateAvailableSchedulingNavPill();
                 await recommend();
             } catch (err) {
@@ -7400,7 +7407,9 @@ let busCategoriesMap = new Map();
                             assignmentRanges = assignPayload.ranges || {};
                             serverSwapLog = Array.isArray(assignPayload.swapLog) ? assignPayload.swapLog : [];
                         }
-                        renderRoutes();
+                        const curRouteObj = directionalRoutes.find(r => r.id === (routeSelect ? routeSelect.value : "")) || directionalRoutes[0];
+                        const curDepTime = (document.getElementById("departure")?.value) || "13:10";
+                        updateRouteKpis(curRouteObj, curDepTime);
                     } catch {}
                 }, 12000);
             }
