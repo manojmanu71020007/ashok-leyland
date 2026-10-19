@@ -4055,14 +4055,31 @@ let busCategoriesMap = new Map();
             return "";
         }
 
+        // ── allocateBus result cache ──────────────────────────────────────────
+        let _allocCache = null;
+        let _allocCacheKey = null;
+        let _allocCacheTime = 0;
+        const ALLOC_CACHE_TTL = 3000; // ms – reuse result for same route+time within 3s
+
+        function invalidateAllocCache() {
+            _allocCache = null;
+            _allocCacheKey = null;
+        }
+
         function allocateBus(routeObj, departureTime) {
-            allocatedDuties = loadAllocatedDuties();
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
-            const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
             const depTimeClean = (departureTime || "13:10").trim();
             const depShort = depTimeClean.substring(0, 5);
+            const cacheKey = `${routeCode}_${depShort}`;
+            const now = Date.now();
+            if (_allocCache && _allocCacheKey === cacheKey && (now - _allocCacheTime) < ALLOC_CACHE_TTL) {
+                return _allocCache;
+            }
+            allocatedDuties = loadAllocatedDuties();
+            const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
             const depMin = timeToMinutes(depShort);
-            const currentTargetKey = `${routeCode}_${depShort}`;
+            const currentTargetKey = cacheKey;
+
 
             const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
             let matchedSched = null;
@@ -4277,7 +4294,11 @@ let busCategoriesMap = new Map();
                 swapLog.push("Route is Complex: Strictly Category A buses are eligible. No Category A bus with sufficient SoC available.");
             }
 
-            return { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
+            const result = { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
+            _allocCache = result;
+            _allocCacheKey = cacheKey;
+            _allocCacheTime = Date.now();
+            return result;
         }
 
         const autoAllocateBus = allocateBus;
