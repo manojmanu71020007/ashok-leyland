@@ -2242,8 +2242,8 @@
                         </div>
                         <div class="filter-tabs" id="scheduled-filter-tabs">
                             <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
-                            <button type="button" class="tab-btn" data-filter="allocated">Allocated (<span id="scheduled-count-alloc">0</span>)</button>
-                            <button type="button" class="tab-btn" data-filter="not-allocated">Not Allocated (<span id="scheduled-count-not-alloc">0</span>)</button>
+                            <button type="button" class="tab-btn" data-filter="allocated">Allocated Buses (<span id="scheduled-count-alloc">0</span>)</button>
+                            <button type="button" class="tab-btn" data-filter="not-allocated">Not-Allocated Buses (<span id="scheduled-count-not-alloc">0</span>)</button>
                         </div>
                     </div>
 
@@ -3069,6 +3069,8 @@ let busCategoriesMap = new Map();
             if (navPill) navPill.textContent = String(unallocatedCount);
 
             if (!container) return;
+            const panel = document.getElementById("view-panel-available-scheduling");
+            if (panel && panel.style.display === "none") return;
 
             const selectedCat = catFilter ? catFilter.value : "all";
             const selectedStatus = statusFilter ? statusFilter.value : "unallocated";
@@ -3372,6 +3374,8 @@ let busCategoriesMap = new Map();
             }
         } catch (e) {}
 
+        const _fastSocCache = new Map();
+
         function syncLocalStorageBusStates() {
             try {
                 for (let i = 0; i < localStorage.length; i++) {
@@ -3380,10 +3384,14 @@ let busCategoriesMap = new Map();
                         const bm = key.replace('depot_bus_soc_', '');
                         const val = Number(localStorage.getItem(key));
                         if (Number.isFinite(val)) {
-                            if (!busStates[bm]) busStates[bm] = {};
-                            busStates[bm].soc = val;
-                            busStates[bm].fullDutyDistanceKm = Math.round(Math.max(0, val - 10) * 1.42);
-                            busStates[bm].operation = "Single Charge Operation";
+                            const upperBm = bm.toUpperCase().trim();
+                            _fastSocCache.set(upperBm, val);
+                            _fastSocCache.set(bm, val);
+                            if (!busStates[upperBm]) busStates[upperBm] = {};
+                            busStates[upperBm].soc = val;
+                            busStates[upperBm].fullDutyDistanceKm = Math.round(Math.max(0, val - 10) * 1.42);
+                            busStates[upperBm].operation = "Single Charge Operation";
+                            if (!busStates[bm]) busStates[bm] = busStates[upperBm];
                         }
                     }
                 }
@@ -3397,15 +3405,32 @@ let busCategoriesMap = new Map();
             const assignedVehicle = getAssignedBusName(route);
             const candidates = [assignedVehicle, route.bmNumber, route.uniqueId, route.busNumber].filter(Boolean);
             for (const cand of candidates) {
+                const uCand = String(cand).toUpperCase().trim();
+                if (_fastSocCache.has(uCand)) return _fastSocCache.get(uCand);
+                if (busStates[uCand] && Number.isFinite(Number(busStates[uCand].soc))) {
+                    const s = Number(busStates[uCand].soc);
+                    _fastSocCache.set(uCand, s);
+                    return s;
+                }
+                if (busStates[cand] && Number.isFinite(Number(busStates[cand].soc))) {
+                    const s = Number(busStates[cand].soc);
+                    _fastSocCache.set(uCand, s);
+                    return s;
+                }
+            }
+            for (const cand of candidates) {
                 const localSoc = localStorage.getItem('depot_bus_soc_' + cand);
                 if (localSoc !== null) {
                     const val = Number(localSoc);
-                    if (Number.isFinite(val)) return val;
+                    if (Number.isFinite(val)) {
+                        _fastSocCache.set(String(cand).toUpperCase().trim(), val);
+                        return val;
+                    }
                 }
             }
             const state = busStates[route.routeId] || busStates[route.uniqueId] || busStates[assignedVehicle] || busStates[route.busNumber] || {};
             if (Number.isFinite(Number(state.soc))) return Number(state.soc);
-            return 0;
+            return 80;
         }
 
         function calculateFullDutyDistance(soc) {
@@ -3584,23 +3609,32 @@ let busCategoriesMap = new Map();
         function getBusSocByBm(bm) {
             if (!bm) return 0;
             const key = String(bm).toUpperCase().trim();
-            // Fast in-memory check first (1000x faster than localStorage disk I/O)
+            if (_fastSocCache.has(key)) return _fastSocCache.get(key);
             if (busStates[key] && Number.isFinite(Number(busStates[key].soc))) {
-                return Number(busStates[key].soc);
+                const s = Number(busStates[key].soc);
+                _fastSocCache.set(key, s);
+                return s;
             }
             if (busStates[bm] && Number.isFinite(Number(busStates[bm].soc))) {
-                return Number(busStates[bm].soc);
+                const s = Number(busStates[bm].soc);
+                _fastSocCache.set(key, s);
+                return s;
             }
             const existingDuty = (allocatedDuties || []).find(d => String(d.bm || d.bmNumber || '').toUpperCase().trim() === key);
             if (existingDuty && Number.isFinite(Number(existingDuty.soc)) && Number(existingDuty.soc) > 0) {
-                return Number(existingDuty.soc);
+                const s = Number(existingDuty.soc);
+                _fastSocCache.set(key, s);
+                return s;
             }
             const localSoc = localStorage.getItem("depot_bus_soc_" + bm) || localStorage.getItem("depot_bus_soc_" + key);
             if (localSoc !== null) {
                 const val = Number(localSoc);
-                if (Number.isFinite(val)) return val;
+                if (Number.isFinite(val)) {
+                    _fastSocCache.set(key, val);
+                    return val;
+                }
             }
-            return 0;
+            return 80;
         }
 
         function getBusRegNo(bm) {
@@ -3829,20 +3863,17 @@ let busCategoriesMap = new Map();
             return "simple";
         }
 
-        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false) {
+        function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null, isAllocatedDuty = false, precomputedSched = null, precomputedAllocMap = null, precomputedLockMap = null) {
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
 
             const key = String(bm).toUpperCase().trim();
-            const lockInfo = getBusLockInfo(key);
+            const lockInfo = precomputedLockMap ? precomputedLockMap.get(key) : getBusLockInfo(key);
             if (lockInfo) {
                 return { feasible: false, bm: key, reason: `Bus ${key} is ${lockInfo.reason.toLowerCase()}.` };
             }
 
-            // Always ensure fresh duties from storage
-            if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
-
             // Check if bus is already allocated to another route or duty
-            const alreadyAllocatedDuty = findAllocatedDutyForBm(key, allocatedDuties);
+            const alreadyAllocatedDuty = precomputedAllocMap ? precomputedAllocMap.get(key) : findAllocatedDutyForBm(key, allocatedDuties);
             if (alreadyAllocatedDuty) {
                 if (!isAllocatedDuty) {
                     return {
@@ -3877,17 +3908,20 @@ let busCategoriesMap = new Map();
             }
 
             // 1. Matched Schedule & Constant Minimum Required SoC Estimation (Actual km + Dead km)
-            const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
-            const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : "13:10";
-            const depMin = timeToMinutes(depTimeShort);
-            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
-            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
-            if (!matchedSched && routeSchedules.length > 0) {
-                matchedSched = routeSchedules.slice().sort((a, b) => {
-                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
-                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
-                    return diffA - diffB;
-                })[0];
+            let matchedSched = precomputedSched;
+            if (!matchedSched) {
+                const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
+                const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : "13:10";
+                const depMin = timeToMinutes(depTimeShort);
+                const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
+                matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
+                if (!matchedSched && routeSchedules.length > 0) {
+                    matchedSched = routeSchedules.slice().sort((a, b) => {
+                        const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                        const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                        return diffA - diffB;
+                    })[0];
+                }
             }
 
             const constantMinReqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
@@ -4056,15 +4090,11 @@ let busCategoriesMap = new Map();
             return "";
         }
 
-        // ── allocateBus result cache ──────────────────────────────────────────
-        let _allocCache = null;
-        let _allocCacheKey = null;
-        let _allocCacheTime = 0;
-        const ALLOC_CACHE_TTL = 3000; // ms – reuse result for same route+time within 3s
+        // ── allocateBus result cache (Map keyed by routeCode_departureTime) ──
+        const _allocCacheMap = new Map();
 
         function invalidateAllocCache() {
-            _allocCache = null;
-            _allocCacheKey = null;
+            _allocCacheMap.clear();
         }
 
         function allocateBus(routeObj, departureTime) {
@@ -4072,15 +4102,13 @@ let busCategoriesMap = new Map();
             const depTimeClean = (departureTime || "13:10").trim();
             const depShort = depTimeClean.substring(0, 5);
             const cacheKey = `${routeCode}_${depShort}`;
-            const now = Date.now();
-            if (_allocCache && _allocCacheKey === cacheKey && (now - _allocCacheTime) < ALLOC_CACHE_TTL) {
-                return _allocCache;
+            if (_allocCacheMap.has(cacheKey)) {
+                return _allocCacheMap.get(cacheKey);
             }
-            allocatedDuties = loadAllocatedDuties();
+            if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
             const routeDist = routeObj ? (routeObj.distKm || 28.7) : 28.7;
             const depMin = timeToMinutes(depShort);
             const currentTargetKey = cacheKey;
-
 
             const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
             let matchedSched = null;
@@ -4108,6 +4136,18 @@ let busCategoriesMap = new Map();
 
             const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
 
+            // Fast precomputed Map lookups for instant O(1) candidate evaluation
+            const allocBmMap = new Map();
+            (allocatedDuties || []).forEach(d => {
+                if (d && (d.bm || d.bmNumber)) allocBmMap.set(String(d.bm || d.bmNumber).toUpperCase().trim(), d);
+            });
+
+            const lockedList = _getLockedBuses();
+            const lockedBmMap = new Map();
+            (lockedList || []).forEach(l => {
+                if (l && l.bm) lockedBmMap.set(String(l.bm).toUpperCase().trim(), l);
+            });
+
             // Check if this specific duty already has a bus officially allocated
             const existingDuty = (allocatedDuties || []).find(d => {
                 const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
@@ -4127,7 +4167,7 @@ let busCategoriesMap = new Map();
                 } else if (requiresCatA && busCat !== "A") {
                     swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: ${isComplexRoute ? 'Complex route' : 'Peak Time slot'} strictly requires Category A buses.`);
                 } else {
-                    return {
+                    const dutyResult = {
                         allocated: {
                             bm: existingDuty.bm,
                             regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
@@ -4152,13 +4192,15 @@ let busCategoriesMap = new Map();
                         isComplexRoute,
                         complexity
                     };
+                    _allocCacheMap.set(cacheKey, dutyResult);
+                    return dutyResult;
                 }
             }
 
             // 1. Primary bus for this schedule / shift
             if (!allocated && matchedSched && matchedSched.fixBm) {
                 const primaryBm = matchedSched.fixBm;
-                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
+                const primaryEval = evaluateBusFeasibility(primaryBm, `Primary Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap);
 
                 if (primaryEval.feasible) {
                     const surplus = primaryEval.liveSoc - reqSoc;
@@ -4179,7 +4221,7 @@ let busCategoriesMap = new Map();
                     // 2. Designated swap bus for this schedule / shift
                     const swapBm = matchedSched.swapBm;
                     if (swapBm && swapBm !== primaryBm) {
-                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode);
+                        const swapEval = evaluateBusFeasibility(swapBm, `Swapped Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap);
                         if (swapEval.feasible) {
                             const surplus = swapEval.liveSoc - reqSoc;
                             allocated = Object.assign({}, swapEval, {
@@ -4207,7 +4249,7 @@ let busCategoriesMap = new Map();
                         const bShift = String(b.shift || "");
                         return bShift.toLowerCase().includes(targetShift.toLowerCase()) || targetShift.toLowerCase().includes(bShift.toLowerCase());
                     })
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
@@ -4248,7 +4290,7 @@ let busCategoriesMap = new Map();
             // 4. Reserve fleet fallback (closest match to required Single Charge Operation level)
             if (!allocated) {
                 const eligibleReserves = (routes || [])
-                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode))
+                    .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
                         if (!isPeakTime) {
@@ -4296,9 +4338,7 @@ let busCategoriesMap = new Map();
             }
 
             const result = { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
-            _allocCache = result;
-            _allocCacheKey = cacheKey;
-            _allocCacheTime = Date.now();
+            _allocCacheMap.set(cacheKey, result);
             return result;
         }
 
@@ -4952,6 +4992,14 @@ let busCategoriesMap = new Map();
             if (!routeSummary) return;
             try {
             const sourceList = Array.isArray(allocatedList) ? allocatedList : (allocatedDuties || []);
+            const countEl = document.getElementById("allocated-count");
+            if (countEl) countEl.textContent = String(sourceList.length);
+            const navAllocPill = document.getElementById("nav-count-allocated");
+            if (navAllocPill) navAllocPill.textContent = String(sourceList.length);
+
+            const panel = document.getElementById("view-panel-allocated");
+            if (panel && panel.style.display === "none") return;
+
             const query = (allocatedSearchInput ? allocatedSearchInput.value : "").trim().toLowerCase();
             const queryClean = query.replace(/[^a-zA-Z0-9]/g, "");
             if (clearAllocatedBtn) {
@@ -5222,6 +5270,13 @@ let busCategoriesMap = new Map();
             if (!notAllocatedSummary) return;
             try {
             const sourceList = Array.isArray(notAllocatedList) ? notAllocatedList : (lastNotAllocatedRoutes || []);
+            if (notAllocatedCountEl) notAllocatedCountEl.textContent = String(sourceList.length);
+            const navNotAllocPill = document.getElementById("nav-count-not-allocated");
+            if (navNotAllocPill) navNotAllocPill.textContent = String(sourceList.length);
+
+            const panel = document.getElementById("view-panel-not-allocated");
+            if (panel && panel.style.display === "none") return;
+
             const query = (notAllocatedSearchInput ? notAllocatedSearchInput.value : "").trim().toLowerCase();
             const queryClean = query.replace(/[^a-zA-Z0-9]/g, "");
             if (clearNotAllocatedBtn) {
@@ -5581,6 +5636,9 @@ let busCategoriesMap = new Map();
             if (availSchedPanel && availSchedPanel.style.display !== "none" && typeof renderAvailableBusesForScheduling === "function") {
                 renderAvailableBusesForScheduling();
             }
+
+            const panel = document.getElementById("view-panel-scheduled");
+            if (panel && panel.style.display === "none") return;
 
             let routesToDisplay = augmentedRoutes;
             if (scheduledFilter === "allocated") {
@@ -6797,21 +6855,17 @@ let busCategoriesMap = new Map();
                 routeSelect.addEventListener("change", () => {
                     window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
-                    invalidateAllocCache();
 
-                    // Immediately update lightweight UI (distance + schedule dropdown) — zero lag
+                    // Immediately update lightweight UI (distance + schedule dropdown + recommendation) — zero lag
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
+                    recommend();
 
-                    // Defer heavy recommend() until after browser has painted the new selection
-                    requestAnimationFrame(() => setTimeout(() => {
-                        recommend();
-                        const schedPanel = document.getElementById("view-panel-scheduled");
-                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                            renderScheduledTime();
-                        }
-                    }, 0));
+                    const schedPanel = document.getElementById("view-panel-scheduled");
+                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                        renderScheduledTime();
+                    }
                 });
             }
 
@@ -6821,10 +6875,9 @@ let busCategoriesMap = new Map();
                     if (routeSearchDebounce) clearTimeout(routeSearchDebounce);
                     routeSearchDebounce = setTimeout(() => {
                         currentlyAllocatedBus = null;
-                        invalidateAllocCache();
                         updateSelectedRouteDistance();
                         renderRoutes(false);
-                        requestAnimationFrame(() => setTimeout(() => recommend(), 0));
+                        recommend();
                     }, 120);
                 });
             }
@@ -6833,22 +6886,18 @@ let busCategoriesMap = new Map();
                 scheduledTimeSelect.addEventListener("change", () => {
                     const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
                     window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
-                    invalidateAllocCache();
                     const depInput = document.getElementById("departure");
                     if (depInput && scheduledTimeSelect.value) {
                         depInput.value = scheduledTimeSelect.value;
                     }
 
-                    // Immediately sync timing (lightweight), then defer heavy recommend()
                     syncScheduleTiming();
+                    recommend();
 
-                    requestAnimationFrame(() => setTimeout(() => {
-                        recommend();
-                        const schedPanel = document.getElementById("view-panel-scheduled");
-                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                            renderScheduledTime();
-                        }
-                    }, 0));
+                    const schedPanel = document.getElementById("view-panel-scheduled");
+                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                        renderScheduledTime();
+                    }
                 });
             }
 

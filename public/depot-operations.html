@@ -994,6 +994,38 @@
   </div>
 </div>
 
+<!-- ── Currently Allocated Buses ── -->
+<div class="card">
+  <div class="card-title" style="justify-content: space-between; flex-wrap:wrap; gap:8px;">
+    <span><span data-i18n="title_currently_allocated">🟣 Currently Allocated Buses</span> <span id="allocCountBadge" style="background:#ede9fe;color:#5b21b6;font-size:0.78rem;padding:2px 10px;border-radius:999px;font-weight:800;"></span></span>
+    <button type="button" onclick="refreshAll()" style="background:none;border:1.5px solid var(--border);padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;color:var(--muted);cursor:pointer;" data-i18n="btn_refresh">
+      🔄 Refresh
+    </button>
+  </div>
+  <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">
+    Buses currently dispatched on routes across Depot 1 and Depot 2. Click <strong>Route Completed</strong> to mark them as returned.
+  </p>
+
+  <!-- Search Allocated Buses in Both Depots -->
+  <div class="search-wrap" style="margin-bottom:14px;">
+    <span class="search-icon">🔍</span>
+    <input
+      type="text"
+      id="allocSearchInput"
+      placeholder="Search currently allocated buses in both depots by BM, Route, Driver, or Depot…"
+      oninput="renderAllocatedList()"
+      autocomplete="off"
+    />
+  </div>
+  <div id="allocatedList">
+    <div class="empty-state">
+      <div class="empty-icon">🚌</div>
+      <p>No buses are currently allocated on routes.</p>
+      <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
+    </div>
+  </div>
+</div>
+
 <!-- ── Bus Selection Card ── -->
 <div class="card">
   <div class="card-title" data-i18n="card_select_bus_route_complete">🚌 Select Bus to Mark Route Complete</div>
@@ -1099,26 +1131,6 @@
     <div class="success-content">
       <h3 id="successTitle">Route completed!</h3>
       <p id="successText">Bus is now available for re-allocation.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── Currently Allocated Buses ── -->
-<div class="card">
-  <div class="card-title" style="justify-content: space-between; flex-wrap:wrap; gap:8px;">
-    <span><span data-i18n="title_currently_allocated">🟣 Currently Allocated Buses</span> <span id="allocCountBadge" style="background:#ede9fe;color:#5b21b6;font-size:0.78rem;padding:2px 10px;border-radius:999px;font-weight:800;"></span></span>
-    <button type="button" onclick="refreshAll()" style="background:none;border:1.5px solid var(--border);padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;color:var(--muted);cursor:pointer;" data-i18n="btn_refresh">
-      🔄 Refresh
-    </button>
-  </div>
-  <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">
-    Buses currently dispatched on routes from the scheduling page. Click <strong>Route Completed</strong> to mark them as returned.
-  </p>
-  <div id="allocatedList">
-    <div class="empty-state">
-      <div class="empty-icon">🚌</div>
-      <p>No buses are currently allocated on routes.</p>
-      <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
     </div>
   </div>
 </div>
@@ -2404,10 +2416,19 @@
       document.getElementById('warnNotAllocated').classList.add('show');
     }
 
-    // Route Complete button
+    // Route Complete button - ONLY enabled if bus is currently allocated on route
     const btn = document.getElementById('btnRouteComplete');
-    btn.disabled = false;
-    btn.classList.remove('disabled');
+    if (isAllocated) {
+      btn.disabled = false;
+      btn.classList.remove('disabled');
+      btn.title = 'Mark this route as completed and return bus to depot';
+      btn.style.cursor = 'pointer';
+    } else {
+      btn.disabled = true;
+      btn.classList.add('disabled');
+      btn.title = '⚠️ This bus is not currently allocated on a route. Only allocated buses can be marked as route completed.';
+      btn.style.cursor = 'not-allowed';
+    }
 
     // Hide success banner when a new bus is selected
     document.getElementById('successBanner').classList.remove('show');
@@ -2431,6 +2452,10 @@
   function onRouteCompleteClick() {
     const bm = document.getElementById('busSelect').value;
     if (!bm) { showToast('⚠️ Please select a bus first.', 'warning'); return; }
+    if (!isBusAllocated(bm)) {
+      showToast(`⚠️ Bus ${bm} is not currently allocated on a route. Only allocated buses can be marked as route completed.`, 'warning');
+      return;
+    }
 
     pendingBm = bm;
     openConfirmModal(bm);
@@ -2630,6 +2655,10 @@
   //  Quick-complete from list
   // ──────────────────────────────────────────────
   function quickComplete(bm) {
+    if (!isBusAllocated(bm)) {
+      showToast(`⚠️ Bus ${bm} is not currently allocated on a route.`, 'warning');
+      return;
+    }
     pendingBm = bm;
     openConfirmModal(bm);
     // Also select the bus in dropdown for UX consistency
@@ -2645,18 +2674,40 @@
   // ──────────────────────────────────────────────
   function renderAllocatedList() {
     const allAllocated = getAllocatedBuses();
-    const allocated = allAllocated;
+    const q = (document.getElementById('allocSearchInput')?.value || '').trim().toLowerCase();
+    const allocated = q
+      ? allAllocated.filter(entry => {
+          const v = allVehicles.find(x => sameBus(x.bm_no, entry.bm));
+          const bDepot = getBusDepot(entry.bm);
+          return (entry.bm || '').toLowerCase().includes(q) ||
+            (entry.reg || v?.reg_no || '').toLowerCase().includes(q) ||
+            (entry.route || '').toLowerCase().includes(q) ||
+            (entry.schedule || '').toLowerCase().includes(q) ||
+            (entry.driver || '').toLowerCase().includes(q) ||
+            (`depot ${bDepot}`).toLowerCase().includes(q);
+        })
+      : allAllocated;
     const container = document.getElementById('allocatedList');
     const badge     = document.getElementById('allocCountBadge');
 
-    badge.textContent = allocated.length;
+    badge.textContent = allAllocated.length;
 
-    if (!allocated.length) {
+    if (!allAllocated.length) {
       container.innerHTML = `
         <div class="empty-state">
           <div class="empty-icon">🚌</div>
           <p>No buses are currently allocated on routes.</p>
           <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
+        </div>`;
+      return;
+    }
+
+    if (!allocated.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <p>No currently allocated buses matched "<strong>${q}</strong>".</p>
+          <p style="font-size:0.78rem;margin-top:4px;">Search across Depot 1 and Depot 2 by BM number, route, driver, or depot.</p>
         </div>`;
       return;
     }
@@ -2715,12 +2766,7 @@
       const schedTime = e.scheduledTime || e.departureTime || e.dispatchTime || '—';
       return `
       <tr class="completed-route-row" onclick="openAllBusesHistoryModal('${e.bm}')" title="Click to view history and schedule details for Bus ${e.bm}">
-        <td class="td-bus">
-          <span style="display:inline-flex;align-items:center;gap:6px;">
-            <span>🚌 ${e.bm}</span>
-            <span style="font-size:0.7rem;font-weight:700;color:#2563eb;background:#eff6ff;padding:1px 6px;border-radius:4px;">History ›</span>
-          </span>
-        </td>
+        <td class="td-bus">🚌 ${e.bm}</td>
         <td>${e.reg || '—'}</td>
         <td><strong style="color:#7c3aed;">Route ${e.route || '—'}</strong></td>
         <td>
