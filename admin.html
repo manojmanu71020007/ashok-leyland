@@ -8042,8 +8042,8 @@ let busCategoriesMap = new Map();
             } catch(e) {}
         }
 
-        // Silent 3-second polling ensures immediate reflection from Charging Portal
-        setInterval(refreshBusStatesSilently, 3000);
+        // Silent polling ensures reflection from Charging Portal (15s to reduce server load)
+        setInterval(refreshBusStatesSilently, 15000);
 
         try {
             const bc = new BroadcastChannel('depot_soc_sync');
