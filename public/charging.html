@@ -950,9 +950,12 @@
     if (!bm && !reg) return false;
     const duties = getAllocatedDuties();
     return duties.some(d => {
-      const bmTarget = d.bm || d.bmNumber || d.uniqueId || d.vehicleId || d.busId;
+      // Only match on d.bm (the actual BM number) and registration number.
+      // Do NOT use d.bmNumber/d.busId/d.uniqueId/d.vehicleId — those store route codes, not bus IDs.
+      if (d.isCompleted || d.completed) return false; // skip completed duties
+      const bmTarget = d.bm;
       const regTarget = d.regNo || d.reg_no;
-      return (bm && isSameBusId(bmTarget, bm)) || (reg && isSameBusId(regTarget, reg));
+      return (bm && bmTarget && isSameBusId(bmTarget, bm)) || (reg && regTarget && isSameBusId(regTarget, reg));
     });
   }
 
@@ -960,9 +963,12 @@
     if (!bm && !reg) return null;
     const duties = getAllocatedDuties();
     return duties.find(d => {
-      const bmTarget = d.bm || d.bmNumber || d.uniqueId || d.vehicleId || d.busId;
+      // Only match on d.bm (the actual BM number) and registration number.
+      // Do NOT use d.bmNumber/d.busId/d.uniqueId/d.vehicleId — those store route codes, not bus IDs.
+      if (d.isCompleted || d.completed) return false; // skip completed duties
+      const bmTarget = d.bm;
       const regTarget = d.regNo || d.reg_no;
-      return (bm && isSameBusId(bmTarget, bm)) || (reg && isSameBusId(regTarget, reg));
+      return (bm && bmTarget && isSameBusId(bmTarget, bm)) || (reg && regTarget && isSameBusId(regTarget, reg));
     }) || null;
   }
 
