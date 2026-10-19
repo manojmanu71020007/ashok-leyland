@@ -2991,7 +2991,28 @@
                             driver: `${selDriver.name} (${selDriver.badge})`,
                             driverId: selDriver.id,
                             driverName: selDriver.name,
-                            allocatedAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            allocatedAt: (() => {
+                                const d = new Date();
+                                const t = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                                const dt = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                return `${t}, ${dt}`;
+                            })(),
+                            allocatedTime: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }),
+                            allocatedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+                            allocatedTs: Date.now(),
+                            scheduledAt: (() => {
+                                const d = new Date();
+                                const t = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                                const dt = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                return `${t}, ${dt}`;
+                            })(),
+                            scheduledTime: (() => {
+                                const d = new Date();
+                                const t = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+                                const dt = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                                return `${t}, ${dt}`;
+                            })(),
+                            scheduledDepartureTime: departureTime
                         };
 
                         // Remove any prior bus on this specific route and departure time slot

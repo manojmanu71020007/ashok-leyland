@@ -1394,6 +1394,18 @@
       if (Array.isArray(smartbus)) {
         smartbus.forEach(d => {
           if (d && (d.bm || d.bmNumber)) {
+            const allocAt = d.allocatedAt || d.scheduledAt || '';
+            const allocDate = d.allocatedDate || '';
+            const allocTime = d.allocatedTime || '';
+            let fullSchedStr = allocAt;
+            if (!fullSchedStr && allocTime) {
+              fullSchedStr = allocDate ? `${allocTime}, ${allocDate}` : allocTime;
+            }
+            if (!fullSchedStr && d.departureTime) {
+              const todayStr = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+              fullSchedStr = `${d.departureTime}, ${todayStr}`;
+            }
+
             list.push({
               bm: d.bm || d.bmNumber,
               reg: d.regNo,
@@ -1402,11 +1414,13 @@
               driver: d.driver || d.driverName,
               dispatchTime: d.departureTime,
               departureTime: d.departureTime,
-              scheduledTime: d.departureTime || d.scheduledTime || d.outTime || d.dispatchTime || '—',
-              scheduledAt: d.allocatedAt || d.departureTime || '—',
-              allocatedAt: d.allocatedAt,
+              allocatedAt: allocAt || fullSchedStr,
+              allocatedTime: allocTime,
+              allocatedDate: allocDate,
+              scheduledTime: fullSchedStr || '—',
+              scheduledAt: fullSchedStr || '—',
               shift: d.shift,
-              time: d.allocatedAt || d.departureTime
+              time: fullSchedStr
             });
           }
         });
@@ -1464,6 +1478,14 @@
     const t5 = fmt(new Date(now.getTime() - 340 * 60 * 1000));
     const t6 = fmt(new Date(now.getTime() - 420 * 60 * 1000));
 
+    // Realistic accurate scheduling times allocated earlier by scheduling webpage
+    const t1_sched = fmt(new Date(now.getTime() - 95 * 60 * 1000));
+    const t2_sched = fmt(new Date(now.getTime() - 170 * 60 * 1000));
+    const t3_sched = fmt(new Date(now.getTime() - 245 * 60 * 1000));
+    const t4_sched = fmt(new Date(now.getTime() - 330 * 60 * 1000));
+    const t5_sched = fmt(new Date(now.getTime() - 410 * 60 * 1000));
+    const t6_sched = fmt(new Date(now.getTime() - 495 * 60 * 1000));
+
     const initial = [
       {
         id: 'rc_init_1',
@@ -1473,9 +1495,10 @@
         schedule: 'SCH-01',
         driver: 'Ramesh Gowda',
         dispatchTime: '06:30 AM',
-        scheduledTime: '06:30 AM',
-        scheduledAt: '06:30 AM, ' + t1.dateStr,
         departureTime: '06:30 AM',
+        scheduledTime: t1_sched.fullTs,
+        scheduledAt: t1_sched.fullTs,
+        allocatedAt: t1_sched.fullTs,
         completedAt: t1.fullTs,
         completedTs: t1.ts,
         dateStr: t1.dateStr,
@@ -1491,6 +1514,10 @@
         schedule: 'SCH-04',
         driver: 'Suresh Kumar',
         dispatchTime: '06:00 AM',
+        departureTime: '06:00 AM',
+        scheduledTime: t2_sched.fullTs,
+        scheduledAt: t2_sched.fullTs,
+        allocatedAt: t2_sched.fullTs,
         completedAt: t2.fullTs,
         completedTs: t2.ts,
         dateStr: t2.dateStr,
@@ -1506,6 +1533,10 @@
         schedule: 'SCH-08',
         driver: 'Venkatesh M',
         dispatchTime: '05:45 AM',
+        departureTime: '05:45 AM',
+        scheduledTime: t3_sched.fullTs,
+        scheduledAt: t3_sched.fullTs,
+        allocatedAt: t3_sched.fullTs,
         completedAt: t3.fullTs,
         completedTs: t3.ts,
         dateStr: t3.dateStr,
@@ -1521,6 +1552,10 @@
         schedule: 'SCH-12',
         driver: 'Anand Rao',
         dispatchTime: '05:30 AM',
+        departureTime: '05:30 AM',
+        scheduledTime: t4_sched.fullTs,
+        scheduledAt: t4_sched.fullTs,
+        allocatedAt: t4_sched.fullTs,
         completedAt: t4.fullTs,
         completedTs: t4.ts,
         dateStr: t4.dateStr,
@@ -1536,6 +1571,10 @@
         schedule: 'SCH-15',
         driver: 'Manjunath B',
         dispatchTime: '05:00 AM',
+        departureTime: '05:00 AM',
+        scheduledTime: t5_sched.fullTs,
+        scheduledAt: t5_sched.fullTs,
+        allocatedAt: t5_sched.fullTs,
         completedAt: t5.fullTs,
         completedTs: t5.ts,
         dateStr: t5.dateStr,
@@ -1551,6 +1590,10 @@
         schedule: 'SCH-03',
         driver: 'Praveen K',
         dispatchTime: '04:45 AM',
+        departureTime: '04:45 AM',
+        scheduledTime: t6_sched.fullTs,
+        scheduledAt: t6_sched.fullTs,
+        allocatedAt: t6_sched.fullTs,
         completedAt: t6.fullTs,
         completedTs: t6.ts,
         dateStr: t6.dateStr,
@@ -1684,8 +1727,7 @@
         const originDepotStr = c.prevDepot ? ('Depot ' + c.prevDepot) : targetDepotStr;
         const isXfer = !!c.isTransferred || (c.prevDepot && c.depot && String(c.prevDepot) !== String(c.depot));
 
-        const schedTime = c.scheduledTime || c.departureTime || c.dispatchTime || '06:30 AM';
-        const schedAtStr = c.scheduledAt ? `${c.scheduledAt}` : (schedTime ? `Scheduled at ${schedTime}` : '—');
+        const schedTimeWithDate = c.scheduledAt || c.allocatedAt || c.scheduledTime || (c.departureTime ? `${c.departureTime}, ${c.dateStr || 'Today'}` : '—');
 
         liveList.push({
           id: c.id || ('rc_' + (c.completedTs || Math.random())),
@@ -1695,13 +1737,14 @@
           homeDepot: originDepotStr,
           route: c.route || '356Z',
           schedule: c.schedule || 'SCH-01',
-          scheduledTime: schedTime,
-          scheduledAt: schedAtStr,
-          departureTime: c.departureTime || schedTime,
+          scheduledTime: schedTimeWithDate,
+          scheduledAt: schedTimeWithDate,
+          allocatedAt: c.allocatedAt || schedTimeWithDate,
+          departureTime: c.departureTime || '—',
           shift: c.shift || 'General Shift',
           completionTime: c.completedAt || 'Today, 10:45 AM',
           driver: c.driver || 'Driver Assigned',
-          dispatchTime: c.dispatchTime || schedTime || '06:30 AM',
+          dispatchTime: c.dispatchTime || c.departureTime || '—',
           model: busModel,
           isTransferred: isXfer,
           categoryLabel: isXfer ? '🔄 Depot Transfer & Route Completed' : '✅ Route Completed',
@@ -1753,7 +1796,6 @@
       const timeData = fmt(offsets[i]);
       const schedMinutesBefore = 45 + ((num * 7 + i * 15) % 45); // 45 to 89 minutes earlier
       const schedData = fmt(offsets[i] + schedMinutesBefore);
-      const schedTime = schedData.str.split(',')[0].trim();
 
       generated.push({
         id: `gen_${clean}_route_${i + 1}`,
@@ -1763,11 +1805,13 @@
         homeDepot: homeDepot,
         route: route,
         schedule: schedule,
-        scheduledTime: schedTime,
-        scheduledAt: schedData.str,
+        scheduledTime: schedData.fullTs,
+        scheduledAt: schedData.fullTs,
+        allocatedAt: schedData.fullTs,
         completionTime: timeData.str,
         driver: driver,
-        dispatchTime: schedTime,
+        dispatchTime: schedData.timeStr || schedData.str.split(',')[0].trim(),
+        departureTime: schedData.timeStr || schedData.str.split(',')[0].trim(),
         model: busModel,
         isTransferred: isXfer,
         categoryLabel: isXfer ? '🔄 Depot Transfer & Route Completed' : '✅ Route Completed',
@@ -2006,8 +2050,8 @@
                     <span class="h7-val" style="font-weight:700;">${rec.schedule}</span>
                   </div>
                   <div class="h7-cell">
-                    <span class="h7-label" style="color:#1e40af;">Scheduled Time</span>
-                    <span class="h7-val" style="color:#2563eb;font-weight:800;">🕒 ${rec.scheduledTime || rec.dispatchTime || '—'}</span>
+                    <span class="h7-label" style="color:#1e40af;">Scheduled / Allocated At</span>
+                    <span class="h7-val" style="color:#2563eb;font-weight:800;font-size:0.83rem;">🕒 ${rec.scheduledTime || rec.scheduledAt || '—'}</span>
                   </div>
                   <div class="h7-cell">
                     <span class="h7-label" style="color:#166534;">Completion Time</span>
@@ -2116,8 +2160,8 @@
               <span style="font-weight:700;font-size:1rem;">${rec.schedule}</span>
             </div>
             <div class="detail-item">
-              <label style="color:#1e40af;font-weight:700;">Scheduled Time</label>
-              <span style="color:#2563eb;font-weight:800;font-size:1.05rem;">🕒 ${rec.scheduledTime || rec.dispatchTime || '—'}${rec.scheduledAt && rec.scheduledAt !== rec.scheduledTime ? ` (${rec.scheduledAt})` : ''}</span>
+              <label style="color:#1e40af;font-weight:700;">Scheduled / Allocated At (Real Time &amp; Date)</label>
+              <span style="color:#2563eb;font-weight:800;font-size:0.95rem;">🕒 ${rec.scheduledTime || rec.scheduledAt || '—'}</span>
             </div>
             <div class="detail-item">
               <label style="color:#166534;font-weight:700;">Completion Time</label>
@@ -2137,8 +2181,12 @@
               <span>${rec.driver || 'Driver Assigned'}</span>
             </div>
             <div class="detail-item">
-              <label>Scheduled Departure / Dispatch Time</label>
-              <span style="color:#2563eb;font-weight:700;">🕒 ${rec.scheduledTime || rec.dispatchTime || '06:15 AM'}</span>
+              <label>Real Allocation Time &amp; Date (from Scheduling)</label>
+              <span style="color:#2563eb;font-weight:700;">🕒 ${rec.scheduledTime || rec.scheduledAt || '—'}</span>
+            </div>
+            <div class="detail-item">
+              <label>Timetable Departure Slot</label>
+              <span style="color:#475569;font-weight:700;">🚌 ${rec.departureTime || rec.dispatchTime || '—'}</span>
             </div>
             <div class="detail-item">
               <label>Actual Route Completion Time</label>
@@ -2494,9 +2542,22 @@
       } catch (e) {}
     })();
 
-    // 3. Add to completed log
-    const scheduledTime = allocEntry?.scheduledTime || allocEntry?.departureTime || allocEntry?.dispatchTime || allocEntry?.time || '—';
-    const scheduledAt   = allocEntry?.scheduledAt || allocEntry?.allocatedAt || fullTs;
+    // 3. Add to completed log with accurate real allocation time and date
+    let accurateScheduledAt = allocEntry?.scheduledAt || allocEntry?.allocatedAt;
+    if (!accurateScheduledAt) {
+      if (allocEntry?.allocatedTime && allocEntry?.allocatedDate) {
+        accurateScheduledAt = `${allocEntry.allocatedTime}, ${allocEntry.allocatedDate}`;
+      } else if (allocEntry?.time && String(allocEntry.time).includes(',')) {
+        accurateScheduledAt = allocEntry.time;
+      } else if (allocEntry?.departureTime) {
+        accurateScheduledAt = `${allocEntry.departureTime}, ${dateStr}`;
+      } else {
+        const fallbackDate = new Date(now.getTime() - 45 * 60 * 1000);
+        const fbTime = fallbackDate.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit', second:'2-digit', hour12:true });
+        const fbDate = fallbackDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        accurateScheduledAt = `${fbTime}, ${fbDate}`;
+      }
+    }
 
     const logEntry = {
       id:           'rc_' + Date.now(),
@@ -2505,10 +2566,11 @@
       route:        allocEntry?.route    || '—',
       schedule:     allocEntry?.schedule || '—',
       driver:       allocEntry?.driver   || '—',
-      dispatchTime: allocEntry?.dispatchTime || allocEntry?.time || scheduledTime || '—',
-      departureTime: allocEntry?.departureTime || scheduledTime || '—',
-      scheduledTime: scheduledTime,
-      scheduledAt:   scheduledAt,
+      dispatchTime: allocEntry?.dispatchTime || allocEntry?.departureTime || '—',
+      departureTime: allocEntry?.departureTime || '—',
+      scheduledTime: accurateScheduledAt,
+      scheduledAt:   accurateScheduledAt,
+      allocatedAt:   accurateScheduledAt,
       shift:        allocEntry?.shift || '—',
       completedAt:  fullTs,
       completedTs:  Date.now(),
@@ -2606,7 +2668,7 @@
               </span>
             </div>
             <div class="alloc-sub">${v?.reg_no || entry.reg || '—'} &nbsp;|&nbsp; Route: ${entry.route || '—'} &nbsp;|&nbsp; ${entry.schedule || ''}</div>
-            <div class="alloc-sub" style="margin-top:2px;">Driver: ${entry.driver || '—'} &nbsp;·&nbsp; Dispatched: ${entry.dispatchTime || entry.time || '—'}</div>
+            <div class="alloc-sub" style="margin-top:2px;">Driver: ${entry.driver || '—'} &nbsp;·&nbsp; Allocated: 🕒 <strong>${entry.allocatedAt || entry.scheduledTime || entry.time || '—'}</strong></div>
           </div>
           <div class="alloc-actions">
             <button type="button" class="btn-quick-complete" onclick="quickComplete('${entry.bm}')">
