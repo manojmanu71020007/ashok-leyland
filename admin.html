@@ -5422,7 +5422,7 @@ let busCategoriesMap = new Map();
             }
         }
 
-        function renderRoutes(preserveManualTime = true) {
+        function renderRoutes(preserveManualTime = true, skipRecommend = false) {
             // Render locked banner
             (function renderLockedBusBanner() {
                 const locked = _getLockedBuses();
@@ -5545,7 +5545,7 @@ let busCategoriesMap = new Map();
             }
 
             updateSelectedBusDutyBanner();
-            updateAllocationPanel();
+            if (!skipRecommend) updateAllocationPanel();
 
             // ── 3. Allocated Buses & Not Allocated Buses computation ──
             const allocatedBmSet = new Set(allocatedDuties.map(d => String(d.bm).toUpperCase().trim()));
@@ -7197,6 +7197,11 @@ let busCategoriesMap = new Map();
         }
 
         async function recommend() {
+            // Debounce: prevent double-firing within 800ms (e.g. BroadcastChannel + poll overlap)
+            if (window._recommendRunning) return;
+            window._recommendRunning = true;
+            setTimeout(() => { window._recommendRunning = false; }, 800);
+
             const distanceInput = document.getElementById("distance");
             const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
             const departure = (document.getElementById("departure")?.value) || "13:10";
@@ -7971,7 +7976,7 @@ let busCategoriesMap = new Map();
                 if (curTime && scheduledTimeSelect) scheduledTimeSelect.value = curTime;
                 if (curDep && document.getElementById("departure")) document.getElementById("departure").value = curDep;
 
-                renderRoutes(true);
+                renderRoutes(true, true);
                 const schedPanel = document.getElementById("view-panel-scheduled");
                 if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
                     renderScheduledTime();
@@ -7982,7 +7987,7 @@ let busCategoriesMap = new Map();
                 console.warn("Background fleet sync warning:", err);
             }
 
-            // Live polling every 12 seconds
+            // Live polling every 45 seconds (reduced from 12s to ease server load)
             if (!window._fleetPollingInterval) {
                 window._fleetPollingInterval = setInterval(async () => {
                     try {
@@ -8006,7 +8011,7 @@ let busCategoriesMap = new Map();
                         const curDepTime = (document.getElementById("departure")?.value) || "13:10";
                         updateRouteKpis(curRouteObj, curDepTime);
                     } catch {}
-                }, 12000);
+                }, 45000);
             }
         }
 
