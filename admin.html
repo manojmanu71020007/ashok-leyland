@@ -3906,11 +3906,11 @@ let busCategoriesMap = new Map();
             }
 
             // 1. Matched Schedule & Constant Minimum Required SoC Estimation (Actual km + Dead km)
+            const curRoute = routeCode || (currentTargetKey && currentTargetKey.includes('_') ? currentTargetKey.split('_')[0] : "356Z");
+            const depTimeShort = (currentTargetKey && currentTargetKey.includes('_')) ? currentTargetKey.split('_')[1] : (precomputedSched && precomputedSched.outTime ? precomputedSched.outTime.substring(0, 5) : "13:10");
+            const depMin = timeToMinutes(depTimeShort);
             let matchedSched = precomputedSched;
             if (!matchedSched) {
-                const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
-                const depTimeShort = currentTargetKey ? currentTargetKey.split('_')[1] : "13:10";
-                const depMin = timeToMinutes(depTimeShort);
                 const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
                 matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
                 if (!matchedSched && routeSchedules.length > 0) {
@@ -4108,7 +4108,7 @@ let busCategoriesMap = new Map();
             const depMin = timeToMinutes(depShort);
             const currentTargetKey = cacheKey;
 
-            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
+            const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase() && s.outTime && s.outTime.trim().length >= 4);
             let matchedSched = null;
 
             if (routeSchedules.length > 0) {
