@@ -453,8 +453,13 @@
         }
         .section-switch-buttons {
             display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(5, minmax(0, 1fr));
             gap: 12px;
+        }
+        @media (max-width: 1200px) {
+            .section-switch-buttons {
+                grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            }
         }
         @media (max-width: 1100px) {
             .section-switch-buttons {
@@ -650,6 +655,122 @@
         }
         .section-nav-btn.btn-view-available-scheduling.active .btn-nav-chevron {
             color: #5b21b6;
+        }
+
+        /* ── Button 5: Total Buses (Teal / Emerald Fleet Theme) ── */
+        .section-nav-btn.btn-view-total-buses:hover {
+            border-color: #99f6e4;
+            background: #f0fdfa;
+        }
+        .section-nav-btn.btn-view-total-buses.active {
+            background: linear-gradient(135deg, #f0fdfa, #ccfbf1);
+            border-color: #0d9488;
+            box-shadow: 0 4px 18px rgba(13, 148, 136, 0.25);
+        }
+        .section-nav-btn.btn-view-total-buses.active .btn-nav-title {
+            color: #0f766e;
+        }
+        .section-nav-btn.btn-view-total-buses.active .btn-nav-desc {
+            color: #115e59;
+        }
+        .section-nav-btn.btn-view-total-buses.active .btn-nav-pill {
+            background: #0d9488;
+            color: #ffffff;
+            border-color: #0f766e;
+        }
+        .section-nav-btn.btn-view-total-buses.active .btn-nav-chevron {
+            color: #0f766e;
+        }
+
+        /* ── Total Buses Topbar Button & Badges ── */
+        .total-buses-topbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: #ffffff;
+            color: #0f766e;
+            border: 1.5px solid #99f6e4;
+            border-radius: 999px;
+            padding: 7px 15px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.10);
+            transition: all 0.2s ease;
+        }
+        .total-buses-topbar-btn:hover {
+            background: #f0fdfa;
+            border-color: #0d9488;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.20);
+        }
+        .total-buses-topbar-btn:active {
+            transform: translateY(0);
+        }
+        .total-buses-badge-count {
+            background: #0d9488;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            min-width: 18px;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* ── Depot Category Sections in Total Buses Panel ── */
+        .total-buses-depot-section {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .total-buses-depot-section.depot-1-section {
+            border-left: 5px solid #0284c7;
+        }
+        .total-buses-depot-section.depot-2-section {
+            border-left: 5px solid #7c3aed;
+        }
+        .total-buses-depot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .total-buses-depot-title {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .total-buses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 12px;
+        }
+        .total-bus-card {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.18s ease;
+        }
+        .total-bus-card:hover {
+            border-color: #0d9488;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.12);
         }
 
         /* ── Available Buses for Scheduling Cards & Grid ── */
@@ -1957,6 +2078,11 @@
                         <span style="pointer-events:none;" data-i18n="admin_btn_add_delete_buses">Add / Delete Buses</span>
                         <span id="topbar-newly-added-count" class="newly-added-badge-count" style="pointer-events:none; display:none;">0</span>
                     </button>
+                    <button id="total-buses-topbar-btn" class="total-buses-topbar-btn" type="button" title="View total fleet categorized into Depot 1 and Depot 2" onclick="openFleetSection('total-buses', true)">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><rect x="2" y="3" width="20" height="15" rx="3" ry="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M7 11h10M7 7h10"/></svg>
+                        <span style="pointer-events:none;" data-i18n="admin_btn_total_buses">Total Buses</span>
+                        <span id="topbar-total-buses-count" class="total-buses-badge-count" style="pointer-events:none;">0</span>
+                    </button>
                     <div class="live-chip" data-i18n="admin_workspace_title">Admin Workspace</div>
                     <button id="logout-btn" class="logout-btn" type="button" onclick="handleLogout(event)" title="Sign out and return to login">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -2146,6 +2272,19 @@
                         <span class="btn-nav-chevron">▼</span>
                     </div>
                 </button>
+                <button type="button" class="section-nav-btn btn-view-total-buses" id="btn-tab-total-buses" onclick="toggleFleetSection('total-buses')" data-target="view-panel-total-buses" role="tab" aria-selected="false" aria-controls="view-panel-total-buses">
+                    <div class="btn-nav-main">
+                        <span class="btn-nav-icon">🚌</span>
+                        <div class="btn-nav-meta">
+                            <span class="btn-nav-title" data-i18n="btn_nav_total_buses">Total Buses</span>
+                            <span class="btn-nav-desc">Depot 1 &amp; Depot 2 Fleet</span>
+                        </div>
+                    </div>
+                    <div class="btn-nav-end">
+                        <span class="btn-nav-pill" id="nav-count-total-buses">0</span>
+                        <span class="btn-nav-chevron">▼</span>
+                    </div>
+                </button>
             </div>
         </div>
 
@@ -2332,6 +2471,93 @@
                     </div>
 
                     <div id="available-scheduling-summary">
+                        <!-- Populated dynamically by JavaScript -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- Panel 5: Total Buses (Categorized into Depot 1 and Depot 2) -->
+            <div id="view-panel-total-buses" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-total-buses">
+                <section class="panel" aria-label="Total buses categorized by depot">
+                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h2 style="color:#0f766e; margin:0; display:flex; align-items:center; gap:8px;">
+                                <span>🚌 Total Buses Across Depots</span>
+                                <span id="total-buses-overall-badge" style="background:#ccfbf1; color:#0f766e; font-size:0.82rem; font-weight:800; padding:3px 12px; border-radius:999px; border:1px solid #99f6e4;">0 Buses</span>
+                            </h2>
+                            <p class="panel-note" style="margin-bottom:0; margin-top:4px;">
+                                Complete fleet categorized into <strong>Depot 1 (Chandapura)</strong> and <strong>Depot 2</strong> with real-time operational status, battery SoC, and driver assignments.
+                            </p>
+                        </div>
+                        <!-- Summary Quick Badges -->
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700;">
+                                <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:5px 12px; border-radius:8px;">
+                                    🏢 Depot 1: <strong id="total-buses-d1-count">0</strong>
+                                </span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:5px 12px; border-radius:8px;">
+                                    🏢 Depot 2: <strong id="total-buses-d2-count">0</strong>
+                                </span>
+                            </div>
+                            <button type="button" class="btn-util-toggle" onclick="renderTotalBusesSection()" title="Refresh fleet lists">
+                                🔄 Refresh
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Depot Category Switcher / Filter Tabs -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0 14px; border-bottom:1.5px solid var(--line); padding-bottom:12px;">
+                        <div class="filter-tabs" id="total-buses-depot-tabs">
+                            <button type="button" class="tab-btn active" id="total-tab-all" onclick="setTotalBusesDepotFilter('all')">
+                                🌐 Both Depots (<span id="total-tab-count-all">0</span>)
+                            </button>
+                            <button type="button" class="tab-btn" id="total-tab-d1" onclick="setTotalBusesDepotFilter('1')">
+                                🏢 Depot 1 (<span id="total-tab-count-d1">0</span>)
+                            </button>
+                            <button type="button" class="tab-btn" id="total-tab-d2" onclick="setTotalBusesDepotFilter('2')">
+                                🏢 Depot 2 (<span id="total-tab-count-d2">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Filter & Sort controls -->
+                        <div class="sort-strip" style="margin:0; gap:8px;">
+                            <label>Status:
+                                <select id="total-buses-filter-status" onchange="renderTotalBusesSection()">
+                                    <option value="all">All Statuses</option>
+                                    <option value="available">🟢 Available in Depot</option>
+                                    <option value="allocated">🟣 On Route / Allocated</option>
+                                    <option value="locked">🔒 Charging / Cleaning (Locked)</option>
+                                    <option value="new">✨ Newly Added Buses</option>
+                                </select>
+                            </label>
+                            <label>Category:
+                                <select id="total-buses-filter-cat" onchange="renderTotalBusesSection()">
+                                    <option value="all">All Categories</option>
+                                    <option value="A">Category A</option>
+                                    <option value="B">Category B</option>
+                                    <option value="C">Category C</option>
+                                </select>
+                            </label>
+                            <label>Sort by:
+                                <select id="total-buses-sort-by" onchange="renderTotalBusesSection()">
+                                    <option value="bm-asc">BM Number (A → Z)</option>
+                                    <option value="soc-desc">Battery SOC (Highest → Lowest)</option>
+                                    <option value="soc-asc">Battery SOC (Lowest → Highest)</option>
+                                    <option value="range-desc">Range (Highest First)</option>
+                                </select>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Search bar -->
+                    <div class="region-search-wrap" style="margin-bottom:16px;">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input type="text" id="total-buses-search" class="region-search-input" placeholder="Search total buses across Depot 1 & Depot 2 by BM number, Reg No, model, driver..." autocomplete="off" spellcheck="false" oninput="renderTotalBusesSection()" />
+                        <button type="button" id="clear-total-buses-search" class="clear-search-btn" title="Clear search" onclick="clearTotalBusesSearch()" style="display:none;">✕</button>
+                    </div>
+
+                    <!-- Dynamic Content Area -->
+                    <div id="total-buses-container">
                         <!-- Populated dynamically by JavaScript -->
                     </div>
                 </section>
@@ -2816,7 +3042,363 @@ let busCategoriesMap = new Map();
             }, 4500);
         }
 
-        // ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time, Available Buses for Scheduling) ──
+                // ══════════════════════════════════════════════════════════════════════════
+        //  TOTAL BUSES FLEET DATA & CATEGORIZATION (Depot 1 & Depot 2)
+        // ══════════════════════════════════════════════════════════════════════════
+        const DEFAULT_FLEET_BMS = ["BM001","BM002","BM003","BM004","BM005","BM010","BM012","BM019","BM020","BM024","BM032","BM033","BM038","BM052","BM054","BM056","BM057","BM058","BM062","BM068","BM075","BM080","BM081","BM082","BM086","BM088","BM107","BM116","BM119","BM124","BM151","BM152","BM153","BM157","BM174","BM183","BM185","BM187","BM191","BM193","BM197","BM198","BM199","BM200","BM201","BM202","BM203","BM204","BM205","BM206","BM207","BM208","BM209","BM210","BM212","BM213","BM214","BM215","BM216","BM217","BM218","BM219","BM220","BM221","BM222","BM223","BM224","BM225","BM227","BM238","BM239","BM240","BM245","BM248","BM249","BM250","BM253","BM255","BM256","BM257","BM258","BM259","BM260","BM261","BM263","BM264","BM265","BM267","BM268","BM269","BM271","BM272","BM273","BM274","BM275","BM276","BM277","BM278","BM279","BM280","BM281","BM282","BM283","BM284","BM285","BM286","BM287","BM288","BM289","BM290","BM291","BM292","BM293","BM294","BM295","BM296","BM297","BM298","BM299","BM300","BM303","BM304"];
+
+        const DEFAULT_DEPOT_MAP = {"BM001":"1","BM002":"1","BM003":"1","BM004":"1","BM005":"1","BM010":"1","BM012":"1","BM019":"1","BM020":"1","BM024":"1","BM032":"1","BM033":"1","BM038":"1","BM052":"2","BM054":"1","BM056":"1","BM057":"1","BM058":"1","BM062":"1","BM068":"1","BM075":"1","BM080":"1","BM081":"1","BM082":"1","BM086":"1","BM088":"1","BM107":"1","BM116":"1","BM119":"1","BM124":"1","BM151":"1","BM152":"1","BM153":"1","BM157":"1","BM174":"1","BM183":"1","BM185":"1","BM187":"1","BM191":"1","BM193":"1","BM197":"1","BM198":"1","BM199":"1","BM200":"1","BM201":"1","BM202":"1","BM203":"1","BM204":"1","BM205":"1","BM206":"1","BM207":"1","BM208":"1","BM209":"1","BM210":"1","BM212":"1","BM213":"1","BM214":"1","BM215":"1","BM216":"1","BM217":"1","BM218":"1","BM219":"2","BM220":"2","BM221":"2","BM222":"2","BM223":"2","BM224":"2","BM225":"2","BM227":"2","BM238":"2","BM239":"2","BM240":"2","BM245":"2","BM248":"2","BM249":"2","BM250":"2","BM253":"2","BM255":"2","BM256":"2","BM257":"2","BM258":"2","BM259":"2","BM260":"2","BM261":"2","BM263":"2","BM264":"2","BM265":"2","BM267":"2","BM268":"2","BM269":"2","BM271":"2","BM272":"2","BM273":"2","BM274":"2","BM275":"2","BM276":"2","BM277":"2","BM278":"2","BM279":"1","BM280":"2","BM281":"2","BM282":"2","BM283":"2","BM284":"2","BM285":"2","BM286":"2","BM287":"2","BM288":"2","BM289":"2","BM290":"2","BM291":"2","BM292":"2","BM293":"2","BM294":"2","BM295":"2","BM296":"2","BM297":"2","BM298":"2","BM299":"2","BM300":"2","BM303":"1","BM304":"2"};
+
+        function getBusDepot(bm) {
+            const clean = String(bm || '').toUpperCase().trim();
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotForBus === 'function') {
+                const d = window.DepotSyncEngine.getDepotForBus(clean);
+                if (d) return String(d);
+            }
+            try {
+                const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
+                if (map[clean]) return String(map[clean]);
+            } catch(e) {}
+            if (DEFAULT_DEPOT_MAP[clean]) return DEFAULT_DEPOT_MAP[clean];
+            return '1';
+        }
+
+        let currentTotalBusesDepotFilter = 'all'; // 'all', '1', or '2'
+
+        function setTotalBusesDepotFilter(depotId) {
+            currentTotalBusesDepotFilter = depotId;
+            ['all', '1', '2'].forEach(key => {
+                const tab = document.getElementById('total-tab-' + (key === 'all' ? 'all' : 'd' + key));
+                if (tab) {
+                    tab.classList.toggle('active', key === depotId);
+                }
+            });
+            renderTotalBusesSection();
+        }
+
+        function clearTotalBusesSearch() {
+            const inp = document.getElementById('total-buses-search');
+            if (inp) inp.value = '';
+            renderTotalBusesSection();
+        }
+
+        function getTotalBusesFleetList() {
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function")
+                ? window.DepotSyncEngine.getAddedBuses() : {};
+            const rawKeys = [
+                ...DEFAULT_FLEET_BMS,
+                ...Object.keys(STATIC_BUS_CATEGORIES || {}),
+                ...Object.keys(addedBuses || {}),
+                ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
+            ];
+            const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
+                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+
+            const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
+            if (!Array.isArray(allocatedDuties) && typeof loadAllocatedDuties === "function") {
+                allocatedDuties = loadAllocatedDuties();
+            }
+
+            const fleet = [];
+            allFleetKeys.forEach(bmKey => {
+                const bm = String(bmKey).toUpperCase().trim();
+                const regNo = typeof getBusRegNo === "function" ? getBusRegNo(bm) : "";
+                const depot = getBusDepot(bm); // '1' or '2'
+                const liveSoc = typeof getBusSocByBm === "function" ? getBusSocByBm(bm) : 80;
+                const fullDutyKm = typeof calculateFullDutyDistance === "function" ? calculateFullDutyDistance(liveSoc) : 100;
+                const busCat = typeof getBusCategory === "function" ? getBusCategory(bm, liveSoc) : (STATIC_BUS_CATEGORIES[bm] || "B");
+                const allocatedDuty = typeof findAllocatedDutyForBm === "function" ? findAllocatedDutyForBm(bm, allocatedDuties) : null;
+
+                // Lock status
+                let isLocked = false;
+                let lockReason = "";
+                if (typeof getBusLockInfo === "function") {
+                    const lockInfo = getBusLockInfo(bm);
+                    if (lockInfo && lockInfo.isLocked) {
+                        isLocked = true;
+                        lockReason = (lockInfo.reasons && lockInfo.reasons.length) ? lockInfo.reasons.join(", ") : "Cleaning / Charging";
+                    }
+                }
+                if (!isLocked && (lockedList || []).some(item => String(item.bm || "").toUpperCase().trim() === bm)) {
+                    isLocked = true;
+                    lockReason = "Locked";
+                }
+                const bState = (typeof busStates !== "undefined" && busStates[bm]) ? busStates[bm] : {};
+                const chgStatus = String(bState.chargingStatus || bState.status || "").toLowerCase();
+                if (!isLocked && (chgStatus.includes("charg") || chgStatus.includes("clean"))) {
+                    isLocked = true;
+                    lockReason = chgStatus.includes("charg") ? "Charging" : "Cleaning";
+                }
+
+                const isNewlyAdded = Boolean(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(bm));
+                const newlyAddedInfo = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === "function") ? window.DepotSyncEngine.getNewlyAddedInfo(bm) : null;
+
+                let operationalStatus = "available";
+                if (isLocked) operationalStatus = "locked";
+                else if (allocatedDuty) operationalStatus = "allocated";
+
+                fleet.push({
+                    bm: bm,
+                    regNo: regNo,
+                    depot: String(depot),
+                    liveSoc: liveSoc,
+                    fullDutyKm: fullDutyKm,
+                    busCategory: busCat,
+                    condition: bState.condition || "Good",
+                    driver: (allocatedDuty ? (allocatedDuty.driverName || allocatedDuty.driver) : "") || bState.driver || "Driver Assigned",
+                    operationalStatus: operationalStatus,
+                    isAllocated: Boolean(allocatedDuty),
+                    allocatedDuty: allocatedDuty,
+                    isLocked: isLocked,
+                    lockReason: lockReason,
+                    isNewlyAdded: isNewlyAdded,
+                    additionReason: newlyAddedInfo ? newlyAddedInfo.reason : ""
+                });
+            });
+
+            return fleet;
+        }
+
+        function updateTotalBusesNavPill() {
+            try {
+                const fleet = getTotalBusesFleetList();
+                const navPill = document.getElementById("nav-count-total-buses");
+                const topbarCount = document.getElementById("topbar-total-buses-count");
+                if (navPill) navPill.textContent = String(fleet.length);
+                if (topbarCount) topbarCount.textContent = String(fleet.length);
+
+                const d1Count = fleet.filter(b => b.depot === '1').length;
+                const d2Count = fleet.filter(b => b.depot === '2').length;
+
+                const d1El = document.getElementById("total-buses-d1-count");
+                const d2El = document.getElementById("total-buses-d2-count");
+                if (d1El) d1El.textContent = String(d1Count);
+                if (d2El) d2El.textContent = String(d2Count);
+
+                const tabAll = document.getElementById("total-tab-count-all");
+                const tabD1 = document.getElementById("total-tab-count-d1");
+                const tabD2 = document.getElementById("total-tab-count-d2");
+                if (tabAll) tabAll.textContent = String(fleet.length);
+                if (tabD1) tabD1.textContent = String(d1Count);
+                if (tabD2) tabD2.textContent = String(d2Count);
+
+                const overallBadge = document.getElementById("total-buses-overall-badge");
+                if (overallBadge) overallBadge.textContent = `${fleet.length} Buses`;
+            } catch(e) {
+                console.warn("Could not update total buses nav pill:", e);
+            }
+        }
+
+        function renderTotalBusesSection() {
+            const container = document.getElementById("total-buses-container");
+            const searchInput = document.getElementById("total-buses-search");
+            const clearBtn = document.getElementById("clear-total-buses-search");
+            const statusFilter = document.getElementById("total-buses-filter-status");
+            const catFilter = document.getElementById("total-buses-filter-cat");
+            const sortBy = document.getElementById("total-buses-sort-by");
+
+            updateTotalBusesNavPill();
+
+            if (!container) return;
+            const panel = document.getElementById("view-panel-total-buses");
+            if (panel && panel.style.display === "none") return;
+
+            const allFleet = getTotalBusesFleetList();
+            const selectedStatus = statusFilter ? statusFilter.value : "all";
+            const selectedCat = catFilter ? catFilter.value : "all";
+            const selectedSort = sortBy ? sortBy.value : "bm-asc";
+            const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+
+            if (clearBtn) clearBtn.style.display = query ? "inline-flex" : "none";
+
+            // Filter
+            let filtered = allFleet;
+
+            // Filter by status
+            if (selectedStatus === "available") {
+                filtered = filtered.filter(b => b.operationalStatus === "available");
+            } else if (selectedStatus === "allocated") {
+                filtered = filtered.filter(b => b.isAllocated);
+            } else if (selectedStatus === "locked") {
+                filtered = filtered.filter(b => b.isLocked);
+            } else if (selectedStatus === "new") {
+                filtered = filtered.filter(b => b.isNewlyAdded);
+            }
+
+            // Filter by category
+            if (selectedCat !== "all") {
+                filtered = filtered.filter(b => b.busCategory === selectedCat);
+            }
+
+            // Filter by search query
+            if (query) {
+                const cleanQ = query.replace(/[^a-z0-9]/g, "");
+                filtered = filtered.filter(b => {
+                    const bmClean = b.bm.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const regClean = (b.regNo || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const driverClean = (b.driver || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const catClean = `category${b.busCategory.toLowerCase()}`;
+                    const depotClean = `depot${b.depot}`;
+                    return bmClean.includes(cleanQ) || regClean.includes(cleanQ) || driverClean.includes(cleanQ) || catClean.includes(cleanQ) || depotClean.includes(cleanQ);
+                });
+            }
+
+            // Sort
+            filtered.sort((a, b) => {
+                if (selectedSort === "bm-asc") return a.bm.localeCompare(b.bm, undefined, { numeric: true });
+                if (selectedSort === "soc-desc") return b.liveSoc - a.liveSoc;
+                if (selectedSort === "soc-asc") return a.liveSoc - b.liveSoc;
+                if (selectedSort === "range-desc") return b.fullDutyKm - a.fullDutyKm;
+                return 0;
+            });
+
+            // Separate into Depot 1 and Depot 2
+            const d1Buses = filtered.filter(b => b.depot === "1");
+            const d2Buses = filtered.filter(b => b.depot === "2");
+
+            const renderCards = (buses) => {
+                if (!buses.length) {
+                    return `
+                        <div style="grid-column:1/-1;padding:22px;text-align:center;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:10px;color:#64748b;font-size:0.85rem;">
+                            No buses matched your filters for this depot.
+                        </div>`;
+                }
+                return buses.map(bus => {
+                    const catClass = bus.busCategory === "A" ? "cat-pill-a" : (bus.busCategory === "B" ? "cat-pill-b" : "cat-pill-c");
+                    const socColor = bus.liveSoc >= 75 ? "#16a34a" : (bus.liveSoc >= 45 ? "#0284c7" : "#d97706");
+
+                    let statusBadgeHtml = '';
+                    if (bus.isAllocated) {
+                        const routeLabel = bus.allocatedDuty?.routeCode || bus.allocatedDuty?.route || 'Duty';
+                        statusBadgeHtml = `<span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🟣 On Route (${escapeHtml(routeLabel)})</span>`;
+                    } else if (bus.isLocked) {
+                        statusBadgeHtml = `<span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🔒 Locked (${escapeHtml(bus.lockReason)})</span>`;
+                    } else {
+                        statusBadgeHtml = `<span style="background:#dcfce7; color:#166534; border:1px solid #86efac; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🟢 Available in Depot</span>`;
+                    }
+
+                    const depotBadge = bus.depot === "1"
+                        ? `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🏢 Depot 1</span>`
+                        : `<span style="background:#ede9fe; color:#6d28d9; border:1px solid #ddd6fe; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🏢 Depot 2</span>`;
+
+                    return `
+                        <div class="total-bus-card">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                    <strong style="font-size:1.02rem; color:var(--ink);">🚌 ${escapeHtml(bus.bm)}</strong>
+                                    ${bus.regNo ? `<span style="font-size:0.8rem; color:#64748b; font-weight:600;">(${escapeHtml(bus.regNo)})</span>` : ''}
+                                    ${bus.isNewlyAdded ? `<span class="badge-newly-added" title="${escapeHtml(bus.additionReason || 'Newly Added')}">✨ Newly Added</span>` : ''}
+                                </div>
+                                <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                            </div>
+
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                                ${depotBadge}
+                                ${statusBadgeHtml}
+                            </div>
+
+                            <!-- Battery SoC -->
+                            <div style="margin-top:2px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.74rem; margin-bottom:3px;">
+                                    <span style="color:#64748b; font-weight:600;">Battery State of Charge</span>
+                                    <strong style="color:${socColor}; font-weight:800;">⚡ ${bus.liveSoc}%</strong>
+                                </div>
+                                <div style="background:#f1f5f9; height:6px; border-radius:999px; overflow:hidden;">
+                                    <div style="background:${socColor}; width:${Math.min(100, Math.max(0, bus.liveSoc))}%; height:100%; border-radius:999px;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Metrics -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.76rem; color:#475569; padding-top:4px; border-top:1px solid #f1f5f9;">
+                                <span>📏 Range: <strong>${bus.fullDutyKm} km</strong></span>
+                                <span title="${escapeHtml(bus.driver)}">👤 ${escapeHtml(bus.driver.length > 18 ? bus.driver.substring(0, 16) + '…' : bus.driver)}</span>
+                                <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(bus.bm)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>`;
+                }).join('');
+            };
+
+            const d1Available = d1Buses.filter(b => b.operationalStatus === "available").length;
+            const d1Allocated = d1Buses.filter(b => b.isAllocated).length;
+            const d1Locked = d1Buses.filter(b => b.isLocked).length;
+
+            const d2Available = d2Buses.filter(b => b.operationalStatus === "available").length;
+            const d2Allocated = d2Buses.filter(b => b.isAllocated).length;
+            const d2Locked = d2Buses.filter(b => b.isLocked).length;
+
+            let html = '';
+
+            if (currentTotalBusesDepotFilter === 'all' || currentTotalBusesDepotFilter === '1') {
+                html += `
+                    <div class="total-buses-depot-section depot-1-section">
+                        <div class="total-buses-depot-header">
+                            <div>
+                                <div class="total-buses-depot-title">
+                                    <span>🏢 Depot 1 Fleet (Chandapura BMT-32)</span>
+                                    <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.8rem; font-weight:800; padding:2px 10px; border-radius:999px;">
+                                        ${d1Buses.length} Buses
+                                    </span>
+                                </div>
+                                <div style="font-size:0.78rem; color:var(--muted); margin-top:3px;">
+                                    Buses allocated to Depot 1 (Chandapura) facility and connected corridors.
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
+                                <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">🟢 Available: ${d1Available}</span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🟣 On Route: ${d1Allocated}</span>
+                                <span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:3px 8px; border-radius:6px;">🔒 Under Service: ${d1Locked}</span>
+                            </div>
+                        </div>
+                        <div class="total-buses-grid">
+                            ${renderCards(d1Buses)}
+                        </div>
+                    </div>`;
+            }
+
+            if (currentTotalBusesDepotFilter === 'all' || currentTotalBusesDepotFilter === '2') {
+                html += `
+                    <div class="total-buses-depot-section depot-2-section">
+                        <div class="total-buses-depot-header">
+                            <div>
+                                <div class="total-buses-depot-title">
+                                    <span>🏢 Depot 2 Fleet</span>
+                                    <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; font-size:0.8rem; font-weight:800; padding:2px 10px; border-radius:999px;">
+                                        ${d2Buses.length} Buses
+                                    </span>
+                                </div>
+                                <div style="font-size:0.78rem; color:var(--muted); margin-top:3px;">
+                                    Buses allocated to Depot 2 facility and connected corridors.
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
+                                <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">🟢 Available: ${d2Available}</span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🟣 On Route: ${d2Allocated}</span>
+                                <span style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:3px 8px; border-radius:6px;">🔒 Under Service: ${d2Locked}</span>
+                            </div>
+                        </div>
+                        <div class="total-buses-grid">
+                            ${renderCards(d2Buses)}
+                        </div>
+                    </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        window.renderTotalBusesSection = renderTotalBusesSection;
+        window.setTotalBusesDepotFilter = setTotalBusesDepotFilter;
+        window.clearTotalBusesSearch = clearTotalBusesSearch;
+        window.updateTotalBusesNavPill = updateTotalBusesNavPill;
+        window.getBusDepot = getBusDepot;
+        window.getTotalBusesFleetList = getTotalBusesFleetList;
+
+// ── Section View Switcher Logic (Allocated Buses, Non-Allocated Buses, Scheduled Time, Available Buses for Scheduling) ──
         function getSectionPanelMap() {
             return {
                 "allocated": {
@@ -2834,6 +3416,10 @@ let busCategoriesMap = new Map();
                 "available-scheduling": {
                     btn: document.getElementById("btn-tab-available-scheduling"),
                     panel: document.getElementById("view-panel-available-scheduling")
+                },
+                "total-buses": {
+                    btn: document.getElementById("btn-tab-total-buses"),
+                    panel: document.getElementById("view-panel-total-buses")
                 }
             };
         }
@@ -2875,6 +3461,8 @@ let busCategoriesMap = new Map();
                     renderScheduledTime();
                 } else if (sectionKey === "available-scheduling" && typeof renderAvailableBusesForScheduling === "function") {
                     renderAvailableBusesForScheduling();
+                } else if (sectionKey === "total-buses" && typeof renderTotalBusesSection === "function") {
+                    renderTotalBusesSection();
                 }
             } catch (renderErr) {
                 console.warn("Could not re-render section on open:", renderErr);
@@ -2941,6 +3529,7 @@ let busCategoriesMap = new Map();
                     if (typeof renderNotAllocatedList === "function") renderNotAllocatedList(lastNotAllocatedRoutes);
                     if (typeof renderScheduledTime === "function") renderScheduledTime();
                     if (typeof renderAvailableBusesForScheduling === "function") renderAvailableBusesForScheduling();
+                    if (typeof renderTotalBusesSection === "function") renderTotalBusesSection();
                 } catch (e) {}
             } else {
                 Object.values(panelMap).forEach(item => {
@@ -2966,6 +3555,9 @@ let busCategoriesMap = new Map();
             // Initialize available scheduling badge pill count
             if (typeof updateAvailableSchedulingNavPill === "function") {
                 updateAvailableSchedulingNavPill();
+            }
+            if (typeof updateTotalBusesNavPill === "function") {
+                updateTotalBusesNavPill();
             }
         }
 
@@ -3211,6 +3803,9 @@ let busCategoriesMap = new Map();
                 const list = getAvailableBusesForSchedulingList();
                 const unassigned = list.filter(b => !b.isAllocated).length;
                 navPill.textContent = String(unassigned);
+            }
+            if (typeof updateTotalBusesNavPill === "function") {
+                updateTotalBusesNavPill();
             }
         }
 

@@ -675,6 +675,20 @@
             te: "సైన్ అవుట్",
             ta: "வெளியேறு"
         },
+                "btn_nav_total_buses": {
+            en: "Total Buses",
+            kn: "ಒಟ್ಟು ಬಸ್‌ಗಳು",
+            hi: "कुल बसें",
+            te: "మొత్తం బస్సులు",
+            ta: "மொத்த பேருந்துகள்"
+        },
+        "admin_btn_total_buses": {
+            en: "Total Buses",
+            kn: "ಒಟ್ಟು ಬಸ್‌ಗಳು",
+            hi: "कुल बसें",
+            te: "మొత్తం బಸ್సులు",
+            ta: "மொத்த பேருந்துகள்"
+        },
         "btn_nav_dispatch": {
             en: "Fleet Readiness",
             kn: "ಫ್ಲೀಟ್ ಸಿದ್ಧತೆ",
