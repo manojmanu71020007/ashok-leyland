@@ -2766,6 +2766,7 @@ let busCategoriesMap = new Map();
             if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveAllocatedDuties === 'function') {
                 window.DepotSyncEngine.saveAllocatedDuties(duties);
             }
+            if (typeof invalidateAllocCache === 'function') invalidateAllocCache();
         }
 
         function normalizeBm(bm) {
@@ -6796,18 +6797,21 @@ let busCategoriesMap = new Map();
                 routeSelect.addEventListener("change", () => {
                     window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
+                    invalidateAllocCache();
 
-                    // Ultra-fast responsive route switch: update distance, route schedule dropdown and recommendation
+                    // Immediately update lightweight UI (distance + schedule dropdown) — zero lag
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
                     syncScheduleTiming();
-                    recommend();
 
-                    // Only update the Scheduled Time timetable table if that section is currently opened
-                    const schedPanel = document.getElementById("view-panel-scheduled");
-                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                        renderScheduledTime();
-                    }
+                    // Defer heavy recommend() until after browser has painted the new selection
+                    requestAnimationFrame(() => setTimeout(() => {
+                        recommend();
+                        const schedPanel = document.getElementById("view-panel-scheduled");
+                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                            renderScheduledTime();
+                        }
+                    }, 0));
                 });
             }
 
@@ -6817,9 +6821,10 @@ let busCategoriesMap = new Map();
                     if (routeSearchDebounce) clearTimeout(routeSearchDebounce);
                     routeSearchDebounce = setTimeout(() => {
                         currentlyAllocatedBus = null;
+                        invalidateAllocCache();
                         updateSelectedRouteDistance();
                         renderRoutes(false);
-                        recommend();
+                        requestAnimationFrame(() => setTimeout(() => recommend(), 0));
                     }, 120);
                 });
             }
@@ -6828,20 +6833,22 @@ let busCategoriesMap = new Map();
                 scheduledTimeSelect.addEventListener("change", () => {
                     const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
                     window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
+                    invalidateAllocCache();
                     const depInput = document.getElementById("departure");
                     if (depInput && scheduledTimeSelect.value) {
                         depInput.value = scheduledTimeSelect.value;
                     }
 
-                    // Ultra-fast responsive departure time switch (<2ms)
+                    // Immediately sync timing (lightweight), then defer heavy recommend()
                     syncScheduleTiming();
-                    recommend();
 
-                    // Only update timetable table if the scheduled section is currently visible
-                    const schedPanel = document.getElementById("view-panel-scheduled");
-                    if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                        renderScheduledTime();
-                    }
+                    requestAnimationFrame(() => setTimeout(() => {
+                        recommend();
+                        const schedPanel = document.getElementById("view-panel-scheduled");
+                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
+                            renderScheduledTime();
+                        }
+                    }, 0));
                 });
             }
 
@@ -6852,6 +6859,7 @@ let busCategoriesMap = new Map();
                     if (depDebounce) clearTimeout(depDebounce);
                     depDebounce = setTimeout(() => {
                         window._manualDepartureFlag = true;
+                        invalidateAllocCache();
                         const val = depInput.value;
                         if (scheduledTimeSelect && val) {
                             const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]:not([data-manual="true"])`);
