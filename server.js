@@ -1258,11 +1258,11 @@ function syncBusStateToGitHub(state) {
                 const current = await githubRequest("GET", apiPath);
                 const content = Buffer.from(JSON.stringify(masterBusState || state, null, 2)).toString("base64");
                 await githubRequest("PUT", apiPath, {
-                    message: "auto: sync bus_state from server",
+                    message: "auto: sync bus_state from server [skip render] [skip ci]",
                     content,
                     sha: current.sha
                 });
-                console.log("[GitHub] bus_state.json synced ✓");
+                console.log("[GitHub] bus_state.json synced [skip render] ✓");
             } catch (e) {
                 console.warn("[GitHub sync failed]", e.message);
                 break;
@@ -1270,7 +1270,7 @@ function syncBusStateToGitHub(state) {
                 isSyncingToGitHub = false;
             }
         }
-    }, 1500);
+    }, 30000);
 }
 
 // Pull bus_state.json from GitHub and overwrite local copy (called once at startup)
