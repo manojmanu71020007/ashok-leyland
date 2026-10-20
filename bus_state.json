@@ -8220,7 +8220,7 @@
   },
   "_assignments": {
     "BM001": "BM001",
-    "600F": "BM300",
+    "600F": "BM000",
     "BM002": "BM002",
     "BM003": "BM003",
     "BM004": "BM004",
@@ -8348,7 +8348,8 @@
     "BM299": "BM299",
     "BM300": "BM300",
     "BM303": "BM303",
-    "BM304": "BM304"
+    "BM304": "BM304",
+    "BM000": "BM000"
   },
   "_blockedBuses": [
     "BM002",
@@ -8456,7 +8457,8 @@
     "BM299",
     "BM300",
     "BM303",
-    "BM304"
+    "BM304",
+    "BM000"
   ],
   "356Z": {
     "status": "Active",
@@ -8689,9 +8691,9 @@
     "blocked": true
   },
   "600F": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 89,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-20T10:11:16.078Z",
@@ -8724,8 +8726,8 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "BM300",
-    "bmNumber": "BM300",
+    "uniqueId": "BM000",
+    "bmNumber": "BM000",
     "blocked": true
   },
   "KBS3A": {
@@ -12483,6 +12485,34 @@
       "fullDutyDistanceKm": 99,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM000": {
+      "uniqueId": "BM000",
+      "unique_id": "BM000",
+      "vehicleId": "BM000",
+      "bmNumber": "BM000",
+      "busName": "BM000",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM000",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "B",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 89,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 112,
+      "fullDutyDistanceKm": 112,
+      "operationMode": "Single Charge Operation",
+      "blocked": true
     }
   },
   "_busAssignments": {
@@ -12515,30 +12545,30 @@
       "blocked": false
     },
     "600F": {
-      "uniqueId": "BM300",
-      "unique_id": "BM300",
-      "vehicleId": "BM300",
-      "bmNumber": "BM300",
-      "busName": "BM300",
+      "uniqueId": "BM000",
+      "unique_id": "BM000",
+      "vehicleId": "BM000",
+      "bmNumber": "BM000",
+      "busName": "BM000",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "BM300",
+      "assignedRouteId": "BM000",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 89,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 112,
+      "fullDutyDistanceKm": 112,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16125,6 +16155,34 @@
       "fullDutyDistanceKm": 99,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM000": {
+      "uniqueId": "BM000",
+      "unique_id": "BM000",
+      "vehicleId": "BM000",
+      "bmNumber": "BM000",
+      "busName": "BM000",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM000",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "B",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 89,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 112,
+      "fullDutyDistanceKm": 112,
+      "operationMode": "Single Charge Operation",
+      "blocked": true
     }
   },
   "_blockedRouteIds": [
@@ -16233,7 +16291,8 @@
     "BM299",
     "BM300",
     "BM303",
-    "BM304"
+    "BM304",
+    "BM000"
   ],
   "ranges": {
     "BM001": {
@@ -18553,6 +18612,25 @@
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
+    },
+    "BM000": {
+      "assignedVehicle": "BM000",
+      "bmNumber": "BM000",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "B",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 89,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 112,
+      "fullDutyDistanceKm": 112,
+      "operationMode": "Single Charge Operation",
+      "gtfsDistanceKm": 114.75,
+      "blocked": true
     }
   },
   "_swapLog": [],
@@ -18609,6 +18687,17 @@
       "time": "05:04:46 pm",
       "startTimestamp": 1792496086135,
       "startSoc": "80",
+      "chargerBay": "Charging Bay"
+    },
+    {
+      "bm": "BM203",
+      "reg": "KA51AH7670",
+      "page": "charging",
+      "reason": "Under Fast Charging (target 100% floor)",
+      "startTime": "07:40:35 pm, 20 Oct 2026",
+      "time": "07:40:35 pm",
+      "startTimestamp": 1792505435843,
+      "startSoc": "100",
       "chargerBay": "Charging Bay"
     }
   ],
@@ -18793,7 +18882,7 @@
     "bmNumber": "BM000",
     "busNumber": "600F",
     "regNo": "KA30MS4013",
-    "status": "On Time",
+    "status": "Active",
     "soc": 89,
     "condition": "Good",
     "driver": "Driver Assigned",
