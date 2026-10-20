@@ -1364,11 +1364,11 @@ function saveBusState(state) {
 function addFleetBus(params) {
     let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
     if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
-    const regNo = String(params.regNo || params.reg_no || params.registrationNo || "").toUpperCase().trim();
-    const reason = String(params.reason || "").trim();
+    const regNo = String(params.regNo || params.reg_no || params.registrationNo || params.regNumber || params.reg_number || "").toUpperCase().trim();
+    const reason = String(params.reason || params.reasonVal || "").trim();
     const depotNum = String(params.depot || "1").trim();
     const depotName = depotNum === "2" ? "Depot 2 (Central)" : "Chandapura (BMT-32)";
-    const category = String(params.category || "A").toUpperCase().trim();
+    const category = String(params.category || params.busCategory || "A").toUpperCase().trim();
     const soc = Number.isFinite(Number(params.soc)) ? Math.max(0, Math.min(100, Number(params.soc))) : 100;
     const model = String(params.model || "ELECTRIC BUS AC EiV12").trim();
     const make = String(params.make || "Ashok Leyland").trim();
@@ -1433,10 +1433,13 @@ function addFleetBus(params) {
 
     const addedInfo = {
         bm,
+        busNumber: bm,
         regNo,
+        regNumber: regNo,
         reason,
         depot: depotNum,
         category,
+        busCategory: category,
         soc,
         model,
         make,
@@ -1488,14 +1491,18 @@ function addFleetBus(params) {
 function deleteFleetBus(params) {
     let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
     if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
-    const regNo = String(params.regNo || params.reg_no || params.registrationNo || "").toUpperCase().trim();
-    const reason = String(params.reason || "").trim();
+    const regNo = String(params.regNo || params.reg_no || params.registrationNo || params.regNumber || params.reg_number || "").toUpperCase().trim();
+    const reason = String(params.reason || params.reasonVal || "").trim();
 
     if (!bm || !reason) {
         throw new Error("Bus Number and Reason are mandatory for deleting a bus.");
     }
 
-    // 1. Update vehicles.txt
+    // 1. Update vehicles.txt and retrieve actual make & model
+    let busReg = regNo;
+    let busMake = String(params.make || "Ashok Leyland").trim();
+    let busModel = String(params.model || "ELECTRIC BUS AC EiV12").trim();
+    let busDepot = "Chandapura (BMT-32)";
     try {
         if (fs.existsSync(VEHICLES_FILE)) {
             const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
@@ -1504,11 +1511,11 @@ function deleteFleetBus(params) {
                 if (idx === 0) return line;
                 const parts = parseCsvLine(line);
                 if (parts[0] && parts[0].trim().toUpperCase() === bm) {
-                    const rNo = regNo || parts[2] || "";
-                    const make = parts[3] || "Ashok Leyland";
-                    const model = parts[4] || "ELECTRIC BUS AC EiV12";
-                    const depot = parts[5] || "Chandapura (BMT-32)";
-                    return `${bm},${bm},${rNo},${make},${model},${depot},Deleted`;
+                    busReg = regNo || parts[2] || busReg;
+                    busMake = parts[3] || busMake;
+                    busModel = parts[4] || busModel;
+                    busDepot = parts[5] || busDepot;
+                    return `${bm},${bm},${busReg},${busMake},${busModel},${busDepot},Deleted`;
                 }
                 return line;
             });
@@ -1523,12 +1530,17 @@ function deleteFleetBus(params) {
     if (!currentState._deletedBuses) currentState._deletedBuses = {};
     if (!currentState._addedBuses) currentState._addedBuses = {};
 
-    const regToUse = regNo || (currentState[bm] && currentState[bm].regNo) || "";
+    const regToUse = busReg || regNo || (currentState[bm] && (currentState[bm].regNo || currentState[bm].regNumber)) || "";
     delete currentState._addedBuses[bm];
 
     const deletedInfo = {
         bm,
+        busNumber: bm,
         regNo: regToUse,
+        regNumber: regToUse,
+        model: busModel,
+        make: busMake,
+        depot: busDepot,
         reason,
         deletedAt: new Date().toISOString(),
         timestamp: Date.now()
@@ -1542,11 +1554,19 @@ function deleteFleetBus(params) {
         currentState[bm].deletionReason = reason;
         currentState[bm].deletedAt = deletedInfo.deletedAt;
         currentState[bm].isNewlyAdded = false;
+        currentState[bm].regNo = regToUse;
+        currentState[bm].regNumber = regToUse;
+        currentState[bm].model = busModel;
+        currentState[bm].make = busMake;
     } else {
         currentState[bm] = {
             uniqueId: bm,
             bmNumber: bm,
+            busNumber: bm,
             regNo: regToUse,
+            regNumber: regToUse,
+            model: busModel,
+            make: busMake,
             status: "Deleted",
             deleted: true,
             isDeleted: true,

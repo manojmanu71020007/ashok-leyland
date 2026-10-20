@@ -2605,14 +2605,7 @@
                         <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:#64748b;">🔍</span>
                         <input type="text" id="locked-bus-search-input" placeholder="Search locked buses by bus number (e.g. BM153), bus short name (e.g. 500DC), reason..." style="width:100%; padding:8px 12px 8px 34px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.84rem;" />
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <a href="/public/cleaning.html" target="_blank" style="display:inline-flex; align-items:center; gap:5px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:6px 12px; border-radius:8px; font-size:0.78rem; font-weight:700; text-decoration:none;">
-                            <span>🧹 Cleaning Portal ↗</span>
-                        </a>
-                        <a href="/public/charging.html" target="_blank" style="display:inline-flex; align-items:center; gap:5px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:6px 12px; border-radius:8px; font-size:0.78rem; font-weight:700; text-decoration:none;">
-                            <span>⚡ Charging Portal ↗</span>
-                        </a>
-                    </div>
+<!-- Shortcut buttons removed per depot security protocol -->
                 </div>
 
                 <div id="locked-modal-body" class="modal-body" style="padding:20px 24px; gap:16px;">
@@ -5722,12 +5715,15 @@ let busCategoriesMap = new Map();
             allocatedDuties = loadAllocatedDuties();
             const selectedRouteId = routeSelect ? routeSelect.value : "";
             const departureTime = document.getElementById("departure")?.value || "";
-            if (!selectedRouteId || !departureTime) {
+            const curRouteObj = (selectedRouteId && Array.isArray(directionalRoutes))
+                ? (directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || null)
+                : null;
+            if (!curRouteObj || !departureTime) {
                 currentlyAllocatedBus = null;
                 const card = document.getElementById("auto-allocated-card");
                 if (card) card.style.display = "none";
             } else {
-                const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId);
+                const routeObj = curRouteObj;
                 if (routeObj) {
                     const allocResult = allocateBus(routeObj, departureTime);
                     currentScheduleMatch = allocResult.matchedSched;
@@ -5790,7 +5786,7 @@ let busCategoriesMap = new Map();
             renderNotAllocatedList(notAllocatedRoutes);
 
             updateSelectedRouteDistance();
-            updateRouteKpis(routeObj, departureTime);
+            updateRouteKpis(curRouteObj, departureTime);
             updateAssignedDriverCount();
 
         }
@@ -7248,14 +7244,7 @@ let busCategoriesMap = new Map();
                         <p style="margin:0 auto 16px; max-width:440px; font-size:0.85rem; color:#64748b; line-height:1.5;">
                             All buses in the fleet are unlocked and available for schedule evaluation, automatic duty allocation, or active route service.
                         </p>
-                        <div style="display:flex; justify-content:center; gap:10px;">
-                            <a href="/public/cleaning.html" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; padding:8px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; text-decoration:none;">
-                                🧹 Open Cleaning Portal
-                            </a>
-                            <a href="/public/charging.html" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:8px 14px; border-radius:8px; font-size:0.8rem; font-weight:700; text-decoration:none;">
-                                ⚡ Open Charging Portal
-                            </a>
-                        </div>
+
                     </div>
                 `;
                 return;
@@ -7331,21 +7320,6 @@ let busCategoriesMap = new Map();
                 const elapsedMins = Math.max(1, Math.round((Date.now() - item.startTimestamp) / 60000));
                 const elapsedStr = elapsedMins < 60 ? `${elapsedMins}m ago` : `${Math.floor(elapsedMins/60)}h ${elapsedMins%60}m ago`;
 
-                // Link target
-                let portalLink = '';
-                if (isClean && !isCharge) {
-                    portalLink = `<a href="/public/cleaning.html" target="_blank" style="font-size:0.75rem; font-weight:700; color:#065f46; text-decoration:none; background:#ecfdf5; border:1px solid #a7f3d0; padding:4px 9px; border-radius:6px; white-space:nowrap;">Open Cleaning ›</a>`;
-                } else if (isCharge && !isClean) {
-                    portalLink = `<a href="/public/charging.html" target="_blank" style="font-size:0.75rem; font-weight:700; color:#1e40af; text-decoration:none; background:#eff6ff; border:1px solid #bfdbfe; padding:4px 9px; border-radius:6px; white-space:nowrap;">Open Charging ›</a>`;
-                } else {
-                    portalLink = `
-                        <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                            <a href="/public/cleaning.html" target="_blank" style="font-size:0.72rem; font-weight:700; color:#065f46; text-decoration:none; background:#ecfdf5; border:1px solid #a7f3d0; padding:3px 7px; border-radius:5px;">Cleaning ›</a>
-                            <a href="/public/charging.html" target="_blank" style="font-size:0.72rem; font-weight:700; color:#1e40af; text-decoration:none; background:#eff6ff; border:1px solid #bfdbfe; padding:3px 7px; border-radius:5px;">Charging ›</a>
-                        </div>
-                    `;
-                }
-
                 return `
                     <tr>
                         <td>
@@ -7366,14 +7340,6 @@ let busCategoriesMap = new Map();
                                 🔒 Not Allocated
                             </span>
                         </td>
-                        <td>
-                            <div style="display:flex; align-items:center; gap:6px;">
-                                ${portalLink}
-                                <button type="button" onclick="unlockBusFromAdmin('${escapeHtml(item.bm)}')" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; padding:4px 9px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer;" title="Unlock bus and return to depot reserve">
-                                    Unlock
-                                </button>
-                            </div>
-                        </td>
                     </tr>
                 `;
             }).join('');
@@ -7389,7 +7355,6 @@ let busCategoriesMap = new Map();
                                 <th>Reason for Lock</th>
                                 <th>Process Started</th>
                                 <th>Allocation Status</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -8376,6 +8341,7 @@ let busCategoriesMap = new Map();
             populateDeleteBusSelectors();
             switchAddDeleteTab(tab);
             updateAddDeleteBadgeCount();
+            refreshFleetHistoryData();
         }
 
         function closeAddDeleteBusesModal() {
@@ -8412,6 +8378,7 @@ let busCategoriesMap = new Map();
                 if (bmInput) setTimeout(() => bmInput.focus(), 50);
             } else if (isHist) {
                 renderFleetHistoryTab();
+                refreshFleetHistoryData();
             } else {
                 populateDeleteBusSelectors();
             }
@@ -8546,14 +8513,27 @@ let busCategoriesMap = new Map();
             }
 
             try {
+                const delPayload = {
+                    bm: busNumber,
+                    busNumber,
+                    regNo: regNumber,
+                    regNumber,
+                    reason: reasonVal,
+                    make: "Ashok Leyland",
+                    model: "ELECTRIC BUS AC EiV12"
+                };
                 if (window.DepotSyncEngine && typeof window.DepotSyncEngine.deleteBus === "function") {
-                    await window.DepotSyncEngine.deleteBus({ busNumber, regNumber, reason: reasonVal });
+                    await window.DepotSyncEngine.deleteBus(delPayload);
                 } else {
-                    await fetch('/api/fleet/delete-bus', {
+                    const res = await fetch('/api/fleet/delete-bus', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ busNumber, regNumber, reason: reasonVal })
+                        body: JSON.stringify(delPayload)
                     });
+                    const resData = await res.json();
+                    if (!res.ok || !resData.ok) {
+                        throw new Error(resData.error || "Failed to delete bus");
+                    }
                 }
 
                 // If deleted bus was in allocatedDuties, remove it
@@ -8629,28 +8609,31 @@ let busCategoriesMap = new Map();
             }
 
             try {
+                const addPayload = {
+                    bm: busNumber,
+                    busNumber,
+                    regNo: regNumber,
+                    regNumber,
+                    reason: reasonVal,
+                    depot,
+                    busCategory,
+                    category: busCategory,
+                    soc,
+                    make: "Ashok Leyland",
+                    model: "ELECTRIC BUS AC EiV12"
+                };
                 if (window.DepotSyncEngine && typeof window.DepotSyncEngine.addBus === "function") {
-                    await window.DepotSyncEngine.addBus({
-                        busNumber,
-                        regNumber,
-                        reason: reasonVal,
-                        depot,
-                        busCategory,
-                        soc
-                    });
+                    await window.DepotSyncEngine.addBus(addPayload);
                 } else {
-                    await fetch('/api/fleet/add-bus', {
+                    const res = await fetch('/api/fleet/add-bus', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            busNumber,
-                            regNumber,
-                            reason: reasonVal,
-                            depot,
-                            busCategory,
-                            soc
-                        })
+                        body: JSON.stringify(addPayload)
                     });
+                    const resData = await res.json();
+                    if (!res.ok || !resData.ok) {
+                        throw new Error(resData.error || "Failed to add bus");
+                    }
                 }
 
                 // Set SoC in local state
@@ -8708,18 +8691,74 @@ let busCategoriesMap = new Map();
             }
         }
 
+        function formatAuditTimestamp(isoOrTs) {
+            if (!isoOrTs) return "Recently recorded";
+            try {
+                const d = new Date(isoOrTs);
+                if (isNaN(d.getTime())) return String(isoOrTs);
+                return d.toLocaleDateString("en-IN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                }) + " at " + d.toLocaleTimeString("en-IN", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: true
+                });
+            } catch (e) {
+                return String(isoOrTs);
+            }
+        }
+
+        async function refreshFleetHistoryData() {
+            try {
+                const res = await fetch('/api/fleet/changes');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.ok) {
+                        if (data.addedBuses && typeof data.addedBuses === 'object') {
+                            localStorage.setItem("depot_added_buses", JSON.stringify(data.addedBuses));
+                        }
+                        if (data.deletedBuses && typeof data.deletedBuses === 'object') {
+                            localStorage.setItem("depot_deleted_buses", JSON.stringify(data.deletedBuses));
+                        }
+                        renderFleetHistoryTab();
+                        updateAddDeleteBadgeCount();
+                    }
+                }
+            } catch (e) {}
+        }
+
         function renderFleetHistoryTab() {
             const container = document.getElementById("fleet-history-content");
             if (!container) return;
 
-            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
-            const deletedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === "function") ? window.DepotSyncEngine.getDeletedBuses() : {};
+            let addedBuses = {};
+            let deletedBuses = {};
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") {
+                    addedBuses = window.DepotSyncEngine.getAddedBuses() || {};
+                }
+            } catch(e) {}
+            if (Object.keys(addedBuses).length === 0) {
+                try { addedBuses = JSON.parse(localStorage.getItem("depot_added_buses") || "{}"); } catch(e){}
+            }
+
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === "function") {
+                    deletedBuses = window.DepotSyncEngine.getDeletedBuses() || {};
+                }
+            } catch(e) {}
+            if (Object.keys(deletedBuses).length === 0) {
+                try { deletedBuses = JSON.parse(localStorage.getItem("depot_deleted_buses") || "{}"); } catch(e){}
+            }
 
             const addedList = Object.values(addedBuses);
             const deletedList = Object.values(deletedBuses);
 
             let html = `
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:18px;">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:18px;">
                     <!-- ADDED BUSES -->
                     <div style="background:#fff; border:1.5px solid #bbf7d0; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1.5px solid #f0fdf4; padding-bottom:8px;">
@@ -8733,28 +8772,75 @@ let busCategoriesMap = new Map();
                                 No newly added buses in current fleet archive.
                             </div>
                         ` : `
-                            <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
-                                ${addedList.map(b => `
-                                    <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; padding:10px 12px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <div>
-                                                <strong style="color:#0f172a; font-size:0.9rem;">🚌 ${escapeHtml(b.busNumber)}</strong>
-                                                <span style="color:#475569; font-size:0.8rem; margin-left:6px;">(${escapeHtml(b.regNumber)})</span>
+                            <div style="display:flex; flex-direction:column; gap:12px; max-height:420px; overflow-y:auto; padding-right:4px;">
+                                ${addedList.map(b => {
+                                    let busBm = "";
+                                    let busReg = "";
+                                    let busReason = "New Electric Bus Induction";
+                                    let busModel = "ELECTRIC BUS AC EiV12";
+                                    let busMake = "Ashok Leyland";
+                                    let busAddedAt = "";
+                                    let busDepot = "1";
+                                    let busCat = "B";
+                                    let busSoc = 100;
+
+                                    if (typeof b === "string") {
+                                        busBm = b.toUpperCase().trim();
+                                        const info = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === "function") ? window.DepotSyncEngine.getNewlyAddedInfo(busBm) : null;
+                                        if (info) {
+                                            busReg = info.regNo || info.regNumber || "";
+                                            busReason = info.reason || busReason;
+                                            busModel = info.model || busModel;
+                                            busMake = info.make || busMake;
+                                            busAddedAt = info.addedAt || "";
+                                            busDepot = info.depot || busDepot;
+                                            busCat = info.busCategory || info.category || busCat;
+                                            busSoc = info.soc || busSoc;
+                                        }
+                                    } else if (b && typeof b === "object") {
+                                        busBm = String(b.busNumber || b.bm || b.bmNumber || b.uniqueId || b.id || "").toUpperCase().trim();
+                                        busReg = String(b.regNumber || b.regNo || b.registrationNo || "").toUpperCase().trim();
+                                        busReason = String(b.reason || b.additionReason || "New Electric Bus Induction").trim();
+                                        busModel = String(b.model || "ELECTRIC BUS AC EiV12").trim();
+                                        busMake = String(b.make || "Ashok Leyland").trim();
+                                        busAddedAt = b.addedAt || b.timestamp || "";
+                                        busDepot = String(b.depot || "1").trim();
+                                        busCat = String(b.busCategory || b.category || "B").toUpperCase().trim();
+                                        busSoc = Number(b.soc) || 100;
+                                    }
+
+                                    const addedTimeFormatted = formatAuditTimestamp(busAddedAt);
+
+                                    return `
+                                        <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:12px 14px;">
+                                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                                <div>
+                                                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                                        <strong style="color:#166534; font-size:0.95rem;">🚌 ${escapeHtml(busBm)}</strong>
+                                                        <span style="color:#475569; font-size:0.82rem; font-weight:600;">(${escapeHtml(busReg || 'Registration Pending')})</span>
+                                                        <span class="badge-newly-added" style="background:#dcfce7; color:#15803d; font-size:0.7rem; font-weight:800; padding:2px 8px; border-radius:12px; border:1px solid #86efac;">✨ Newly Added</span>
+                                                    </div>
+                                                    <div style="display:inline-flex; align-items:center; gap:5px; background:#fff; color:#14532d; border:1px solid #bbf7d0; border-radius:6px; padding:2px 8px; font-size:0.74rem; font-weight:700; margin-top:5px;">
+                                                        <span>⚡ Model:</span>
+                                                        <span>${escapeHtml(busMake)} ${escapeHtml(busModel)}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <span class="badge-newly-added">✨ Newly Added</span>
+                                            <div style="font-size:0.82rem; color:#15803d; margin-top:8px; line-height:1.4;">
+                                                <strong>Reason:</strong> ${escapeHtml(busReason)}
+                                            </div>
+                                            <div style="font-size:0.75rem; color:#64748b; margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                                <span>🕒 <strong>Added At:</strong> ${escapeHtml(addedTimeFormatted)}</span>
+                                                <span>•</span>
+                                                <span>Depot: ${escapeHtml(busDepot === '2' ? 'Depot 2 (Central)' : 'Depot 1 (Chandapura)')}</span>
+                                                <span>•</span>
+                                                <span>Category: ${escapeHtml(busCat)}</span>
+                                                <span>•</span>
+                                                <span>SoC: ${escapeHtml(String(busSoc))}%</span>
+                                            </div>
                                         </div>
-                                        <div style="font-size:0.8rem; color:#15803d; margin-top:4px;">
-                                            <strong>Reason:</strong> ${escapeHtml(b.reason || "Fleet Induction")}
-                                        </div>
-                                        <div style="font-size:0.72rem; color:#64748b; margin-top:4px; display:flex; gap:8px;">
-                                            <span>Depot: ${escapeHtml(b.depot || '1')}</span>
-                                            <span>•</span>
-                                            <span>Cat: ${escapeHtml(b.busCategory || 'B')}</span>
-                                            <span>•</span>
-                                            <span>Added: ${b.addedAt ? new Date(b.addedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Recently'}</span>
-                                        </div>
-                                    </div>
-                                `).join("")}
+                                    `;
+                                }).join("")}
                             </div>
                         `}
                     </div>
@@ -8772,26 +8858,75 @@ let busCategoriesMap = new Map();
                                 No buses have been deleted from the available fleet.
                             </div>
                         ` : `
-                            <div style="display:flex; flex-direction:column; gap:10px; max-height:360px; overflow-y:auto; padding-right:4px;">
-                                ${deletedList.map(b => `
-                                    <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:8px; padding:10px 12px;">
-                                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                                            <div>
-                                                <strong style="color:#991b1b; font-size:0.9rem; text-decoration:line-through;">🚌 ${escapeHtml(b.busNumber)}</strong>
-                                                <span style="color:#64748b; font-size:0.8rem; margin-left:6px;">(${escapeHtml(b.regNumber)})</span>
+                            <div style="display:flex; flex-direction:column; gap:12px; max-height:420px; overflow-y:auto; padding-right:4px;">
+                                ${deletedList.map(b => {
+                                    let busBm = "";
+                                    let busReg = "";
+                                    let busReason = "Removed from fleet";
+                                    let busModel = "ELECTRIC BUS AC EiV12";
+                                    let busMake = "Ashok Leyland";
+                                    let busDeletedAt = "";
+                                    let busDepot = "Chandapura (BMT-32)";
+
+                                    if (typeof b === "string") {
+                                        busBm = b.toUpperCase().trim();
+                                        const info = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedInfo === "function") ? window.DepotSyncEngine.getDeletedInfo(busBm) : null;
+                                        if (info) {
+                                            busReg = info.regNo || info.regNumber || "";
+                                            busReason = info.reason || busReason;
+                                            busModel = info.model || busModel;
+                                            busMake = info.make || busMake;
+                                            busDeletedAt = info.deletedAt || "";
+                                            busDepot = info.depot || busDepot;
+                                        }
+                                    } else if (b && typeof b === "object") {
+                                        busBm = String(b.busNumber || b.bm || b.bmNumber || b.uniqueId || b.id || "").toUpperCase().trim();
+                                        busReg = String(b.regNumber || b.regNo || b.registrationNo || "").toUpperCase().trim();
+                                        busReason = String(b.reason || b.deletionReason || "Removed from fleet").trim();
+                                        busModel = String(b.model || "ELECTRIC BUS AC EiV12").trim();
+                                        busMake = String(b.make || "Ashok Leyland").trim();
+                                        busDeletedAt = b.deletedAt || b.timestamp || "";
+                                        busDepot = String(b.depot || "Chandapura (BMT-32)").trim();
+                                    }
+
+                                    if (!busReg && busBm) {
+                                        const match = (routes || []).find(r => String(r.bmNumber || r.uniqueId || "").toUpperCase() === busBm);
+                                        if (match) {
+                                            busReg = match.regNumber || match.regNo || match.registration || busReg;
+                                        }
+                                    }
+
+                                    const deletedTimeFormatted = formatAuditTimestamp(busDeletedAt);
+
+                                    return `
+                                        <div style="background:#fef2f2; border:1px solid #fca5a5; border-radius:10px; padding:12px 14px;">
+                                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px;">
+                                                <div>
+                                                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                                                        <strong style="color:#991b1b; font-size:0.95rem; text-decoration:line-through;">🚌 ${escapeHtml(busBm || 'Off-Road Bus')}</strong>
+                                                        <span style="color:#475569; font-size:0.82rem; font-weight:600;">(${escapeHtml(busReg || 'Registration N/A')})</span>
+                                                        <span style="background:#fee2e2; color:#991b1b; font-size:0.7rem; font-weight:700; padding:2px 7px; border-radius:4px; border:1px solid #fca5a5;">Off-Road / Withdrawn</span>
+                                                    </div>
+                                                    <div style="display:inline-flex; align-items:center; gap:5px; background:#fff; color:#7f1d1d; border:1px solid #fecaca; border-radius:6px; padding:2px 8px; font-size:0.74rem; font-weight:700; margin-top:5px;">
+                                                        <span>⚡ Model:</span>
+                                                        <span>${escapeHtml(busMake)} ${escapeHtml(busModel)}</span>
+                                                    </div>
+                                                </div>
+                                                <button type="button" onclick="restoreDeletedBus('${escapeHtml(busBm)}')" style="background:#fff; color:#2563eb; border:1px solid #bfdbfe; padding:4px 10px; border-radius:6px; font-size:0.75rem; font-weight:700; cursor:pointer; white-space:nowrap;" title="Restore this bus back to active fleet">
+                                                    ↺ Restore Bus
+                                                </button>
                                             </div>
-                                            <button type="button" onclick="restoreDeletedBus('${escapeHtml(b.busNumber)}')" style="background:#fff; color:#2563eb; border:1px solid #bfdbfe; padding:3px 8px; border-radius:6px; font-size:0.72rem; font-weight:700; cursor:pointer;" title="Restore this bus back to active fleet">
-                                                ↺ Restore Bus
-                                            </button>
+                                            <div style="font-size:0.82rem; color:#991b1b; margin-top:8px; line-height:1.4;">
+                                                <strong>Reason:</strong> ${escapeHtml(busReason)}
+                                            </div>
+                                            <div style="font-size:0.75rem; color:#64748b; margin-top:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                                <span>🕒 <strong>Deleted At:</strong> ${escapeHtml(deletedTimeFormatted)}</span>
+                                                <span>•</span>
+                                                <span>Depot: ${escapeHtml(busDepot)}</span>
+                                            </div>
                                         </div>
-                                        <div style="font-size:0.8rem; color:#b91c1c; margin-top:4px;">
-                                            <strong>Reason:</strong> ${escapeHtml(b.reason || "Deleted")}
-                                        </div>
-                                        <div style="font-size:0.72rem; color:#64748b; margin-top:4px;">
-                                            Deleted at: ${b.deletedAt ? new Date(b.deletedAt).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : 'Recently'}
-                                        </div>
-                                    </div>
-                                `).join("")}
+                                    `;
+                                }).join("")}
                             </div>
                         `}
                     </div>
