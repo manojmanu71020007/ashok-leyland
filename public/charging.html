@@ -624,7 +624,15 @@
 
   <!-- SOC Before -->
   <div class="form-group">
-    <label><span data-i18n="label_soc_before">SOC Before Charging:</span> <span id="socBeforeVal">20%</span></label>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:8px;">
+      <label style="margin:0; font-weight:700;"><span data-i18n="label_soc_before">SOC Before Charging:</span> <span id="socBeforeVal" style="color:#0369a1; font-size:1.05rem;">20%</span></label>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.82rem; font-weight:700; color:#1e293b;" data-i18n="label_enter_percent">Enter %:</span>
+        <input type="number" id="socBeforeNum" min="0" max="100" value="20"
+               style="width:75px; padding:6px 8px; border:2px solid #0284c7; border-radius:8px; font-weight:800; font-size:1rem; text-align:center; color:#0369a1; background:#f0f9ff;"
+               oninput="updateSOC('Before', this.value)">
+      </div>
+    </div>
     <div class="soc-row">
       <input type="range" id="socBefore" min="0" max="100" value="20" step="1"
              oninput="updateSOC('Before', this.value)">
@@ -642,9 +650,6 @@
         <input type="number" id="socAfterNum" min="0" max="100" value="80"
                style="width:75px; padding:6px 8px; border:2px solid #16a34a; border-radius:8px; font-weight:800; font-size:1rem; text-align:center; color:#15803d; background:#f0fdf4;"
                oninput="updateSOC('After', this.value)">
-        <button type="button" class="btn" onclick="quickUpdateSOC()" style="padding:6px 14px; font-size:0.82rem; font-weight:800; background:#16a34a; color:#fff; border-radius:8px; border:none; cursor:pointer;" data-i18n="btn_save_soc">
-          ⚡ Save SOC
-        </button>
       </div>
     </div>
     <div class="soc-row">
@@ -1662,6 +1667,8 @@
       if (bar) bar.style.width = pct;
       const sBef = document.getElementById('socBefore');
       if (sBef && sBef.value != cleanVal) sBef.value = cleanVal;
+      const sBefNum = document.getElementById('socBeforeNum');
+      if (sBefNum && sBefNum.value != cleanVal) sBefNum.value = cleanVal;
     } else {
       const lbl = document.getElementById('socAfterVal');
       if (lbl) lbl.textContent = pct;

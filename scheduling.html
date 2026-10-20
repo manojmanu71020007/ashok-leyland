@@ -844,11 +844,12 @@
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
-                    <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
+                    <div class="rule"><span>Time category</span><strong id="time-rule">—</strong></div>
+                    <div class="rule"><span data-i18n="label_departure_time">Departure Time</span><strong id="departure-time-rule">—</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
-                    <div class="rule"><span>Departure Mode</span><strong id="departure-mode-rule"><span style="color:#16a34a;font-weight:700;">✅ Timetable Schedule</span></strong></div>
-                    <div class="rule"><span>Driver status</span><strong id="driver-rule"><span style="color:#16a34a;font-weight:700;">✅ Driver Assigned &amp; Ready</span></strong></div>
+                    <div class="rule"><span>Departure Mode</span><strong id="departure-mode-rule">—</strong></div>
+                    <div class="rule"><span>Driver status</span><strong id="driver-rule">—</strong></div>
                 </div>
             </aside>
         </div>
@@ -1194,6 +1195,7 @@
             const hint = document.getElementById("manual-override-hint");
             const depEl = document.getElementById("departure");
             const modeRule = document.getElementById("departure-mode-rule");
+            const depTimeRule = document.getElementById("departure-time-rule");
             const depTime = depInput ? depInput.value : "";
 
             if (!depTime) {
@@ -1204,8 +1206,14 @@
                     modeRule.innerHTML = `—`;
                     modeRule.style.color = "";
                 }
+                if (depTimeRule) {
+                    depTimeRule.innerHTML = `—`;
+                    depTimeRule.style.color = "";
+                }
                 return;
             }
+
+            const shiftStr = (currentScheduleMatch && currentScheduleMatch.shift) ? ` (${currentScheduleMatch.shift})` : "";
 
             if (isManualOverride) {
                 if (badge) badge.style.display = "inline-flex";
@@ -1215,6 +1223,9 @@
                     modeRule.innerHTML = `<span class="manual-override-pill">⚠️ Manual Over-ride (${escapeHtml(depTime)})</span>`;
                     modeRule.style.color = "#d97706";
                 }
+                if (depTimeRule) {
+                    depTimeRule.innerHTML = `<span style="color:#d97706;font-weight:700;">⚠️ ${escapeHtml(depTime)}${escapeHtml(shiftStr)}</span>`;
+                }
             } else {
                 if (badge) badge.style.display = "none";
                 if (hint) hint.style.display = "none";
@@ -1222,6 +1233,9 @@
                 if (modeRule) {
                     modeRule.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Timetable Schedule (${escapeHtml(depTime)})</span>`;
                     modeRule.style.color = "#16a34a";
+                }
+                if (depTimeRule) {
+                    depTimeRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">🕒 ${escapeHtml(depTime)}${escapeHtml(shiftStr)}</span>`;
                 }
             }
         }
@@ -1351,7 +1365,7 @@
             const localSoc = localStorage.getItem("depot_bus_soc_" + bm) || localStorage.getItem("depot_bus_soc_" + key);
             if (localSoc !== null) {
                 const val = Number(localSoc);
-                if (Number.isFinite(val)) return val;
+                if (Number.isFinite(val) && val > 0) return val;
             }
             const state = busStates[bm] || busStates[key] || {};
             if (Number.isFinite(Number(state.soc)) && Number(state.soc) > 0) return Number(state.soc);
@@ -1667,7 +1681,7 @@
             }
 
             const lockInfo = getBusLockInfo(key);
-            if (lockInfo) {
+            if (lockInfo && (lockInfo.isLocked || lockInfo.status === 'Locked' || lockInfo.locked)) {
                 return { feasible: false, bm: key, reason: `Bus ${key} is locked under ${lockInfo.reason || 'cleaning/charging'}.` };
             }
 
@@ -1804,10 +1818,12 @@
             // Extreme Peak: 07:00–10:00 & 16:00–20:00
             let timeCatKey = "NORMAL";
             let timeCatLabel = "Normal";
+            let isPeak = false;
             if (depTimeShort) {
                 const tInfo = getTimeCategory(depTimeShort);
                 timeCatKey = tInfo.key;
                 timeCatLabel = tInfo.label;
+                isPeak = Boolean(tInfo.isPeak);
             }
             const isExtremePeak = (timeCatKey === "EXTREME_PEAK");
             const isPeakOnly    = (timeCatKey === "PEAK");
@@ -1892,7 +1908,7 @@
 
             // Rule 6: Simple route + Normal time → Category C, B, A all acceptable (no restriction)
 
-            const histDischarge = getHistoricalDischargeRate(key, 1.3, isPeak);
+            const histDischarge = getHistoricalDischargeRate(key, 1.3, timeCatKey);
 
             return {
                 feasible: true,
@@ -2061,9 +2077,9 @@
                     ...Object.keys(addedBuses || {})
                 ])).filter(k => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(k)))
                   .sort((a, b) => getBusSocByBm(b) - getBusSocByBm(a));
-                const aKeys = allFleetKeys.filter(k => (STATIC_BUS_RANGES[k] || 110) > 120);
-                const bKeys = allFleetKeys.filter(k => (STATIC_BUS_RANGES[k] || 110) >= 100 && (STATIC_BUS_RANGES[k] || 110) <= 120);
-                const cKeys = allFleetKeys.filter(k => (STATIC_BUS_RANGES[k] || 110) < 100);
+                const aKeys = allFleetKeys.filter(k => (STATIC_BUS_RANGES[k] || 110) >= 120 || STATIC_BUS_CATEGORIES[k] === 'A');
+                const bKeys = allFleetKeys.filter(k => !aKeys.includes(k) && ((STATIC_BUS_RANGES[k] || 110) >= 100 || STATIC_BUS_CATEGORIES[k] === 'B'));
+                const cKeys = allFleetKeys.filter(k => !aKeys.includes(k) && !bKeys.includes(k));
 
                 let searchPasses = [];
                 if (isPeak || isComplexRoute) {
@@ -2604,6 +2620,10 @@
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
+                const depTimeRuleEl = document.getElementById("departure-time-rule");
+                if (depTimeRuleEl) depTimeRuleEl.textContent = "—";
+                const modeRule = document.getElementById("departure-mode-rule");
+                if (modeRule) modeRule.innerHTML = "—";
                 const totalDistanceRuleEl = document.getElementById("route-distance-rule");
                 if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = "—";
                 if (busCatRule) {
@@ -2633,6 +2653,10 @@
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
+                const depTimeRuleEl = document.getElementById("departure-time-rule");
+                if (depTimeRuleEl) depTimeRuleEl.textContent = "—";
+                const modeRule = document.getElementById("departure-mode-rule");
+                if (modeRule) modeRule.innerHTML = "—";
                 const totalDistanceRuleEl = document.getElementById("route-distance-rule");
                 if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = `${Number(routeObj.distKm || 0).toFixed(2)} km`;
                 if (busCatRule) {
@@ -2687,6 +2711,19 @@
             const timeCategoryLabel = timeCatInfo.label;
             const isPeakTime = timeCatInfo.isPeak;
             if (timeRule) timeRule.textContent = timeCategoryLabel;
+
+            const depTimeRuleEl = document.getElementById("departure-time-rule");
+            if (depTimeRuleEl) {
+                const shiftSuffix = (currentScheduleMatch && currentScheduleMatch.shift)
+                    ? ` (${currentScheduleMatch.shift})`
+                    : "";
+                if (isManualOverride) {
+                    depTimeRuleEl.innerHTML = `<span style="color:#d97706;font-weight:700;">⚠️ ${escapeHtml(departure)}${escapeHtml(shiftSuffix)}</span>`;
+                } else {
+                    depTimeRuleEl.innerHTML = `<span style="color:#0284c7;font-weight:700;">🕒 ${escapeHtml(departure)}${escapeHtml(shiftSuffix)}</span>`;
+                }
+            }
+            updateManualOverrideUI();
 
             const allowedMatrix = {
                 standard: { NORMAL: ["B", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
@@ -3071,6 +3108,7 @@
 
             if (scheduledTimeSelect) {
                 scheduledTimeSelect.addEventListener("change", async () => {
+                    currentlyAllocatedBus = null;
                     if (depInput) {
                         depInput.value = scheduledTimeSelect.value || "";
                     }
@@ -3082,6 +3120,7 @@
 
             if (depInput) {
                 const handleDeparture = async () => {
+                    currentlyAllocatedBus = null;
                     const val = depInput.value;
                     isManualOverride = !!val;
                     if (scheduledTimeSelect) {
@@ -3394,7 +3433,7 @@
                         for (const [bm, st] of Object.entries(data.state)) {
                             const upperBm = String(bm).toUpperCase();
                             const newSoc = Number(st.soc);
-                            if (Number.isFinite(newSoc)) {
+                            if (Number.isFinite(newSoc) && newSoc > 0) {
                                 if (!busStates[upperBm] || busStates[upperBm].soc !== newSoc) {
                                     changed = true;
                                     if (!busStates[upperBm]) busStates[upperBm] = {};

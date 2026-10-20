@@ -719,6 +719,40 @@
             line-height: 1.2;
         }
 
+        /* ── Depot Category Sections in Available Buses for Scheduling ── */
+        .avail-sched-depot-section {
+            background: #ffffff;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+        .avail-sched-depot-section.depot-1-section {
+            border-left: 5px solid #0284c7;
+        }
+        .avail-sched-depot-section.depot-2-section {
+            border-left: 5px solid #7c3aed;
+        }
+        .avail-sched-depot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .avail-sched-depot-title {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         /* ── Depot Category Sections in Total Buses Panel ── */
         .total-buses-depot-section {
             background: #ffffff;
@@ -2195,7 +2229,8 @@
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
                     <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
-                    <div class="rule"><span>Time category</span><strong id="time-rule">Extreme peak</strong></div>
+                    <div class="rule"><span>Time category</span><strong id="time-rule">—</strong></div>
+                    <div class="rule"><span>Departure Time</span><strong id="departure-time-rule">—</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
                 </div>
@@ -2357,54 +2392,77 @@
                 </section>
             </div>
 
-            <!-- Panel 3: Available Buses for Scheduling -->
+            <!-- Panel 3: Available Buses for Scheduling (Divided by Operating Depot) -->
             <div id="view-panel-available-scheduling" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-available-scheduling">
                 <section class="panel" aria-label="Available buses for scheduling">
-                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
-                        <h2 style="color:#6d28d9; margin:0;">⚡ Available Buses for Scheduling (<span id="available-scheduling-count">0</span>)</h2>
-                        <div style="display:flex;align-items:center;gap:8px;">
+                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                        <div>
+                            <h2 style="color:#6d28d9; margin:0; display:flex; align-items:center; gap:8px;">
+                                <span>⚡ Available Buses for Scheduling (<span id="available-scheduling-count">0</span>)</span>
+                            </h2>
+                            <p class="panel-note" style="margin-bottom:0; margin-top:4px;">
+                                Ready fleet categorized into <strong>Depot 1 (Chandapura)</strong> and <strong>Depot 2</strong>. Buses currently undergoing cleaning or charging protocols are strictly excluded.
+                            </p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700;">
+                                <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:5px 12px; border-radius:8px;">
+                                    🏢 Depot 1: <strong id="avail-sched-d1-count">0</strong>
+                                </span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:5px 12px; border-radius:8px;">
+                                    🏢 Depot 2: <strong id="avail-sched-d2-count">0</strong>
+                                </span>
+                            </div>
                             <span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
-                                🛡️ Cleaning &amp; Charging Buses Strictly Excluded
+                                🛡️ Cleaning &amp; Charging Excluded
                             </span>
                         </div>
                     </div>
-                    <p class="panel-note" style="margin-bottom:12px;">
-                        Buses available strictly for scheduling and dispatch. Buses currently undergoing cleaning or charging protocols are strictly excluded.
-                    </p>
 
-                    <!-- Filter and sort controls -->
-                    <div class="sort-strip" style="flex-wrap:wrap;gap:10px;align-items:center;">
-                        <label style="display:inline-flex;align-items:center;gap:4px;">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-                            Filter &amp; Sort:
-                        </label>
-                        <label>Category:
-                            <select id="avail-sched-filter-category" onchange="renderAvailableBusesForScheduling()">
-                                <option value="all">All Categories (A, B, C)</option>
-                                <option value="A">Category A (High Efficiency)</option>
-                                <option value="B">Category B (Standard)</option>
-                                <option value="C">Category C (Degraded / Reserve)</option>
-                            </select>
-                        </label>
-                        <label>Sort by:
-                            <select id="avail-sched-sort-by" onchange="renderAvailableBusesForScheduling()">
-                                <option value="soc-desc">Battery SOC (Highest → Lowest)</option>
-                                <option value="soc-asc">Battery SOC (Lowest → Highest)</option>
-                                <option value="bm-asc">BM Number (A → Z)</option>
-                                <option value="cat-asc">Category (A → B → C)</option>
-                            </select>
-                        </label>
-                        <label>Allocation Status:
-                            <select id="avail-sched-filter-status" onchange="renderAvailableBusesForScheduling()">
-                                <option value="unallocated">Ready to Schedule (Unassigned Only)</option>
-                                <option value="all-available">All Ready Fleet (Including Assigned)</option>
-                            </select>
-                        </label>
+                    <!-- Depot Filter Tabs & Sort Controls -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin:16px 0 14px; border-bottom:1.5px solid var(--line); padding-bottom:12px;">
+                        <div class="filter-tabs" id="avail-sched-depot-tabs">
+                            <button type="button" class="tab-btn active" id="avail-tab-all" onclick="setAvailableBusesDepotFilter('all')">
+                                🌐 Both Depots (<span id="avail-tab-count-all">0</span>)
+                            </button>
+                            <button type="button" class="tab-btn" id="avail-tab-d1" onclick="setAvailableBusesDepotFilter('1')">
+                                🏢 Depot 1 (<span id="avail-tab-count-d1">0</span>)
+                            </button>
+                            <button type="button" class="tab-btn" id="avail-tab-d2" onclick="setAvailableBusesDepotFilter('2')">
+                                🏢 Depot 2 (<span id="avail-tab-count-d2">0</span>)
+                            </button>
+                        </div>
+
+                        <!-- Filter and sort controls -->
+                        <div class="sort-strip" style="margin:0; flex-wrap:wrap; gap:8px; align-items:center;">
+                            <label>Allocation Status:
+                                <select id="avail-sched-filter-status" onchange="renderAvailableBusesForScheduling()">
+                                    <option value="unallocated">Ready to Schedule (Unassigned Only)</option>
+                                    <option value="all-available">All Ready Fleet (Including Assigned)</option>
+                                </select>
+                            </label>
+                            <label>Category:
+                                <select id="avail-sched-filter-category" onchange="renderAvailableBusesForScheduling()">
+                                    <option value="all">All Categories (A, B, C)</option>
+                                    <option value="A">Category A (High Efficiency)</option>
+                                    <option value="B">Category B (Standard)</option>
+                                    <option value="C">Category C (Degraded / Reserve)</option>
+                                </select>
+                            </label>
+                            <label>Sort by:
+                                <select id="avail-sched-sort-by" onchange="renderAvailableBusesForScheduling()">
+                                    <option value="soc-desc">Battery SOC (Highest → Lowest)</option>
+                                    <option value="soc-asc">Battery SOC (Lowest → Highest)</option>
+                                    <option value="bm-asc">BM Number (A → Z)</option>
+                                    <option value="cat-asc">Category (A → B → C)</option>
+                                </select>
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="region-search-wrap" style="margin-bottom:14px;">
+                    <div class="region-search-wrap" style="margin-bottom:16px;">
                         <span class="search-icon" aria-hidden="true">🔍</span>
-                        <input type="text" id="available-scheduling-search" class="region-search-input" placeholder="Search by BM number (e.g. BM153), Reg No (e.g. KA51AH4643), category..." autocomplete="off" spellcheck="false" oninput="renderAvailableBusesForScheduling()" />
+                        <input type="text" id="available-scheduling-search" class="region-search-input" placeholder="Search available buses across Depot 1 & Depot 2 by BM number, Reg No, category, driver..." autocomplete="off" spellcheck="false" oninput="renderAvailableBusesForScheduling()" />
                         <button type="button" id="clear-avail-sched-search" class="clear-search-btn" title="Clear search" onclick="clearAvailableSchedulingSearch()" style="display:none;">✕</button>
                     </div>
 
@@ -3598,14 +3656,16 @@ let busCategoriesMap = new Map();
                 const isNewlyAdded = Boolean(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === "function" && window.DepotSyncEngine.isNewlyAddedBus(bm));
                 const newlyAddedInfo = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === "function") ? window.DepotSyncEngine.getNewlyAddedInfo(bm) : null;
 
+                const busDepot = typeof getBusDepot === "function" ? getBusDepot(bm) : "1";
                 available.push({
                     bm: bm,
                     regNo: regNo,
+                    depot: String(busDepot),
                     liveSoc: liveSoc,
                     fullDutyKm: fullDutyKm,
                     busCategory: busCat,
                     condition: cond,
-                    driver: bState.driver || "Driver Assigned",
+                    driver: (allocatedDuty ? (allocatedDuty.driverName || allocatedDuty.driver) : "") || bState.driver || "Driver Assigned",
                     isAllocated: Boolean(allocatedDuty),
                     allocatedDuty: allocatedDuty,
                     isNewlyAdded: isNewlyAdded,
@@ -3614,6 +3674,19 @@ let busCategoriesMap = new Map();
             });
 
             return available;
+        }
+
+        let currentAvailBusesDepotFilter = 'all'; // 'all', '1', or '2'
+
+        function setAvailableBusesDepotFilter(depotId) {
+            currentAvailBusesDepotFilter = depotId;
+            ['all', '1', '2'].forEach(key => {
+                const tab = document.getElementById('avail-tab-' + (key === 'all' ? 'all' : 'd' + key));
+                if (tab) {
+                    tab.classList.toggle('active', key === depotId);
+                }
+            });
+            renderAvailableBusesForScheduling();
         }
 
         function renderAvailableBusesForScheduling() {
@@ -3631,6 +3704,21 @@ let busCategoriesMap = new Map();
             // Update navigation pill count with all unassigned available buses
             const unallocatedCount = allAvailable.filter(b => !b.isAllocated).length;
             if (navPill) navPill.textContent = String(unallocatedCount);
+
+            // Update depot count badges in header
+            const d1All = allAvailable.filter(b => b.depot === "1");
+            const d2All = allAvailable.filter(b => b.depot === "2");
+            const d1El = document.getElementById("avail-sched-d1-count");
+            const d2El = document.getElementById("avail-sched-d2-count");
+            if (d1El) d1El.textContent = String(d1All.length);
+            if (d2El) d2El.textContent = String(d2All.length);
+
+            const tabAll = document.getElementById("avail-tab-count-all");
+            const tabD1 = document.getElementById("avail-tab-count-d1");
+            const tabD2 = document.getElementById("avail-tab-count-d2");
+            if (tabAll) tabAll.textContent = String(allAvailable.length);
+            if (tabD1) tabD1.textContent = String(d1All.length);
+            if (tabD2) tabD2.textContent = String(d2All.length);
 
             if (!container) return;
             const panel = document.getElementById("view-panel-available-scheduling");
@@ -3661,8 +3749,10 @@ let busCategoriesMap = new Map();
                 filtered = filtered.filter(b => {
                     const bmClean = b.bm.toLowerCase().replace(/[^a-z0-9]/g, "");
                     const regClean = (b.regNo || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const driverClean = (b.driver || "").toLowerCase().replace(/[^a-z0-9]/g, "");
                     const catClean = `category${b.busCategory.toLowerCase()}`;
-                    return bmClean.includes(cleanQ) || regClean.includes(cleanQ) || catClean.includes(cleanQ) || b.busCategory.toLowerCase() === query;
+                    const depotClean = `depot${b.depot}`;
+                    return bmClean.includes(cleanQ) || regClean.includes(cleanQ) || driverClean.includes(cleanQ) || catClean.includes(cleanQ) || depotClean.includes(cleanQ) || b.busCategory.toLowerCase() === query;
                 });
             }
 
@@ -3680,78 +3770,146 @@ let busCategoriesMap = new Map();
 
             if (countEl) countEl.textContent = String(filtered.length);
 
-            if (!filtered.length) {
-                container.innerHTML = `
-                    <div style="padding:28px 20px;text-align:center;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:12px;margin-top:10px;">
-                        <span style="font-size:2rem;display:block;margin-bottom:8px;">🔍</span>
-                        <strong style="color:#0f172a;font-size:0.95rem;display:block;">No available buses match your filter</strong>
-                        <p style="color:#64748b;font-size:0.82rem;margin:4px 0 0;">
-                            Try clearing your search query or selecting a different category. Note that buses selected for cleaning or charging are strictly excluded.
-                        </p>
+            // Divide into Depot 1 and Depot 2
+            const d1Buses = filtered.filter(b => b.depot === "1");
+            const d2Buses = filtered.filter(b => b.depot === "2");
+
+            const renderCards = (buses) => {
+                if (!buses.length) {
+                    return `
+                        <div style="grid-column:1/-1;padding:22px;text-align:center;background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:10px;color:#64748b;font-size:0.85rem;">
+                            No available buses match your filter for this depot.
+                        </div>`;
+                }
+
+                return buses.map(bus => {
+                    const catClass = bus.busCategory === "A" ? "cat-pill-a" : (bus.busCategory === "B" ? "cat-pill-b" : "cat-pill-c");
+                    const socBarColor = bus.liveSoc >= 75 ? "#16a34a" : (bus.liveSoc >= 45 ? "#0284c7" : "#d97706");
+                    const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
+
+                    const depotBadge = bus.depot === "1"
+                        ? `<span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🏢 Depot 1</span>`
+                        : `<span style="background:#ede9fe; color:#6d28d9; border:1px solid #ddd6fe; font-size:0.72rem; font-weight:800; padding:2px 8px; border-radius:999px;">🏢 Depot 2</span>`;
+
+                    return `
+                        <div class="avail-sched-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}">
+                            <div class="avail-sched-top">
+                                <div class="avail-sched-bm-wrap">
+                                    <span class="avail-sched-bm">🚌 ${escapeHtml(bus.bm)}</span>
+                                    ${bus.regNo ? `<span class="avail-sched-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
+                                    ${bus.isNewlyAdded ? `<span class="badge-newly-added" title="${escapeHtml(bus.additionReason || 'Newly Added Bus')}">✨ Newly Added Bus</span>` : ''}
+                                    <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(bus.bm)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:6px;">
+                                    ${depotBadge}
+                                    <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
+                                </div>
+                            </div>
+
+                            <div class="avail-sched-soc-wrap">
+                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;">
+                                    <span style="color:#64748b;font-weight:600;">Battery State of Charge</span>
+                                    <strong style="color:${socBarColor};font-weight:800;">⚡ ${bus.liveSoc}%</strong>
+                                </div>
+                                <div class="avail-sched-soc-bar-bg">
+                                    <div class="avail-sched-soc-bar-fill" style="width:${Math.min(100, Math.max(0, bus.liveSoc))}%;background:${socBarColor};"></div>
+                                </div>
+                            </div>
+
+                            <div class="avail-sched-metrics">
+                                <div class="avail-sched-metric-item">
+                                    <span class="avail-sched-metric-lbl">Full Duty Range</span>
+                                    <strong class="avail-sched-metric-val">📏 ${bus.fullDutyKm} km</strong>
+                                </div>
+                                <div class="avail-sched-metric-item">
+                                    <span class="avail-sched-metric-lbl">Condition / Driver</span>
+                                    <strong class="avail-sched-metric-val">✅ ${escapeHtml(bus.condition)}</strong>
+                                </div>
+                            </div>
+
+                            <div class="avail-sched-actions">
+                                ${bus.isAllocated ? `
+                                    <span style="font-size:0.72rem;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:3px 8px;border-radius:6px;font-weight:700;">
+                                        🎯 Assigned (${escapeHtml(bus.allocatedDuty?.routeCode || bus.allocatedDuty?.route || 'Duty')})
+                                    </span>
+                                ` : `
+                                    <span class="avail-sched-badge-ready">
+                                        ● Ready for Dispatch
+                                    </span>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+            };
+
+            const d1Unallocated = d1Buses.filter(b => !b.isAllocated).length;
+            const d1Allocated = d1Buses.filter(b => b.isAllocated).length;
+
+            const d2Unallocated = d2Buses.filter(b => !b.isAllocated).length;
+            const d2Allocated = d2Buses.filter(b => b.isAllocated).length;
+
+            let html = '';
+
+            if (currentAvailBusesDepotFilter === 'all' || currentAvailBusesDepotFilter === '1') {
+                html += `
+                    <div class="avail-sched-depot-section depot-1-section">
+                        <div class="avail-sched-depot-header">
+                            <div>
+                                <div class="avail-sched-depot-title">
+                                    <span>🏢 Depot 1 Available Fleet (Chandapura BMT-32)</span>
+                                    <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; font-size:0.8rem; font-weight:800; padding:2px 10px; border-radius:999px;">
+                                        ${d1Buses.length} Buses Ready
+                                    </span>
+                                </div>
+                                <div style="font-size:0.78rem; color:var(--muted); margin-top:3px;">
+                                    Operating fleet stationed at Depot 1 (Chandapura) ready for duty allocation.
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
+                                <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">⚡ Ready to Schedule: ${d1Unallocated}</span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🎯 Assigned: ${d1Allocated}</span>
+                            </div>
+                        </div>
+                        <div class="avail-sched-grid">
+                            ${renderCards(d1Buses)}
+                        </div>
                     </div>`;
-                return;
             }
 
-            const cardsHtml = filtered.map(bus => {
-                const catClass = bus.busCategory === "A" ? "cat-pill-a" : (bus.busCategory === "B" ? "cat-pill-b" : "cat-pill-c");
-                const socBarColor = bus.liveSoc >= 75 ? "#16a34a" : (bus.liveSoc >= 45 ? "#0284c7" : "#d97706");
-                const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
-
-                return `
-                    <div class="avail-sched-card ${isSelected ? 'selected' : ''}" data-bm="${escapeHtml(bus.bm)}">
-                        <div class="avail-sched-top">
-                            <div class="avail-sched-bm-wrap">
-                                <span class="avail-sched-bm">🚌 ${escapeHtml(bus.bm)}</span>
-                                ${bus.regNo ? `<span class="avail-sched-reg">(${escapeHtml(bus.regNo)})</span>` : ''}
-                                ${bus.isNewlyAdded ? `<span class="badge-newly-added" title="${escapeHtml(bus.additionReason || 'Newly Added Bus')}">✨ Newly Added Bus</span>` : ''}
-                                <button type="button" class="bus-info-circle-btn" onclick="openBusTasksModal('${escapeHtml(bus.bm)}')" title="Click to view details and duty tasks for Bus ${escapeHtml(bus.bm)}" aria-label="Details for Bus ${escapeHtml(bus.bm)}">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                    </svg>
-                                </button>
+            if (currentAvailBusesDepotFilter === 'all' || currentAvailBusesDepotFilter === '2') {
+                html += `
+                    <div class="avail-sched-depot-section depot-2-section">
+                        <div class="avail-sched-depot-header">
+                            <div>
+                                <div class="avail-sched-depot-title">
+                                    <span>🏢 Depot 2 Available Fleet</span>
+                                    <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; font-size:0.8rem; font-weight:800; padding:2px 10px; border-radius:999px;">
+                                        ${d2Buses.length} Buses Ready
+                                    </span>
+                                </div>
+                                <div style="font-size:0.78rem; color:var(--muted); margin-top:3px;">
+                                    Operating fleet stationed at Depot 2 ready for duty allocation.
+                                </div>
                             </div>
-                            <span class="cat-pill ${catClass}">Cat ${escapeHtml(bus.busCategory)}</span>
-                        </div>
-
-                        <div class="avail-sched-soc-wrap">
-                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;">
-                                <span style="color:#64748b;font-weight:600;">Battery State of Charge</span>
-                                <strong style="color:${socBarColor};font-weight:800;">⚡ ${bus.liveSoc}%</strong>
-                            </div>
-                            <div class="avail-sched-soc-bar-bg">
-                                <div class="avail-sched-soc-bar-fill" style="width:${Math.min(100, Math.max(0, bus.liveSoc))}%;background:${socBarColor};"></div>
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
+                                <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">⚡ Ready to Schedule: ${d2Unallocated}</span>
+                                <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🎯 Assigned: ${d2Allocated}</span>
                             </div>
                         </div>
-
-                        <div class="avail-sched-metrics">
-                            <div class="avail-sched-metric-item">
-                                <span class="avail-sched-metric-lbl">Full Duty Range</span>
-                                <strong class="avail-sched-metric-val">📏 ${bus.fullDutyKm} km</strong>
-                            </div>
-                            <div class="avail-sched-metric-item">
-                                <span class="avail-sched-metric-lbl">Condition / Driver</span>
-                                <strong class="avail-sched-metric-val">✅ ${escapeHtml(bus.condition)}</strong>
-                            </div>
+                        <div class="avail-sched-grid">
+                            ${renderCards(d2Buses)}
                         </div>
+                    </div>`;
+            }
 
-                        <div class="avail-sched-actions">
-                            ${bus.isAllocated ? `
-                                <span style="font-size:0.72rem;color:#0369a1;background:#e0f2fe;border:1px solid #bae6fd;padding:3px 8px;border-radius:6px;font-weight:700;">
-                                    🎯 Assigned (${escapeHtml(bus.allocatedDuty?.routeCode || 'Duty')})
-                                </span>
-                            ` : `
-                                <span class="avail-sched-badge-ready">
-                                    ● Ready for Dispatch
-                                </span>
-                            `}
-                        </div>
-                    </div>
-                `;
-            }).join("");
-
-            container.innerHTML = `<div class="avail-sched-grid">${cardsHtml}</div>`;
+            container.innerHTML = html;
         }
 
         function clearAvailableSchedulingSearch() {
@@ -3782,6 +3940,7 @@ let busCategoriesMap = new Map();
         }
 
         window.renderAvailableBusesForScheduling = renderAvailableBusesForScheduling;
+        window.setAvailableBusesDepotFilter = setAvailableBusesDepotFilter;
         window.clearAvailableSchedulingSearch = clearAvailableSchedulingSearch;
         window.scheduleAvailableBus = scheduleAvailableBus;
         // initSectionViewSwitcher is called during loadData() once DOM and state are initialized
@@ -7303,6 +7462,8 @@ let busCategoriesMap = new Map();
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
+                const depTimeRuleEl = document.getElementById("departure-time-rule");
+                if (depTimeRuleEl) depTimeRuleEl.textContent = "—";
                 const totalDistanceRuleEl = document.getElementById("route-distance-rule");
                 if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = "—";
                 if (busCatRule) {
@@ -7332,6 +7493,8 @@ let busCategoriesMap = new Map();
                 if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
+                const depTimeRuleEl = document.getElementById("departure-time-rule");
+                if (depTimeRuleEl) depTimeRuleEl.textContent = "—";
                 const totalDistanceRuleEl = document.getElementById("route-distance-rule");
                 if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = `${Number(selectedRouteObj.distKm || 0).toFixed(2)} km`;
                 if (busCatRule) {
@@ -7503,6 +7666,16 @@ let busCategoriesMap = new Map();
             if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
             if (rangeRule) rangeRule.textContent = routeCategoryLabel;
             if (timeRule) timeRule.textContent = timeCategoryLabel;
+
+            const depTimeRuleEl = document.getElementById("departure-time-rule");
+            if (depTimeRuleEl) {
+                const shiftSuffix = (currentScheduleMatch && currentScheduleMatch.shift) ? ` (${currentScheduleMatch.shift})` : "";
+                if (isManualOverride) {
+                    depTimeRuleEl.innerHTML = `<span style="color:#d97706;font-weight:700;">⚠️ ${escapeHtml(departure)}${escapeHtml(shiftSuffix)}</span>`;
+                } else {
+                    depTimeRuleEl.innerHTML = `<span style="color:#0284c7;font-weight:700;">🕒 ${escapeHtml(departure)}${escapeHtml(shiftSuffix)}</span>`;
+                }
+            }
 
             const totalDistanceRuleEl = document.getElementById("route-distance-rule");
             if (totalDistanceRuleEl) {
