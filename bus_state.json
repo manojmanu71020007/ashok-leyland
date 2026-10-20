@@ -706,9 +706,9 @@
     "chargingStatus": null
   },
   "BM002": {
-    "status": "Deleted",
+    "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 94,
+    "soc": 74,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-19T15:12:15.687Z",
@@ -766,11 +766,15 @@
     "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
     "blocked": false,
-    "deleted": true,
-    "isDeleted": true,
+    "deleted": false,
+    "isDeleted": false,
     "deletionReason": "Major Breakdown / Motor Defect",
     "deletedAt": "2026-10-20T10:55:25.676Z",
-    "isNewlyAdded": false
+    "isNewlyAdded": true,
+    "regNo": "KA51AH2434",
+    "busCategory": "C",
+    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+    "addedAt": "2026-10-20T13:31:30.628Z"
   },
   "BUS-02": {
     "status": "Blocked",
@@ -8211,9 +8215,8 @@
     "chargingStatus": null
   },
   "_assignments": {
-    "BM001": "BM001",
-    "600F": "BM300",
     "BM003": "BM003",
+    "600F": "BM300",
     "BM004": "BM004",
     "BM005": "BM005",
     "360K": "BM292",
@@ -9058,34 +9061,6 @@
     "chargingStatus": null
   },
   "_vehicleAssignments": {
-    "BM001": {
-      "uniqueId": "BM001",
-      "unique_id": "BM001",
-      "vehicleId": "BM001",
-      "bmNumber": "BM001",
-      "busName": "BM001",
-      "defaultBusShortName": "600F",
-      "assignedRouteId": "BM001",
-      "assignedRouteShortName": "600F",
-      "origin": "Bommasandra Depot 32",
-      "destination": "Basavanagudi (600F)",
-      "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
-      "routeCategory": "COMPLEX",
-      "timeSlot": "PEAK",
-      "busCategory": "A",
-      "allowedCategories": [
-        "A"
-      ],
-      "matrixCompliant": true,
-      "soc": 99,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 126,
-      "fullDutyDistanceKm": 126,
-      "operationMode": "Single Charge Operation",
-      "blocked": false
-    },
     "BM003": {
       "uniqueId": "BM003",
       "unique_id": "BM003",
@@ -12448,33 +12423,33 @@
     }
   },
   "_busAssignments": {
-    "BM001": {
-      "uniqueId": "BM001",
-      "unique_id": "BM001",
-      "vehicleId": "BM001",
-      "bmNumber": "BM001",
-      "busName": "BM001",
+    "BM003": {
+      "uniqueId": "BM003",
+      "unique_id": "BM003",
+      "vehicleId": "BM003",
+      "bmNumber": "BM003",
+      "busName": "BM003",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "BM001",
+      "assignedRouteId": "BM003",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
-      "soc": 99,
+      "matrixCompliant": false,
+      "soc": 83,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 126,
-      "fullDutyDistanceKm": 126,
+      "estimatedRangeKm": 104,
+      "fullDutyDistanceKm": 104,
       "operationMode": "Single Charge Operation",
-      "blocked": false
+      "blocked": true
     },
     "600F": {
       "uniqueId": "BM300",
@@ -12501,34 +12476,6 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 0,
       "fullDutyDistanceKm": 0,
-      "operationMode": "Single Charge Operation",
-      "blocked": true
-    },
-    "BM003": {
-      "uniqueId": "BM003",
-      "unique_id": "BM003",
-      "vehicleId": "BM003",
-      "bmNumber": "BM003",
-      "busName": "BM003",
-      "defaultBusShortName": "600F",
-      "assignedRouteId": "BM003",
-      "assignedRouteShortName": "600F",
-      "origin": "Bommasandra Depot 32",
-      "destination": "Basavanagudi (600F)",
-      "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
-      "routeCategory": "COMPLEX",
-      "timeSlot": "PEAK",
-      "busCategory": "B",
-      "allowedCategories": [
-        "A"
-      ],
-      "matrixCompliant": false,
-      "soc": 83,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 104,
-      "fullDutyDistanceKm": 104,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16169,25 +16116,6 @@
     "BM304"
   ],
   "ranges": {
-    "BM001": {
-      "assignedVehicle": "BM001",
-      "bmNumber": "BM001",
-      "routeCategory": "COMPLEX",
-      "timeSlot": "PEAK",
-      "busCategory": "A",
-      "allowedCategories": [
-        "A"
-      ],
-      "matrixCompliant": true,
-      "soc": 99,
-      "condition": "Good",
-      "driver": "Driver Assigned",
-      "estimatedRangeKm": 126,
-      "fullDutyDistanceKm": 126,
-      "operationMode": "Single Charge Operation",
-      "gtfsDistanceKm": 114.75,
-      "blocked": false
-    },
     "BM003": {
       "assignedVehicle": "BM003",
       "bmNumber": "BM003",
@@ -18692,13 +18620,6 @@
     "BM304": "2"
   },
   "_deletedBuses": {
-    "BM002": {
-      "bm": "BM002",
-      "regNo": "",
-      "reason": "Major Breakdown / Motor Defect",
-      "deletedAt": "2026-10-20T10:55:25.676Z",
-      "timestamp": 1792493725676
-    },
     "BM001": {
       "bm": "BM001",
       "regNo": "",
@@ -18707,5 +18628,22 @@
       "timestamp": 1792496005166
     }
   },
-  "_addedBuses": {}
+  "_addedBuses": {
+    "BM002": {
+      "bm": "BM002",
+      "busNumber": "BM002",
+      "regNo": "KA51AH2434",
+      "regNumber": "KA51AH2434",
+      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+      "depot": "1",
+      "category": "C",
+      "busCategory": "C",
+      "soc": 74,
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "addedAt": "2026-10-20T13:31:30.628Z",
+      "timestamp": 1792503090628,
+      "isNewlyAdded": true
+    }
+  }
 }
