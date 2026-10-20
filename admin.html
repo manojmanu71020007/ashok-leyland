@@ -2923,22 +2923,60 @@ let busCategoriesMap = new Map();
             return 110.0;
         }
 
-        function getHistoricalDischargeRate(bm, hours, isPeak) {
+        function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
+            let key = "NORMAL";
+            if (timeCategoryOrStr && typeof timeCategoryOrStr === "object" && timeCategoryOrStr.key) {
+                key = timeCategoryOrStr.key;
+            } else if (typeof timeCategoryOrStr === "string") {
+                const upper = timeCategoryOrStr.toUpperCase().trim();
+                if (upper === "EXTREME_PEAK" || upper === "PEAK" || upper === "NORMAL") {
+                    key = upper;
+                } else if (typeof getTimeCategory === "function") {
+                    key = getTimeCategory(timeCategoryOrStr).key;
+                }
+            }
+            if (key === "EXTREME_PEAK") {
+                return { multiplier: 1.30, label: "High", timeCategory: "Extreme Peak", pctNote: "+30% High Drain" };
+            } else if (key === "PEAK") {
+                return { multiplier: 1.15, label: "Moderate", timeCategory: "Peak", pctNote: "+15% Moderate Drain" };
+            }
+            return { multiplier: 1.0, label: "Normal", timeCategory: "Normal", pctNote: "Normal Baseline Drain" };
+        }
+
+        function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
+            const busRangeKm = bm ? getBusActualRangeKm(bm) : 110.0;
+            const baseDrain = 100 / busRangeKm;
+            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
+            return {
+                busRangeKm: busRangeKm,
+                baseDrainPerKm: baseDrain,
+                effectiveDrainPerKm: baseDrain * drainInfo.multiplier,
+                drainLevel: drainInfo.label,
+                drainMultiplier: drainInfo.multiplier,
+                timeCategory: drainInfo.timeCategory,
+                pctNote: drainInfo.pctNote
+            };
+        }
+
+        function getHistoricalDischargeRate(bm, hours, timeCategoryOrStr) {
             const key = String(bm || "").toUpperCase().trim();
             const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
             const baseRates = { "A": 12.5, "B": 15.0, "C": 22.0 };
-            const rate = isPeak ? (baseRates[cat] * 1.30) : baseRates[cat];
+            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
+            const rate = baseRates[cat] * drainInfo.multiplier;
             const dur = Number(hours) || 1.3;
             const expectedSoc = Math.min(100, Math.round(dur * rate + 15));
             return {
                 socPerHour: Number(rate.toFixed(1)),
                 expectedSoc: expectedSoc,
-                isPeak: !!isPeak
+                drainLevel: drainInfo.label,
+                drainMultiplier: drainInfo.multiplier,
+                timeCategory: drainInfo.timeCategory
             };
         }
 
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
-        function getRequiredSingleChargeSoc(distKm, schedObj, busBm) {
+        function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr) {
             let targetKm = (schedObj && schedObj.singleChargeReqKm)
                 ? Number(schedObj.singleChargeReqKm)
                 : (Number(distKm) || 28.7);
@@ -2955,12 +2993,15 @@ let busCategoriesMap = new Map();
                 targetKm = Math.min(targetKm, 95);
             }
 
-            // Vehicle-specific range model:
-            // Tier A (~132 km full range) requires LESS SoC
-            // Tier B (~110 km full range) requires MODERATE SoC
-            // Tier C (~75 km full range) requires VERY HIGH SoC
-            const busRangeKm = busBm ? getBusActualRangeKm(busBm) : 110.0;
-            const baseSoc = (targetKm / busRangeKm) * 100;
+            // Vehicle-specific range & Time Category drain rate model:
+            // 1. Base drain rate per km = 100 / busActualRangeKm
+            // 2. Time Category drain rate factor:
+            //    - Extreme Peak: High drain rate (1.30x)
+            //    - Peak: Moderate drain rate (1.15x)
+            //    - Normal: Normal baseline drain rate (1.0x)
+            const depTime = timeCategoryOrStr || (schedObj && (schedObj.outTime || schedObj.cum_time || schedObj.departureTime));
+            const drainInfo = getBusDrainRatePerKm(busBm, depTime);
+            const baseSoc = targetKm * drainInfo.effectiveDrainPerKm;
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
         }
@@ -4536,7 +4577,7 @@ let busCategoriesMap = new Map();
 
             const constantMinReqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
                 ? targetReqSoc
-                : getRequiredSingleChargeSoc(routeDist, matchedSched);
+                : getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort);
 
             // 2. SoC Matching Condition with -2% Margin:
             const minAllowedSoc = constantMinReqSoc - 2;
@@ -4551,10 +4592,21 @@ let busCategoriesMap = new Map();
                 };
             }
 
-            // 3. Coverable Distance Calculation using Previous Days' Battery Drain:
-            const busRangeKm = getBusActualRangeKm ? getBusActualRangeKm(key) : 110.0;
-            const drainPerKm = (100 / busRangeKm);
-            const coverableFullRangeKm = Math.round(busRangeKm);
+            // 3. Coverable Distance Calculation using Drain Rate per km & Time Category:
+            // - Extreme Peak: High drain rate (1.30x)
+            // - Peak: Moderate drain rate (1.15x)
+            // - Normal: Normal baseline drain rate (1.0x)
+            const drainDetails = (typeof getBusDrainRatePerKm === 'function') ? getBusDrainRatePerKm(key, depTimeShort) : {
+                busRangeKm: 110.0,
+                baseDrainPerKm: (100 / 110.0),
+                effectiveDrainPerKm: (100 / 110.0),
+                drainLevel: "Normal",
+                drainMultiplier: 1.0,
+                timeCategory: "Normal"
+            };
+            const busRangeKm = drainDetails.busRangeKm;
+            const drainPerKm = drainDetails.effectiveDrainPerKm;
+            const coverableFullRangeKm = Math.round(100 / drainPerKm);
             const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
 
             let operatingKm = Number(routeDist) || 28.7;
@@ -4575,7 +4627,10 @@ let busCategoriesMap = new Map();
                     actualRangeKm: busRangeKm,
                     usableCoverableKm,
                     operatingKm,
-                    reason: `Bus ${key} historical battery drain allows usable range of ${usableCoverableKm} km, which cannot cover required ${operatingKm.toFixed(1)} km.`
+                    drainRatePerKm: drainPerKm.toFixed(3),
+                    drainLevel: drainDetails.drainLevel,
+                    timeCategory: drainDetails.timeCategory,
+                    reason: `Bus ${key} battery drain (${drainPerKm.toFixed(2)}%/km, ${drainDetails.drainLevel} drain in ${drainDetails.timeCategory}) allows usable range of ${usableCoverableKm} km, which cannot cover required ${operatingKm.toFixed(1)} km.`
                 };
             }
 
@@ -4675,6 +4730,10 @@ let busCategoriesMap = new Map();
                 constantMinReqSoc,
                 minAllowedSoc,
                 reqSoc: constantMinReqSoc,
+                drainRatePerKm: drainPerKm.toFixed(3),
+                drainLevel: drainDetails.drainLevel,
+                timeCategory: drainDetails.timeCategory,
+                drainMultiplier: drainDetails.drainMultiplier,
                 condition,
                 driver,
                 role: candidateRole
@@ -4747,7 +4806,7 @@ let busCategoriesMap = new Map();
             let allocated = null;
             let swapLog = [];
 
-            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, null, depShort);
 
             // Fast precomputed Map lookups for instant O(1) candidate evaluation
             const allocBmMap = new Map();
@@ -4988,7 +5047,7 @@ let busCategoriesMap = new Map();
             const targetShift = (matchedSched && matchedSched.shift)
                 ? matchedSched.shift
                 : (depMin >= 300 && depMin < 810 ? "General Shift" : (depMin >= 810 && depMin < 1320 ? "Shift B" : "Night Halt"));
-            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched);
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, null, depShort);
 
             const candidates = [];
             const seenBms = new Set();
@@ -5166,7 +5225,7 @@ let busCategoriesMap = new Map();
 
             const complexity = getRouteComplexity(routeObj, matchedSched, depShort);
             const isComplexRoute = (complexity === "complex");
-            const reqSoc = getRequiredSingleChargeSoc(routeObj ? routeObj.distKm : 28.7, matchedSched);
+            const reqSoc = getRequiredSingleChargeSoc(routeObj ? routeObj.distKm : 28.7, matchedSched, null, depShort);
 
             const timeCatInfo = getTimeCategory(depShort);
             const isPeakTime = timeCatInfo.isPeak;
@@ -5566,7 +5625,7 @@ let busCategoriesMap = new Map();
                             renderAllocatedCard({
                                 shift: getShiftForTimeAndRoute(departureTime, routeObj.code),
                                 departureTime: departureTime,
-                                reqSoc: getRequiredSingleChargeSoc(routeObj.distKm, currentScheduleMatch)
+                                reqSoc: getRequiredSingleChargeSoc(routeObj.distKm, currentScheduleMatch, null, departureTime)
                             });
                         }
                     }
@@ -6716,7 +6775,7 @@ let busCategoriesMap = new Map();
             if (currentlyAllocatedBus && (currentlyAllocatedBus.bm === busBm || currentlyAllocatedBus.routeCode === routeCode) && currentlyAllocatedBus.reqSoc) {
                 reqSoc = currentlyAllocatedBus.reqSoc;
             } else if (typeof getRequiredSingleChargeSoc === 'function') {
-                reqSoc = getRequiredSingleChargeSoc(routeDist, null, busBm);
+                reqSoc = getRequiredSingleChargeSoc(routeDist, null, busBm, depTimeClean);
             }
             if (!reqSoc || reqSoc <= 0) reqSoc = 63;
 
@@ -7409,7 +7468,7 @@ let busCategoriesMap = new Map();
                     renderAllocatedCard({
                         shift: (allocResult && allocResult.shift) || getShiftForTimeAndRoute(departure, selectedRouteObj ? selectedRouteObj.code : ""),
                         departureTime: departure,
-                        reqSoc: (allocResult && allocResult.reqSoc) || getRequiredSingleChargeSoc(routeDistance, currentScheduleMatch),
+                        reqSoc: (allocResult && allocResult.reqSoc) || getRequiredSingleChargeSoc(routeDistance, currentScheduleMatch, null, departure),
                         swapLog: (allocResult && allocResult.swapLog) || []
                     });
                 }
