@@ -1,0 +1,65 @@
+{
+  "id": "/?source=pwa",
+  "name": "Ashok Leyland Smart Bus",
+  "short_name": "SmartBus",
+  "description": "Ashok Leyland Electric Bus Depot & Fleet Scheduling Management System",
+  "start_url": "/login.html?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#1e293b",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin Fleet Dashboard",
+      "short_name": "Admin",
+      "description": "Manage fleet, allocations, and depot status",
+      "url": "/admin.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Bus Scheduling",
+      "short_name": "Scheduling",
+      "description": "Schedule duties, calculate battery feasibility",
+      "url": "/scheduling.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Depot Operations",
+      "short_name": "Depot",
+      "description": "Yard charging, cleaning & servicing",
+      "url": "/depot-operations.html?source=pwa_shortcut",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
