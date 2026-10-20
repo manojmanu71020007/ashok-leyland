@@ -765,27 +765,37 @@
 
     async function restoreFleetBusApi(data) {
         try {
+            const rawBm = (typeof data === 'string') ? data : (data && (data.bm || data.busNumber || data.bmNumber || ''));
+            const bm = String(rawBm).toUpperCase().trim();
+            const payload = (typeof data === 'object' && data !== null) ? Object.assign({ bm, busNumber: bm }, data) : { bm, busNumber: bm };
             const res = await fetch(API_BASE + '/api/fleet/restore-bus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const result = await res.json();
             if (result && result.ok) {
-                const bm = String(data.bm).toUpperCase().trim();
+                const busData = Object.assign({}, payload, result.bus || {});
+                const busBm = String(busData.bm || busData.busNumber || bm).toUpperCase().trim();
                 const deleted = getDeletedBusesLocal();
-                delete deleted[bm];
+                delete deleted[busBm];
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
                 const added = getAddedBusesLocal();
-                added[bm] = result.bus || data;
+                added[busBm] = busData;
                 localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
 
+                const counts = getDepotCountsLocal();
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: result.bus });
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm: busBm, data: busData, counts });
                 } catch(e) {}
 
-                notify('fleet-updated', { type: 'restore', bm, data: result.bus });
+                notify('fleet-updated', { type: 'restore', bm: busBm, data: busData });
+                notify('depot-updated', {
+                    depot1Count: counts.depot1Count,
+                    depot2Count: counts.depot2Count,
+                    total: counts.total
+                });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to restore bus');

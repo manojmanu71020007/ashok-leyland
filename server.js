@@ -1529,7 +1529,8 @@ function deleteFleetBus(params) {
     let busReg = regNo;
     let busMake = String(params.make || "Ashok Leyland").trim();
     let busModel = String(params.model || "ELECTRIC BUS AC EiV12").trim();
-    let busDepot = "Chandapura (BMT-32)";
+    const chosenDepotNum = String(params.depot || "1").trim();
+    let busDepot = chosenDepotNum === "2" ? "Depot 2 (Central)" : "Chandapura (BMT-32)";
     try {
         if (fs.existsSync(VEHICLES_FILE)) {
             const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
@@ -1639,22 +1640,37 @@ function deleteFleetBus(params) {
 }
 
 function restoreFleetBus(params) {
-    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    let bm = "";
+    if (typeof params === "string") {
+        bm = params.toUpperCase().trim();
+    } else if (params && typeof params === "object") {
+        bm = String(params.bm || params.busNumber || params.bmNumber || params.id || "").toUpperCase().trim();
+    }
     if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
     if (!bm) throw new Error("Bus Number is required to restore.");
 
     const currentState = loadBusState();
     const deletedInfo = (currentState._deletedBuses && currentState._deletedBuses[bm]) || {};
-    const regNo = String(params.regNo || deletedInfo.regNo || (currentState[bm] && currentState[bm].regNo) || "").toUpperCase().trim();
-    const reason = String(params.reason || "Restored back to available fleet").trim();
+    const regNo = String((params && (params.regNo || params.regNumber)) || deletedInfo.regNo || deletedInfo.regNumber || (currentState[bm] && (currentState[bm].regNo || currentState[bm].regNumber)) || "").toUpperCase().trim();
+    const reason = String((params && params.reason) || "Restored back to active fleet").trim();
+    const depot = String((params && params.depot) || deletedInfo.depot || (currentState._depotAssignments && currentState._depotAssignments[bm]) || "1").trim();
+    const category = String((params && (params.category || params.busCategory)) || (currentState[bm] && currentState[bm].busCategory) || "A").trim();
+    const soc = Number.isFinite(Number(params && params.soc)) ? Number(params.soc) : ((currentState[bm] && currentState[bm].soc) || 100);
+    const model = String((params && params.model) || deletedInfo.model || (currentState[bm] && currentState[bm].model) || "ELECTRIC BUS AC EiV12").trim();
+    const make = String((params && params.make) || deletedInfo.make || (currentState[bm] && currentState[bm].make) || "Ashok Leyland").trim();
 
     return addFleetBus({
         bm,
+        busNumber: bm,
         regNo: regNo || "KA51AH4144",
+        regNumber: regNo || "KA51AH4144",
         reason,
-        depot: "1",
-        category: (currentState[bm] && currentState[bm].busCategory) || "A",
-        soc: (currentState[bm] && currentState[bm].soc) || 100
+        depot,
+        category,
+        busCategory: category,
+        soc,
+        model,
+        make
     });
 }
 

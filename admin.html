@@ -2677,6 +2677,16 @@
 
                             <div>
                                 <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                    Operating Depot <span style="color:#ef4444;">*</span>
+                                </label>
+                                <select id="del-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;">
+                                    <option value="1">Depot 1 — Chandapura (BMT-32)</option>
+                                    <option value="2">Depot 2 — Central Depot</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
                                     Reason Category <span style="color:#ef4444;">*</span>
                                 </label>
                                 <select id="del-bus-reason-select" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" onchange="onDelReasonSelectChange(this.value)">
@@ -3641,6 +3651,34 @@ let busCategoriesMap = new Map();
                 const cond = bState.condition || "Good";
                 if (String(cond).toLowerCase().includes("not good")) {
                     return;
+                }
+
+                // 5. Post-route servicing requirement check: completed route requires charging & cleaning before scheduling
+                let servicing = null;
+                try {
+                    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getBusServicing === "function") {
+                        servicing = window.DepotSyncEngine.getBusServicing(bm);
+                    } else {
+                        const sMap = JSON.parse(localStorage.getItem("smartbus_servicing_status") || "{}");
+                        servicing = sMap[bm] || null;
+                    }
+                } catch(e) {}
+                if (servicing && servicing.routeCompleted) {
+                    const chargingDone = Boolean(servicing.chargingCompleted || !servicing.needsCharging);
+                    const cleaningDone = Boolean(servicing.cleaningCompleted || !servicing.needsCleaning);
+                    if (!chargingDone || !cleaningDone) {
+                        // Bus recently completed route; charging or cleaning is pending in depot -> EXCLUDE from available scheduling
+                        return;
+                    }
+                }
+
+                // 6. Mandatory post-trip turnaround buffer (30m cooldown)
+                if (bState.lastTripCompletedAt || bState.lastRouteCompletedAt) {
+                    const compTime = new Date(bState.lastTripCompletedAt || bState.lastRouteCompletedAt).getTime();
+                    const elapsedMins = (Date.now() - compTime) / 60000;
+                    if (elapsedMins < 30 && (bState.status === "Cooldown" || bState.status === "Turnaround" || bState.postRouteServicingPending)) {
+                        return;
+                    }
                 }
 
                 const liveSoc = typeof getBusSocByBm === "function" ? getBusSocByBm(bm) : 80;
@@ -4619,6 +4657,20 @@ let busCategoriesMap = new Map();
                 }
             }
 
+            // Turnaround / Cooldown buffer check for recently completed route
+            const bStateRaw = (typeof busStates !== "undefined" && busStates[key]) ? busStates[key] : {};
+            if (bStateRaw && (bStateRaw.lastTripCompletedAt || bStateRaw.lastRouteCompletedAt)) {
+                const compTime = new Date(bStateRaw.lastTripCompletedAt || bStateRaw.lastRouteCompletedAt).getTime();
+                const elapsedMins = (Date.now() - compTime) / 60000;
+                if (elapsedMins < 30 && (bStateRaw.status === "Cooldown" || bStateRaw.status === "Turnaround" || bStateRaw.postRouteServicingPending)) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} recently completed a route ${Math.round(elapsedMins)}m ago and is in mandatory depot turnaround buffer (minimum 30m cooldown required).`
+                    };
+                }
+            }
+
             // Post-Route Servicing Requirement Check (Mandatory Charging & Cleaning before re-allocation)
             const servicing = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getBusServicing === 'function')
                 ? window.DepotSyncEngine.getBusServicing(key)
@@ -4989,8 +5041,11 @@ let busCategoriesMap = new Map();
             if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
+                const existingLock = lockedBmMap.get(String(existingDuty.bm).toUpperCase().trim()) || (typeof getBusLockInfo === 'function' ? getBusLockInfo(existingDuty.bm) : null);
 
-                if (liveSoc < reqSoc) {
+                if (existingLock) {
+                    swapLog.push(`Previously allocated bus ${existingDuty.bm} is currently locked (${existingLock.reason || 'Charging/Cleaning in progress'}). Re-evaluating duty.`);
+                } else if (liveSoc < reqSoc) {
                     swapLog.push(`Previously allocated bus ${existingDuty.bm} has insufficient battery (${liveSoc}% SoC < ${reqSoc}% required). Re-evaluating duty.`);
                 } else if (requiresCatA && busCat !== "A") {
                     swapLog.push(`Previously committed bus ${existingDuty.bm} (Category ${busCat}) disqualified: ${isComplexRoute ? 'Complex route' : 'Peak Time slot'} strictly requires Category A buses.`);
@@ -8481,6 +8536,18 @@ let busCategoriesMap = new Map();
                 if (addedBuses[cleanBm]) reg = addedBuses[cleanBm].regNumber;
             }
             if (regInput && reg) regInput.value = reg;
+
+            // Auto-detect & set operating depot
+            const depotSelect = document.getElementById("del-bus-depot");
+            if (depotSelect) {
+                let busDepot = "1";
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotForBus === "function") {
+                    busDepot = window.DepotSyncEngine.getDepotForBus(cleanBm) || "1";
+                } else if (typeof getBusDepot === "function") {
+                    busDepot = getBusDepot(cleanBm) || "1";
+                }
+                depotSelect.value = String(busDepot) === "2" ? "2" : "1";
+            }
         }
 
         function onDeleteBusBmChange(bmVal) {
@@ -8560,12 +8627,16 @@ let busCategoriesMap = new Map();
             }
 
             try {
+                const depotSelect = document.getElementById("del-bus-depot");
+                const depot = depotSelect ? depotSelect.value : "1";
+
                 const delPayload = {
                     bm: busNumber,
                     busNumber,
                     regNo: regNumber,
                     regNumber,
                     reason: reasonVal,
+                    depot,
                     make: "Ashok Leyland",
                     model: "ELECTRIC BUS AC EiV12"
                 };
@@ -8714,24 +8785,33 @@ let busCategoriesMap = new Map();
 
         async function restoreDeletedBus(busNumber) {
             if (!busNumber) return;
-            const confirmed = confirm(`Do you want to restore Bus ${busNumber} back to the active fleet?`);
+            const cleanBm = String(busNumber).toUpperCase().trim();
+            const confirmed = confirm(`Do you want to restore Bus ${cleanBm} back to the active fleet?`);
             if (!confirmed) return;
 
             try {
+                const restorePayload = {
+                    bm: cleanBm,
+                    busNumber: cleanBm
+                };
                 if (window.DepotSyncEngine && typeof window.DepotSyncEngine.restoreBus === "function") {
-                    await window.DepotSyncEngine.restoreBus(busNumber);
+                    await window.DepotSyncEngine.restoreBus(restorePayload);
                 } else {
-                    await fetch('/api/fleet/restore-bus', {
+                    const res = await fetch('/api/fleet/restore-bus', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ busNumber })
+                        body: JSON.stringify(restorePayload)
                     });
+                    const resData = await res.json();
+                    if (!res.ok || !resData.ok) {
+                        throw new Error(resData.error || "Failed to restore bus");
+                    }
                 }
                 handleSyncStateUpdate();
                 populateDeleteBusSelectors();
                 renderFleetHistoryTab();
                 updateAddDeleteBadgeCount();
-                alert(`✅ Bus ${busNumber} restored to active fleet.`);
+                alert(`✅ Bus ${cleanBm} restored to active fleet successfully!`);
             } catch (err) {
                 console.error("Failed to restore bus:", err);
                 alert("Error restoring bus: " + (err.message || "Network error"));
