@@ -18705,6 +18705,18 @@
       "reason": "Major Breakdown / Motor Defect",
       "deletedAt": "2026-10-20T11:33:25.166Z",
       "timestamp": 1792496005166
+    },
+    "BM000": {
+      "bm": "BM000",
+      "busNumber": "BM000",
+      "regNo": "KA30MS4013",
+      "regNumber": "KA30MS4013",
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "depot": "Chandapura (BMT-32)",
+      "reason": "Other",
+      "deletedAt": "2026-10-20T13:36:18.688Z",
+      "timestamp": 1792503378688
     }
   },
   "_addedBuses": {
@@ -18723,22 +18735,6 @@
       "addedAt": "2026-10-20T13:31:30.628Z",
       "timestamp": 1792503090628,
       "isNewlyAdded": true
-    },
-    "BM000": {
-      "bm": "BM000",
-      "busNumber": "BM000",
-      "regNo": "KA30MS4013",
-      "regNumber": "KA30MS4013",
-      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-      "depot": "1",
-      "category": "C",
-      "busCategory": "C",
-      "soc": 89,
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "addedAt": "2026-10-20T13:33:42.561Z",
-      "timestamp": 1792503222561,
-      "isNewlyAdded": true
     }
   },
   "BM000": {
@@ -18746,15 +18742,24 @@
     "bmNumber": "BM000",
     "busNumber": "600F",
     "regNo": "KA30MS4013",
-    "status": "On Time",
+    "status": "Deleted",
     "soc": 89,
     "condition": "Good",
     "driver": "Driver Assigned",
     "busCategory": "C",
-    "isNewlyAdded": true,
+    "isNewlyAdded": false,
     "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
     "addedAt": "2026-10-20T13:33:42.561Z",
-    "deleted": false,
-    "isDeleted": false
+    "deleted": true,
+    "isDeleted": true,
+    "assignedRouteId": "BM000",
+    "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": true,
+    "deletionReason": "Other",
+    "deletedAt": "2026-10-20T13:36:18.688Z",
+    "regNumber": "KA30MS4013",
+    "model": "ELECTRIC BUS AC EiV12",
+    "make": "Ashok Leyland"
   }
 }
