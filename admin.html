@@ -4634,14 +4634,18 @@ let busCategoriesMap = new Map();
                 };
             }
 
-            // 4. Dynamic Page 4 Categorization based on coverable range:
-            let page4Category = "B";
-            if (coverableFullRangeKm > 120) {
-                page4Category = "A";
-            } else if (coverableFullRangeKm >= 100) {
-                page4Category = "B";
-            } else {
-                page4Category = "C";
+            // 4. Page 4 Categorization — Use authoritative Form 4 static category (vehicle degradation tier):
+            // The bus category is a PERMANENT property based on tested battery health/range,
+            // NOT a dynamic value that changes with current SoC or time of day.
+            // Time-of-day effects are already handled separately by the allocation matrix rules.
+            let page4Category = (STATIC_BUS_CATEGORIES && STATIC_BUS_CATEGORIES[key])
+                ? STATIC_BUS_CATEGORIES[key]
+                : (typeof getBusCategory === 'function' ? getBusCategory(key, liveSoc) : "B");
+            if (!page4Category) {
+                // Fallback only if no static data exists for this bus
+                if (coverableFullRangeKm > 120) page4Category = "A";
+                else if (coverableFullRangeKm >= 106) page4Category = "B";
+                else page4Category = "C";
             }
 
             // 5. Time Category & Route Constraints — Full Allocation Matrix (Page 4 Specifications):
