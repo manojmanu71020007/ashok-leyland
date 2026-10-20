@@ -257,7 +257,7 @@
         pill.className = 'pwa-install-pill';
         pill.innerHTML = `
             <span class="pwa-install-icon">📲</span>
-            <span class="pwa-install-text">Install Ashok Leyland App</span>
+            <span class="pwa-install-text">Install Ashok-Leyland BMS</span>
             <button type="button" class="pwa-install-close" id="pwa-dismiss-btn" title="Dismiss">✕</button>
         `;
         document.body.appendChild(pill);
@@ -269,8 +269,8 @@
         iosModal.innerHTML = `
             <div class="pwa-ios-modal">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">🚌⚡</div>
-                <h3>Install on iPhone / iPad</h3>
-                <p>Install this app on your Apple device for fast, full-screen fleet management:</p>
+                <h3>Install Ashok-Leyland BMS</h3>
+                <p>Install this app on your device for fast, full-screen fleet management:</p>
                 <div class="pwa-ios-steps">
                     1. Tap the <strong>Share</strong> button <span style="font-size:1.1rem">⎋</span> at the bottom of Safari.<br>
                     2. Scroll down and tap <strong>"Add to Home Screen"</strong> <span style="font-size:1.1rem">⊞</span>.<br>
@@ -344,7 +344,7 @@
 
     // 7. Installed event
     window.addEventListener('appinstalled', () => {
-        console.log('[PWA] Ashok Leyland Smart Bus App was installed successfully.');
+        console.log('[PWA] Ashok-Leyland Bus Management System was installed successfully.');
         const pill = document.getElementById('pwa-install-pill');
         if (pill) pill.style.display = 'none';
         deferredPrompt = null;
