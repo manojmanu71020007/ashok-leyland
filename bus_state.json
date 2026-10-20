@@ -3074,29 +3074,48 @@
     "chargingStatus": null
   },
   "BM152": {
-    "uniqueId": "BM152",
-    "vehicleId": "BM152",
-    "regNo": "KA51AH4652",
-    "busNumber": "KBS3A",
-    "scheduleId": "KBS3A/8",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 94,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM152",
-    "assignedRouteShortName": "KBS3A",
-    "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-20T08:19:33.475Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 4,
+    "socAfter": 94,
+    "fullDutyDistanceKm": 119,
+    "lastChargedTime": "01:49:33 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-20T08:19:33.475Z",
+        "soc": 94,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM152",
+    "busNumber": "KBS3A",
     "bmNumber": "BM152",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "A",
-    "testedRangeKm": 123.0032,
-    "actualRangeFinal": 123.0032,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "assignedRouteId": "BM152",
+    "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
+    "assignedRouteShortName": "KBS3A",
+    "blocked": true
   },
   "BUS-32": {
     "uniqueId": "BUS-32",
@@ -8587,182 +8606,32 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-20T02:18:03.604Z",
+    "updatedAt": "2026-10-20T08:19:33.475Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "09:05",
-        "departure": "09:00"
+        "arrival": "15:10",
+        "departure": "15:15"
       },
       "On Time": {
-        "arrival": "09:05",
-        "departure": "09:00"
+        "arrival": "15:00",
+        "departure": "15:05"
       },
       "Ahead": {
-        "arrival": "09:05",
-        "departure": "09:00"
+        "arrival": "14:50",
+        "departure": "14:55"
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": null,
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 4,
+    "socAfter": 94,
+    "fullDutyDistanceKm": 119,
+    "lastChargedTime": "01:49:33 pm",
     "history": [
       {
-        "timestamp": "2026-10-03T12:18:00.896Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:29:15.137Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:30:00.527Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:37:00.124Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:38:23.129Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T13:40:24.470Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T02:55:40.895Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T02:56:53.747Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T02:57:44.459Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:17:47.758Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T15:56:50.193Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:12:32.043Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:16:08.307Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:18:01.108Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-11T12:24:06.981Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-12T13:53:03.808Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-12T16:07:34.382Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-12T16:55:48.994Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-18T17:41:15.857Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-18T18:31:38.418Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T01:33:39.920Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T01:34:06.123Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T17:16:44.829Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T17:29:25.078Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T18:03:33.188Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-20T02:18:03.604Z",
-        "soc": 0,
+        "timestamp": "2026-10-20T08:19:33.475Z",
+        "soc": 94,
         "condition": "Good",
         "status": "On Time"
       }
@@ -9778,8 +9647,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128.36,
-      "fullDutyDistanceKm": 128.36,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -9918,8 +9787,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -10050,16 +9919,16 @@
       "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -13336,8 +13205,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128.36,
-      "fullDutyDistanceKm": 128.36,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -13504,8 +13373,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -13636,16 +13505,16 @@
       "assignedRouteDisplay": "Route BM152 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16751,8 +16620,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128.36,
-      "fullDutyDistanceKm": 128.36,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 99.12,
       "blocked": false
@@ -16846,8 +16715,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -16933,16 +16802,16 @@
       "bmNumber": "BM152",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 125.55,
       "blocked": true
