@@ -6148,6 +6148,25 @@ let busCategoriesMap = new Map();
             return { departure, arrival, status };
         }
 
+        function updateSelectedScheduledTimeRow() {
+            if (!scheduledTimeTbody || !routeSelect) return;
+
+            const selectedRouteId = String(routeSelect.value || "");
+            const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId);
+            const routeCode = String(routeObj ? (routeObj.code || routeObj.routeShortName || routeObj.id) : selectedRouteId).toUpperCase();
+            const departure = document.getElementById("departure")?.value;
+            if (!routeCode || !departure) return;
+
+            const arrival = fiveMinutesLater(departure);
+            scheduledTimeTbody.querySelectorAll("tr.scheduled-row").forEach(row => {
+                if (String(row.dataset.routeId || "").toUpperCase() !== routeCode) return;
+                const departureBadge = row.querySelector(".time-badge.departure");
+                const arrivalBadge = row.querySelector(".time-badge.arrival");
+                if (departureBadge) departureBadge.textContent = `🕒 ${formatTimeForDisplay(departure)}`;
+                if (arrivalBadge) arrivalBadge.textContent = `🏁 ${formatTimeForDisplay(arrival)}`;
+            });
+        }
+
         function renderScheduledTime() {
             if (!scheduledTimeTbody) return;
 
@@ -6219,9 +6238,6 @@ let busCategoriesMap = new Map();
             const navSchedPill = document.getElementById("nav-count-scheduled");
             if (navSchedPill) {
                 navSchedPill.textContent = String(augmentedRoutes.length);
-            }
-            if (typeof updateAvailableSchedulingNavPill === "function") {
-                updateAvailableSchedulingNavPill();
             }
             const availSchedPanel = document.getElementById("view-panel-available-scheduling");
             if (availSchedPanel && availSchedPanel.style.display !== "none" && typeof renderAvailableBusesForScheduling === "function") {
@@ -7197,11 +7213,6 @@ let busCategoriesMap = new Map();
         }
 
         async function recommend() {
-            // Debounce: prevent double-firing within 800ms (e.g. BroadcastChannel + poll overlap)
-            if (window._recommendRunning) return;
-            window._recommendRunning = true;
-            setTimeout(() => { window._recommendRunning = false; }, 800);
-
             const distanceInput = document.getElementById("distance");
             const distance = Number(distanceInput ? distanceInput.value : 0) || 0;
             const departure = (document.getElementById("departure")?.value) || "13:10";
@@ -7448,25 +7459,12 @@ let busCategoriesMap = new Map();
             _uiListenersInitialized = true;
 
             if (routeSelect) {
-                let _routeChangeDebounce = null;
                 routeSelect.addEventListener("change", () => {
                     window._manualDepartureFlag = false;
                     currentlyAllocatedBus = null;
 
-                    // Lightweight UI updates are instant
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
-                    syncScheduleTiming();
-
-                    // Debounce the heavy recommend() so fast scrolling through routes doesn't lag
-                    if (_routeChangeDebounce) clearTimeout(_routeChangeDebounce);
-                    _routeChangeDebounce = setTimeout(() => {
-                        recommend();
-                        const schedPanel = document.getElementById("view-panel-scheduled");
-                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                            renderScheduledTime();
-                        }
-                    }, 200);
                 });
             }
 
@@ -7493,16 +7491,12 @@ let busCategoriesMap = new Map();
                         depInput.value = scheduledTimeSelect.value;
                     }
 
-                    syncScheduleTiming();
+                    updateSelectedScheduledTimeRow();
 
                     // Debounce heavy recommend() — prevents lag when scrolling through 100+ time slots
                     if (_schedTimeDebounce) clearTimeout(_schedTimeDebounce);
                     _schedTimeDebounce = setTimeout(() => {
                         recommend();
-                        const schedPanel = document.getElementById("view-panel-scheduled");
-                        if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                            renderScheduledTime();
-                        }
                     }, 200);
                 });
             }

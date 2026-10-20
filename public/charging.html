@@ -1605,6 +1605,8 @@
       document.getElementById('busSelect').value = '';
       document.getElementById('busInfoBox').classList.remove('show');
       updateLockUI('');
+    } else if (curBm) {
+      onBusSelected();
     }
   }
 
@@ -1621,8 +1623,14 @@
     if (!v) { box.classList.remove('show'); return; }
 
     const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
-    const newBadge = isNew ? ' <span style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle;">✨ Newly Added Bus</span>' : '';
-    document.getElementById('infoBM').innerHTML      = escapeHtml(v.bm_no) + newBadge;
+    const infoBM = document.getElementById('infoBM');
+    infoBM.textContent = v.bm_no;
+    if (isNew) {
+      const newBadge = document.createElement('span');
+      newBadge.textContent = '✨ Newly Added Bus';
+      newBadge.style.cssText = 'background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle;';
+      infoBM.append(' ', newBadge);
+    }
     document.getElementById('infoReg').textContent   = v.reg_no;
     document.getElementById('infoModel').textContent = v.model;
     box.classList.add('show');
