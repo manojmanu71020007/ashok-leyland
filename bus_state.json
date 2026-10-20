@@ -706,7 +706,7 @@
     "chargingStatus": null
   },
   "BM002": {
-    "status": "On Time",
+    "status": "Active",
     "rawStatus": "On Time",
     "soc": 74,
     "condition": "Good",
@@ -765,7 +765,7 @@
     "assignedRouteId": "BM002",
     "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false,
+    "blocked": true,
     "deleted": false,
     "isDeleted": false,
     "deletionReason": "Major Breakdown / Motor Defect",
@@ -8215,8 +8215,9 @@
     "chargingStatus": null
   },
   "_assignments": {
-    "BM003": "BM003",
+    "BM002": "BM002",
     "600F": "BM300",
+    "BM003": "BM003",
     "BM004": "BM004",
     "BM005": "BM005",
     "360K": "BM292",
@@ -8345,6 +8346,7 @@
     "BM304": "BM304"
   },
   "_blockedBuses": [
+    "BM002",
     "BM003",
     "BM004",
     "BM005",
@@ -9061,6 +9063,34 @@
     "chargingStatus": null
   },
   "_vehicleAssignments": {
+    "BM002": {
+      "uniqueId": "BM002",
+      "unique_id": "BM002",
+      "vehicleId": "BM002",
+      "bmNumber": "BM002",
+      "busName": "BM002",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM002",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 74,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 91,
+      "fullDutyDistanceKm": 91,
+      "operationMode": "Single Charge Operation",
+      "blocked": true
+    },
     "BM003": {
       "uniqueId": "BM003",
       "unique_id": "BM003",
@@ -12423,31 +12453,31 @@
     }
   },
   "_busAssignments": {
-    "BM003": {
-      "uniqueId": "BM003",
-      "unique_id": "BM003",
-      "vehicleId": "BM003",
-      "bmNumber": "BM003",
-      "busName": "BM003",
+    "BM002": {
+      "uniqueId": "BM002",
+      "unique_id": "BM002",
+      "vehicleId": "BM002",
+      "bmNumber": "BM002",
+      "busName": "BM002",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "BM003",
+      "assignedRouteId": "BM002",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "B",
+      "busCategory": "C",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 83,
+      "soc": 74,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 104,
-      "fullDutyDistanceKm": 104,
+      "estimatedRangeKm": 91,
+      "fullDutyDistanceKm": 91,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -12476,6 +12506,34 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 0,
       "fullDutyDistanceKm": 0,
+      "operationMode": "Single Charge Operation",
+      "blocked": true
+    },
+    "BM003": {
+      "uniqueId": "BM003",
+      "unique_id": "BM003",
+      "vehicleId": "BM003",
+      "bmNumber": "BM003",
+      "busName": "BM003",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM003",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM003 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "B",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 83,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 104,
+      "fullDutyDistanceKm": 104,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16009,6 +16067,7 @@
     }
   },
   "_blockedRouteIds": [
+    "BM002",
     "BM003",
     "BM004",
     "BM005",
@@ -16116,6 +16175,25 @@
     "BM304"
   ],
   "ranges": {
+    "BM002": {
+      "assignedVehicle": "BM002",
+      "bmNumber": "BM002",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 74,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 91,
+      "fullDutyDistanceKm": 91,
+      "operationMode": "Single Charge Operation",
+      "gtfsDistanceKm": 114.75,
+      "blocked": true
+    },
     "BM003": {
       "assignedVehicle": "BM003",
       "bmNumber": "BM003",
@@ -18617,7 +18695,8 @@
     "BM299": "2",
     "BM300": "2",
     "BM303": "2",
-    "BM304": "2"
+    "BM304": "2",
+    "BM000": "1"
   },
   "_deletedBuses": {
     "BM001": {
@@ -18644,6 +18723,38 @@
       "addedAt": "2026-10-20T13:31:30.628Z",
       "timestamp": 1792503090628,
       "isNewlyAdded": true
+    },
+    "BM000": {
+      "bm": "BM000",
+      "busNumber": "BM000",
+      "regNo": "KA30MS4013",
+      "regNumber": "KA30MS4013",
+      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+      "depot": "1",
+      "category": "C",
+      "busCategory": "C",
+      "soc": 89,
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "addedAt": "2026-10-20T13:33:42.561Z",
+      "timestamp": 1792503222561,
+      "isNewlyAdded": true
     }
+  },
+  "BM000": {
+    "uniqueId": "BM000",
+    "bmNumber": "BM000",
+    "busNumber": "600F",
+    "regNo": "KA30MS4013",
+    "status": "On Time",
+    "soc": 89,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "busCategory": "C",
+    "isNewlyAdded": true,
+    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+    "addedAt": "2026-10-20T13:33:42.561Z",
+    "deleted": false,
+    "isDeleted": false
   }
 }
