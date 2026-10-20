@@ -2406,6 +2406,9 @@
                                     🏢 Depot 2: <strong id="avail-sched-d2-count">0</strong>
                                 </span>
                             </div>
+                            <span id="avail-sched-recent-completed-badge" style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:5px 12px; border-radius:8px; font-size:0.75rem; font-weight:700; display:inline-flex; align-items:center; gap:6px;" title="Buses that recently completed their schedule/route and are in turnaround cooldown or awaiting depot servicing">
+                                🏁 Recently Completed: <strong id="avail-sched-recent-completed-count">0</strong> <span id="avail-sched-recent-depot-breakdown" style="font-size:0.72rem; color:#b45309; font-weight:700;">(D1: 0 | D2: 0)</span>
+                            </span>
                             <span style="background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;padding:5px 12px;border-radius:8px;font-size:0.75rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;">
                                 🛡️ Cleaning &amp; Charging Excluded
                             </span>
@@ -2450,6 +2453,51 @@
                                     <option value="cat-asc">Category (A → B → C)</option>
                                 </select>
                             </label>
+                        </div>
+                    </div>
+
+                    <!-- Fleet Accounting & Reconciliation Summary Bar -->
+                    <div class="avail-sched-reconcile-bar" style="background:#fffbeb; border:1px solid #fde68a; border-radius:10px; padding:10px 16px; margin:0 0 16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.8rem; color:#78350f;">
+                            <span style="font-size:1.1rem;">📊</span>
+                            <span style="font-weight:800; color:#92400e;">Fleet Accounting Breakdown:</span>
+                            <span style="background:#ffffff; border:1px solid #fcd34d; padding:2px 8px; border-radius:6px; font-weight:700; color:#1e293b;" title="Total active buses in fleet (excluding deleted)">
+                                Total Active: <strong id="reconcile-total-fleet">0</strong>
+                            </span>
+                            <span style="font-weight:800;">=</span>
+                            <span style="background:#f5f3ff; border:1px solid #ddd6fe; padding:2px 8px; border-radius:6px; font-weight:700; color:#5b21b6;" title="Ready to schedule in depot">
+                                ⚡ Available: <strong id="reconcile-available-fleet">0</strong>
+                            </span>
+                            <span style="font-weight:800;">+</span>
+                            <span style="background:#ecfdf5; border:1px solid #a7f3d0; padding:2px 8px; border-radius:6px; font-weight:700; color:#065f46;" title="Currently allocated on routes">
+                                🎯 Allocated: <strong id="reconcile-allocated-fleet">0</strong>
+                            </span>
+                            <span style="font-weight:800;">+</span>
+                            <span style="background:#fee2e2; border:1px solid #fca5a5; padding:2px 8px; border-radius:6px; font-weight:700; color:#991b1b;" title="Locked under charging or cleaning">
+                                🔒 Locked: <strong id="reconcile-locked-fleet">0</strong>
+                            </span>
+                            <span style="font-weight:800;">+</span>
+                            <span style="background:#fef3c7; border:1.5px solid #d97706; padding:2px 8px; border-radius:6px; font-weight:800; color:#92400e;" title="Buses that recently completed route/schedule and are in turnaround cooldown or awaiting depot servicing">
+                                🏁 Recently Completed: <strong id="reconcile-recent-fleet">0</strong>
+                            </span>
+                        </div>
+                        <button type="button" id="btn-toggle-recent-details" onclick="toggleRecentlyCompletedDetails()" style="background:#d97706; color:#ffffff; border:none; border-radius:6px; padding:5px 12px; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="View list of recently completed buses">
+                            <span>🏁 View Recently Completed (<span id="reconcile-recent-btn-count">0</span>)</span>
+                            <span id="reconcile-recent-caret">▼</span>
+                        </button>
+                    </div>
+
+                    <!-- Collapsible Drawer for Recently Completed Buses -->
+                    <div id="recently-completed-drawer" style="display:none; background:#ffffff; border:1.5px solid #fde68a; border-radius:10px; padding:14px; margin-bottom:16px; box-shadow:0 4px 12px rgba(217, 119, 6, 0.08);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+                            <div style="font-weight:800; font-size:0.85rem; color:#92400e; display:flex; align-items:center; gap:6px;">
+                                <span>🏁 Buses Recently Completed Schedule / Route</span>
+                                <span style="font-size:0.75rem; font-weight:normal; color:#78350f;">(Withheld from scheduling during 30m turnaround cooldown &amp; pending depot servicing)</span>
+                            </div>
+                            <span style="font-size:0.75rem; color:#92400e; background:#fef3c7; padding:2px 8px; border-radius:4px; font-weight:700;" id="recent-drawer-depot-indicator">All Depots</span>
+                        </div>
+                        <div id="recently-completed-cards-container" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:10px;">
+                            <!-- Populated dynamically -->
                         </div>
                     </div>
 
@@ -3694,6 +3742,130 @@ let busCategoriesMap = new Map();
             return available;
         }
 
+        // ══════════════════════════════════════════════════════════════════════════
+        //  RECENTLY COMPLETED ROUTE BUSES (Turnaround Buffer / Pending Servicing)
+        // ══════════════════════════════════════════════════════════════════════════
+        function getRecentlyCompletedBusesList() {
+            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function")
+                ? window.DepotSyncEngine.getAddedBuses() : {};
+            const rawKeys = [
+                ...Object.keys(STATIC_BUS_CATEGORIES || {}),
+                ...Object.keys(addedBuses || {}),
+                ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
+            ];
+            const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
+                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+
+            let servicingMap = {};
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getServicingStatus === "function") {
+                    servicingMap = window.DepotSyncEngine.getServicingStatus() || {};
+                } else {
+                    servicingMap = JSON.parse(localStorage.getItem("smartbus_servicing_status") || "{}");
+                }
+            } catch(e) {}
+
+            const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
+            const recentlyCompleted = [];
+
+            allFleetKeys.forEach(bmKey => {
+                const bm = String(bmKey).toUpperCase().trim();
+                const regNo = typeof getBusRegNo === "function" ? getBusRegNo(bm) : "";
+                const busDepot = typeof getBusDepot === "function" ? getBusDepot(bm) : "1";
+                const bState = (typeof busStates !== "undefined" && busStates[bm]) ? busStates[bm] : {};
+                const liveSoc = typeof getBusSocByBm === "function" ? getBusSocByBm(bm) : (bState.soc ?? 80);
+                const servicing = servicingMap[bm] || null;
+
+                // Check lock status
+                let isLocked = false;
+                if (typeof getBusLockInfo === "function") {
+                    const lInfo = getBusLockInfo(bm);
+                    if (lInfo && lInfo.isLocked) isLocked = true;
+                }
+                if (!isLocked && (lockedList || []).some(item => {
+                    const lbm = String(item.bm || "").trim().toLowerCase();
+                    const lreg = String(item.reg || "").trim().toLowerCase();
+                    const bmL = bm.toLowerCase();
+                    const regL = regNo.toLowerCase();
+                    return (lbm && (lbm === bmL || bmL.includes(lbm) || lbm.includes(bmL))) ||
+                           (regL && lreg && (lreg === regL || regL.includes(lreg)));
+                })) {
+                    isLocked = true;
+                }
+                const chgStatus = String(bState.chargingStatus || bState.status || "").toLowerCase();
+                if (!isLocked && (chgStatus.includes("charg") || chgStatus.includes("clean"))) {
+                    isLocked = true;
+                }
+
+                let isCompleted = false;
+                let reason = "";
+                let completedAt = "";
+
+                // Criterion 1: Servicing status routeCompleted
+                if (servicing && servicing.routeCompleted) {
+                    const chargingDone = Boolean(servicing.chargingCompleted || !servicing.needsCharging);
+                    const cleaningDone = Boolean(servicing.cleaningCompleted || !servicing.needsCleaning);
+                    if (!chargingDone || !cleaningDone) {
+                        isCompleted = true;
+                        completedAt = servicing.routeCompletedAt || "Recently";
+                        if (!chargingDone && !cleaningDone) {
+                            reason = "Awaiting Charging & Cleaning in Depot";
+                        } else if (!chargingDone) {
+                            reason = "Cleaning Completed — Charging Pending";
+                        } else {
+                            reason = "Charging Completed — Cleaning Pending";
+                        }
+                    }
+                }
+
+                // Criterion 2: 30-minute Turnaround / Cooldown buffer
+                if (!isCompleted && (bState.lastTripCompletedAt || bState.lastRouteCompletedAt)) {
+                    const compTime = new Date(bState.lastTripCompletedAt || bState.lastRouteCompletedAt).getTime();
+                    const elapsedMins = (Date.now() - compTime) / 60000;
+                    if (elapsedMins < 30 && (bState.status === "Cooldown" || bState.status === "Turnaround" || bState.postRouteServicingPending || bState.status === "Trip Completed" || bState.status === "Route Completed")) {
+                        isCompleted = true;
+                        const minsLeft = Math.max(1, Math.round(30 - elapsedMins));
+                        completedAt = new Date(compTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        reason = `Turnaround Cooldown (${minsLeft}m remaining)`;
+                    }
+                }
+
+                // Criterion 3: Explicit route completed or turnaround status in bState
+                if (!isCompleted && (bState.status === "Turnaround" || bState.status === "Cooldown" || bState.status === "Trip Completed" || bState.status === "Route Completed")) {
+                    isCompleted = true;
+                    completedAt = bState.lastTripCompletedAt ? new Date(bState.lastTripCompletedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently";
+                    reason = "Route Completed — Turnaround Cooldown";
+                }
+
+                if (isCompleted) {
+                    recentlyCompleted.push({
+                        bm: bm,
+                        regNo: regNo,
+                        depot: String(busDepot),
+                        liveSoc: liveSoc,
+                        completedAt: completedAt,
+                        reason: reason,
+                        isLocked: isLocked,
+                        servicing: servicing,
+                        bState: bState
+                    });
+                }
+            });
+
+            return recentlyCompleted;
+        }
+
+        function toggleRecentlyCompletedDetails() {
+            const drawer = document.getElementById("recently-completed-drawer");
+            const caret = document.getElementById("reconcile-recent-caret");
+            if (!drawer) return;
+            const isHidden = drawer.style.display === "none";
+            drawer.style.display = isHidden ? "block" : "none";
+            if (caret) caret.textContent = isHidden ? "▲" : "▼";
+        }
+        window.toggleRecentlyCompletedDetails = toggleRecentlyCompletedDetails;
+        window.getRecentlyCompletedBusesList = getRecentlyCompletedBusesList;
+
         let currentAvailBusesDepotFilter = 'all'; // 'all', '1', or '2'
 
         function setAvailableBusesDepotFilter(depotId) {
@@ -3718,6 +3890,8 @@ let busCategoriesMap = new Map();
             const sortBy = document.getElementById("avail-sched-sort-by");
 
             const allAvailable = getAvailableBusesForSchedulingList();
+            const allRecentlyCompleted = getRecentlyCompletedBusesList();
+            const allFleet = (typeof getTotalBusesFleetList === "function") ? getTotalBusesFleetList() : [];
 
             // Update navigation pill count with all unassigned available buses
             const unallocatedCount = allAvailable.filter(b => !b.isAllocated).length;
@@ -3737,6 +3911,94 @@ let busCategoriesMap = new Map();
             if (tabAll) tabAll.textContent = String(allAvailable.length);
             if (tabD1) tabD1.textContent = String(d1All.length);
             if (tabD2) tabD2.textContent = String(d2All.length);
+
+            // Update Recently Completed Route Counters in header badge
+            const totalRecentCount = allRecentlyCompleted.length;
+            const d1RecentCount = allRecentlyCompleted.filter(b => b.depot === "1").length;
+            const d2RecentCount = allRecentlyCompleted.filter(b => b.depot === "2").length;
+
+            const recentCountEl = document.getElementById("avail-sched-recent-completed-count");
+            if (recentCountEl) recentCountEl.textContent = String(totalRecentCount);
+
+            const recentBreakdownEl = document.getElementById("avail-sched-recent-depot-breakdown");
+            if (recentBreakdownEl) recentBreakdownEl.textContent = `(D1: ${d1RecentCount} | D2: ${d2RecentCount})`;
+
+            const recentBtnCountEl = document.getElementById("reconcile-recent-btn-count");
+            if (recentBtnCountEl) recentBtnCountEl.textContent = String(totalRecentCount);
+
+            // Scope counts for Fleet Reconciliation Bar based on selected depot tab
+            let scopeFleet = allFleet;
+            let scopeAvailable = allAvailable;
+            let scopeRecent = allRecentlyCompleted;
+
+            if (currentAvailBusesDepotFilter === "1") {
+                scopeFleet = allFleet.filter(b => b.depot === "1");
+                scopeAvailable = allAvailable.filter(b => b.depot === "1");
+                scopeRecent = allRecentlyCompleted.filter(b => b.depot === "1");
+            } else if (currentAvailBusesDepotFilter === "2") {
+                scopeFleet = allFleet.filter(b => b.depot === "2");
+                scopeAvailable = allAvailable.filter(b => b.depot === "2");
+                scopeRecent = allRecentlyCompleted.filter(b => b.depot === "2");
+            }
+
+            const scopeTotalCount = scopeFleet.length;
+            const scopeAvailCount = scopeAvailable.length;
+            const scopeAllocCount = scopeFleet.filter(b => b.isAllocated).length;
+            const scopeLockedCount = scopeFleet.filter(b => b.isLocked).length;
+            // Recently completed buses in turnaround cooldown or awaiting bay (not yet in locked bay)
+            const scopeUnlockedRecentCount = scopeRecent.filter(b => !b.isLocked).length;
+
+            const recTotalEl = document.getElementById("reconcile-total-fleet");
+            const recAvailEl = document.getElementById("reconcile-available-fleet");
+            const recAllocEl = document.getElementById("reconcile-allocated-fleet");
+            const recLockedEl = document.getElementById("reconcile-locked-fleet");
+            const recRecentEl = document.getElementById("reconcile-recent-fleet");
+
+            if (recTotalEl) recTotalEl.textContent = String(scopeTotalCount);
+            if (recAvailEl) recAvailEl.textContent = String(scopeAvailCount);
+            if (recAllocEl) recAllocEl.textContent = String(scopeAllocCount);
+            if (recLockedEl) recLockedEl.textContent = String(scopeLockedCount);
+            if (recRecentEl) {
+                if (scopeRecent.length === scopeUnlockedRecentCount) {
+                    recRecentEl.textContent = String(scopeRecent.length);
+                } else {
+                    recRecentEl.textContent = `${scopeUnlockedRecentCount} (${scopeRecent.length} Total)`;
+                }
+            }
+
+            // Render collapsible drawer content for recently completed buses
+            const drawerContainer = document.getElementById("recently-completed-cards-container");
+            const drawerDepotInd = document.getElementById("recent-drawer-depot-indicator");
+            if (drawerDepotInd) {
+                drawerDepotInd.textContent = currentAvailBusesDepotFilter === "all" ? "All Depots" : `Depot ${currentAvailBusesDepotFilter}`;
+            }
+            if (drawerContainer) {
+                if (!scopeRecent.length) {
+                    drawerContainer.innerHTML = `
+                        <div style="grid-column:1/-1; padding:12px; text-align:center; color:#92400e; font-size:0.8rem; background:#fffbeb; border-radius:6px;">
+                            No buses currently in post-route turnaround cooldown or awaiting depot servicing in ${currentAvailBusesDepotFilter === "all" ? "either depot" : "Depot " + currentAvailBusesDepotFilter}.
+                        </div>`;
+                } else {
+                    drawerContainer.innerHTML = scopeRecent.map(b => `
+                        <div style="background:#fffbeb; border:1px solid #fde68a; border-radius:8px; padding:10px 12px; display:flex; flex-direction:column; gap:6px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-weight:800; color:#78350f; font-size:0.85rem;">🚌 ${escapeHtml(b.bm)} ${b.regNo ? `<span style="font-size:0.75rem; color:#92400e; font-weight:600;">(${escapeHtml(b.regNo)})</span>` : ''}</span>
+                                <span style="background:${b.depot === '1' ? '#e0f2fe' : '#ede9fe'}; color:${b.depot === '1' ? '#0369a1' : '#6d28d9'}; font-size:0.7rem; font-weight:800; padding:2px 8px; border-radius:999px;">
+                                    🏢 Depot ${b.depot}
+                                </span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#92400e;">
+                                <span>🏁 Completed: <strong>${escapeHtml(b.completedAt || 'Recently')}</strong></span>
+                                <span>⚡ SoC: <strong>${b.liveSoc}%</strong></span>
+                            </div>
+                            <div style="font-size:0.72rem; color:#b45309; background:#ffffff; border:1px solid #fcd34d; border-radius:4px; padding:3px 6px; font-weight:600; display:flex; justify-content:space-between; align-items:center;">
+                                <span>⏳ ${escapeHtml(b.reason)}</span>
+                                ${b.isLocked ? `<span style="background:#fee2e2; color:#991b1b; padding:1px 5px; border-radius:3px; font-size:0.68rem; font-weight:700;">🔒 In Bay</span>` : `<span style="background:#fef3c7; color:#92400e; padding:1px 5px; border-radius:3px; font-size:0.68rem; font-weight:700;">Awaiting Bay</span>`}
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
 
             if (!container) return;
             const panel = document.getElementById("view-panel-available-scheduling");
@@ -3886,6 +4148,7 @@ let busCategoriesMap = new Map();
                             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
                                 <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">⚡ Ready to Schedule: ${d1Unallocated}</span>
                                 <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🎯 Assigned: ${d1Allocated}</span>
+                                <span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:3px 8px; border-radius:6px;">🏁 Recently Completed: ${d1RecentCount}</span>
                             </div>
                         </div>
                         <div class="avail-sched-grid">
@@ -3912,6 +4175,7 @@ let busCategoriesMap = new Map();
                             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:0.75rem; font-weight:700;">
                                 <span style="background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:3px 8px; border-radius:6px;">⚡ Ready to Schedule: ${d2Unallocated}</span>
                                 <span style="background:#ede9fe; color:#5b21b6; border:1px solid #ddd6fe; padding:3px 8px; border-radius:6px;">🎯 Assigned: ${d2Allocated}</span>
+                                <span style="background:#fffbeb; color:#92400e; border:1px solid #fde68a; padding:3px 8px; border-radius:6px;">🏁 Recently Completed: ${d2RecentCount}</span>
                             </div>
                         </div>
                         <div class="avail-sched-grid">
@@ -3944,6 +4208,19 @@ let busCategoriesMap = new Map();
                 const list = getAvailableBusesForSchedulingList();
                 const unassigned = list.filter(b => !b.isAllocated).length;
                 navPill.textContent = String(unassigned);
+            }
+            if (typeof getRecentlyCompletedBusesList === "function") {
+                const recentList = getRecentlyCompletedBusesList();
+                const recentCountEl = document.getElementById("avail-sched-recent-completed-count");
+                if (recentCountEl) recentCountEl.textContent = String(recentList.length);
+                const recentBreakdownEl = document.getElementById("avail-sched-recent-depot-breakdown");
+                if (recentBreakdownEl) {
+                    const d1 = recentList.filter(b => b.depot === "1").length;
+                    const d2 = recentList.filter(b => b.depot === "2").length;
+                    recentBreakdownEl.textContent = `(D1: ${d1} | D2: ${d2})`;
+                }
+                const btnCount = document.getElementById("reconcile-recent-btn-count");
+                if (btnCount) btnCount.textContent = String(recentList.length);
             }
             if (typeof updateTotalBusesNavPill === "function") {
                 updateTotalBusesNavPill();
