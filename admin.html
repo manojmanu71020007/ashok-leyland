@@ -2051,16 +2051,29 @@
 <script>
     // ── Auth guard: redirect to login if not authenticated ──
     (function() {
-        let loggedIn = null;
-        let accessMode = null;
+        let loggedIn = false;
+        let userEmail = null;
         try {
-            loggedIn = sessionStorage.getItem("isLoggedIn") || localStorage.getItem("isLoggedIn");
-        } catch(e) {}
-        try {
-            accessMode = localStorage.getItem("accessMode");
-        } catch(e) {}
-        if (loggedIn !== "true" && accessMode !== "ignore") {
-            window.location.href = "/login.html";
+            const isSess = sessionStorage.getItem("isLoggedIn") === "true";
+            const isLoc = localStorage.getItem("isLoggedIn") === "true";
+            userEmail = sessionStorage.getItem("userEmail") || localStorage.getItem("userEmail");
+            const isLoggedOut = localStorage.getItem("smartbus_loggedout") === "1";
+            loggedIn = (isSess || isLoc) && !!userEmail && !isLoggedOut;
+        } catch(e) {
+            loggedIn = false;
+        }
+
+        if (!loggedIn) {
+            try {
+                localStorage.removeItem("isLoggedIn");
+                localStorage.removeItem("accessMode");
+                localStorage.removeItem("userEmail");
+                localStorage.removeItem("userName");
+                sessionStorage.removeItem("isLoggedIn");
+                sessionStorage.removeItem("userEmail");
+                sessionStorage.removeItem("userName");
+            } catch(e) {}
+            window.location.replace("/login.html");
         }
     })();
 
@@ -8499,14 +8512,7 @@ let busCategoriesMap = new Map();
             const logoutBtn = document.getElementById("logout-btn");
             if (logoutBtn && !logoutBtn._bound) {
                 logoutBtn._bound = true;
-                logoutBtn.addEventListener("click", () => {
-                    localStorage.setItem("smartbus_loggedout", "1");
-                    localStorage.removeItem("accessMode");
-                    sessionStorage.removeItem("isLoggedIn");
-                    sessionStorage.removeItem("userEmail");
-                    sessionStorage.removeItem("userName");
-                    window.location.href = "/login.html";
-                });
+                logoutBtn.addEventListener("click", handleLogout);
             }
         }
 

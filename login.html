@@ -834,11 +834,7 @@
 
                     <button type="submit" class="primary-btn" id="btn-login" data-i18n="btn_login_submit">Sign In</button>
 
-                    <div style="text-align:center; margin-top:14px;">
-                        <button type="button" id="btn-bypass-login" style="background:rgba(255,255,255,0.08); border:1px dashed rgba(255,255,255,0.35); color:#ffffff; font-size:0.84rem; font-weight:600; padding:10px 14px; border-radius:10px; cursor:pointer; width:100%; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <span>⚡</span> <span>Continue as Depot Operator / Guest</span>
-                        </button>
-                    </div>
+
                 </form>
 
                 <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
@@ -866,15 +862,15 @@
                         <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
                         <path fill="none" d="M0 0h48v48H0z"/>
                     </svg>
-                    <span data-i18n="btn_signup_submit">Create Account</span>
+                    <span id="btn-google-signup-label">Step 1: Select Google Account</span>
                 </button>
 
-                <div class="divider" data-i18n="divider_email">or sign in with email</div>
+                <div class="divider">Step 2: Fill Name & Set Password</div>
 
-                <!-- ℹ️ Info box: Google account required -->
-                <div class="alert alert-info show" style="margin-bottom:14px;">
+                <!-- ℹ️ Info box: Google account guidance -->
+                <div class="alert alert-info show" id="signup-instruction-box" style="margin-bottom:14px;">
                     <span>ℹ️</span>
-                    <span>You must sign up using a <strong>Google account</strong>, then set a custom password to use for future logins.</span>
+                    <span id="signup-instruction-text">Select your Google account above, then enter your full name and create a password to complete registration.</span>
                 </div>
 
                 <form id="form-signup" novalidate>
@@ -914,7 +910,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="primary-btn" id="btn-signup" data-i18n="btn_signup_submit">Create Account</button>
+                    <button type="submit" class="primary-btn" id="btn-signup" data-i18n="btn_signup_submit">Complete Registration &amp; Set Password</button>
                 </form>
 
                 <div class="footer-note">By signing up, you agree to our terms and privacy policy.</div>
@@ -1085,6 +1081,7 @@
         signInWithEmailAndPassword,
         createUserWithEmailAndPassword,
         updateProfile,
+        updatePassword,
         fetchSignInMethodsForEmail,
         sendPasswordResetEmail,
         confirmPasswordReset,
@@ -1107,20 +1104,65 @@
         showSetupBanner();
     }
 
-    // ── Persist auth state ─────────────────────────────────────────────────────
-    // If the user explicitly signed out, a flag was set in localStorage.
-    // We sign them out of Firebase first before doing anything else.
+    const _urlParams = new URLSearchParams(window.location.search);
+
+    // ── Password requirement & registration tracking ──
+    function getRegisteredUsers() {
+        try {
+            return JSON.parse(localStorage.getItem("smartbus_users_with_passwords") || "{}");
+        } catch(e) {
+            return {};
+        }
+    }
+
+    function recordUserRegistration(email, name) {
+        if (!email) return;
+        try {
+            const users = getRegisteredUsers();
+            users[email.toLowerCase().trim()] = {
+                hasPassword: true,
+                name: name || "",
+                registeredAt: new Date().toISOString()
+            };
+            localStorage.setItem("smartbus_users_with_passwords", JSON.stringify(users));
+        } catch(e) {}
+    }
+
+    function userHasCreatedPassword(user) {
+        if (!user || !user.email) return false;
+        const email = user.email.toLowerCase().trim();
+
+        // 1. Check if Firebase providerData includes 'password' provider
+        if (user.providerData && Array.isArray(user.providerData)) {
+            if (user.providerData.some(p => p.providerId === "password")) {
+                return true;
+            }
+        }
+
+        // 2. Check local registry of accounts that set up a password
+        const reg = getRegisteredUsers();
+        if (reg[email] && reg[email].hasPassword) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // ── Auth state listener ──────────────────────────────────────────────────
+    // Guard against unwanted auto-redirection:
+    // If the user hasn't explicitly logged in, hasn't created a password,
+    // or is in the middle of signing up, we MUST NOT redirect to admin.html!
     let isExplicitLogout = (localStorage.getItem("smartbus_loggedout") === "1");
+
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             isExplicitLogout = false;
-            return; // Already signed out — stay on login page
+            return;
         }
 
         const pendingLogout = localStorage.getItem("smartbus_loggedout");
         if (pendingLogout === "1" || isExplicitLogout) {
             isExplicitLogout = true;
-            // User clicked Sign Out — kill the Firebase session and stay here
             try { localStorage.removeItem("smartbus_loggedout"); } catch(e){}
             try { localStorage.removeItem("accessMode"); } catch(e){}
             try { localStorage.removeItem("isLoggedIn"); } catch(e){}
@@ -1130,25 +1172,25 @@
             try { sessionStorage.removeItem("userEmail"); } catch(e){}
             try { sessionStorage.removeItem("userName"); } catch(e){}
             try { await signOut(auth); } catch(e){}
-            return; // onAuthStateChanged will fire again with user=null — no redirect
+            return;
         }
 
-        // ── Normal sign-in: redirect to the scheduling app ──
-        try { localStorage.setItem("accessMode", "login"); } catch(e){}
-        try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
-        try { localStorage.setItem("userEmail", user.email || ""); } catch(e){}
-        try { localStorage.setItem("userName",  user.displayName || user.email || ""); } catch(e){}
-        try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
-        try { sessionStorage.setItem("userEmail", user.email || ""); } catch(e){}
-        try { sessionStorage.setItem("userName",  user.displayName || user.email || ""); } catch(e){}
-        window.location.href = "/admin.html";
-    });
+        // If user is currently in the middle of signing up, DO NOT redirect!
+        if (window._isSigningUpWithGoogle || window._googleUser) {
+            return;
+        }
 
-    // ── Quick Access / Bypass for Mobile & Field Operators ──
-    document.getElementById("btn-bypass-login")?.addEventListener("click", () => {
-        try { localStorage.setItem("accessMode", "ignore"); } catch(e){}
-        try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
-        try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
+        // Check if user has an active session AND has created a password
+        const hasSession = (sessionStorage.getItem("isLoggedIn") === "true") || (localStorage.getItem("isLoggedIn") === "true");
+        const hasPassword = userHasCreatedPassword(user);
+
+        // If no password was created, or no active session exists:
+        // Do NOT redirect! User must explicitly sign in or sign up.
+        if (!hasPassword || !hasSession) {
+            return;
+        }
+
+        // Verified active session with password: redirect to admin
         window.location.href = "/admin.html";
     });
 
@@ -1158,46 +1200,146 @@
 
     // ══════════════════════════════════════════════════════════════════════════
     //  SIGN IN WITH GOOGLE
+    //  Check if user has set a password:
+    //  - If YES: allow login and redirect to admin.
+    //  - If NO: block login, switch to sign up tab, and prompt to set password!
     // ══════════════════════════════════════════════════════════════════════════
     async function signInWithGoogle() {
         if (!isConfigured) { showSetupBanner(); return; }
         const btn = document.getElementById("btn-google-login");
         setLoading(btn, true, "Signing in…");
         clearAlert("login-alert");
+
         try {
-            await signInWithPopup(auth, provider);
-            // onAuthStateChanged handles redirect
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Verify whether this account has set a password
+            const hasPassword = userHasCreatedPassword(user);
+
+            if (!hasPassword) {
+                // User has NOT created a password yet!
+                // Strictly block entry to admin.html per requirements
+                showAlert("login-alert", "error",
+                    `No password has been set up for <strong>${user.email}</strong>. Please complete registration and set up a password first.`);
+
+                // Switch to Sign Up tab
+                window._isSigningUpWithGoogle = true;
+                window._googleUser = user;
+                switchTab("signup");
+
+                const emailInput = document.getElementById("signup-email");
+                const nameInput  = document.getElementById("signup-name");
+                const passInput  = document.getElementById("signup-password");
+
+                if (emailInput) {
+                    emailInput.value = user.email || "";
+                    emailInput.readOnly = true;
+                    emailInput.style.backgroundColor = "#f8fafc";
+                    emailInput.style.borderColor = "#22c55e";
+                }
+                if (nameInput) {
+                    nameInput.value = user.displayName || "";
+                }
+
+                showAlert("signup-alert", "info",
+                    `Please enter your Full Name and set a Password below to complete registration for <strong>${user.email}</strong>.`);
+
+                const submitBtn = document.getElementById("btn-signup");
+                if (submitBtn) {
+                    submitBtn.textContent = "Complete Registration & Set Password";
+                }
+                setTimeout(() => {
+                    if (!nameInput.value) nameInput.focus();
+                    else passInput?.focus();
+                }, 200);
+
+                return;
+            }
+
+            // User has a registered password! Grant access
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", user.email || "");
+            localStorage.setItem("userName", user.displayName || user.email || "");
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", user.email || "");
+            sessionStorage.setItem("userName", user.displayName || user.email || "");
+            localStorage.removeItem("smartbus_loggedout");
+            localStorage.removeItem("accessMode");
+
+            window.location.href = "/admin.html";
+
         } catch (err) {
             showAlert("login-alert", "error", friendlyError(err));
+        } finally {
             setLoading(btn, false, "Continue with Google");
         }
     }
 
     // ══════════════════════════════════════════════════════════════════════════
-    //  SIGN UP WITH GOOGLE (then link email/password on the sign-up form)
+    //  SIGN UP WITH GOOGLE
+    //  Flow: User selects Google account -> UI prompts for Name & Password setup ->
+    //  User fills name & creates password -> Clicks Create Account -> Links password ->
+    //  Only then is account created and allowed into admin!
     // ══════════════════════════════════════════════════════════════════════════
     async function signUpWithGoogle() {
         if (!isConfigured) { showSetupBanner(); return; }
         const btn = document.getElementById("btn-google-signup");
-        setLoading(btn, true, "Connecting…");
+        setLoading(btn, true, "Connecting Google…");
         clearAlert("signup-alert");
+
+        // Flag so onAuthStateChanged will NOT redirect to admin!
+        window._isSigningUpWithGoogle = true;
+
         try {
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
-            // Pre-fill the email field with the Google account email
-            document.getElementById("signup-email").value = user.email;
-            document.getElementById("signup-name").value  = user.displayName || "";
-            document.getElementById("signup-email").readOnly = true;
+            window._googleUser = user;
+
+            // Pre-fill the form fields
+            const emailInput = document.getElementById("signup-email");
+            const nameInput  = document.getElementById("signup-name");
+            const passInput  = document.getElementById("signup-password");
+            const confInput  = document.getElementById("signup-confirm");
+
+            if (emailInput) {
+                emailInput.value = user.email || "";
+                emailInput.readOnly = true;
+                emailInput.style.backgroundColor = "#f8fafc";
+                emailInput.style.borderColor = "#22c55e";
+            }
+            if (nameInput) {
+                nameInput.value = user.displayName || "";
+            }
+            if (passInput) passInput.value = "";
+            if (confInput) confInput.value = "";
 
             showAlert("signup-alert", "success",
-                `✅ Google account verified (${user.email}). Now create your custom password below and click "Create Account".`);
+                `Google account selected: <strong>${user.email}</strong>.<br>Please confirm your Full Name and set a Password below to complete your registration.`);
 
-            // Store Google credential temporarily so we can link it later
-            window._googleUser = user;
+            const instructionBox = document.getElementById("signup-instruction-box");
+            if (instructionBox) {
+                instructionBox.className = "alert alert-success show";
+                instructionBox.innerHTML = `<span>✅</span><span>Google Account connected: <strong>${user.email}</strong>. Please enter your name and password below.</span>`;
+            }
+
+            const submitBtn = document.getElementById("btn-signup");
+            if (submitBtn) {
+                submitBtn.textContent = "Complete Registration & Set Password";
+            }
+
+            // Focus on password setup
+            setTimeout(() => {
+                if (!nameInput.value) nameInput.focus();
+                else passInput.focus();
+            }, 150);
+
         } catch (err) {
+            window._isSigningUpWithGoogle = false;
+            window._googleUser = null;
             showAlert("signup-alert", "error", friendlyError(err));
         } finally {
-            setLoading(btn, false, "Sign up with Google");
+            setLoading(btn, false, "Step 1: Select Google Account");
         }
     }
 
@@ -1215,15 +1357,29 @@
         clearAlert("login-alert");
 
         if (!email || !password) {
-            showAlert("login-alert", "error", "Please enter your email and password.");
+            showAlert("login-alert", "error", "Please enter both your email address and password.");
             return;
         }
 
         setLoading(btn, true, "Signing in…");
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-            // onAuthStateChanged handles redirect
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            const user = cred.user;
+
+            // Password validated by Firebase!
+            recordUserRegistration(user.email, user.displayName);
+
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", user.email || email);
+            localStorage.setItem("userName", user.displayName || email);
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", user.email || email);
+            sessionStorage.setItem("userName", user.displayName || email);
+            localStorage.removeItem("smartbus_loggedout");
+            localStorage.removeItem("accessMode");
+
+            window.location.href = "/admin.html";
         } catch (err) {
             showAlert("login-alert", "error", friendlyError(err));
             setLoading(btn, false, "Sign In");
@@ -1248,50 +1404,81 @@
         // ── Validation ──
         if (!name) {
             showAlert("signup-alert", "error", "Please enter your full name.");
+            document.getElementById("signup-name").focus();
             return;
         }
         if (!email || !email.includes("@")) {
             showAlert("signup-alert", "error", "Please enter a valid email address.");
+            document.getElementById("signup-email").focus();
             return;
         }
-        if (password.length < 8) {
-            showAlert("signup-alert", "error", "Password must be at least 8 characters long.");
+        if (!password || password.length < 8) {
+            showAlert("signup-alert", "error", "Please set up a password with at least 8 characters.");
+            document.getElementById("signup-password").focus();
             return;
         }
         if (password !== confirm) {
-            showAlert("signup-alert", "error", "Passwords do not match.");
+            showAlert("signup-alert", "error", "Passwords do not match. Please re-enter your password.");
+            document.getElementById("signup-confirm").focus();
             return;
         }
 
-        setLoading(btn, true, "Creating account…");
+        setLoading(btn, true, "Creating account & saving password…");
 
         try {
-            let user;
+            let user = window._googleUser;
 
-            if (window._googleUser) {
-                try { await signOut(auth); } catch(e){}
+            if (user && user.email && user.email.toLowerCase() === email.toLowerCase()) {
+                // User signed in with Google — link email/password credential
+                const credential = EmailAuthProvider.credential(email, password);
+                try {
+                    const linkResult = await linkWithCredential(user, credential);
+                    user = linkResult.user;
+                } catch (linkErr) {
+                    if (linkErr.code === "auth/provider-already-linked" || linkErr.code === "auth/credential-already-in-use") {
+                        // Already linked to email, update password
+                        await updatePassword(user, password);
+                    } else {
+                        throw linkErr;
+                    }
+                }
+            } else {
+                // Direct email/password registration
+                const cred = await createUserWithEmailAndPassword(auth, email, password);
+                user = cred.user;
             }
-            const cred = await createUserWithEmailAndPassword(auth, email, password);
-            user = cred.user;
 
             // Update display name
-            try { await updateProfile(user, { displayName: name }); } catch(e){}
+            try {
+                await updateProfile(user, { displayName: name });
+            } catch(e) {}
 
-            // Store registration info safely in both localStorage & sessionStorage
-            try { localStorage.setItem("accessMode", "login"); } catch(e){}
-            try { localStorage.setItem("isLoggedIn", "true"); } catch(e){}
-            try { localStorage.setItem("userEmail", user.email || ""); } catch(e){}
-            try { localStorage.setItem("userName",  name); } catch(e){}
-            try { sessionStorage.setItem("isLoggedIn", "true"); } catch(e){}
-            try { sessionStorage.setItem("userEmail", user.email || ""); } catch(e){}
-            try { sessionStorage.setItem("userName",  name); } catch(e){}
+            // Mark user as registered with a password
+            recordUserRegistration(email, name);
 
-            // Redirect
-            window.location.href = "/admin.html";
+            // Save login session
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", email);
+            localStorage.setItem("userName", name);
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", email);
+            sessionStorage.setItem("userName", name);
+            localStorage.removeItem("smartbus_loggedout");
+            localStorage.removeItem("accessMode");
+
+            window._isSigningUpWithGoogle = false;
+            window._googleUser = null;
+
+            showAlert("signup-alert", "success", "Registration complete and password set successfully! Redirecting…");
+
+            // Redirect to admin
+            setTimeout(() => {
+                window.location.href = "/admin.html";
+            }, 600);
 
         } catch (err) {
             showAlert("signup-alert", "error", friendlyError(err));
-            setLoading(btn, false, "Create Account");
+            setLoading(btn, false, "Complete Registration & Set Password");
         }
     });
 
@@ -1444,6 +1631,7 @@
 
             try {
                 await confirmPasswordReset(auth, _resetOobCode, newPassword);
+                try { recordUserRegistration(email || "", ""); } catch(e){}
                 showAlert("confirm-reset-alert", "success", "Password updated successfully! You can now sign in.");
                 setLoading(btnSaveNewPassword, false, "Password Updated ✓");
                 setTimeout(() => {
