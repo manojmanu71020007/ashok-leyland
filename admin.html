@@ -4644,27 +4644,31 @@ let busCategoriesMap = new Map();
                 page4Category = "C";
             }
 
-            // 5. Time Category & Route Constraints (Page 4 Specifications):
-            let isPeak = false;
-            let timeCatLabel = "Peak";
+            // 5. Time Category & Route Constraints — Full Allocation Matrix (Page 4 Specifications):
+            let timeCatKey = "NORMAL";
+            let timeCatLabel = "Normal";
             if (currentTargetKey && currentTargetKey.includes('_')) {
                 const tInfo = getTimeCategory(currentTargetKey.split('_')[1]);
-                isPeak = tInfo.isPeak;
+                timeCatKey = tInfo.key;
                 timeCatLabel = tInfo.label;
             } else if (depTimeShort) {
                 const tInfo = getTimeCategory(depTimeShort);
-                isPeak = tInfo.isPeak;
+                timeCatKey = tInfo.key;
                 timeCatLabel = tInfo.label;
             }
+            const isExtremePeak = (timeCatKey === "EXTREME_PEAK");
+            const isPeakOnly   = (timeCatKey === "PEAK");
+            const isNormalTime = (timeCatKey === "NORMAL");
 
             const complexity = precomputedComplexity || (getRouteComplexity ? getRouteComplexity({ code: curRoute, distKm: routeDist }, matchedSched, depTimeShort) : "standard");
             const isStandard = (complexity === "standard");
-            const isSimple = (complexity === "simple");
+            const isSimple   = (complexity === "simple");
             const isModerate = (complexity === "moderate");
-            const isComplex = (complexity === "complex");
+            const isComplex  = (complexity === "complex");
 
-            // Peak / Extreme Peak hours: ONLY Category A bus is allowed (>120 km)
-            if (isPeak && page4Category !== "A") {
+            // ── ALLOCATION MATRIX ──────────────────────────────────────────────────────
+            // Rule 1: Complex route → STRICTLY Category A only (any time)
+            if (isComplex && page4Category !== "A") {
                 return {
                     feasible: false,
                     bm: key,
@@ -4673,51 +4677,68 @@ let busCategoriesMap = new Map();
                     actualRangeKm: busRangeKm,
                     busCategory: page4Category,
                     reqSoc: constantMinReqSoc,
-                    reason: `Peak hours (${timeCatLabel}) strictly require Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
+                    reason: `Complex route (${curRoute}) strictly requires Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km range).`
                 };
             }
 
-            // Except peak or extreme peak hours: consider route category as given in dataset:
-            if (!isPeak) {
-                if (isComplex && page4Category !== "A") {
-                    return {
-                        feasible: false,
-                        bm: key,
-                        liveSoc,
-                        fullDutyKm: usableCoverableKm,
-                        actualRangeKm: busRangeKm,
-                        busCategory: page4Category,
-                        reqSoc: constantMinReqSoc,
-                        reason: `Complex route (${curRoute}) as given in dataset strictly requires Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
-                    };
-                }
-
-                if (isModerate && page4Category !== "B") {
-                    return {
-                        feasible: false,
-                        bm: key,
-                        liveSoc,
-                        fullDutyKm: usableCoverableKm,
-                        actualRangeKm: busRangeKm,
-                        busCategory: page4Category,
-                        reqSoc: constantMinReqSoc,
-                        reason: `Moderate route (${curRoute}) in normal time strictly requires Category B bus (100–120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km).`
-                    };
-                }
-
-                if (isStandard && page4Category === "C") {
-                    return {
-                        feasible: false,
-                        bm: key,
-                        liveSoc,
-                        fullDutyKm: usableCoverableKm,
-                        actualRangeKm: busRangeKm,
-                        busCategory: page4Category,
-                        reqSoc: constantMinReqSoc,
-                        reason: `Standard route (${curRoute}) in normal time strictly allows Category A or B bus. Category C bus ${key} (<100 km range) cannot be allocated.`
-                    };
-                }
+            // Rule 2: Extreme Peak time → STRICTLY Category A only (any route)
+            if (isExtremePeak && page4Category !== "A") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Extreme Peak hours (${timeCatLabel}) strictly require Category A bus (>120 km range). Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km range).`
+                };
             }
+
+            // Rule 3: Moderate / Standard route + Peak time → STRICTLY Category A only
+            if ((isModerate || isStandard) && isPeakOnly && page4Category !== "A") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) during Peak hours (${timeCatLabel}) strictly requires Category A bus. Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km range).`
+                };
+            }
+
+            // Rule 4: Moderate / Standard route + Normal time → Category B preferred; Category A allowed as fallback; Category C rejected
+            if ((isModerate || isStandard) && isNormalTime && page4Category === "C") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) in Normal time requires Category B (or A as fallback). Category C bus ${key} (<100 km range) cannot be allocated.`
+                };
+            }
+
+            // Rule 5: Simple route + Peak time → Category B preferred; Category A allowed as fallback; Category C rejected
+            if (isSimple && isPeakOnly && page4Category === "C") {
+                return {
+                    feasible: false,
+                    bm: key,
+                    liveSoc,
+                    fullDutyKm: usableCoverableKm,
+                    actualRangeKm: busRangeKm,
+                    busCategory: page4Category,
+                    reqSoc: constantMinReqSoc,
+                    reason: `Simple route (${curRoute}) during Peak hours (${timeCatLabel}) requires Category B (or A as fallback). Category C bus ${key} (<100 km range) cannot be allocated.`
+                };
+            }
+
+            // Rule 6: Simple route + Normal time → Category C, B, A all acceptable (no restriction)
+            // (No rejection needed)
 
             return {
                 feasible: true,
@@ -4914,6 +4935,24 @@ let busCategoriesMap = new Map();
                 }
             }
 
+            // Shared category sort helper for pool searches (Steps 3 & 4)
+            // Category preference order per new allocation matrix:
+            // Complex / Extreme Peak / (Moderate|Standard)+Peak → A only (enforced by evaluateBusFeasibility; no sort needed)
+            // (Moderate|Standard) + Normal → B first, then A fallback
+            // Simple + Peak → B first, then A fallback
+            // Simple + Normal → C first, then B, then A
+            const _poolTimeCat = getTimeCategory(depShort).key;
+            const _isExtPeakPool  = (_poolTimeCat === "EXTREME_PEAK");
+            const _isPeakOnlyPool = (_poolTimeCat === "PEAK");
+            const _isNormalPool   = (_poolTimeCat === "NORMAL");
+            function getCatSortOrder(busCategory) {
+                if (isComplexRoute || _isExtPeakPool) return { "A": 0 }[busCategory] ?? 99;
+                if ((complexity === "moderate" || complexity === "standard") && _isNormalPool) return { "B": 0, "A": 1 }[busCategory] ?? 99;
+                if (complexity === "simple" && _isPeakOnlyPool) return { "B": 0, "A": 1 }[busCategory] ?? 99;
+                if (complexity === "simple" && _isNormalPool)   return { "C": 0, "B": 1, "A": 2 }[busCategory] ?? 99;
+                return 0; // default: no category preference
+            }
+
             // 3. Fallback: Search available fleet buses in the SAME shift with optimal battery state
             if (!allocated) {
                 const sameShiftCandidates = (routes || [])
@@ -4924,21 +4963,8 @@ let busCategoriesMap = new Map();
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, `Shift Pool Bus (${targetShift})`, routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
-                        if (!isPeakTime) {
-                            if (complexity === "standard") {
-                                const catOrder = { "B": 0, "A": 1, "C": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            } else if (complexity === "simple") {
-                                const catOrder = { "B": 0, "C": 1, "A": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            } else if (complexity === "moderate") {
-                                const catOrder = { "B": 0, "A": 1, "C": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            }
-                        }
+                        const diff = getCatSortOrder(a.busCategory) - getCatSortOrder(b.busCategory);
+                        if (diff !== 0) return diff;
                         return (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc);
                     });
 
@@ -4965,21 +4991,8 @@ let busCategoriesMap = new Map();
                     .map(b => evaluateBusFeasibility(b.bmNumber || b.uniqueId || b.routeId, "Depot Reserve Fleet", routeDist, currentTargetKey, reqSoc, isComplexRoute, routeCode, false, matchedSched, allocBmMap, lockedBmMap, complexity))
                     .filter(e => e.feasible)
                     .sort((a, b) => {
-                        if (!isPeakTime) {
-                            if (complexity === "standard") {
-                                const catOrder = { "B": 0, "A": 1, "C": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            } else if (complexity === "simple") {
-                                const catOrder = { "B": 0, "C": 1, "A": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            } else if (complexity === "moderate") {
-                                const catOrder = { "B": 0, "A": 1, "C": 2 };
-                                const diff = (catOrder[a.busCategory] ?? 3) - (catOrder[b.busCategory] ?? 3);
-                                if (diff !== 0) return diff;
-                            }
-                        }
+                        const diff = getCatSortOrder(a.busCategory) - getCatSortOrder(b.busCategory);
+                        if (diff !== 0) return diff;
                         return (a.liveSoc - reqSoc) - (b.liveSoc - reqSoc);
                     });
 
@@ -5005,8 +5018,27 @@ let busCategoriesMap = new Map();
                 allocated.busShortName = routeCode;
                 allocated.reqSoc = reqSoc;
                 allocated.busCategory = allocated.busCategory || getBusCategory(allocated.bm, allocated.liveSoc);
-            } else if (isComplexRoute) {
-                swapLog.push("Route is Complex: Strictly Category A buses are eligible. No Category A bus with sufficient SoC available.");
+            } else {
+                // Build a human-readable description of the required bus category for this route × time combination
+                const timeCatInfo2 = getTimeCategory(depShort);
+                const timeCatKey2  = timeCatInfo2.key;
+                const timeCatLbl2  = timeCatInfo2.label;
+                const isExtPeak2   = (timeCatKey2 === "EXTREME_PEAK");
+                const isPeakOnly2  = (timeCatKey2 === "PEAK");
+                const isNormal2    = (timeCatKey2 === "NORMAL");
+                const isComplex2   = (complexity === "complex");
+                const isModerate2  = (complexity === "moderate");
+                const isStandard2  = (complexity === "standard");
+                const isSimple2    = (complexity === "simple");
+
+                let requiredCatDesc = "Category A";
+                if (!isComplex2 && !isExtPeak2) {
+                    if ((isModerate2 || isStandard2) && isNormal2) requiredCatDesc = "Category B (or A as fallback)";
+                    else if (isSimple2 && isPeakOnly2)             requiredCatDesc = "Category B (or A as fallback)";
+                    else if (isSimple2 && isNormal2)               requiredCatDesc = "Category C, B, or A";
+                }
+
+                swapLog.push(`No buses available to fill the requirements for Route ${routeCode} at ${depTimeClean}. Required: ${requiredCatDesc} for ${complexity} route during ${timeCatLbl2}.`);
             }
 
             const result = { allocated, matchedSched, swapLog, shift: targetShift, departureTime: depTimeClean, reqSoc, isComplexRoute, complexity };
