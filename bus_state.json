@@ -312,7 +312,7 @@
     "chargingStatus": null
   },
   "BM001": {
-    "status": "On Time",
+    "status": "Active",
     "rawStatus": "On Time",
     "soc": 95,
     "condition": "Good",
@@ -8219,8 +8219,9 @@
     "chargingStatus": null
   },
   "_assignments": {
-    "BM002": "BM002",
+    "BM001": "BM001",
     "600F": "BM300",
+    "BM002": "BM002",
     "BM003": "BM003",
     "BM004": "BM004",
     "BM005": "BM005",
@@ -9067,6 +9068,34 @@
     "chargingStatus": null
   },
   "_vehicleAssignments": {
+    "BM001": {
+      "uniqueId": "BM001",
+      "unique_id": "BM001",
+      "vehicleId": "BM001",
+      "bmNumber": "BM001",
+      "busName": "BM001",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM001",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 95,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
+      "operationMode": "Single Charge Operation",
+      "blocked": false
+    },
     "BM002": {
       "uniqueId": "BM002",
       "unique_id": "BM002",
@@ -12457,33 +12486,33 @@
     }
   },
   "_busAssignments": {
-    "BM002": {
-      "uniqueId": "BM002",
-      "unique_id": "BM002",
-      "vehicleId": "BM002",
-      "bmNumber": "BM002",
-      "busName": "BM002",
+    "BM001": {
+      "uniqueId": "BM001",
+      "unique_id": "BM001",
+      "vehicleId": "BM001",
+      "bmNumber": "BM001",
+      "busName": "BM001",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "BM002",
+      "assignedRouteId": "BM001",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 74,
+      "matrixCompliant": true,
+      "soc": 95,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 91,
-      "fullDutyDistanceKm": 91,
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "600F": {
       "uniqueId": "BM300",
@@ -12510,6 +12539,34 @@
       "driver": "Driver Assigned",
       "estimatedRangeKm": 0,
       "fullDutyDistanceKm": 0,
+      "operationMode": "Single Charge Operation",
+      "blocked": true
+    },
+    "BM002": {
+      "uniqueId": "BM002",
+      "unique_id": "BM002",
+      "vehicleId": "BM002",
+      "bmNumber": "BM002",
+      "busName": "BM002",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM002",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM002 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "C",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": false,
+      "soc": 74,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 91,
+      "fullDutyDistanceKm": 91,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16179,6 +16236,25 @@
     "BM304"
   ],
   "ranges": {
+    "BM001": {
+      "assignedVehicle": "BM001",
+      "bmNumber": "BM001",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "PEAK",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 95,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 121,
+      "fullDutyDistanceKm": 121,
+      "operationMode": "Single Charge Operation",
+      "gtfsDistanceKm": 114.75,
+      "blocked": false
+    },
     "BM002": {
       "assignedVehicle": "BM002",
       "bmNumber": "BM002",
@@ -18659,22 +18735,9 @@
     "BM300": "2",
     "BM303": "2",
     "BM304": "2",
-    "BM000": "1"
+    "BM000": "Chandapura (BMT-32)"
   },
-  "_deletedBuses": {
-    "BM000": {
-      "bm": "BM000",
-      "busNumber": "BM000",
-      "regNo": "KA30MS4013",
-      "regNumber": "KA30MS4013",
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "depot": "Chandapura (BMT-32)",
-      "reason": "Other",
-      "deletedAt": "2026-10-20T13:36:18.688Z",
-      "timestamp": 1792503378688
-    }
-  },
+  "_deletedBuses": {},
   "_addedBuses": {
     "BM002": {
       "bm": "BM002",
@@ -18707,6 +18770,22 @@
       "addedAt": "2026-10-20T13:50:11.322Z",
       "timestamp": 1792504211322,
       "isNewlyAdded": true
+    },
+    "BM000": {
+      "bm": "BM000",
+      "busNumber": "BM000",
+      "regNo": "KA30MS4013",
+      "regNumber": "KA30MS4013",
+      "reason": "Restored back to active fleet",
+      "depot": "Chandapura (BMT-32)",
+      "category": "C",
+      "busCategory": "C",
+      "soc": 89,
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "addedAt": "2026-10-20T14:08:10.650Z",
+      "timestamp": 1792505290651,
+      "isNewlyAdded": true
     }
   },
   "BM000": {
@@ -18714,16 +18793,16 @@
     "bmNumber": "BM000",
     "busNumber": "600F",
     "regNo": "KA30MS4013",
-    "status": "Deleted",
+    "status": "On Time",
     "soc": 89,
     "condition": "Good",
     "driver": "Driver Assigned",
     "busCategory": "C",
-    "isNewlyAdded": false,
-    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-    "addedAt": "2026-10-20T13:33:42.561Z",
-    "deleted": true,
-    "isDeleted": true,
+    "isNewlyAdded": true,
+    "additionReason": "Restored back to active fleet",
+    "addedAt": "2026-10-20T14:08:10.650Z",
+    "deleted": false,
+    "isDeleted": false,
     "assignedRouteId": "BM000",
     "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
