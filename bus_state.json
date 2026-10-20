@@ -312,7 +312,7 @@
     "chargingStatus": null
   },
   "BM001": {
-    "status": "Active",
+    "status": "Deleted",
     "rawStatus": "On Time",
     "soc": 99,
     "condition": "Good",
@@ -647,7 +647,12 @@
     "assignedRouteId": "BM001",
     "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "deleted": true,
+    "isDeleted": true,
+    "deletionReason": "Major Breakdown / Motor Defect",
+    "deletedAt": "2026-10-20T11:33:25.166Z",
+    "isNewlyAdded": false
   },
   "BUS-01": {
     "status": "Blocked",
@@ -18763,6 +18768,13 @@
       "reason": "Major Breakdown / Motor Defect",
       "deletedAt": "2026-10-20T10:55:25.676Z",
       "timestamp": 1792493725676
+    },
+    "BM001": {
+      "bm": "BM001",
+      "regNo": "",
+      "reason": "Major Breakdown / Motor Defect",
+      "deletedAt": "2026-10-20T11:33:25.166Z",
+      "timestamp": 1792496005166
     }
   },
   "_addedBuses": {}
