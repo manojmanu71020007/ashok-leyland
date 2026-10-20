@@ -453,7 +453,7 @@
         }
         .section-switch-buttons {
             display: grid;
-            grid-template-columns: repeat(5, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 12px;
         }
         @media (max-width: 1200px) {
@@ -2202,7 +2202,7 @@
             </aside>
         </div>
 
-        <!-- ── Section Buttons Bar (Allocated Buses, Non-Allocated Buses & Scheduled Time) ── -->
+        <!-- ── Section Buttons Bar (Allocated Buses, Non-Allocated Buses, Available Buses for Scheduling & Total Buses) ── -->
         <div class="section-switch-wrapper" aria-label="Fleet view navigation">
             <div class="section-switch-header">
                 <div class="section-switch-label">
@@ -2241,20 +2241,6 @@
                     </div>
                     <div class="btn-nav-end">
                         <span class="btn-nav-pill" id="nav-count-not-allocated">0</span>
-                        <span class="btn-nav-chevron">▼</span>
-                    </div>
-                </button>
-
-                <button type="button" class="section-nav-btn btn-view-scheduled" id="btn-tab-scheduled" onclick="toggleFleetSection('scheduled')" data-target="view-panel-scheduled" role="tab" aria-selected="false" aria-controls="view-panel-scheduled">
-                    <div class="btn-nav-main">
-                        <span class="btn-nav-icon">🕒</span>
-                        <div class="btn-nav-meta">
-                            <span class="btn-nav-title" data-i18n="btn_nav_scheduled_time">Scheduled Time</span>
-                            <span class="btn-nav-desc">Timetable &amp; Trip Schedule</span>
-                        </div>
-                    </div>
-                    <div class="btn-nav-end">
-                        <span class="btn-nav-pill" id="nav-count-scheduled">0</span>
                         <span class="btn-nav-chevron">▼</span>
                     </div>
                 </button>
@@ -2371,55 +2357,7 @@
                 </section>
             </div>
 
-            <!-- Panel 3: Scheduled Time -->
-            <div id="view-panel-scheduled" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-scheduled">
-                <section class="panel scheduled-time-panel" style="margin-top:0;" aria-label="Scheduled time">
-                    <div class="scheduled-header">
-                        <div>
-                            <h2 style="color:#087ea4; margin:0;">🕒 Scheduled Time</h2>
-                            <p class="panel-note" style="margin-bottom:0; margin-top:4px;">Live departure timings, assigned buses, and service schedule.</p>
-                        </div>
-                        <div class="filter-tabs" id="scheduled-filter-tabs">
-                            <button type="button" class="tab-btn active" data-filter="all">All (<span id="scheduled-count-all">0</span>)</button>
-                            <button type="button" class="tab-btn" data-filter="allocated">Allocated Buses (<span id="scheduled-count-alloc">0</span>)</button>
-                            <button type="button" class="tab-btn" data-filter="not-allocated">Not-Allocated Buses (<span id="scheduled-count-not-alloc">0</span>)</button>
-                        </div>
-                    </div>
-
-                    <div class="scheduled-toolbar">
-                        <div class="region-search-wrap scheduled-search-wrap">
-                            <span class="search-icon" aria-hidden="true">🔍</span>
-                            <input type="text" id="scheduled-search" class="region-search-input scheduled-search-input" placeholder="Search scheduled buses by bus number (e.g. BM153), bus short name (e.g. 500DC), route, time..." autocomplete="off" spellcheck="false" />
-                            <button type="button" id="clear-scheduled-search" class="clear-search-btn" title="Clear search" aria-label="Clear scheduled search" style="display:none;">✕</button>
-                        </div>
-                        <div id="scheduled-matching-badge" class="scheduled-matching-badge" style="display:none;"></div>
-                    </div>
-
-                    <div class="scheduled-table-wrap">
-                        <table class="scheduled-table">
-                            <thead>
-                                <tr>
-                                    <th>Route Line</th>
-                                    <th>Origin ➔ Destination</th>
-                                    <th>Assigned Vehicle (BM Number)</th>
-                                    <th>Departure Time</th>
-                                    <th>Arrival Time</th>
-                                    <th>Status</th>
-                                    <th>Allocation</th>
-                                    <th>Tasks</th>
-                                </tr>
-                            </thead>
-                            <tbody id="scheduled-time-tbody">
-                                <tr>
-                                    <td colspan="8" style="text-align:center;padding:24px;color:var(--muted);">Loading schedule times…</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Panel 4: Available Buses for Scheduling -->
+            <!-- Panel 3: Available Buses for Scheduling -->
             <div id="view-panel-available-scheduling" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-available-scheduling">
                 <section class="panel" aria-label="Available buses for scheduling">
                     <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
@@ -3450,10 +3388,6 @@ let busCategoriesMap = new Map();
                     btn: document.getElementById("btn-tab-not-allocated"),
                     panel: document.getElementById("view-panel-not-allocated")
                 },
-                "scheduled": {
-                    btn: document.getElementById("btn-tab-scheduled"),
-                    panel: document.getElementById("view-panel-scheduled")
-                },
                 "available-scheduling": {
                     btn: document.getElementById("btn-tab-available-scheduling"),
                     panel: document.getElementById("view-panel-available-scheduling")
@@ -3498,8 +3432,6 @@ let busCategoriesMap = new Map();
                     renderAllocatedList(lastAllocatedRoutes);
                 } else if (sectionKey === "not-allocated" && typeof renderNotAllocatedList === "function") {
                     renderNotAllocatedList(lastNotAllocatedRoutes);
-                } else if (sectionKey === "scheduled" && typeof renderScheduledTime === "function") {
-                    renderScheduledTime();
                 } else if (sectionKey === "available-scheduling" && typeof renderAvailableBusesForScheduling === "function") {
                     renderAvailableBusesForScheduling();
                 } else if (sectionKey === "total-buses" && typeof renderTotalBusesSection === "function") {
@@ -3568,7 +3500,6 @@ let busCategoriesMap = new Map();
                 try {
                     if (typeof renderAllocatedList === "function") renderAllocatedList(lastAllocatedRoutes);
                     if (typeof renderNotAllocatedList === "function") renderNotAllocatedList(lastNotAllocatedRoutes);
-                    if (typeof renderScheduledTime === "function") renderScheduledTime();
                     if (typeof renderAvailableBusesForScheduling === "function") renderAvailableBusesForScheduling();
                     if (typeof renderTotalBusesSection === "function") renderTotalBusesSection();
                 } catch (e) {}
@@ -5702,7 +5633,6 @@ let busCategoriesMap = new Map();
             updateRouteKpis(routeObj, departureTime);
             updateAssignedDriverCount();
 
-            renderScheduledTime();
         }
 
         function renderAllocatedList(allocatedList) {
@@ -8081,7 +8011,6 @@ let busCategoriesMap = new Map();
             updateSelectedRouteDistance();
             updateScheduledTimesForSelectedRoute(false);
             renderRoutes(false);
-            renderScheduledTime();
             updateAvailableSchedulingNavPill();
             openFleetSection("allocated");
             updateAddDeleteBadgeCount();
@@ -8175,10 +8104,6 @@ let busCategoriesMap = new Map();
                 if (curDep && document.getElementById("departure")) document.getElementById("departure").value = curDep;
 
                 renderRoutes(true, true);
-                const schedPanel = document.getElementById("view-panel-scheduled");
-                if (schedPanel && schedPanel.style.display !== "none" && typeof renderScheduledTime === "function") {
-                    renderScheduledTime();
-                }
                 updateAvailableSchedulingNavPill();
                 await recommend();
             } catch (err) {
