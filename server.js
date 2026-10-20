@@ -3083,6 +3083,11 @@ const server = http.createServer(async (req, res) => {
                 EXTREME_PEAK: "07:00–10:00 and 16:00–20:00",
                 PEAK: "10:00–16:00 and 20:00–23:00"
             },
+            timeCategoryDrainRates: {
+                EXTREME_PEAK: { timeSlot: "07:00–10:00 and 16:00–20:00", drainRate: "High", multiplier: 1.30, penalty: "+30%" },
+                PEAK: { timeSlot: "10:00–16:00 and 20:00–23:00", drainRate: "Moderate", multiplier: 1.15, penalty: "+15%" },
+                NORMAL: { timeSlot: "05:00–07:00 (and 23:00–05:00)", drainRate: "Normal", multiplier: 1.00, penalty: "Baseline" }
+            },
             allowedCategories: ALLOWED_CATEGORIES
         });
         return;
