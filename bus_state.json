@@ -1966,10 +1966,10 @@
   "BM054": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 82,
+    "soc": 91,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "updatedAt": "2026-10-20T07:33:20.874Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "07:35",
@@ -1985,12 +1985,12 @@
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 116,
-    "lastChargedTime": null,
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 11,
+    "socAfter": 91,
+    "fullDutyDistanceKm": 115,
+    "lastChargedTime": "01:03:16 pm",
     "history": [
       {
         "timestamp": "2026-10-02T02:23:41.994Z",
@@ -2003,6 +2003,12 @@
         "soc": 0,
         "condition": "Good",
         "status": "Blocked"
+      },
+      {
+        "timestamp": "2026-10-20T07:33:20.874Z",
+        "soc": 91,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
     "uniqueId": "BM054",
@@ -2011,10 +2017,7 @@
     "assignedRouteId": "BM054",
     "assignedRouteDisplay": "Route BM054 - 361C (178.3 km)",
     "assignedRouteShortName": "361C",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 118.8912,
-    "actualRangeFinal": 118.8912
+    "blocked": true
   },
   "BUS-15": {
     "uniqueId": "BUS-15",
@@ -9178,31 +9181,31 @@
     "soc": 80,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-19T18:03:55.270Z",
+    "updatedAt": "2026-10-20T07:33:20.874Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "On Time": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "07:35",
+        "departure": "07:30"
       },
       "Ahead": {
-        "arrival": "13:55",
-        "departure": "13:50"
+        "arrival": "07:35",
+        "departure": "07:30"
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": "N/A",
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 0,
-    "lastChargedTime": "07:10:29 pm",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 11,
+    "socAfter": 91,
+    "fullDutyDistanceKm": 115,
+    "lastChargedTime": "01:03:16 pm",
     "history": [
       {
-        "timestamp": "2026-10-02T05:22:46.033Z",
+        "timestamp": "2026-10-02T02:23:41.994Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -9214,62 +9217,8 @@
         "status": "Blocked"
       },
       {
-        "timestamp": "2026-10-03T07:31:19.435Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-03T12:18:02.276Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T02:56:40.904Z",
-        "soc": 98,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-04T13:40:29.034Z",
-        "soc": 62,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T10:18:34.806Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-11T12:24:08.853Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-12T13:53:14.790Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-18T18:31:44.978Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T15:14:39.342Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-19T18:03:43.899Z",
-        "soc": 0,
+        "timestamp": "2026-10-20T07:33:20.874Z",
+        "soc": 91,
         "condition": "Good",
         "status": "On Time"
       }
@@ -9786,11 +9735,11 @@
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 82,
+      "soc": 91,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 102,
-      "fullDutyDistanceKm": 102,
+      "estimatedRangeKm": 115,
+      "fullDutyDistanceKm": 115,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -13316,11 +13265,11 @@
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 82,
+      "soc": 91,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 102,
-      "fullDutyDistanceKm": 102,
+      "estimatedRangeKm": 115,
+      "fullDutyDistanceKm": 115,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16824,11 +16773,11 @@
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 82,
+      "soc": 91,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 102,
-      "fullDutyDistanceKm": 102,
+      "estimatedRangeKm": 115,
+      "fullDutyDistanceKm": 115,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
@@ -18878,17 +18827,6 @@
       "startTime": "08:05:58 am, 17 Oct 2026",
       "time": "08:05:58 am",
       "startTimestamp": 1792204558547
-    },
-    {
-      "bm": "BM054",
-      "reg": "KA51AH2951",
-      "page": "charging",
-      "reason": "Under Fast Charging (target 100% floor)",
-      "startTime": "01:02:32 pm, 20 Oct 2026",
-      "time": "01:02:32 pm",
-      "startTimestamp": 1792481552754,
-      "startSoc": "82",
-      "chargerBay": "Charging Bay"
     }
   ],
   "_depotAssignments": {
