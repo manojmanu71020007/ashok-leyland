@@ -2825,29 +2825,48 @@
     "chargingStatus": null
   },
   "BM107": {
-    "uniqueId": "BM107",
-    "vehicleId": "BM107",
-    "regNo": "KA51AH4062",
-    "busNumber": "600F",
-    "scheduleId": "RESERVE",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 96,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM107",
-    "assignedRouteShortName": "600F",
-    "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-20T08:18:48.989Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 13,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "01:48:48 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-20T08:18:48.989Z",
+        "soc": 96,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM107",
+    "busNumber": "600F",
     "bmNumber": "BM107",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "A",
-    "testedRangeKm": 121.6192,
-    "actualRangeFinal": 121.6192,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "assignedRouteId": "BM107",
+    "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": false
   },
   "BUS-27": {
     "uniqueId": "BUS-27",
@@ -8203,7 +8222,6 @@
     "BM082",
     "BM086",
     "BM088",
-    "BM107",
     "BM116",
     "BM119",
     "BM124",
@@ -8529,7 +8547,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-20T07:26:18.777Z",
+    "updatedAt": "2026-10-20T08:18:48.989Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -8547,20 +8565,14 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 24,
-    "socAfter": 90,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": "12:56:14 pm",
+    "socBefore": 13,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "01:48:48 pm",
     "history": [
       {
-        "timestamp": "2026-10-03T05:11:12.356Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-20T07:26:18.777Z",
-        "soc": 90,
+        "timestamp": "2026-10-20T08:18:48.989Z",
+        "soc": 96,
         "condition": "Good",
         "status": "On Time"
       }
@@ -9766,8 +9778,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -9898,18 +9910,18 @@
       "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM116": {
       "uniqueId": "BM116",
@@ -13324,8 +13336,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -13484,18 +13496,18 @@
       "assignedRouteDisplay": "Route BM107 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM116": {
       "uniqueId": "BM116",
@@ -16237,7 +16249,6 @@
     "BM082",
     "BM086",
     "BM088",
-    "BM107",
     "BM116",
     "BM119",
     "BM124",
@@ -16740,8 +16751,8 @@
       "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122,
-      "fullDutyDistanceKm": 122,
+      "estimatedRangeKm": 128.36,
+      "fullDutyDistanceKm": 128.36,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 99.12,
       "blocked": false
@@ -16827,19 +16838,19 @@
       "bmNumber": "BM107",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": true
+      "blocked": false
     },
     "BM116": {
       "assignedVehicle": "BM116",
