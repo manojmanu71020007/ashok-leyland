@@ -4199,29 +4199,48 @@
     "chargingStatus": null
   },
   "BM209": {
-    "uniqueId": "BM209",
-    "vehicleId": "BM209",
-    "regNo": "KA51AH7668",
-    "busNumber": "KBS3A",
-    "scheduleId": "KBS3A/9",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 100,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM209",
-    "assignedRouteShortName": "KBS3A",
-    "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-20T10:12:55.359Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 5,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": "03:42:52 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-20T10:12:55.359Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM209",
+    "busNumber": "KBS3A",
     "bmNumber": "BM209",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "A",
-    "testedRangeKm": 121.8672,
-    "actualRangeFinal": 121.8672,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "assignedRouteId": "BM209",
+    "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
+    "assignedRouteShortName": "KBS3A",
+    "blocked": false
   },
   "BUS-53": {
     "uniqueId": "BUS-53",
@@ -8336,7 +8355,6 @@
     "BM206",
     "BM207",
     "BM208",
-    "BM209",
     "BM210",
     "BM212",
     "BM213",
@@ -8678,7 +8696,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-20T08:19:33.475Z",
+    "updatedAt": "2026-10-20T10:12:55.359Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -8696,14 +8714,14 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 4,
-    "socAfter": 94,
-    "fullDutyDistanceKm": 119,
-    "lastChargedTime": "01:49:33 pm",
+    "socBefore": 5,
+    "socAfter": 100,
+    "fullDutyDistanceKm": 128,
+    "lastChargedTime": "03:42:52 pm",
     "history": [
       {
-        "timestamp": "2026-10-20T08:19:33.475Z",
-        "soc": 94,
+        "timestamp": "2026-10-20T10:12:55.359Z",
+        "soc": 100,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10579,18 +10597,18 @@
       "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM210": {
       "uniqueId": "BM210",
@@ -14165,18 +14183,18 @@
       "assignedRouteDisplay": "Route BM209 - KBS3A (125.5 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM210": {
       "uniqueId": "BM210",
@@ -16209,7 +16227,6 @@
     "BM206",
     "BM207",
     "BM208",
-    "BM209",
     "BM210",
     "BM212",
     "BM213",
@@ -17269,19 +17286,19 @@
       "bmNumber": "BM209",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 134.33,
+      "fullDutyDistanceKm": 134.33,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 125.55,
-      "blocked": true
+      "blocked": false
     },
     "BM210": {
       "assignedVehicle": "BM210",
@@ -18597,19 +18614,7 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [
-    {
-      "bm": "BM209",
-      "reg": "KA51AH7668",
-      "page": "charging",
-      "reason": "Under Fast Charging (target 100% floor)",
-      "startTime": "03:42:18 pm, 20 Oct 2026",
-      "time": "03:42:18 pm",
-      "startTimestamp": 1792491138352,
-      "startSoc": "0",
-      "chargerBay": "Charging Bay"
-    }
-  ],
+  "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
     "BM002": "1",
