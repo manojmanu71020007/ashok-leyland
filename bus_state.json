@@ -3584,29 +3584,48 @@
     "chargingStatus": null
   },
   "BM197": {
-    "uniqueId": "BM197",
-    "vehicleId": "BM197",
-    "regNo": "KA51AH7661",
-    "busNumber": "600F",
-    "scheduleId": "RESERVE",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 93,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM197",
-    "assignedRouteShortName": "600F",
-    "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-20T08:32:13.295Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 11,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "02:02:13 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-20T08:32:13.295Z",
+        "soc": 93,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM197",
+    "busNumber": "600F",
     "bmNumber": "BM197",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "A",
-    "testedRangeKm": 126.5555,
-    "actualRangeFinal": 126.5555,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "assignedRouteId": "BM197",
+    "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": false
   },
   "BUS-41": {
     "uniqueId": "BUS-41",
@@ -8272,7 +8291,6 @@
     "BM185",
     "BM187",
     "BM191",
-    "BM197",
     "BM198",
     "BM200",
     "BM201",
@@ -8584,7 +8602,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-20T08:31:34.747Z",
+    "updatedAt": "2026-10-20T08:32:13.295Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -8602,14 +8620,14 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
-    "socBefore": 7,
-    "socAfter": 94,
-    "fullDutyDistanceKm": 119,
-    "lastChargedTime": "02:01:34 pm",
+    "socBefore": 11,
+    "socAfter": 93,
+    "fullDutyDistanceKm": 118,
+    "lastChargedTime": "02:02:13 pm",
     "history": [
       {
-        "timestamp": "2026-10-20T08:31:34.747Z",
-        "soc": 94,
+        "timestamp": "2026-10-20T08:32:13.295Z",
+        "soc": 93,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10161,16 +10179,16 @@
       "assignedRouteDisplay": "Route BM193 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 125.37,
+      "fullDutyDistanceKm": 125.37,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -10189,18 +10207,18 @@
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM198": {
       "uniqueId": "BM198",
@@ -13747,16 +13765,16 @@
       "assignedRouteDisplay": "Route BM193 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 125.37,
+      "fullDutyDistanceKm": 125.37,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -13775,18 +13793,18 @@
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM198": {
       "uniqueId": "BM198",
@@ -16148,7 +16166,6 @@
     "BM185",
     "BM187",
     "BM191",
-    "BM197",
     "BM198",
     "BM200",
     "BM201",
@@ -16971,16 +16988,16 @@
       "bmNumber": "BM193",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "B",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
+      "matrixCompliant": true,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 119,
-      "fullDutyDistanceKm": 119,
+      "estimatedRangeKm": 125.37,
+      "fullDutyDistanceKm": 125.37,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -16990,19 +17007,19 @@
       "bmNumber": "BM197",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
-      "blocked": true
+      "blocked": false
     },
     "BM198": {
       "assignedVehicle": "BM198",
@@ -18546,19 +18563,7 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [
-    {
-      "bm": "BM197",
-      "reg": "KA51AH7661",
-      "page": "charging",
-      "reason": "Under Fast Charging (target 100% floor)",
-      "startTime": "02:02:05 pm, 20 Oct 2026",
-      "time": "02:02:05 pm",
-      "startTimestamp": 1792485125686,
-      "startSoc": "0",
-      "chargerBay": "Charging Bay"
-    }
-  ],
+  "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
     "BM002": "1",
