@@ -1319,13 +1319,32 @@ function getDefaultDepotAssignments() {
     return assignments;
 }
 
-function getDepotCounts(assignments) {
+function getDepotCounts(assignments, state) {
     let d1Count = 0;
     let d2Count = 0;
-    const map = assignments || {};
-    for (const bm of Object.keys(map)) {
-        if (String(map[bm]) === "2") d2Count++;
-        else d1Count++;
+    const busState = state || loadBusState();
+    const map = assignments || (busState && busState._depotAssignments) || getDefaultDepotAssignments();
+    const deletedBuses = (busState && busState._deletedBuses) || {};
+    const addedBuses = (busState && busState._addedBuses) || {};
+
+    const allBms = new Set([
+        ...Object.keys(map),
+        ...Object.keys(getDefaultDepotAssignments()),
+        ...Object.keys(addedBuses)
+    ]);
+
+    for (const bm of allBms) {
+        const cleanBm = String(bm).toUpperCase().trim();
+        // Skip deleted buses
+        if (deletedBuses[cleanBm] || (busState && busState[cleanBm] && (busState[cleanBm].deleted || busState[cleanBm].status === "Deleted" || busState[cleanBm].isDeleted))) {
+            continue;
+        }
+        const depot = String(map[cleanBm] || (addedBuses[cleanBm] && addedBuses[cleanBm].depot) || getDefaultDepotAssignments()[cleanBm] || "1");
+        if (depot === "2") {
+            d2Count++;
+        } else {
+            d1Count++;
+        }
     }
     return { depot1Count: d1Count, depot2Count: d2Count, total: d1Count + d2Count };
 }
@@ -1485,6 +1504,14 @@ function addFleetBus(params) {
         deletedBuses: currentState._deletedBuses
     });
 
+    const updatedCountsAdd = getDepotCounts(currentState._depotAssignments, currentState);
+    broadcastSyncEvent("depot-updated", {
+        assignments: currentState._depotAssignments,
+        depot1Count: updatedCountsAdd.depot1Count,
+        depot2Count: updatedCountsAdd.depot2Count,
+        total: updatedCountsAdd.total
+    });
+
     return addedInfo;
 }
 
@@ -1598,6 +1625,14 @@ function deleteFleetBus(params) {
         deletedInfo,
         addedBuses: currentState._addedBuses,
         deletedBuses: currentState._deletedBuses
+    });
+
+    const updatedCountsDel = getDepotCounts(currentState._depotAssignments, currentState);
+    broadcastSyncEvent("depot-updated", {
+        assignments: currentState._depotAssignments,
+        depot1Count: updatedCountsDel.depot1Count,
+        depot2Count: updatedCountsDel.depot2Count,
+        total: updatedCountsDel.total
     });
 
     return deletedInfo;
@@ -2270,7 +2305,7 @@ const server = http.createServer(async (req, res) => {
             }
             const currentState = loadBusState();
             const assignments = currentState._depotAssignments || getDefaultDepotAssignments();
-            const counts = getDepotCounts(assignments);
+            const counts = getDepotCounts(assignments, currentState);
             sendJson(res, {
                 ok: true,
                 version: stateVersion,
@@ -2296,13 +2331,15 @@ const server = http.createServer(async (req, res) => {
         try {
             const currentState = loadBusState();
             const assignments = currentState._depotAssignments || getDefaultDepotAssignments();
-            const counts = getDepotCounts(assignments);
+            const counts = getDepotCounts(assignments, currentState);
             sendJson(res, {
                 ok: true,
                 depot1Count: counts.depot1Count,
                 depot2Count: counts.depot2Count,
                 total: counts.total,
-                assignments
+                assignments,
+                addedBuses: currentState._addedBuses || {},
+                deletedBuses: currentState._deletedBuses || {}
             });
         } catch (error) {
             sendJson(res, { ok: false, error: "Failed to load depot state", details: error.message }, 500);
@@ -2327,7 +2364,7 @@ const server = http.createServer(async (req, res) => {
                         Object.assign(currentState._depotAssignments, payload.assignments);
                     }
 
-                    const counts = getDepotCounts(currentState._depotAssignments);
+                    const counts = getDepotCounts(currentState._depotAssignments, currentState);
                     saveBusState(currentState);
                     broadcastSyncEvent("depot-updated", {
                         assignments: currentState._depotAssignments,

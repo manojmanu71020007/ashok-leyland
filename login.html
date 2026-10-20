@@ -692,7 +692,7 @@
             </button>
             <!-- Selected depot indicator chip -->
             <button id="depotActiveChip" class="depot-active-chip" type="button" onclick="toggleDepotDrawer(event)" title="Switch Depot">
-                <span id="depotActiveChipText">🏢 Depot 1 (62 Buses)</span>
+                <span id="depotActiveChipText">🏢 Depot 1 (56 Buses)</span>
                 <span style="font-size:0.75rem;opacity:0.8;">▾</span>
             </button>
         </div>
@@ -716,7 +716,7 @@
                 ⚡ Depot <span id="quickDepotNum">1</span> Quick Actions
             </p>
             <span id="quickDepotBadge" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:0.75rem;padding:3px 10px;border-radius:999px;font-weight:800;backdrop-filter:blur(6px);">
-                <span id="quickBusCount">62</span> Buses
+                <span id="quickBusCount">56</span> Buses
             </span>
         </div>
 
@@ -943,7 +943,7 @@
             </div>
             <div class="depot-card-stat">
                 <span>Assigned Fleet</span>
-                <strong id="drawerDepot1Count" style="color:#2563eb;font-weight:800;">62 Buses</strong>
+                <strong id="drawerDepot1Count" style="color:#2563eb;font-weight:800;">56 Buses</strong>
             </div>
             <div style="margin-top:10px;display:flex;justify-content:flex-end;">
                 <span id="depot1Check" class="depot-selected-check">✓ Active Depot</span>
@@ -964,7 +964,7 @@
             </div>
             <div class="depot-card-stat">
                 <span>Assigned Fleet</span>
-                <strong id="drawerDepot2Count" style="color:#7c3aed;font-weight:800;">60 Buses</strong>
+                <strong id="drawerDepot2Count" style="color:#7c3aed;font-weight:800;">64 Buses</strong>
             </div>
             <div style="margin-top:10px;display:flex;justify-content:flex-end;">
                 <span id="depot2Check" class="depot-selected-check" style="display:none;background:#f3e8ff;color:#7c3aed;">✓ Active Depot</span>
@@ -974,7 +974,7 @@
         <!-- Total Fleet Stat Box -->
         <div style="margin-top:auto;padding:14px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:14px;text-align:center;">
             <div style="font-size:0.75rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Total Fleet Network</div>
-            <div id="drawerTotalCount" style="font-size:1.35rem;font-weight:900;color:#0f172a;margin-top:4px;">122 Buses</div>
+            <div id="drawerTotalCount" style="font-size:1.35rem;font-weight:900;color:#0f172a;margin-top:4px;">120 Buses</div>
             <div style="font-size:0.72rem;color:#94a3b8;margin-top:3px;">Real-time sync enabled across all tabs</div>
         </div>
     </div>
@@ -1569,30 +1569,39 @@
         : 'https://ashok-leyland-bus-tracking.onrender.com';
 
     let selectedDepot = localStorage.getItem('selected_depot') || sessionStorage.getItem('selected_depot') || '1';
-    let depotCounts = { depot1Count: 62, depot2Count: 60 };
+    let depotCounts = { depot1Count: 56, depot2Count: 64, total: 120 };
 
     function computeCountsFromStorage() {
         try {
             if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
                 const c = window.DepotSyncEngine.getDepotCounts();
-                if (c && c.total > 0) return c;
+                if (c && typeof c.total === 'number' && c.total > 0) return c;
             }
         } catch(e) {}
         try {
+            let deleted = {};
+            let added = {};
+            try { deleted = JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}'); } catch(e){}
+            try { added = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+
             const raw = localStorage.getItem('depot_bus_assignments');
             if (raw) {
                 const map = JSON.parse(raw);
                 if (map && typeof map === 'object') {
                     let d1 = 0, d2 = 0;
-                    for (const k of Object.keys(map)) {
-                        if (String(map[k]) === '2') d2++;
+                    const allKeys = Array.from(new Set([...Object.keys(map), ...Object.keys(added)]));
+                    for (const k of allKeys) {
+                        const cleanK = String(k).toUpperCase().trim();
+                        if (deleted[cleanK]) continue;
+                        const targetDepot = String(map[cleanK] || (added[cleanK] ? added[cleanK].depot : null) || '1');
+                        if (targetDepot === '2') d2++;
                         else d1++;
                     }
                     if (d1 + d2 > 0) return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
                 }
             }
         } catch(e) {}
-        return { depot1Count: 62, depot2Count: 60, total: 122 };
+        return { depot1Count: 56, depot2Count: 64, total: 120 };
     }
 
     let _lastToggleTs = 0;
@@ -1700,12 +1709,14 @@
             }
         }
 
+        const totalFleet = (typeof depotCounts.total === 'number') ? depotCounts.total : (depotCounts.depot1Count + depotCounts.depot2Count);
+
         const d1c = document.getElementById('drawerDepot1Count');
         if (d1c) d1c.textContent = `${depotCounts.depot1Count} Buses`;
         const d2c = document.getElementById('drawerDepot2Count');
         if (d2c) d2c.textContent = `${depotCounts.depot2Count} Buses`;
         const tc = document.getElementById('drawerTotalCount');
-        if (tc) tc.textContent = `${depotCounts.depot1Count + depotCounts.depot2Count} Buses`;
+        if (tc) tc.textContent = `${totalFleet} Buses`;
     }
 
     async function fetchDepotCounts() {
@@ -1717,32 +1728,56 @@
             const res = await fetch(API_BASE + '/api/depot-state');
             if (res.ok) {
                 const data = await res.json();
+                if (data.deletedBuses && typeof data.deletedBuses === 'object') {
+                    try { localStorage.setItem('depot_deleted_buses', JSON.stringify(data.deletedBuses)); } catch(e){}
+                }
+                if (data.addedBuses && typeof data.addedBuses === 'object') {
+                    try { localStorage.setItem('depot_added_buses', JSON.stringify(data.addedBuses)); } catch(e){}
+                }
+                if (data.assignments && typeof data.assignments === 'object') {
+                    try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
+                }
+
                 if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
                     depotCounts.depot1Count = data.depot1Count;
                     depotCounts.depot2Count = data.depot2Count;
+                    depotCounts.total = (typeof data.total === 'number') ? data.total : (data.depot1Count + data.depot2Count);
+                } else {
+                    depotCounts = computeCountsFromStorage();
                 }
-                if (data.assignments) {
-                    try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
-                }
+
                 updateQuickActionsUI();
                 updateDepotDrawerUI();
             }
-        } catch (e) {}
+        } catch (e) {
+            depotCounts = computeCountsFromStorage();
+            updateQuickActionsUI();
+            updateDepotDrawerUI();
+        }
     }
 
     // Real-time synchronization across tabs and server
     try {
         const bc = new BroadcastChannel('depot_operations_sync');
         bc.onmessage = (evt) => {
-            if (evt && evt.data && evt.data.depot) {
-                selectedDepot = String(evt.data.depot);
+            if (evt && evt.data) {
+                if (evt.data.depot) {
+                    selectedDepot = String(evt.data.depot);
+                }
+                if (evt.data.counts) {
+                    depotCounts.depot1Count = evt.data.counts.depot1Count;
+                    depotCounts.depot2Count = evt.data.counts.depot2Count;
+                    depotCounts.total = evt.data.counts.total;
+                    updateQuickActionsUI();
+                    updateDepotDrawerUI();
+                }
             }
             fetchDepotCounts();
         };
     } catch(e) {}
 
     window.addEventListener('storage', (e) => {
-        if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot') {
+        if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated') {
             if (e.key === 'selected_depot' && e.newValue) selectedDepot = e.newValue;
             fetchDepotCounts();
         }
@@ -1750,17 +1785,36 @@
 
     if (window.DepotSyncEngine) {
         window.DepotSyncEngine.on('depot-updated', (data) => {
-            if (data && data.depot1Count !== undefined) {
+            if (data && typeof data.depot1Count === 'number') {
                 depotCounts.depot1Count = data.depot1Count;
                 depotCounts.depot2Count = data.depot2Count;
+                depotCounts.total = typeof data.total === 'number' ? data.total : (data.depot1Count + data.depot2Count);
+            } else {
+                depotCounts = computeCountsFromStorage();
             }
             updateQuickActionsUI();
             updateDepotDrawerUI();
+        });
+        window.DepotSyncEngine.on('fleet-updated', () => {
+            fetchDepotCounts();
+        });
+        window.DepotSyncEngine.on('fleet-bus-added', () => {
+            fetchDepotCounts();
+        });
+        window.DepotSyncEngine.on('fleet-bus-deleted', () => {
+            fetchDepotCounts();
         });
         window.DepotSyncEngine.on('sync', () => {
             fetchDepotCounts();
         });
     }
+
+    window.addEventListener('focus', () => {
+        fetchDepotCounts();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) fetchDepotCounts();
+    });
 
     // Init depot UI immediately
     depotCounts = computeCountsFromStorage();

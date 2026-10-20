@@ -476,11 +476,12 @@
 
         const deleted = getDeletedBusesLocal();
         const added = getAddedBusesLocal();
-        const allBms = Array.from(new Set([...DEFAULT_FLEET_BMS, ...Object.keys(added)]));
+        const allBms = Array.from(new Set([...DEFAULT_FLEET_BMS, ...Object.keys(map), ...Object.keys(added)]));
 
         allBms.forEach((bm) => {
-            if (deleted[bm]) return;
-            const assigned = map[bm] || (added[bm] ? added[bm].depot : null) || DEFAULT_DEPOT_MAP[bm] || '1';
+            const clean = String(bm).toUpperCase().trim();
+            if (deleted[clean] || isDeletedBus(clean)) return;
+            const assigned = map[clean] || (added[clean] ? added[clean].depot : null) || DEFAULT_DEPOT_MAP[clean] || '1';
             if (String(assigned) === '2') d2++;
             else d1++;
         });
