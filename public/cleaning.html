@@ -1069,6 +1069,38 @@
     // 2. Add to cleaning history (submit the verification record)
     addCleaningHistory(historyItem);
 
+    // Update servicing status: Cleaning completed!
+    let wasChargingDone = false;
+    try {
+      const cleanBm = bm.toUpperCase();
+      const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+      const existingServ = servMap[cleanBm] || {};
+      wasChargingDone = Boolean(existingServ.chargingCompleted || !existingServ.needsCharging);
+      existingServ.bm = cleanBm;
+      existingServ.needsCleaning = false;
+      existingServ.cleaningCompleted = true;
+      existingServ.cleaningCompletedAt = fullTimeStr;
+      servMap[cleanBm] = existingServ;
+      localStorage.setItem('smartbus_servicing_status', JSON.stringify(servMap));
+
+      if (window.DepotSyncEngine && typeof window.DepotSyncEngine.updateBusServicing === 'function') {
+        window.DepotSyncEngine.updateBusServicing(cleanBm, {
+          needsCleaning: false,
+          cleaningCompleted: true,
+          cleaningCompletedAt: fullTimeStr
+        });
+      } else {
+        fetch('/api/servicing-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bm: cleanBm, patch: { needsCleaning: false, cleaningCompleted: true, cleaningCompletedAt: fullTimeStr } })
+        }).catch(() => {});
+      }
+      const bcOps = new BroadcastChannel('depot_operations_sync');
+      bcOps.postMessage({ type: 'CLEANING_COMPLETED', bm: cleanBm, status: existingServ });
+      bcOps.close();
+    } catch(e) {}
+
     // 3. Re-render UI
     renderLog();
     renderOngoingButtons();
@@ -1086,7 +1118,11 @@
     document.getElementById('remarks').value = '';
     updateChecklistAndUnlockState();
 
-    showToast(`🎉 Success: Bus ${bm} unlocked & Cleaning Verification Record submitted!`, 'success', 4000);
+    if (wasChargingDone) {
+      showToast(`🎉 Bus ${bm} Cleaning verified! Both Cleaning & Charging are now COMPLETE — Bus is now available for Scheduling!`, 'success', 5000);
+    } else {
+      showToast(`🎉 Bus ${bm} Cleaning verified! Charging is still pending before it can be re-allocated in Scheduling.`, 'info', 5000);
+    }
   }
 
   function updateLockUI(bm) {
@@ -1432,6 +1468,7 @@
 
     sel.innerHTML = `<option value="">— Choose a bus (${availableVehs.length} Available for Cleaning / ${depotVehs.length} in Depot ${currentOperatingDepot}) —</option>`;
 
+    const isSearchActive = Boolean(document.getElementById('searchInput')?.value?.trim());
     if (availableVehs.length > 0) {
       const optGroupAvail = document.createElement('optgroup');
       optGroupAvail.label = `🟢 Available for Cleaning (${availableVehs.length} Buses)`;
@@ -1439,10 +1476,16 @@
         const opt = document.createElement('option');
         opt.value = v.bm_no;
         let tag = '';
+        const serv = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getBusServicing === 'function')
+          ? window.DepotSyncEngine.getBusServicing(v.bm_no)
+          : (JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}')[v.bm_no.toUpperCase()] || null);
+
         if (isBusLockedForCleaning(v.bm_no)) {
           tag = ' [🔒 In Cleaning Bay]';
         } else if (isBusInCharging(v.bm_no, v.reg_no)) {
           tag = ' [⚡ In Charging Bay]';
+        } else if (serv && serv.routeCompleted && (!serv.cleaningCompleted || serv.needsCleaning)) {
+          tag = ' [🧹 Needs Cleaning (Post-Route)]';
         }
         const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
         const newPrefix = isNew ? '✨ [NEW] ' : '';
@@ -1453,17 +1496,16 @@
       sel.appendChild(optGroupAvail);
     }
 
-    if (onRouteVehs.length > 0) {
+    if (onRouteVehs.length > 0 && isSearchActive) {
       const optGroupRoute = document.createElement('optgroup');
-      optGroupRoute.label = `🚍 On Route / Allocated (${onRouteVehs.length} Buses) — Must Complete Route in Depot Ops`;
+      optGroupRoute.label = `🚍 On Route (${onRouteVehs.length} Buses) — Not Available for Cleaning`;
       onRouteVehs.forEach(v => {
         const opt = document.createElement('option');
         opt.value = v.bm_no;
         opt.disabled = true;
         const duty = getBusAllocatedDuty(v.bm_no, v.reg_no);
-        const routeName = duty?.routeCode || duty?.busNumber || duty?.route || 'Assigned Duty';
-        opt.textContent = `${v.bm_no}  —  ${v.reg_no} [🚍 On Route: ${routeName}]`;
-        if (v.bm_no === cur) opt.selected = true;
+        const routeName = duty?.routeCode || duty?.busNumber || duty?.route || 'On Route';
+        opt.textContent = `${v.bm_no}  —  ${v.reg_no} [🚍 On Route: ${routeName} — Unavailable]`;
         optGroupRoute.appendChild(opt);
       });
       sel.appendChild(optGroupRoute);

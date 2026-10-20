@@ -4619,6 +4619,36 @@ let busCategoriesMap = new Map();
                 }
             }
 
+            // Post-Route Servicing Requirement Check (Mandatory Charging & Cleaning before re-allocation)
+            const servicing = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getBusServicing === 'function')
+                ? window.DepotSyncEngine.getBusServicing(key)
+                : (JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}')[key] || null);
+
+            if (servicing && servicing.routeCompleted) {
+                const chargingDone = Boolean(servicing.chargingCompleted || !servicing.needsCharging);
+                const cleaningDone = Boolean(servicing.cleaningCompleted || !servicing.needsCleaning);
+
+                if (!chargingDone && !cleaningDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed its route and is currently pending Charging & Cleaning. Both processes must be completed in depot before re-allocation.`
+                    };
+                } else if (!chargingDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed Cleaning, but Charging is still pending. Charging must be completed in depot before re-allocation.`
+                    };
+                } else if (!cleaningDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed Charging, but Cleaning is still pending. Cleaning must be completed in depot before re-allocation.`
+                    };
+                }
+            }
+
             const liveSoc = getBusSocByBm(key);
             const fullDutyKm = calculateFullDutyDistance(liveSoc);
             const busCat = getBusCategory(key, liveSoc);
@@ -4695,10 +4725,27 @@ let busCategoriesMap = new Map();
 
             let operatingKm = Number(routeDist) || 28.7;
             if (matchedSched) {
-                const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
-                const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
-                if (actKm > 0) operatingKm = actKm + deadKm;
-                else if (matchedSched.singleChargeReqKm) operatingKm = Number(matchedSched.singleChargeReqKm);
+                const reqKm = Number(matchedSched.single_charge_req_km ?? matchedSched.singleChargeReqKm ?? 0);
+                if (reqKm > 0) {
+                    operatingKm = reqKm;
+                } else {
+                    const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
+                    const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
+                    if (actKm > 0) operatingKm = actKm + deadKm;
+                }
+                // Check remarks for intermediate rest stops / opportunity charging
+                if (matchedSched.remarks) {
+                    const numbers = String(matchedSched.remarks).match(/[0-9]+(?:\.[0-9]+)?/g);
+                    if (numbers) {
+                        for (const numStr of numbers) {
+                            const n = Number(numStr);
+                            if (n > 20 && n < operatingKm) {
+                                operatingKm = n;
+                                break;
+                            }
+                        }
+                    }
+                }
             }
             if (operatingKm > 65) operatingKm = 65;
 

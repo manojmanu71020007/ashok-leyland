@@ -2507,7 +2507,7 @@
       </div>
       ` : ''}
       <div style="margin-top:14px; padding:12px 14px; background:#f0fdf4; border-radius:10px; border:1.5px solid #86efac; font-size:0.85rem; color:#166534; font-weight:700;">
-        🔓 After confirmation, this bus will be returned to <strong>Depot ${targetDepot}</strong> and cleared for re-allocation from the Scheduling page.
+        🏁 After confirmation, route is marked completed at <strong>Depot ${targetDepot}</strong>. Bus will be queued for mandatory <strong>Charging &amp; Cleaning</strong> in depot before it can be re-allocated in Scheduling.
       </div>
     `;
     document.getElementById('confirmModal').style.display = 'flex';
@@ -2615,6 +2615,38 @@
     log.unshift(logEntry);
     setCompletedLog(log);
 
+    // Set post-route servicing requirement: Must complete Charging & Cleaning before re-allocation!
+    const serviceEntry = {
+      bm: bm.toUpperCase(),
+      routeCompleted: true,
+      routeCompletedAt: fullTs,
+      routeCompletedTs: Date.now(),
+      depot: targetDepot,
+      needsCharging: true,
+      chargingCompleted: false,
+      chargingCompletedAt: null,
+      needsCleaning: true,
+      cleaningCompleted: false,
+      cleaningCompletedAt: null
+    };
+    try {
+      const rawServ = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+      rawServ[bm.toUpperCase()] = serviceEntry;
+      localStorage.setItem('smartbus_servicing_status', JSON.stringify(rawServ));
+    } catch(e) {}
+
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveBusServicing === 'function') {
+      window.DepotSyncEngine.saveBusServicing(bm.toUpperCase(), serviceEntry);
+    } else {
+      try {
+        fetch('/api/servicing-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bm: bm.toUpperCase(), status: serviceEntry })
+        }).catch(() => {});
+      } catch(e) {}
+    }
+
     // 4. Broadcast so other pages can react immediately
     try {
       const bc = new BroadcastChannel('depot_operations_sync');
@@ -2627,6 +2659,7 @@
         isTransferred: isTransferred,
         depot1Count: depotCounts.depot1Count,
         depot2Count: depotCounts.depot2Count,
+        servicingStatus: serviceEntry,
         time: Date.now()
       });
       bc.close();
@@ -2641,14 +2674,14 @@
     const sb = document.getElementById('successBanner');
     document.getElementById('successTitle').textContent = `${bm} — Route Completed at Depot ${targetDepot} ✅`;
     document.getElementById('successText').textContent  =
-      `Bus returned to Depot ${targetDepot} at ${timeStr}. ${isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses updated: Depot 1 (${depotCounts.depot1Count} buses), Depot 2 (${depotCounts.depot2Count} buses). Bus is now available in Depot ${targetDepot} fleet.` : `Now available for re-allocation in Depot ${targetDepot}.`}`;
+      `Bus returned to Depot ${targetDepot} at ${timeStr}. ${isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${targetDepot}. Total buses updated: Depot 1 (${depotCounts.depot1Count} buses), Depot 2 (${depotCounts.depot2Count} buses). Bus is now available in Depot ${targetDepot} fleet.` : `Now queued for Charging & Cleaning in Depot ${targetDepot}. Once both processes are completed, bus will be eligible for re-allocation in Scheduling.`}`;
     sb.classList.add('show');
 
     // Keep selected bus in dropdown and refresh info
     document.getElementById('busSelect').value = bm;
     onBusSelected();
 
-    showToast(`✅ ${bm} route completed at Depot ${targetDepot}. ${isTransferred ? `Transferred: Depot ${prevDepot} ➔ Depot ${targetDepot} (+1/-1).` : ''}`, 'success');
+    showToast(`✅ ${bm} route completed at Depot ${targetDepot}. Bus queued for Charging & Cleaning before re-allocation.`, 'success');
   }
 
   // ──────────────────────────────────────────────

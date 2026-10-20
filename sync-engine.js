@@ -15,12 +15,14 @@
     const ALLOCATED_DUTIES_ENDPOINT = API_BASE + '/api/allocated-duties';
     const LOCKED_BUSES_ENDPOINT = API_BASE + '/api/locked-buses';
     const BUS_STATE_ENDPOINT = API_BASE + '/api/bus-state';
+    const SERVICING_STATUS_ENDPOINT = API_BASE + '/api/servicing-status';
 
     const ALLOCATED_KEY = 'smartbus_allocated_duties';
     const LOCKED_KEY = 'depot_locked_buses';
     const BUS_STATES_KEY = 'depot_bus_states';
     const ADDED_BUSES_KEY = 'depot_added_buses';
     const DELETED_BUSES_KEY = 'depot_deleted_buses';
+    const SERVICING_STATUS_KEY = 'smartbus_servicing_status';
 
     let currentVersion = 0;
     let eventSource = null;
@@ -33,6 +35,7 @@
         'locked-buses': new Set(),
         'depot-updated': new Set(),
         'fleet-updated': new Set(),
+        'servicing-status': new Set(),
         'sync': new Set()
     };
 
@@ -118,6 +121,14 @@
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(stateData.deletedBuses));
             } catch (e) {}
             notify('fleet-updated', { type: 'deleted-sync', buses: stateData.deletedBuses });
+        }
+
+        // 7. Sync servicing status (post-route charging & cleaning requirements)
+        if (stateData.servicingStatus && typeof stateData.servicingStatus === 'object') {
+            try {
+                localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(stateData.servicingStatus));
+            } catch (e) {}
+            notify('servicing-status', stateData.servicingStatus);
         }
 
         notify('sync', stateData);
@@ -215,6 +226,22 @@
                     if (Array.isArray(duties)) {
                         localStorage.setItem(ALLOCATED_KEY, JSON.stringify(duties));
                         notify('allocated-duties', duties);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('servicing-status-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const servicing = payload && payload.data && payload.data.servicingStatus;
+                    if (servicing && typeof servicing === 'object') {
+                        localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(servicing));
+                        notify('servicing-status', servicing);
                     } else {
                         fetchFullSync();
                     }
@@ -650,6 +677,91 @@
         }
     }
 
+    // Servicing Status Helpers (Charging & Cleaning requirement after route completion)
+    function getServicingStatusLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(SERVICING_STATUS_KEY) || '{}');
+        } catch(e) {
+            return {};
+        }
+    }
+
+    function getBusServicingLocal(bm) {
+        if (!bm) return null;
+        const clean = String(bm).toUpperCase().trim();
+        const map = getServicingStatusLocal();
+        return map[clean] || null;
+    }
+
+    async function pushServicingStatus(statusMap) {
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(statusMap));
+        } catch(e) {}
+        notify('servicing-status', statusMap);
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ servicingStatus: statusMap })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] pushServicingStatus error:', e);
+        }
+    }
+
+    async function updateBusServicingApi(bm, patch) {
+        if (!bm) return;
+        const clean = String(bm).toUpperCase().trim();
+        const current = getServicingStatusLocal();
+        current[clean] = Object.assign({}, current[clean] || {}, patch, { bm: clean });
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(current));
+        } catch(e) {}
+        notify('servicing-status', current);
+
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.postMessage({ type: 'SERVICING_STATUS_UPDATED', bm: clean, status: current[clean] });
+        } catch(e) {}
+
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bm: clean, patch })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] updateBusServicingApi error:', e);
+        }
+        return current[clean];
+    }
+
+    async function clearBusServicingApi(bm) {
+        if (!bm) return;
+        const clean = String(bm).toUpperCase().trim();
+        const current = getServicingStatusLocal();
+        delete current[clean];
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(current));
+        } catch(e) {}
+        notify('servicing-status', current);
+
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.postMessage({ type: 'SERVICING_STATUS_UPDATED', bm: clean, clear: true });
+        } catch(e) {}
+
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bm: clean, clear: true })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] clearBusServicingApi error:', e);
+        }
+    }
+
     async function restoreFleetBusApi(data) {
         try {
             const res = await fetch(API_BASE + '/api/fleet/restore-bus', {
@@ -688,7 +800,10 @@
         const bc = new BroadcastChannel('depot_operations_sync');
         bc.onmessage = (ev) => {
             const msgType = String(ev.data?.type || '').toUpperCase();
-            if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
+            if (msgType === 'SERVICING_STATUS_UPDATED') {
+                fetchFullSync();
+                notify('servicing-status', getServicingStatusLocal());
+            } else if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
                 fetchFullSync();
                 notify('fleet-updated', ev.data);
             }
@@ -721,6 +836,12 @@
         addBus: addFleetBusApi,
         deleteBus: deleteFleetBusApi,
         restoreBus: restoreFleetBusApi,
+        getServicingStatus: getServicingStatusLocal,
+        getBusServicing: getBusServicingLocal,
+        saveServicingStatus: pushServicingStatus,
+        updateBusServicing: updateBusServicingApi,
+        saveBusServicing: updateBusServicingApi,
+        clearBusServicing: clearBusServicingApi,
         getVersion: () => currentVersion
     };
 })(window);

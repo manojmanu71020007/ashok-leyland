@@ -1699,6 +1699,36 @@
                 };
             }
 
+            // Post-Route Servicing Requirement Check (Mandatory Charging & Cleaning before re-allocation)
+            const servicing = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getBusServicing === 'function')
+                ? window.DepotSyncEngine.getBusServicing(key)
+                : (JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}')[key] || null);
+
+            if (servicing && servicing.routeCompleted) {
+                const chargingDone = Boolean(servicing.chargingCompleted || !servicing.needsCharging);
+                const cleaningDone = Boolean(servicing.cleaningCompleted || !servicing.needsCleaning);
+
+                if (!chargingDone && !cleaningDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed its route and is currently pending Charging & Cleaning. Both processes must be completed in depot before re-allocation.`
+                    };
+                } else if (!chargingDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed Cleaning, but Charging is still pending. Charging must be completed in depot before re-allocation.`
+                    };
+                } else if (!cleaningDone) {
+                    return {
+                        feasible: false,
+                        bm: key,
+                        reason: `Bus ${key} completed Charging, but Cleaning is still pending. Cleaning must be completed in depot before re-allocation.`
+                    };
+                }
+            }
+
             const state = busStates[key] || {};
             const condition = state.condition || "Good";
             const curRoute = routeCode || (currentTargetKey ? currentTargetKey.split('_')[0] : "356Z");
@@ -1780,6 +1810,19 @@
                     const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
                     const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
                     if (actKm > 0) operatingKm = actKm + deadKm;
+                }
+                // Check remarks for intermediate rest stops / opportunity charging
+                if (matchedSched.remarks) {
+                    const numbers = String(matchedSched.remarks).match(/[0-9]+(?:\.[0-9]+)?/g);
+                    if (numbers) {
+                        for (const numStr of numbers) {
+                            const n = Number(numStr);
+                            if (n > 20 && n < operatingKm) {
+                                operatingKm = n;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             if (operatingKm > 65) operatingKm = 65;
@@ -3313,6 +3356,22 @@
                         allocatedDuties.unshift(newDuty);
                         saveAllocatedDuties(allocatedDuties);
 
+                        // Clear any post-route servicing flag for this newly allocated trip
+                        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.clearBusServicing === 'function') {
+                            window.DepotSyncEngine.clearBusServicing(alloc.bm);
+                        } else {
+                            try {
+                                const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+                                delete servMap[String(alloc.bm).toUpperCase().trim()];
+                                localStorage.setItem('smartbus_servicing_status', JSON.stringify(servMap));
+                                fetch('/api/servicing-status', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ bm: alloc.bm, clear: true })
+                                }).catch(() => {});
+                            } catch(e) {}
+                        }
+
                         await recommend();
                         showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
                     }
@@ -3672,7 +3731,7 @@
                 switchOperatingDepot(e.newValue);
                 return;
             }
-            if (e.key === 'bmtc_driver_roster_v1' || e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_locked_buses' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated' || e.key === 'depot_bus_assignments') {
+            if (e.key === 'bmtc_driver_roster_v1' || e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_locked_buses' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated' || e.key === 'depot_bus_assignments' || e.key === 'smartbus_servicing_status') {
                 await handleSyncStateUpdate();
             }
         });
@@ -3682,6 +3741,7 @@
             window.DepotSyncEngine.on('bus-state', handleSyncStateUpdate);
             window.DepotSyncEngine.on('allocated-duties', handleSyncStateUpdate);
             window.DepotSyncEngine.on('locked-buses', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('servicing-status', handleSyncStateUpdate);
             window.DepotSyncEngine.on('sync', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-bus-added', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
@@ -3693,7 +3753,7 @@
             const bc = new BroadcastChannel('depot_operations_sync');
             bc.onmessage = async (ev) => {
                 const msgType = String(ev.data?.type || '').toUpperCase();
-                if (msgType === 'DRIVER_ATTENDANCE_UPDATED' || msgType === 'ROUTE_COMPLETED' || msgType === 'DEPOT_CHANGED' || msgType === 'ALLOCATED_DUTIES_UPDATED') {
+                if (msgType === 'DRIVER_ATTENDANCE_UPDATED' || msgType === 'ROUTE_COMPLETED' || msgType === 'DEPOT_CHANGED' || msgType === 'ALLOCATED_DUTIES_UPDATED' || msgType === 'CHARGING_COMPLETED' || msgType === 'CLEANING_COMPLETED' || msgType === 'SERVICING_STATUS_UPDATED') {
                     await handleSyncStateUpdate();
                 }
             };

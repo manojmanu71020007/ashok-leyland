@@ -2280,6 +2280,7 @@ const server = http.createServer(async (req, res) => {
                 addedBuses: currentState._addedBuses || {},
                 deletedBuses: currentState._deletedBuses || {},
                 depotAssignments: assignments,
+                servicingStatus: currentState._servicingStatus || {},
                 depot1Count: counts.depot1Count,
                 depot2Count: counts.depot2Count,
                 timestamp: Date.now()
@@ -2376,6 +2377,52 @@ const server = http.createServer(async (req, res) => {
                     }
                 } catch (error) {
                     sendJson(res, { ok: false, error: "Failed to save locked buses", details: error.message }, 500);
+                }
+            });
+            return;
+        }
+    }
+
+    // ── GET & POST /api/servicing-status (Post-Route Servicing: Charging & Cleaning) ──
+    if (pathname === "/api/servicing-status") {
+        if (req.method === "GET") {
+            try {
+                const currentState = loadBusState();
+                const servicingStatus = currentState._servicingStatus || {};
+                sendJson(res, { ok: true, servicingStatus });
+            } catch (error) {
+                sendJson(res, { ok: false, error: "Failed to load servicing status", details: error.message }, 500);
+            }
+            return;
+        }
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    if (!currentState._servicingStatus) currentState._servicingStatus = {};
+
+                    if (payload.servicingStatus && typeof payload.servicingStatus === "object") {
+                        currentState._servicingStatus = payload.servicingStatus;
+                    } else if (payload.bm) {
+                        const bmKey = String(payload.bm).toUpperCase().trim();
+                        if (payload.clear) {
+                            delete currentState._servicingStatus[bmKey];
+                        } else if (payload.status) {
+                            currentState._servicingStatus[bmKey] = payload.status;
+                        } else if (payload.patch && typeof payload.patch === "object") {
+                            currentState._servicingStatus[bmKey] = Object.assign(
+                                {},
+                                currentState._servicingStatus[bmKey] || {},
+                                payload.patch
+                            );
+                        }
+                    }
+                    saveBusState(currentState);
+                    broadcastSyncEvent("servicing-status-updated", { servicingStatus: currentState._servicingStatus });
+                    sendJson(res, { ok: true, servicingStatus: currentState._servicingStatus });
+                } catch (error) {
+                    sendJson(res, { ok: false, error: "Failed to save servicing status", details: error.message }, 500);
                 }
             });
             return;

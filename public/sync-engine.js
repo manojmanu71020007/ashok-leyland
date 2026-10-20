@@ -15,12 +15,14 @@
     const ALLOCATED_DUTIES_ENDPOINT = API_BASE + '/api/allocated-duties';
     const LOCKED_BUSES_ENDPOINT = API_BASE + '/api/locked-buses';
     const BUS_STATE_ENDPOINT = API_BASE + '/api/bus-state';
+    const SERVICING_STATUS_ENDPOINT = API_BASE + '/api/servicing-status';
 
     const ALLOCATED_KEY = 'smartbus_allocated_duties';
     const LOCKED_KEY = 'depot_locked_buses';
     const BUS_STATES_KEY = 'depot_bus_states';
     const ADDED_BUSES_KEY = 'depot_added_buses';
     const DELETED_BUSES_KEY = 'depot_deleted_buses';
+    const SERVICING_STATUS_KEY = 'smartbus_servicing_status';
 
     let currentVersion = 0;
     let eventSource = null;
@@ -33,6 +35,7 @@
         'locked-buses': new Set(),
         'depot-updated': new Set(),
         'fleet-updated': new Set(),
+        'servicing-status': new Set(),
         'sync': new Set()
     };
 
@@ -118,6 +121,14 @@
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(stateData.deletedBuses));
             } catch (e) {}
             notify('fleet-updated', { type: 'deleted-sync', buses: stateData.deletedBuses });
+        }
+
+        // 7. Sync servicing status (post-route charging & cleaning requirements)
+        if (stateData.servicingStatus && typeof stateData.servicingStatus === 'object') {
+            try {
+                localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(stateData.servicingStatus));
+            } catch (e) {}
+            notify('servicing-status', stateData.servicingStatus);
         }
 
         notify('sync', stateData);
@@ -215,6 +226,22 @@
                     if (Array.isArray(duties)) {
                         localStorage.setItem(ALLOCATED_KEY, JSON.stringify(duties));
                         notify('allocated-duties', duties);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('servicing-status-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const servicing = payload && payload.data && payload.data.servicingStatus;
+                    if (servicing && typeof servicing === 'object') {
+                        localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(servicing));
+                        notify('servicing-status', servicing);
                     } else {
                         fetchFullSync();
                     }
@@ -521,13 +548,29 @@
         if (!bm) return null;
         const clean = String(bm).toUpperCase().trim();
         const deleted = getDeletedBusesLocal();
-        if (deleted[clean]) return deleted[clean];
+        if (deleted[clean]) {
+            const item = deleted[clean];
+            return Object.assign({
+                bm: clean,
+                busNumber: clean,
+                regNo: item.regNo || item.regNumber || '',
+                regNumber: item.regNo || item.regNumber || '',
+                model: item.model || 'ELECTRIC BUS AC EiV12',
+                make: item.make || 'Ashok Leyland',
+                reason: item.reason || item.deletionReason || 'Removed from fleet',
+                deletedAt: item.deletedAt || ''
+            }, item);
+        }
         try {
             const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
             if (states[clean] && (states[clean].status === 'Deleted' || states[clean].deleted === true)) {
                 return {
                     bm: clean,
-                    regNo: states[clean].regNo || '',
+                    busNumber: clean,
+                    regNo: states[clean].regNo || states[clean].regNumber || '',
+                    regNumber: states[clean].regNo || states[clean].regNumber || '',
+                    model: states[clean].model || 'ELECTRIC BUS AC EiV12',
+                    make: states[clean].make || 'Ashok Leyland',
                     reason: states[clean].deletionReason || 'Removed from fleet',
                     deletedAt: states[clean].deletedAt || ''
                 };
@@ -538,16 +581,32 @@
 
     async function addFleetBusApi(data) {
         try {
+            const bm = String(data.bm || data.busNumber || data.bmNumber || '').toUpperCase().trim();
+            const regNo = String(data.regNo || data.regNumber || data.registrationNo || '').toUpperCase().trim();
+            const payload = Object.assign({}, data, {
+                bm,
+                busNumber: bm,
+                regNo,
+                regNumber: regNo,
+                model: data.model || 'ELECTRIC BUS AC EiV12',
+                make: data.make || 'Ashok Leyland'
+            });
             const res = await fetch(API_BASE + '/api/fleet/add-bus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const result = await res.json();
             if (result && result.ok) {
-                const bm = String(data.bm).toUpperCase().trim();
+                const busData = Object.assign({}, payload, result.bus || {});
+                busData.bm = busData.bm || bm;
+                busData.busNumber = busData.busNumber || bm;
+                busData.regNo = busData.regNo || regNo;
+                busData.regNumber = busData.regNumber || regNo;
+                busData.model = busData.model || 'ELECTRIC BUS AC EiV12';
+                busData.make = busData.make || 'Ashok Leyland';
                 const added = getAddedBusesLocal();
-                added[bm] = result.bus || data;
+                added[bm] = busData;
                 localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
                 const deleted = getDeletedBusesLocal();
                 delete deleted[bm];
@@ -555,10 +614,10 @@
 
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: result.bus });
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: busData });
                 } catch(e) {}
 
-                notify('fleet-updated', { type: 'add', bm, data: result.bus });
+                notify('fleet-updated', { type: 'add', bm, data: busData });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to add bus');
@@ -571,16 +630,32 @@
 
     async function deleteFleetBusApi(data) {
         try {
+            const bm = String(data.bm || data.busNumber || data.bmNumber || '').toUpperCase().trim();
+            const regNo = String(data.regNo || data.regNumber || data.registrationNo || '').toUpperCase().trim();
+            const payload = Object.assign({}, data, {
+                bm,
+                busNumber: bm,
+                regNo,
+                regNumber: regNo,
+                model: data.model || 'ELECTRIC BUS AC EiV12',
+                make: data.make || 'Ashok Leyland'
+            });
             const res = await fetch(API_BASE + '/api/fleet/delete-bus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const result = await res.json();
             if (result && result.ok) {
-                const bm = String(data.bm).toUpperCase().trim();
+                const busData = Object.assign({}, payload, result.bus || {});
+                busData.bm = busData.bm || bm;
+                busData.busNumber = busData.busNumber || bm;
+                busData.regNo = busData.regNo || regNo;
+                busData.regNumber = busData.regNumber || regNo;
+                busData.model = busData.model || 'ELECTRIC BUS AC EiV12';
+                busData.make = busData.make || 'Ashok Leyland';
                 const deleted = getDeletedBusesLocal();
-                deleted[bm] = result.bus || data;
+                deleted[bm] = busData;
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
                 const added = getAddedBusesLocal();
                 delete added[bm];
@@ -588,10 +663,10 @@
 
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_DELETED', bm, data: result.bus });
+                    bc.postMessage({ type: 'FLEET_BUS_DELETED', bm, data: busData });
                 } catch(e) {}
 
-                notify('fleet-updated', { type: 'delete', bm, data: result.bus });
+                notify('fleet-updated', { type: 'delete', bm, data: busData });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to delete bus');
@@ -599,6 +674,91 @@
         } catch(e) {
             console.error('[SyncEngine] deleteFleetBusApi error:', e);
             throw e;
+        }
+    }
+
+    // Servicing Status Helpers (Charging & Cleaning requirement after route completion)
+    function getServicingStatusLocal() {
+        try {
+            return JSON.parse(localStorage.getItem(SERVICING_STATUS_KEY) || '{}');
+        } catch(e) {
+            return {};
+        }
+    }
+
+    function getBusServicingLocal(bm) {
+        if (!bm) return null;
+        const clean = String(bm).toUpperCase().trim();
+        const map = getServicingStatusLocal();
+        return map[clean] || null;
+    }
+
+    async function pushServicingStatus(statusMap) {
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(statusMap));
+        } catch(e) {}
+        notify('servicing-status', statusMap);
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ servicingStatus: statusMap })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] pushServicingStatus error:', e);
+        }
+    }
+
+    async function updateBusServicingApi(bm, patch) {
+        if (!bm) return;
+        const clean = String(bm).toUpperCase().trim();
+        const current = getServicingStatusLocal();
+        current[clean] = Object.assign({}, current[clean] || {}, patch, { bm: clean });
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(current));
+        } catch(e) {}
+        notify('servicing-status', current);
+
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.postMessage({ type: 'SERVICING_STATUS_UPDATED', bm: clean, status: current[clean] });
+        } catch(e) {}
+
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bm: clean, patch })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] updateBusServicingApi error:', e);
+        }
+        return current[clean];
+    }
+
+    async function clearBusServicingApi(bm) {
+        if (!bm) return;
+        const clean = String(bm).toUpperCase().trim();
+        const current = getServicingStatusLocal();
+        delete current[clean];
+        try {
+            localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(current));
+        } catch(e) {}
+        notify('servicing-status', current);
+
+        try {
+            const bc = new BroadcastChannel('depot_operations_sync');
+            bc.postMessage({ type: 'SERVICING_STATUS_UPDATED', bm: clean, clear: true });
+        } catch(e) {}
+
+        try {
+            await fetch(SERVICING_STATUS_ENDPOINT, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ bm: clean, clear: true })
+            });
+        } catch(e) {
+            console.warn('[SyncEngine] clearBusServicingApi error:', e);
         }
     }
 
@@ -640,7 +800,10 @@
         const bc = new BroadcastChannel('depot_operations_sync');
         bc.onmessage = (ev) => {
             const msgType = String(ev.data?.type || '').toUpperCase();
-            if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
+            if (msgType === 'SERVICING_STATUS_UPDATED') {
+                fetchFullSync();
+                notify('servicing-status', getServicingStatusLocal());
+            } else if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
                 fetchFullSync();
                 notify('fleet-updated', ev.data);
             }
@@ -673,6 +836,12 @@
         addBus: addFleetBusApi,
         deleteBus: deleteFleetBusApi,
         restoreBus: restoreFleetBusApi,
+        getServicingStatus: getServicingStatusLocal,
+        getBusServicing: getBusServicingLocal,
+        saveServicingStatus: pushServicingStatus,
+        updateBusServicing: updateBusServicingApi,
+        saveBusServicing: updateBusServicingApi,
+        clearBusServicing: clearBusServicingApi,
         getVersion: () => currentVersion
     };
 })(window);
