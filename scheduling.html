@@ -748,7 +748,8 @@
                     <label class="wide">
                         <span data-i18n="label_select_bus_route">Select Bus Route (Origin ➔ Destination)</span> <span style="font-weight:normal;color:var(--muted);font-size:.78rem;">— <span id="route-count-badge">9 Routes available</span></span>
                         <select id="route-select">
-                            <option value="356Z" selected>Chandapura ➔ Anekal (356Z)</option>
+                            <option value="" selected data-i18n="option_choose_route">Choose a route</option>
+                            <option value="356Z">Chandapura ➔ Anekal (356Z)</option>
                             <option value="360K">Chandapura ➔ Kempegowda Bus Station (360K)</option>
                             <option value="600F">Bommasandra Depot 32 ➔ Basavanagudi (600F)</option>
                             <option value="361C">Attibele ➔ Kempegowda Bus Station (361C)</option>
@@ -762,7 +763,7 @@
                     <label>
                         <span data-i18n="label_time_slot">Scheduled Departure Time (from dataset)</span>
                         <select id="scheduled-time-select">
-                            <option value="13:10" selected>13:10:00 (Schedule General - Regular Shift)</option>
+                            <option value="" selected data-i18n="option_choose_departure_time">Choose a departure time</option>
                         </select>
                     </label>
                     <label class="departure-field-wrap">
@@ -770,7 +771,7 @@
                             <span data-i18n="label_departure_time">Departure time</span>
                             <span id="manual-override-badge" class="manual-override-badge" style="display:none;" data-i18n="manual_override_badge">⚠️ Manual Over-ride</span>
                         </div>
-                        <input id="departure" type="time" value="13:10">
+                        <input id="departure" type="time" value="">
                         <div id="manual-override-hint" class="manual-override-hint" style="display:none;">
                             <span data-i18n="manual_override_hint_text">⚠️ Manual Over-ride: Time modified from scheduled timetable</span>
                             <button type="button" id="btn-reset-time" class="btn-reset-time" onclick="resetToScheduledTime()" data-i18n="btn_reset_auto">Reset to Timetable</button>
@@ -778,7 +779,7 @@
                     </label>
                     <label>
                         <span data-i18n="label_route_length">Schedule distance (km)</span>
-                        <input id="distance" type="number" min="1" value="28.7" readonly title="Schedule distance is fixed based on route GTFS data">
+                        <input id="distance" type="number" min="1" value="" readonly title="Schedule distance is fixed based on route GTFS data">
                     </label>
                     <label>
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
@@ -1180,12 +1181,12 @@
         let isManualOverride = false;
 
         function getSelectedRouteObj() {
+            if (!routeSelect || !routeSelect.value) return null;
+            const selectedRouteId = routeSelect.value;
             const depotRoutes = directionalRoutes.filter(r => getRouteDepot(r) === currentOperatingDepot);
-            const defaultRoute = depotRoutes[0] || directionalRoutes[0];
-            const defaultId = defaultRoute ? (defaultRoute.id || defaultRoute.code) : "356Z";
-            const selectedRouteId = (routeSelect && routeSelect.value) ? routeSelect.value : defaultId;
             return depotRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId)
-                || defaultRoute;
+                || directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId)
+                || null;
         }
 
         function updateManualOverrideUI() {
@@ -1193,7 +1194,18 @@
             const hint = document.getElementById("manual-override-hint");
             const depEl = document.getElementById("departure");
             const modeRule = document.getElementById("departure-mode-rule");
-            const depTime = depInput ? (depInput.value || "13:10") : "13:10";
+            const depTime = depInput ? depInput.value : "";
+
+            if (!depTime) {
+                if (badge) badge.style.display = "none";
+                if (hint) hint.style.display = "none";
+                if (depEl) depEl.classList.remove("departure-input-override");
+                if (modeRule) {
+                    modeRule.innerHTML = `—`;
+                    modeRule.style.color = "";
+                }
+                return;
+            }
 
             if (isManualOverride) {
                 if (badge) badge.style.display = "inline-flex";
@@ -1218,6 +1230,8 @@
             isManualOverride = false;
             if (scheduledTimeSelect && scheduledTimeSelect.value && depInput) {
                 depInput.value = scheduledTimeSelect.value;
+            } else if (scheduledTimeSelect && !scheduledTimeSelect.value && depInput) {
+                depInput.value = "";
             }
             updateManualOverrideUI();
             recommend();
@@ -1834,6 +1848,7 @@
             if (!routeObj) {
                 routeObj = getSelectedRouteObj();
             }
+            if (!routeObj) return [];
             const routeCode = routeObj ? (routeObj.code || routeObj.routeCode || "356Z") : "356Z";
             const routeDist = Number(routeObj ? (routeObj.distKm || routeObj.distanceKm || 28.7) : 28.7);
             const depTimeClean = (departureTime || (depInput ? depInput.value : "13:10") || "13:10").trim();
@@ -2242,6 +2257,9 @@
 
         function allocateBus(routeObj, departureTime) {
             allocatedDuties = loadAllocatedDuties();
+            if (!routeObj) {
+                return { allocated: null, candidates: [], matchedSched: null, shift: "", reqSoc: 0, swapLog: [] };
+            }
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const routeDist = Number(routeObj ? (routeObj.distKm || 28.7) : 28.7);
             const depTimeClean = (departureTime || "13:10").trim();
@@ -2493,7 +2511,68 @@
             const candKpiCount = document.getElementById("cand-kpi-count");
 
             const routeObj = getSelectedRouteObj();
-            const departure = (depInput ? depInput.value : "13:10") || "13:10";
+            const depVal = depInput ? depInput.value : "";
+            const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+            const departure = depVal || schedVal;
+
+            if (!routeObj) {
+                if (titleEl) titleEl.textContent = "Choose a route and departure time";
+                if (candKpiCount) candKpiCount.textContent = "0";
+                const kpiRouteDist = document.getElementById("kpi-route-dist");
+                if (kpiRouteDist) kpiRouteDist.textContent = "—";
+                if (socResult) socResult.textContent = "—";
+                if (rangeResult) rangeResult.textContent = "—";
+                if (socKpi) socKpi.style.opacity = "0.4";
+                if (rangeKpi) rangeKpi.style.opacity = "0.4";
+                if (currentSocRule) currentSocRule.textContent = "—";
+                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
+                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                if (rangeRule) rangeRule.textContent = "—";
+                if (timeRule) timeRule.textContent = "—";
+                const totalDistanceRuleEl = document.getElementById("route-distance-rule");
+                if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = "—";
+                if (busCatRule) {
+                    busCatRule.textContent = "—";
+                    busCatRule.style.color = "";
+                }
+                if (matrixStatusRule) {
+                    matrixStatusRule.textContent = "Choose a route and departure time to allocate bus";
+                    matrixStatusRule.style.color = "var(--muted)";
+                }
+                const driverRuleEl = document.getElementById("driver-rule");
+                if (driverRuleEl) driverRuleEl.innerHTML = "—";
+                return;
+            }
+
+            if (!departure) {
+                if (titleEl) titleEl.textContent = `Choose a departure time for ${routeObj.code || 'route'}`;
+                if (candKpiCount) candKpiCount.textContent = "0";
+                const kpiRouteDist = document.getElementById("kpi-route-dist");
+                if (kpiRouteDist) kpiRouteDist.textContent = `${Number(routeObj.distKm || 0).toFixed(1)} km`;
+                if (socResult) socResult.textContent = "—";
+                if (rangeResult) rangeResult.textContent = "—";
+                if (socKpi) socKpi.style.opacity = "0.4";
+                if (rangeKpi) rangeKpi.style.opacity = "0.4";
+                if (currentSocRule) currentSocRule.textContent = "—";
+                if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
+                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                if (rangeRule) rangeRule.textContent = "—";
+                if (timeRule) timeRule.textContent = "—";
+                const totalDistanceRuleEl = document.getElementById("route-distance-rule");
+                if (totalDistanceRuleEl) totalDistanceRuleEl.textContent = `${Number(routeObj.distKm || 0).toFixed(2)} km`;
+                if (busCatRule) {
+                    busCatRule.textContent = "—";
+                    busCatRule.style.color = "";
+                }
+                if (matrixStatusRule) {
+                    matrixStatusRule.textContent = "Please choose a departure time";
+                    matrixStatusRule.style.color = "var(--muted)";
+                }
+                const driverRuleEl = document.getElementById("driver-rule");
+                if (driverRuleEl) driverRuleEl.innerHTML = "—";
+                return;
+            }
+
             const candidates = getRouteCandidateBuses(routeObj, departure);
             if (candKpiCount) candKpiCount.textContent = `${candidates.length}`;
 
@@ -2648,7 +2727,17 @@
             const driverSelect = document.getElementById("driver");
             if (!recBtn) return;
             if (!allocatedBus) {
-                recBtn.textContent = "⚡ No Eligible Bus to Allocate";
+                const routeObj = getSelectedRouteObj();
+                const depVal = depInput ? depInput.value : "";
+                const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+                const departure = depVal || schedVal;
+                if (!routeObj) {
+                    recBtn.textContent = "⚡ Choose Route & Departure Time";
+                } else if (!departure) {
+                    recBtn.textContent = "⚡ Choose a Departure Time";
+                } else {
+                    recBtn.textContent = "⚡ No Eligible Bus to Allocate";
+                }
                 recBtn.disabled = true;
                 recBtn.style.opacity = "0.5";
                 recBtn.style.cursor = "not-allowed";
@@ -2682,17 +2771,47 @@
 
         async function recommend() {
             populateDriverDropdown();
-            const departure = (depInput ? depInput.value : "13:10") || "13:10";
             const selectedRouteObj = getSelectedRouteObj();
+            const depVal = depInput ? depInput.value : "";
+            const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+            const departure = depVal || schedVal;
+
+            if (!selectedRouteObj) {
+                currentlyAllocatedBus = null;
+                currentScheduleMatch = null;
+                const candidateSection = document.getElementById("candidate-buses-section");
+                const allocatedCard = document.getElementById("auto-allocated-card");
+                const allocationTitle = document.getElementById("allocation-title");
+                if (candidateSection) candidateSection.style.display = "none";
+                if (allocatedCard) allocatedCard.style.display = "none";
+                if (allocationTitle) allocationTitle.textContent = "Choose a route and departure time";
+                updateAllocationPanelMetrics(null);
+                updateSelectedBusDutyBanner();
+                updateAllocateButton(null);
+                return;
+            }
+
+            if (!departure) {
+                currentlyAllocatedBus = null;
+                currentScheduleMatch = null;
+                const candidateSection = document.getElementById("candidate-buses-section");
+                const allocatedCard = document.getElementById("auto-allocated-card");
+                const allocationTitle = document.getElementById("allocation-title");
+                if (candidateSection) candidateSection.style.display = "none";
+                if (allocatedCard) allocatedCard.style.display = "none";
+                if (allocationTitle) allocationTitle.textContent = `Choose a departure time for ${selectedRouteObj.code || 'route'}`;
+                updateAllocationPanelMetrics(null);
+                updateSelectedBusDutyBanner();
+                updateAllocateButton(null);
+                return;
+            }
 
             // Execute allocation engine for this route, shift, time & battery state
-            if (selectedRouteObj) {
-                const allocResult = allocateBus(selectedRouteObj, departure);
-                currentlyAllocatedBus = allocResult.allocated;
-                currentScheduleMatch = allocResult.matchedSched;
-                renderCandidateBuses(allocResult.candidates);
-                renderAllocatedCard(allocResult);
-            }
+            const allocResult = allocateBus(selectedRouteObj, departure);
+            currentlyAllocatedBus = allocResult.allocated;
+            currentScheduleMatch = allocResult.matchedSched;
+            renderCandidateBuses(allocResult.candidates);
+            renderAllocatedCard(allocResult);
 
             updateAllocationPanelMetrics(currentlyAllocatedBus);
             updateSelectedBusDutyBanner();
@@ -2701,7 +2820,13 @@
 
         function updateSelectedRouteDistance() {
             const routeObj = getSelectedRouteObj();
-            if (!routeObj) return;
+            if (!routeObj) {
+                selectedRouteDistance = null;
+                if (distanceInput) distanceInput.value = "";
+                const totalDistanceEl = document.getElementById("route-distance-rule");
+                if (totalDistanceEl) totalDistanceEl.textContent = "—";
+                return;
+            }
 
             const distKm = Number(routeObj.distKm || routeObj.distanceKm) || 28.7;
             selectedRouteDistance = distKm;
@@ -2713,7 +2838,21 @@
 
         function updateScheduledTimesForSelectedRoute(keepManualTime = false) {
             const routeObj = getSelectedRouteObj();
-            if (!routeObj) return;
+            if (!routeObj) {
+                updateSelectedRouteDistance();
+                if (scheduledTimeSelect) {
+                    scheduledTimeSelect.innerHTML = `<option value="" data-i18n="option_choose_departure_time">Choose a departure time</option>`;
+                    scheduledTimeSelect.value = "";
+                }
+                if (depInput && !keepManualTime) {
+                    depInput.value = "";
+                }
+                updateManualOverrideUI();
+                if (typeof updateSchedulingAvailBadge === "function") {
+                    updateSchedulingAvailBadge();
+                }
+                return;
+            }
 
             updateSelectedRouteDistance();
 
@@ -2731,23 +2870,29 @@
             const sortedTimes = Array.from(timeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
             if (scheduledTimeSelect) {
+                let html = `<option value="" data-i18n="option_choose_departure_time">Choose a departure time</option>`;
                 if (sortedTimes.length === 0) {
-                    scheduledTimeSelect.innerHTML = `<option value="13:10">13:10:00 (Schedule General - Regular Shift)</option>`;
+                    html += `<option value="13:10">13:10:00 (Schedule General - Regular Shift)</option>`;
                 } else {
-                    scheduledTimeSelect.innerHTML = sortedTimes.map(([timeStr, sched]) => {
+                    html += sortedTimes.map(([timeStr, sched]) => {
                         return `<option value="${timeStr}">${sched.outTime || timeStr} (${sched.scheduleId} - ${sched.shift})</option>`;
                     }).join("");
                 }
+                scheduledTimeSelect.innerHTML = html;
 
-                if (!keepManualTime && sortedTimes.length > 0) {
-                    scheduledTimeSelect.value = sortedTimes[0][0];
-                    if (depInput) depInput.value = sortedTimes[0][0];
+                if (!keepManualTime) {
+                    scheduledTimeSelect.value = "";
+                    if (depInput) depInput.value = "";
                     isManualOverride = false;
                 } else if (keepManualTime && depInput) {
                     const manualVal = depInput.value;
                     const matchedOpt = scheduledTimeSelect.querySelector(`option[value="${manualVal}"]`);
                     if (matchedOpt) {
                         scheduledTimeSelect.value = manualVal;
+                    } else if (manualVal) {
+                        scheduledTimeSelect.value = "";
+                    } else {
+                        scheduledTimeSelect.value = "";
                     }
                 }
             }
@@ -2781,7 +2926,8 @@
 
             const currentVal = routeSelect ? routeSelect.value : "";
 
-            let html = `<optgroup label="🏢 Depot ${currentOperatingDepot} Routes (${currentOperatingDepot === '2' ? 'Attibele / Hosakote' : 'Chandapura / Bommasandra'})">`;
+            let html = `<option value="" data-i18n="option_choose_route">Choose a route</option>`;
+            html += `<optgroup label="🏢 Depot ${currentOperatingDepot} Routes (${currentOperatingDepot === '2' ? 'Attibele / Hosakote' : 'Chandapura / Bommasandra'})">`;
             filtered.forEach(r => {
                 const optVal = r.id || r.code;
                 const isSel = (optVal === currentVal || r.code === currentVal);
@@ -2791,10 +2937,10 @@
 
             routeSelect.innerHTML = html;
 
-            // Ensure routeSelect value belongs strictly to this filtered depot routes list
+            // Ensure routeSelect value belongs strictly to this filtered depot routes list or stays empty
             const matchedInFiltered = filtered.find(r => r.id === routeSelect.value || r.code === routeSelect.value);
             if (!matchedInFiltered) {
-                routeSelect.value = filtered[0].id || filtered[0].code;
+                routeSelect.value = "";
             }
         }
 
@@ -2819,8 +2965,21 @@
             if (routeSelect) {
                 routeSelect.addEventListener("change", async () => {
                     currentlyAllocatedBus = null;
+                    currentScheduleMatch = null;
+                    isManualOverride = false;
                     updateSelectedRouteDistance();
                     updateScheduledTimesForSelectedRoute(false);
+
+                    const candidateSection = document.getElementById("candidate-buses-section");
+                    const allocatedCard = document.getElementById("auto-allocated-card");
+                    const allocationTitle = document.getElementById("allocation-title");
+                    if (candidateSection) candidateSection.style.display = "none";
+                    if (allocatedCard) allocatedCard.style.display = "none";
+                    if (allocationTitle) {
+                        allocationTitle.textContent = routeSelect.value ? "Choose a departure time" : "Choose a route and departure time";
+                    }
+                    updateSelectedBusDutyBanner();
+                    updateAllocateButton(null);
                     await recommend();
                 });
             }
@@ -2837,8 +2996,8 @@
 
             if (scheduledTimeSelect) {
                 scheduledTimeSelect.addEventListener("change", async () => {
-                    if (depInput && scheduledTimeSelect.value) {
-                        depInput.value = scheduledTimeSelect.value;
+                    if (depInput) {
+                        depInput.value = scheduledTimeSelect.value || "";
                     }
                     isManualOverride = false;
                     updateManualOverrideUI();
@@ -2849,11 +3008,17 @@
             if (depInput) {
                 const handleDeparture = async () => {
                     const val = depInput.value;
-                    isManualOverride = true;
-                    if (scheduledTimeSelect && val) {
-                        const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
-                        if (exactOpt) {
-                            scheduledTimeSelect.value = val;
+                    isManualOverride = !!val;
+                    if (scheduledTimeSelect) {
+                        if (val) {
+                            const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
+                            if (exactOpt) {
+                                scheduledTimeSelect.value = val;
+                            } else {
+                                scheduledTimeSelect.value = "";
+                            }
+                        } else {
+                            scheduledTimeSelect.value = "";
                         }
                     }
                     updateManualOverrideUI();
@@ -2886,13 +3051,24 @@
             const recBtn = document.getElementById("recommend");
             if (recBtn) {
                 recBtn.addEventListener("click", async () => {
+                    const routeObj = getSelectedRouteObj();
+                    if (!routeObj) {
+                        showAllocationToast("⚠️ Please choose a route first.", "error");
+                        return;
+                    }
+
+                    const depVal = depInput ? depInput.value : "";
+                    const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+                    const departureTime = depVal || schedVal;
+                    if (!departureTime) {
+                        showAllocationToast("⚠️ Please choose a departure time first.", "error");
+                        return;
+                    }
+
                     if (!currentlyAllocatedBus) {
                         showAllocationToast("⚠️ No eligible bus available to allocate for this route.", "error");
                         return;
                     }
-
-                    const routeObj = getSelectedRouteObj();
-                    const departureTime = depInput ? (depInput.value || "13:10") : "13:10";
                     const depShort = departureTime.substring(0, 5);
 
                     if (currentlyAllocatedBus.isCommitted) {
