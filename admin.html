@@ -2985,8 +2985,9 @@ let busCategoriesMap = new Map();
                 }
             }
             // For multi-trip schedules with rest breaks, cap single operating stretch at 95 km
-            if (targetKm > 110 && (!schedObj || !schedObj.singleChargeReqKm || (schedObj.noOfRest && schedObj.noOfRest > 0))) {
-                targetKm = Math.min(targetKm, 95);
+            // For multi-trip duties or long schedules, cap single continuous operating stretch at 65 km
+            if (targetKm > 65) {
+                targetKm = 65;
             }
 
             // Vehicle-specific range & Time Category drain rate model:
@@ -4706,7 +4707,7 @@ let busCategoriesMap = new Map();
                 if (actKm > 0) operatingKm = actKm + deadKm;
                 else if (matchedSched.singleChargeReqKm) operatingKm = Number(matchedSched.singleChargeReqKm);
             }
-            if (operatingKm > 95) operatingKm = 95;
+            if (operatingKm > 65) operatingKm = 65;
 
             if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
                 return {
