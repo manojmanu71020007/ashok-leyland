@@ -312,9 +312,9 @@
     "chargingStatus": null
   },
   "BM001": {
-    "status": "Deleted",
+    "status": "On Time",
     "rawStatus": "On Time",
-    "soc": 99,
+    "soc": 95,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-20T02:23:01.080Z",
@@ -648,11 +648,15 @@
     "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
     "blocked": false,
-    "deleted": true,
-    "isDeleted": true,
+    "deleted": false,
+    "isDeleted": false,
     "deletionReason": "Major Breakdown / Motor Defect",
     "deletedAt": "2026-10-20T11:33:25.166Z",
-    "isNewlyAdded": false
+    "isNewlyAdded": true,
+    "regNo": "KA51AH4144",
+    "busCategory": "B",
+    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+    "addedAt": "2026-10-20T13:50:11.322Z"
   },
   "BUS-01": {
     "status": "Blocked",
@@ -18658,13 +18662,6 @@
     "BM000": "1"
   },
   "_deletedBuses": {
-    "BM001": {
-      "bm": "BM001",
-      "regNo": "",
-      "reason": "Major Breakdown / Motor Defect",
-      "deletedAt": "2026-10-20T11:33:25.166Z",
-      "timestamp": 1792496005166
-    },
     "BM000": {
       "bm": "BM000",
       "busNumber": "BM000",
@@ -18693,6 +18690,22 @@
       "make": "Ashok Leyland",
       "addedAt": "2026-10-20T13:31:30.628Z",
       "timestamp": 1792503090628,
+      "isNewlyAdded": true
+    },
+    "BM001": {
+      "bm": "BM001",
+      "busNumber": "BM001",
+      "regNo": "KA51AH4144",
+      "regNumber": "KA51AH4144",
+      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+      "depot": "1",
+      "category": "B",
+      "busCategory": "B",
+      "soc": 95,
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "addedAt": "2026-10-20T13:50:11.322Z",
+      "timestamp": 1792504211322,
       "isNewlyAdded": true
     }
   },
