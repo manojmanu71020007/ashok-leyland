@@ -478,6 +478,30 @@
             border-color: #b45309;
             color: #ffffff;
         }
+        .candidate-bus-card.standby-card {
+            border-color: #e2e8f0;
+            background: #f8fafc;
+            opacity: 0.88;
+            cursor: not-allowed;
+        }
+        .candidate-bus-card.standby-card:hover {
+            border-color: #cbd5e1;
+            background: #f1f5f9;
+            transform: none;
+            box-shadow: none;
+        }
+        .cand-select-btn.standby-locked-btn {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #64748b;
+            font-weight: 600;
+            cursor: not-allowed;
+        }
+        .cand-select-btn.standby-locked-btn:hover {
+            background: #e2e8f0;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
         .cand-card-top {
             display: flex;
             align-items: center;
@@ -2176,6 +2200,19 @@
                 addCandidate(bm, `Route Standby Bus`);
             });
 
+            // Determine Matrix status type for this route & departure time:
+            // - "A": Complex route OR Peak/Extreme Peak time
+            // - "A/B/C": Simple route in Normal (off-peak) time
+            // - "A/B": Standard or Moderate route in Normal (off-peak) time
+            let matrixStatusType = "A";
+            if (!isPeak && !isComplexRoute) {
+                if (isSimpleRoute) {
+                    matrixStatusType = "A/B/C";
+                } else {
+                    matrixStatusType = "A/B";
+                }
+            }
+
             // 5. Depot Fleet search to guarantee 2 to 3 candidate buses
             if (candidates.length < 3) {
                 const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
@@ -2193,12 +2230,12 @@
                 const cKeys = allFleetKeys.filter(k => !aKeys.includes(k) && !bKeys.includes(k));
 
                 let searchPasses = [];
-                if (isPeak || isComplexRoute) {
-                    searchPasses = [aKeys, bKeys];
-                } else if (isStandardRoute || isModerateRoute) {
-                    searchPasses = [aKeys, bKeys];
+                if (matrixStatusType === "A") {
+                    searchPasses = [aKeys];
+                } else if (matrixStatusType === "A/B") {
+                    searchPasses = [bKeys, aKeys];
                 } else {
-                    searchPasses = [aKeys, bKeys, cKeys];
+                    searchPasses = [cKeys, bKeys, aKeys];
                 }
 
                 for (const group of searchPasses) {
@@ -2211,7 +2248,7 @@
             }
 
             // 6. Select recommended pool (exactly 2 to 3 candidate buses)
-            // Prioritize primary/swap schedule buses and highest SoC buses for recommendation pool
+            // Prioritize candidates based on Matrix Status hierarchy and highest battery SoC
             candidates.sort((a, b) => {
                 const getRoleRank = (r) => {
                     const str = (r || "").toLowerCase();
@@ -2219,72 +2256,111 @@
                     if (str.includes("swap")) return 2;
                     return 3;
                 };
+                let catPriority = { "A": 0, "B": 1, "C": 2 };
+                if (matrixStatusType === "A/B") {
+                    catPriority = { "B": 0, "A": 1, "C": 2 };
+                } else if (matrixStatusType === "A/B/C") {
+                    catPriority = { "C": 0, "B": 1, "A": 2 };
+                }
+                const catA = catPriority[a.busCategory] ?? 3;
+                const catB = catPriority[b.busCategory] ?? 3;
+                if (catA !== catB) return catA - catB;
+
                 const rankA = getRoleRank(a.role);
                 const rankB = getRoleRank(b.role);
                 if (rankA !== rankB) return rankA - rankB;
+
                 return (b.liveSoc - a.liveSoc);
             });
 
             // Recommend only 2 to 3 candidate buses
             const recommendedPool = candidates.slice(0, 3);
 
-            // 7. MANDATORY LOCK RULE:
-            // "whatever the bus has higher soc among the 2 to 3 recommended buses that bus has to locked"
-            let highestCand = null;
-            let highestSoc = -Infinity;
+            // 7. MANDATORY LOCK RULE ACCORDING TO MATRIX STATUS:
+            // - If Matrix status has "A/B" green mark:
+            //     If there are "B" category buses among recommending buses -> highest SoC "B" bus is locked
+            //     Else -> highest SoC "A" bus is locked
+            // - If Matrix status has "A/B/C" green mark:
+            //     If there are "C" category buses among recommending buses -> highest SoC "C" bus is locked
+            //     Else if there are "B" category buses -> highest SoC "B" bus is locked
+            //     Else -> highest SoC "A" bus is locked
+            // - If Matrix status is only "A":
+            //     Highest SoC "A" bus is locked
+            // - AND the locked bus cannot be changed: only the locked bus can be allocated!
+            let lockedCand = null;
 
-            recommendedPool.forEach(cand => {
-                const s = Number(cand.liveSoc) || 0;
-                if (s > highestSoc) {
-                    highestSoc = s;
-                    highestCand = cand;
-                } else if (s === highestSoc && highestCand) {
-                    // Tie-breaker: Category A > B > C, then surplus
-                    const catRank = { "A": 3, "B": 2, "C": 1 };
-                    const curRank = catRank[cand.busCategory] || 0;
-                    const highRank = catRank[highestCand.busCategory] || 0;
-                    if (curRank > highRank) {
-                        highestCand = cand;
-                    } else if (curRank === highRank && (cand.surplus || 0) > (highestCand.surplus || 0)) {
-                        highestCand = cand;
-                    }
+            if (matrixStatusType === "A/B") {
+                const bBuses = recommendedPool.filter(c => c.busCategory === "B");
+                if (bBuses.length > 0) {
+                    lockedCand = bBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                } else {
+                    const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+                    lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
                 }
-            });
+            } else if (matrixStatusType === "A/B/C") {
+                const cBuses = recommendedPool.filter(c => c.busCategory === "C");
+                const bBuses = recommendedPool.filter(c => c.busCategory === "B");
+                const aBuses = recommendedPool.filter(c => c.busCategory === "A");
 
-            // Lock the bus with highest SoC among the recommended candidates
-            if (highestCand) {
-                highestCand.isHighestSocLocked = true;
-                highestCand.isLocked = true;
-                highestCand.role = `🔒 Locked Vehicle (Highest SoC: ${highestCand.liveSoc}%)`;
-                highestCand.allocType = `🔒 Locked Vehicle (Highest SoC: ${highestCand.liveSoc}%)`;
+                if (cBuses.length > 0) {
+                    lockedCand = cBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                } else if (bBuses.length > 0) {
+                    lockedCand = bBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                } else {
+                    lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                }
+            } else {
+                // Matrix status is only "A"
+                const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+                if (aBuses.length > 0) {
+                    lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                } else {
+                    lockedCand = recommendedPool.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+                }
             }
 
-            // Set all other recommended candidates as Standby
+            if (!lockedCand && recommendedPool.length > 0) {
+                lockedCand = recommendedPool.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+            }
+
+            // Lock the selected bus as MANDATORY allocation
+            if (lockedCand) {
+                lockedCand.isHighestSocLocked = true;
+                lockedCand.isLocked = true;
+                lockedCand.isMandatoryLocked = true;
+                lockedCand.matrixStatusType = matrixStatusType;
+                lockedCand.role = `🔒 Locked Vehicle (Cat ${lockedCand.busCategory} — Highest SoC: ${lockedCand.liveSoc}%)`;
+                lockedCand.allocType = `🔒 Locked Vehicle (Matrix ${matrixStatusType} — Cat ${lockedCand.busCategory})`;
+            }
+
+            // Set all other recommended candidates as Standby (cannot be allocated)
             recommendedPool.forEach(cand => {
-                if (cand !== highestCand) {
+                if (cand !== lockedCand) {
                     cand.isHighestSocLocked = false;
                     cand.isLocked = false;
-                    cand.role = `Standby Candidate (${cand.liveSoc}% SoC)`;
-                    cand.allocType = `Standby Candidate (${cand.liveSoc}% SoC)`;
+                    cand.isMandatoryLocked = false;
+                    cand.matrixStatusType = matrixStatusType;
+                    cand.role = `Standby Candidate (Cat ${cand.busCategory} — ${cand.liveSoc}% SoC)`;
+                    cand.allocType = `Standby Candidate (Cat ${cand.busCategory})`;
                 }
             });
 
-            // Order final candidates so the locked highest-SoC bus is ALWAYS first (index 0)
+            // Order final candidates so the locked bus is ALWAYS first (index 0)
             const finalCandidates = [];
-            if (highestCand) finalCandidates.push(highestCand);
+            if (lockedCand) finalCandidates.push(lockedCand);
             recommendedPool.forEach(cand => {
-                if (cand !== highestCand) finalCandidates.push(cand);
+                if (cand !== lockedCand) finalCandidates.push(cand);
             });
 
             // Generate detailed explanation reasons
             finalCandidates.forEach(cand => {
-                cand.reason = generateWhyBusSelectedReason(cand, routeObj, depTimeClean, targetShift, isManualOverride, !!cand.isUserSelected);
+                cand.reason = generateWhyBusSelectedReason(cand, routeObj, depTimeClean, targetShift, isManualOverride, false, matrixStatusType);
             });
 
             return finalCandidates;
         }
 
-        function generateWhyBusSelectedReason(bus, routeObj, departureTime, targetShift, isOverridden = false, isUserSelected = false) {
+        function generateWhyBusSelectedReason(bus, routeObj, departureTime, targetShift, isOverridden = false, isUserSelected = false, matrixStatusType = "A/B") {
             if (!bus) return "";
             const routeCode = routeObj ? (routeObj.code || "356Z") : (bus.routeCode || "356Z");
             const routeDist = Number(routeObj ? (routeObj.distKm || 28.7) : 28.7);
@@ -2325,12 +2401,10 @@
             let energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
 
             let dispatchReason = "";
-            if (bus.isHighestSocLocked) {
-                dispatchReason = `🔒 Locked Recommendation: Bus ${bus.bm} is locked as the primary recommended allocation for Route ${routeCode} at ${depTimeClean} because it has the highest battery SoC (${liveSoc}%) among the recommended candidate buses.`;
-            } else if (isUserSelected) {
-                dispatchReason = `Operator Choice: Bus ${bus.bm} was selected from the candidate list as the alternate vehicle for this route and departure time.`;
+            if (bus.isHighestSocLocked || bus.isLocked) {
+                dispatchReason = `🔒 Mandatory Locked Allocation: Under Matrix Status ${matrixStatusType || 'Rule'}, Bus ${bus.bm} (Category ${busCat}) has been locked as the mandatory dispatch vehicle because it has the highest battery SoC (${liveSoc}%) among the prioritized category candidates. This locked bus cannot be changed and only this bus will be allocated.`;
             } else {
-                dispatchReason = `Standby Candidate: Bus ${bus.bm} (${busCat} Category, ${liveSoc}% SoC) is held in reserve as an eligible standby candidate for this departure.`;
+                dispatchReason = `Standby Candidate: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) is held in reserve as an eligible standby candidate for this departure. Standby buses cannot be allocated.`;
             }
 
             if (isOverridden) {
@@ -2363,10 +2437,9 @@
             }
 
             const depVal = depInput ? (depInput.value || "13:10") : "13:10";
-            const lockedCand = candidates.find(c => c.isHighestSocLocked);
-            const countText = isManualOverride
-                ? `${candidates.length} Candidates (1 Locked, Manual Over-ride)`
-                : `${candidates.length} Recommended Candidates${lockedCand ? ' (1 Locked)' : ''}`;
+            const lockedCand = candidates.find(c => c.isHighestSocLocked || c.isLocked) || candidates[0];
+            const matrixLabel = (lockedCand && lockedCand.matrixStatusType) ? lockedCand.matrixStatusType : "Matrix";
+            const countText = `${candidates.length} Recommended Candidates (1 Locked)`;
             if (countBadge) countBadge.textContent = countText;
             if (candKpiCount) candKpiCount.textContent = `${candidates.length}`;
 
@@ -2374,39 +2447,38 @@
             if (subTitle) {
                 if (lockedCand) {
                     subTitle.innerHTML = isManualOverride
-                        ? `Recommended ${candidates.length} candidate buses — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> is locked with highest SoC (${lockedCand.liveSoc}%) <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Over-ride at ${escapeHtml(depVal)}</span>`
-                        : `Recommended ${candidates.length} candidate buses for this departure — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> is locked with highest SoC (${lockedCand.liveSoc}%)`;
+                        ? `Recommended ${candidates.length} candidate buses — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> (Cat ${escapeHtml(lockedCand.busCategory)}, ${lockedCand.liveSoc}% SoC) is locked as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong> <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Over-ride at ${escapeHtml(depVal)}</span>`
+                        : `Recommended ${candidates.length} candidate buses for this departure — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> (Cat ${escapeHtml(lockedCand.busCategory)}, ${lockedCand.liveSoc}% SoC) is locked as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong> (cannot be changed)`;
                 } else {
-                    subTitle.innerHTML = `Select one of the 2–3 eligible candidate buses for this departure`;
+                    subTitle.innerHTML = `Recommended candidate buses for this departure`;
                 }
             }
 
-            // In Candidate Buses region: Show bus number, bus category, current soc, and locked badge for highest SoC bus!
+            // In Candidate Buses region: Show bus number, bus category, current soc, and locked badge for mandatory locked bus!
             const cardsHtml = candidates.map((bus) => {
-                const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
-                const isLocked = Boolean(bus.isHighestSocLocked);
+                const isLocked = Boolean(bus.isHighestSocLocked || bus.isLocked);
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
                 const cardClasses = [
                     'candidate-bus-card',
-                    isSelected ? 'selected' : '',
-                    isLocked ? 'locked-highest-soc' : ''
+                    isLocked ? 'locked-highest-soc selected' : 'standby-card'
                 ].filter(Boolean).join(' ');
 
                 const lockBanner = isLocked 
-                    ? `<span class="cand-locked-banner" title="Locked as top recommendation with highest SoC (${bus.liveSoc}%)">🔒 LOCKED (HIGHEST SOC)</span>`
+                    ? `<span class="cand-locked-banner" title="Locked as mandatory allocation under Matrix Status ${escapeHtml(bus.matrixStatusType || matrixLabel)} (Cat ${escapeHtml(bus.busCategory)}, ${bus.liveSoc}% SoC)">🔒 LOCKED FOR ALLOCATION</span>`
                     : `<span class="cand-standby-banner">Standby Candidate</span>`;
 
                 const btnText = isLocked
-                    ? (isSelected ? `🔒 Locked Vehicle (${bus.liveSoc}%)` : `🔒 Select Locked Bus (${bus.liveSoc}%)`)
-                    : (isSelected ? `✓ Selected Alternate Bus` : `Select Alternate Bus ➔`);
+                    ? `🔒 Locked Vehicle (${bus.liveSoc}%)`
+                    : `🔒 Standby Only (Bus ${lockedCand ? lockedCand.bm : 'Primary'} Locked)`;
 
-                const btnClass = isLocked ? 'cand-select-btn locked-btn' : 'cand-select-btn';
+                const btnClass = isLocked ? 'cand-select-btn locked-btn' : 'cand-select-btn standby-locked-btn';
 
                 return `
                     <div class="${cardClasses}" 
                          data-bm="${escapeHtml(bus.bm)}" 
                          onclick="selectCandidateBus('${escapeHtml(bus.bm)}')" 
                          role="button" tabindex="0" 
+                         title="${isLocked ? `Bus ${bus.bm} is locked for mandatory allocation` : `Bus ${lockedCand ? lockedCand.bm : 'Primary'} is locked. Standby buses cannot be allocated.`}"
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectCandidateBus('${escapeHtml(bus.bm)}');}">
                         <div class="cand-card-top">
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2418,16 +2490,16 @@
 
                         <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0;">
                             ${lockBanner}
-                            ${isLocked ? `<span style="font-size:0.7rem;font-weight:700;color:#b45309;">Top Recommended</span>` : ''}
+                            ${isLocked ? `<span style="font-size:0.7rem;font-weight:700;color:#b45309;">● Mandatory Allocation</span>` : `<span style="font-size:0.7rem;font-weight:600;color:#64748b;">Standby Reserve</span>`}
                         </div>
 
                         <div class="cand-soc-row" ${isLocked ? 'style="border-color:#fde68a;background:#fffdf7;"' : ''}>
                             <span class="cand-soc-lbl">${isLocked ? '⚡ Locked SoC' : 'Current SoC'}</span>
-                            <strong class="cand-soc-val" style="${isLocked ? 'color:#b45309;font-size:1.12rem;' : ''}">⚡ ${bus.liveSoc}%</strong>
+                            <strong class="cand-soc-val" style="${isLocked ? 'color:#b45309;font-size:1.12rem;' : 'color:#475569;'}">⚡ ${bus.liveSoc}%</strong>
                         </div>
 
                         <div class="cand-footer">
-                            <button type="button" class="${btnClass} ${isSelected ? 'active' : ''}" 
+                            <button type="button" class="${btnClass} ${isLocked ? 'active' : ''}" 
                                     onclick="event.stopPropagation(); selectCandidateBus('${escapeHtml(bus.bm)}');">
                                 ${btnText}
                             </button>
@@ -2445,28 +2517,29 @@
             const routeObj = getSelectedRouteObj();
             const departure = (depInput ? depInput.value : "13:10") || "13:10";
             const candidates = getRouteCandidateBuses(routeObj, departure);
-            const bus = candidates.find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
-            if (bus) {
-                bus.isUserSelected = true;
-                const shiftName = bus.shift || getShiftForTimeAndRoute(departure, routeObj ? routeObj.code : "");
-                bus.reason = generateWhyBusSelectedReason(bus, routeObj, departure, shiftName, isManualOverride, true);
-                currentlyAllocatedBus = bus;
+            const lockedCandidate = candidates.find(c => c.isHighestSocLocked || c.isLocked) || candidates[0];
+
+            if (lockedCandidate && String(bm).toUpperCase() !== String(lockedCandidate.bm).toUpperCase()) {
+                showAllocationToast(`🔒 Bus ${lockedCandidate.bm} (Category ${lockedCandidate.busCategory}, ${lockedCandidate.liveSoc}% SoC) is locked for this duty under Matrix rules and cannot be changed. Only the locked bus can be allocated!`, "warning");
+                return;
+            }
+
+            if (lockedCandidate) {
+                currentlyAllocatedBus = lockedCandidate;
+                const shiftName = lockedCandidate.shift || getShiftForTimeAndRoute(departure, routeObj ? routeObj.code : "");
+                lockedCandidate.reason = generateWhyBusSelectedReason(lockedCandidate, routeObj, departure, shiftName, isManualOverride, false, lockedCandidate.matrixStatusType);
                 renderCandidateBuses(candidates);
                 renderAllocatedCard({
-                    allocated: bus,
+                    allocated: lockedCandidate,
                     matchedSched: currentScheduleMatch,
                     shift: shiftName,
-                    departureTime: bus.departureTime || departure,
-                    reqSoc: bus.reqSoc
+                    departureTime: lockedCandidate.departureTime || departure,
+                    reqSoc: lockedCandidate.reqSoc
                 });
-                updateAllocationPanelMetrics(bus);
+                updateAllocationPanelMetrics(lockedCandidate);
                 updateSelectedBusDutyBanner();
-                updateAllocateButton(bus);
-                const lockedCandidate = candidates.find(c => c.isHighestSocLocked);
-                const toastMsg = bus.isHighestSocLocked
-                    ? `🔒 Locked Bus ${bus.bm} (Highest SoC: ${bus.liveSoc}%) selected for Route ${bus.routeCode || (routeObj ? routeObj.code : '')} at ${departure}${isManualOverride ? ' (Manual Over-ride)' : ''}`
-                    : `⚠️ Selected Alternate Bus ${bus.bm} (${bus.liveSoc}% SoC). Bus ${lockedCandidate ? lockedCandidate.bm : 'Primary'} is the locked highest-SoC recommendation.`;
-                showAllocationToast(toastMsg, bus.isHighestSocLocked ? "success" : "info");
+                updateAllocateButton(lockedCandidate);
+                showAllocationToast(`🔒 Bus ${lockedCandidate.bm} (Category ${lockedCandidate.busCategory}, ${lockedCandidate.liveSoc}% SoC) is locked for Route ${lockedCandidate.routeCode || (routeObj ? routeObj.code : '')} at ${departure}. Ready to allocate!`, "success");
             }
         }
         window.selectCandidateBus = selectCandidateBus;
@@ -2510,9 +2583,7 @@
             });
 
             let allocated = null;
-            if (currentlyAllocatedBus && currentlyAllocatedBus.isUserSelected && candidates.some(c => String(c.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase())) {
-                allocated = candidates.find(c => String(c.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase());
-            } else if (existingDuty) {
+            if (existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
                 const tInfo = getTimeCategory(depShort);
@@ -2670,6 +2741,10 @@
                             🚌 <span id="alloc-bm-number">${escapeHtml(alloc.bm)}</span> <span id="alloc-reg-no" class="alloc-reg-no">${escapeHtml(alloc.regNo ? `(${alloc.regNo})` : '')}</span>
                         </div>
                         ${statusPill}
+                    </div>
+                    <div style="margin:4px 0 10px 0;padding:6px 10px;background:#fffdf7;border:1px solid #fde68a;border-radius:6px;font-size:0.78rem;color:#92400e;display:flex;align-items:center;gap:6px;">
+                        <span>🔒</span>
+                        <span><strong>Mandatory Allocation:</strong> Bus ${escapeHtml(alloc.bm)} is locked under Matrix Status <strong>${escapeHtml(alloc.matrixStatusType || 'Rule')}</strong> rules (Category ${escapeHtml(busCat)}, ${alloc.liveSoc}% SoC). This locked bus cannot be changed and only this bus will be allocated.</span>
                     </div>
                     <div class="auto-alloc-metrics">
                         <div class="alloc-metric-item">
@@ -2965,9 +3040,11 @@
             }
 
             if (matrixStatusRule) {
+                const sortedCats = allowedCategories.slice().sort().join('/');
+                const catDisplay = requiresCatA ? 'A' : (sortedCats === 'A/B/C' ? 'A/B/C' : (sortedCats === 'A/B' ? 'A/B' : sortedCats));
                 matrixStatusRule.textContent = isMatrixCompliant
-                    ? `✅ Allowed (Cat ${requiresCatA ? 'A' : allowedCategories.join('/')})`
-                    : `⚠️ Required Cat ${requiresCatA ? 'A' : allowedCategories.join('/')} (Current: Cat ${busCategory})`;
+                    ? `✅ Allowed (Cat ${catDisplay})`
+                    : `⚠️ Required Cat ${catDisplay} (Current: Cat ${busCategory})`;
                 matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
             }
 
@@ -3019,9 +3096,7 @@
                 recBtn.style.cursor = "pointer";
                 recBtn.style.background = "#dc2626";
             } else if (!driverSelect || !driverSelect.value) {
-                recBtn.textContent = allocatedBus.isHighestSocLocked
-                    ? `🔒 Select Driver to Allocate Locked Bus ${allocatedBus.bm} (${allocatedBus.liveSoc}% SoC)`
-                    : `⚠️ Select Driver to Allocate Bus ${allocatedBus.bm}`;
+                recBtn.textContent = `🔒 Select Driver to Allocate Locked Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
@@ -3030,9 +3105,7 @@
                 const drivers = getDepotDrivers(currentOperatingDepot);
                 const selDriver = drivers.find(d => d.id === driverSelect.value);
                 const drvName = selDriver ? selDriver.name : "Driver";
-                recBtn.textContent = allocatedBus.isHighestSocLocked
-                    ? `🔒 Allocate Locked Bus ${allocatedBus.bm} (${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`
-                    : `⚡ Allocate Bus ${allocatedBus.bm} (Driver: ${drvName})`;
+                recBtn.textContent = `🔒 Allocate Locked Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`;
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
