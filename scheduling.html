@@ -427,6 +427,57 @@
             border-color: #16a34a;
             background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
         }
+        .candidate-bus-card.locked-highest-soc {
+            border-color: #f59e0b;
+            background: linear-gradient(135deg, #fffdf5 0%, #ffffff 60%, #fef3c7 100%);
+            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.20), 0 0 0 1px #f59e0b;
+        }
+        .candidate-bus-card.locked-highest-soc:hover {
+            border-color: #d97706;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.32);
+        }
+        .candidate-bus-card.locked-highest-soc.selected {
+            border-color: #d97706;
+            background: linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #fef9c3 100%);
+            box-shadow: 0 4px 18px rgba(217, 119, 6, 0.32), 0 0 0 2px #d97706;
+        }
+        .cand-locked-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            box-shadow: 0 1px 3px rgba(217, 119, 6, 0.25);
+        }
+        .cand-standby-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #f1f5f9;
+            color: #64748b;
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .cand-select-btn.locked-btn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            border-color: #d97706;
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .cand-select-btn.locked-btn:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+            border-color: #b45309;
+            color: #ffffff;
+        }
         .cand-card-top {
             display: flex;
             align-items: center;
@@ -2125,14 +2176,18 @@
                 addCandidate(bm, `Route Standby Bus`);
             });
 
-            // 5. Fleet search to guarantee 2-3 candidate buses
+            // 5. Depot Fleet search to guarantee 2 to 3 candidate buses
             if (candidates.length < 3) {
                 const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
                 const allFleetKeys = Array.from(new Set([
                     ...Object.keys(STATIC_BUS_RANGES || {}),
                     ...Object.keys(addedBuses || {})
-                ])).filter(k => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(k)))
-                  .sort((a, b) => getBusSocByBm(b) - getBusSocByBm(a));
+                ])).filter(k => {
+                    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(k)) return false;
+                    if (typeof getBusDepot === 'function' && getBusDepot(k) !== currentOperatingDepot) return false;
+                    return true;
+                }).sort((a, b) => getBusSocByBm(b) - getBusSocByBm(a));
+
                 const aKeys = allFleetKeys.filter(k => (STATIC_BUS_RANGES[k] || 110) >= 120 || STATIC_BUS_CATEGORIES[k] === 'A');
                 const bKeys = allFleetKeys.filter(k => !aKeys.includes(k) && ((STATIC_BUS_RANGES[k] || 110) >= 100 || STATIC_BUS_CATEGORIES[k] === 'B'));
                 const cKeys = allFleetKeys.filter(k => !aKeys.includes(k) && !bKeys.includes(k));
@@ -2141,60 +2196,25 @@
                 if (isPeak || isComplexRoute) {
                     searchPasses = [aKeys, bKeys];
                 } else if (isStandardRoute || isModerateRoute) {
-                    searchPasses = [bKeys, aKeys];
+                    searchPasses = [aKeys, bKeys];
                 } else {
-                    // Simple route allows B, C, A
-                    searchPasses = [bKeys, cKeys, aKeys];
+                    searchPasses = [aKeys, bKeys, cKeys];
                 }
 
                 for (const group of searchPasses) {
                     for (const bm of group) {
-                        if (candidates.length >= 5) break;
+                        if (candidates.length >= 6) break;
                         addCandidate(bm, `Depot Reserve Fleet Bus`);
                     }
                     if (candidates.length >= 3) break;
                 }
             }
 
-            // 6. Sort Candidates according to specifications:
-            // Standard route in normal time: "A/B" allowed, more priority is for "B" bus. If no "B", then "A".
-            // Simple route in normal time: "A/B/C" allowed, more priority is for "B" or "C" bus. If no "B" or "C", then "A".
+            // 6. Select recommended pool (exactly 2 to 3 candidate buses)
+            // Prioritize primary/swap schedule buses and highest SoC buses for recommendation pool
             candidates.sort((a, b) => {
-                let catRankA = 0;
-                let catRankB = 0;
-                if (!isPeak) {
-                    if (isStandardRoute) {
-                        // Standard route in normal time: B has priority over A; C is not allowed
-                        const catOrder = { "B": 0, "A": 1, "C": 2 };
-                        catRankA = catOrder[a.busCategory] ?? 3;
-                        catRankB = catOrder[b.busCategory] ?? 3;
-                    } else if (isSimpleRoute) {
-                        // Simple route in normal time: B or C have more priority over A. If no B or C, then A.
-                        const catOrder = { "B": 0, "C": 1, "A": 2 };
-                        catRankA = catOrder[a.busCategory] ?? 3;
-                        catRankB = catOrder[b.busCategory] ?? 3;
-                    } else if (isModerateRoute) {
-                        // Moderate route in normal time: Category B is primary, A is fallback (C is excluded)
-                        const catOrder = { "B": 0, "A": 1, "C": 2 };
-                        catRankA = catOrder[a.busCategory] ?? 3;
-                        catRankB = catOrder[b.busCategory] ?? 3;
-                    } else {
-                        // Complex route in off-peak: Category A is required
-                        const catOrder = { "A": 0, "B": 1, "C": 2 };
-                        catRankA = catOrder[a.busCategory] ?? 3;
-                        catRankB = catOrder[b.busCategory] ?? 3;
-                    }
-                } else {
-                    // Peak hours: Category A is top priority regardless of route
-                    const catOrder = { "A": 0, "B": 1, "C": 2 };
-                    catRankA = catOrder[a.busCategory] ?? 3;
-                    catRankB = catOrder[b.busCategory] ?? 3;
-                }
-                if (catRankA !== catRankB) return catRankA - catRankB;
-
                 const getRoleRank = (r) => {
                     const str = (r || "").toLowerCase();
-                    if (str.includes("allocated")) return 0;
                     if (str.includes("primary")) return 1;
                     if (str.includes("swap")) return 2;
                     return 3;
@@ -2202,51 +2222,66 @@
                 const rankA = getRoleRank(a.role);
                 const rankB = getRoleRank(b.role);
                 if (rankA !== rankB) return rankA - rankB;
-
-                return b.surplus - a.surplus;
+                return (b.liveSoc - a.liveSoc);
             });
 
-            // 7. Update candidate titles and role descriptions according to final ranking:
-            candidates.forEach((cand, idx) => {
-                if (idx === 0) {
-                    if (isPeak) {
-                        cand.role = "Primary Candidate (Category A — Peak Hour Allocation)";
-                    } else if (isComplexRoute) {
-                        cand.role = "Primary Candidate (Category A — Complex Route)";
-                    } else if (isStandardRoute) {
-                        cand.role = (cand.busCategory === "B")
-                            ? "Primary Candidate (Category B — Standard Route)"
-                            : "Primary Candidate (Category A — Standard Route Fallback)";
-                    } else if (isSimpleRoute) {
-                        cand.role = (cand.busCategory === "B" || cand.busCategory === "C")
-                            ? `Primary Candidate (Category ${cand.busCategory} — Simple Route)`
-                            : "Primary Candidate (Category A — Simple Route Fallback)";
-                    } else if (isModerateRoute) {
-                        cand.role = (cand.busCategory === "B")
-                            ? "Primary Candidate (Category B — Moderate Route)"
-                            : "Primary Candidate (Category A — Fallback Allocation)";
-                    } else {
-                        cand.role = `Primary Candidate (Category ${cand.busCategory})`;
+            // Recommend only 2 to 3 candidate buses
+            const recommendedPool = candidates.slice(0, 3);
+
+            // 7. MANDATORY LOCK RULE:
+            // "whatever the bus has higher soc among the 2 to 3 recommended buses that bus has to locked"
+            let highestCand = null;
+            let highestSoc = -Infinity;
+
+            recommendedPool.forEach(cand => {
+                const s = Number(cand.liveSoc) || 0;
+                if (s > highestSoc) {
+                    highestSoc = s;
+                    highestCand = cand;
+                } else if (s === highestSoc && highestCand) {
+                    // Tie-breaker: Category A > B > C, then surplus
+                    const catRank = { "A": 3, "B": 2, "C": 1 };
+                    const curRank = catRank[cand.busCategory] || 0;
+                    const highRank = catRank[highestCand.busCategory] || 0;
+                    if (curRank > highRank) {
+                        highestCand = cand;
+                    } else if (curRank === highRank && (cand.surplus || 0) > (highestCand.surplus || 0)) {
+                        highestCand = cand;
                     }
-                } else if (idx === 1) {
-                    if (!isPeak && isStandardRoute && cand.busCategory === "A") {
-                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
-                    } else if (!isPeak && isSimpleRoute && cand.busCategory === "A") {
-                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
-                    } else if (!isPeak && isModerateRoute && cand.busCategory === "A") {
-                        cand.role = "Fallback Candidate (Category A — Conserving Tier A)";
-                    } else {
-                        cand.role = "Designated Swap / Standby Bus";
-                    }
-                } else {
-                    cand.role = "Route Standby Bus";
                 }
-                cand.allocType = cand.role;
+            });
+
+            // Lock the bus with highest SoC among the recommended candidates
+            if (highestCand) {
+                highestCand.isHighestSocLocked = true;
+                highestCand.isLocked = true;
+                highestCand.role = `🔒 Locked Vehicle (Highest SoC: ${highestCand.liveSoc}%)`;
+                highestCand.allocType = `🔒 Locked Vehicle (Highest SoC: ${highestCand.liveSoc}%)`;
+            }
+
+            // Set all other recommended candidates as Standby
+            recommendedPool.forEach(cand => {
+                if (cand !== highestCand) {
+                    cand.isHighestSocLocked = false;
+                    cand.isLocked = false;
+                    cand.role = `Standby Candidate (${cand.liveSoc}% SoC)`;
+                    cand.allocType = `Standby Candidate (${cand.liveSoc}% SoC)`;
+                }
+            });
+
+            // Order final candidates so the locked highest-SoC bus is ALWAYS first (index 0)
+            const finalCandidates = [];
+            if (highestCand) finalCandidates.push(highestCand);
+            recommendedPool.forEach(cand => {
+                if (cand !== highestCand) finalCandidates.push(cand);
+            });
+
+            // Generate detailed explanation reasons
+            finalCandidates.forEach(cand => {
                 cand.reason = generateWhyBusSelectedReason(cand, routeObj, depTimeClean, targetShift, isManualOverride, !!cand.isUserSelected);
             });
 
-            // ENSURE EXACTLY 2 TO 3 CANDIDATE BUSES RETURNED
-            return candidates.slice(0, 3);
+            return finalCandidates;
         }
 
         function generateWhyBusSelectedReason(bus, routeObj, departureTime, targetShift, isOverridden = false, isUserSelected = false) {
@@ -2289,9 +2324,14 @@
 
             let energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
 
-            let dispatchReason = isUserSelected
-                ? `Operator Choice: Bus ${bus.bm} was selected from the candidate list as the preferred vehicle for this route and departure time.`
-                : `Candidate Match: Bus ${bus.bm} is the primary ready-to-dispatch candidate for this timetable departure with driver assigned and maintenance inspection cleared.`;
+            let dispatchReason = "";
+            if (bus.isHighestSocLocked) {
+                dispatchReason = `🔒 Locked Recommendation: Bus ${bus.bm} is locked as the primary recommended allocation for Route ${routeCode} at ${depTimeClean} because it has the highest battery SoC (${liveSoc}%) among the recommended candidate buses.`;
+            } else if (isUserSelected) {
+                dispatchReason = `Operator Choice: Bus ${bus.bm} was selected from the candidate list as the alternate vehicle for this route and departure time.`;
+            } else {
+                dispatchReason = `Standby Candidate: Bus ${bus.bm} (${busCat} Category, ${liveSoc}% SoC) is held in reserve as an eligible standby candidate for this departure.`;
+            }
 
             if (isOverridden) {
                 dispatchReason += ` (Operating under manual departure time override at ${depTimeClean}).`;
@@ -2323,26 +2363,47 @@
             }
 
             const depVal = depInput ? (depInput.value || "13:10") : "13:10";
+            const lockedCand = candidates.find(c => c.isHighestSocLocked);
             const countText = isManualOverride
-                ? `${candidates.length} Candidates (Manual Over-ride)`
-                : `${candidates.length} Candidate Buses Available`;
+                ? `${candidates.length} Candidates (1 Locked, Manual Over-ride)`
+                : `${candidates.length} Recommended Candidates${lockedCand ? ' (1 Locked)' : ''}`;
             if (countBadge) countBadge.textContent = countText;
             if (candKpiCount) candKpiCount.textContent = `${candidates.length}`;
 
             const subTitle = document.getElementById("candidate-buses-sub");
             if (subTitle) {
-                subTitle.innerHTML = isManualOverride
-                    ? `Select one of the 2–3 eligible candidate buses for this departure <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Over-ride at ${escapeHtml(depVal)}</span>`
-                    : `Select one of the 2–3 eligible candidate buses for this departure`;
+                if (lockedCand) {
+                    subTitle.innerHTML = isManualOverride
+                        ? `Recommended ${candidates.length} candidate buses — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> is locked with highest SoC (${lockedCand.liveSoc}%) <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Over-ride at ${escapeHtml(depVal)}</span>`
+                        : `Recommended ${candidates.length} candidate buses for this departure — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> is locked with highest SoC (${lockedCand.liveSoc}%)`;
+                } else {
+                    subTitle.innerHTML = `Select one of the 2–3 eligible candidate buses for this departure`;
+                }
             }
 
-            // In Candidate Buses region: ONLY bus number, bus category, and current soc are shown!
+            // In Candidate Buses region: Show bus number, bus category, current soc, and locked badge for highest SoC bus!
             const cardsHtml = candidates.map((bus) => {
                 const isSelected = currentlyAllocatedBus && String(currentlyAllocatedBus.bm).toUpperCase() === String(bus.bm).toUpperCase();
+                const isLocked = Boolean(bus.isHighestSocLocked);
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
+                const cardClasses = [
+                    'candidate-bus-card',
+                    isSelected ? 'selected' : '',
+                    isLocked ? 'locked-highest-soc' : ''
+                ].filter(Boolean).join(' ');
+
+                const lockBanner = isLocked 
+                    ? `<span class="cand-locked-banner" title="Locked as top recommendation with highest SoC (${bus.liveSoc}%)">🔒 LOCKED (HIGHEST SOC)</span>`
+                    : `<span class="cand-standby-banner">Standby Candidate</span>`;
+
+                const btnText = isLocked
+                    ? (isSelected ? `🔒 Locked Vehicle (${bus.liveSoc}%)` : `🔒 Select Locked Bus (${bus.liveSoc}%)`)
+                    : (isSelected ? `✓ Selected Alternate Bus` : `Select Alternate Bus ➔`);
+
+                const btnClass = isLocked ? 'cand-select-btn locked-btn' : 'cand-select-btn';
 
                 return `
-                    <div class="candidate-bus-card ${isSelected ? 'selected' : ''}" 
+                    <div class="${cardClasses}" 
                          data-bm="${escapeHtml(bus.bm)}" 
                          onclick="selectCandidateBus('${escapeHtml(bus.bm)}')" 
                          role="button" tabindex="0" 
@@ -2355,15 +2416,20 @@
                             <span class="cat-pill ${catClass}">Category ${escapeHtml(bus.busCategory)}</span>
                         </div>
 
-                        <div class="cand-soc-row">
-                            <span class="cand-soc-lbl">Current SoC</span>
-                            <strong class="cand-soc-val">⚡ ${bus.liveSoc}%</strong>
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0;">
+                            ${lockBanner}
+                            ${isLocked ? `<span style="font-size:0.7rem;font-weight:700;color:#b45309;">Top Recommended</span>` : ''}
+                        </div>
+
+                        <div class="cand-soc-row" ${isLocked ? 'style="border-color:#fde68a;background:#fffdf7;"' : ''}>
+                            <span class="cand-soc-lbl">${isLocked ? '⚡ Locked SoC' : 'Current SoC'}</span>
+                            <strong class="cand-soc-val" style="${isLocked ? 'color:#b45309;font-size:1.12rem;' : ''}">⚡ ${bus.liveSoc}%</strong>
                         </div>
 
                         <div class="cand-footer">
-                            <button type="button" class="cand-select-btn ${isSelected ? 'active' : ''}" 
+                            <button type="button" class="${btnClass} ${isSelected ? 'active' : ''}" 
                                     onclick="event.stopPropagation(); selectCandidateBus('${escapeHtml(bus.bm)}');">
-                                ${isSelected ? '✓ Selected Vehicle' : 'Select Bus ➔'}
+                                ${btnText}
                             </button>
                         </div>
                     </div>
@@ -2396,7 +2462,11 @@
                 updateAllocationPanelMetrics(bus);
                 updateSelectedBusDutyBanner();
                 updateAllocateButton(bus);
-                showAllocationToast(`✅ Selected Bus ${bus.bm} for Route ${bus.routeCode || (routeObj ? routeObj.code : '')} at ${departure}${isManualOverride ? ' (Manual Over-ride)' : ''}`, "success");
+                const lockedCandidate = candidates.find(c => c.isHighestSocLocked);
+                const toastMsg = bus.isHighestSocLocked
+                    ? `🔒 Locked Bus ${bus.bm} (Highest SoC: ${bus.liveSoc}%) selected for Route ${bus.routeCode || (routeObj ? routeObj.code : '')} at ${departure}${isManualOverride ? ' (Manual Over-ride)' : ''}`
+                    : `⚠️ Selected Alternate Bus ${bus.bm} (${bus.liveSoc}% SoC). Bus ${lockedCandidate ? lockedCandidate.bm : 'Primary'} is the locked highest-SoC recommendation.`;
+                showAllocationToast(toastMsg, bus.isHighestSocLocked ? "success" : "info");
             }
         }
         window.selectCandidateBus = selectCandidateBus;
@@ -2537,20 +2607,49 @@
             const depTimeClean = alloc.departureTime || (result && result.departureTime) || (depInput ? depInput.value : "13:10") || "13:10";
 
             card.style.display = "block";
-            card.style.borderColor = "#86efac";
-            card.style.borderLeftColor = "#16a34a";
-            card.style.background = alloc.isCommitted
-                ? "linear-gradient(135deg, #ecfdf5 0%, #ffffff 70%, #d1fae5 100%)"
-                : "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
-
             const isCommitted = alloc.isCommitted === true;
-            const badgeBg = isCommitted ? "#dcfce7" : "#e0f2fe";
-            const badgeColor = isCommitted ? "#166534" : "#0369a1";
-            const badgeBorder = isCommitted ? "#86efac" : "#bae6fd";
-            const badgeText = isCommitted ? "🔒 Allocated & Locked to this Duty" : "⚡ Candidate Match (Ready to Allocate)";
+            const isHighestLocked = Boolean(alloc.isHighestSocLocked);
+
+            if (isCommitted) {
+                card.style.borderColor = "#86efac";
+                card.style.borderLeftColor = "#16a34a";
+                card.style.background = "linear-gradient(135deg, #ecfdf5 0%, #ffffff 70%, #d1fae5 100%)";
+            } else if (isHighestLocked) {
+                card.style.borderColor = "#f59e0b";
+                card.style.borderLeftColor = "#d97706";
+                card.style.background = "linear-gradient(135deg, #fffdf5 0%, #ffffff 70%, #fef3c7 100%)";
+            } else {
+                card.style.borderColor = "#86efac";
+                card.style.borderLeftColor = "#16a34a";
+                card.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
+            }
+
+            let badgeBg = "#e0f2fe";
+            let badgeColor = "#0369a1";
+            let badgeBorder = "#bae6fd";
+            let badgeText = "⚡ Candidate Match (Ready to Allocate)";
+            if (isCommitted) {
+                badgeBg = "#dcfce7";
+                badgeColor = "#166534";
+                badgeBorder = "#86efac";
+                badgeText = "🔒 Officially Committed & Locked to this Duty";
+            } else if (isHighestLocked) {
+                badgeBg = "#fef3c7";
+                badgeColor = "#92400e";
+                badgeBorder = "#f59e0b";
+                badgeText = `🔒 Locked Vehicle (Highest Battery SoC: ${alloc.liveSoc}%)`;
+            } else {
+                badgeBg = "#e0f2fe";
+                badgeColor = "#0369a1";
+                badgeBorder = "#bae6fd";
+                badgeText = "⚡ Alternate Candidate Selected";
+            }
+
             const statusPill = isCommitted
                 ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">● Officially Allocated</div>`
-                : `<div id="alloc-status-pill" class="alloc-status-pill">● Ready for Allocation</div>`;
+                : (isHighestLocked
+                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;font-weight:800;">🔒 Locked for Route Allocation</div>`
+                    : `<div id="alloc-status-pill" class="alloc-status-pill">● Ready for Allocation</div>`);
 
             const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
             const catClass = busCat === 'A' ? 'cat-pill-a' : (busCat === 'B' ? 'cat-pill-b' : 'cat-pill-c');
@@ -2559,11 +2658,11 @@
 
             card.innerHTML = `
                 <div class="auto-alloc-header">
-                    <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};">${badgeText}</span>
+                    <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};font-weight:800;">${badgeText}</span>
                     ${isOverridden ? '<span class="manual-override-badge">⚠️ Manual Over-ride</span>' : ''}
                     <span class="cat-pill ${catClass}" style="font-size:0.75rem;padding:3px 9px;">Category ${escapeHtml(busCat)}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
-                    <span id="alloc-type-badge" class="alloc-type-badge">${escapeHtml(alloc.allocType || "Primary Scheduled Bus")}</span>
+                    <span id="alloc-type-badge" class="alloc-type-badge" style="${isHighestLocked ? 'background:#fef3c7;color:#92400e;border-color:#f59e0b;' : ''}">${escapeHtml(alloc.allocType || (isHighestLocked ? "🔒 Locked Vehicle" : "Primary Scheduled Bus"))}</span>
                 </div>
                 <div class="auto-alloc-body">
                     <div class="auto-alloc-main">
@@ -2920,7 +3019,9 @@
                 recBtn.style.cursor = "pointer";
                 recBtn.style.background = "#dc2626";
             } else if (!driverSelect || !driverSelect.value) {
-                recBtn.textContent = `⚠️ Select Driver to Allocate Bus ${allocatedBus.bm}`;
+                recBtn.textContent = allocatedBus.isHighestSocLocked
+                    ? `🔒 Select Driver to Allocate Locked Bus ${allocatedBus.bm} (${allocatedBus.liveSoc}% SoC)`
+                    : `⚠️ Select Driver to Allocate Bus ${allocatedBus.bm}`;
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
@@ -2929,11 +3030,15 @@
                 const drivers = getDepotDrivers(currentOperatingDepot);
                 const selDriver = drivers.find(d => d.id === driverSelect.value);
                 const drvName = selDriver ? selDriver.name : "Driver";
-                recBtn.textContent = `⚡ Allocate Bus ${allocatedBus.bm} (Driver: ${drvName})`;
+                recBtn.textContent = allocatedBus.isHighestSocLocked
+                    ? `🔒 Allocate Locked Bus ${allocatedBus.bm} (${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`
+                    : `⚡ Allocate Bus ${allocatedBus.bm} (Driver: ${drvName})`;
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
-                recBtn.style.background = "linear-gradient(135deg, var(--blue), var(--blue-dark))";
+                recBtn.style.background = allocatedBus.isHighestSocLocked
+                    ? "linear-gradient(135deg, #d97706, #b45309)"
+                    : "linear-gradient(135deg, var(--blue), var(--blue-dark))";
             }
         }
 
@@ -3332,7 +3437,11 @@
                             fullDutyKm: alloc.fullDutyKm,
                             routeDist: Number(routeObj.distKm || 28.7),
                             tripCount: (routeObj && routeObj.trips) || 8,
-                            allocType: isManualOverride ? "Committed Duty Allocation (Manual Over-ride)" : "Committed Duty Allocation",
+                            isHighestSocLocked: Boolean(alloc.isHighestSocLocked),
+                            isLocked: true,
+                            allocType: isManualOverride 
+                                ? "Committed Duty Allocation (Manual Over-ride)" 
+                                : (alloc.isHighestSocLocked ? "Committed Duty Allocation (Locked Highest SoC)" : "Committed Duty Allocation"),
                             reason: alloc.reason || "",
                             driver: `${selDriver.name} (${selDriver.badge})`,
                             driverId: selDriver.id,
