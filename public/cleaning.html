@@ -633,9 +633,14 @@
       <span data-i18n="title_recent_cleaning_records">📋 Recent Cleaning Records</span>
       <span style="font-size:0.75rem;padding:2px 8px;border-radius:999px;background:#e0f2fe;color:#0369a1;font-weight:700;" data-i18n="badge_recent_5">Recent 5</span>
     </div>
-    <button type="button" class="btn-history" id="historyBtn" onclick="openHistoryModal()" data-i18n="btn_history">
-      📜 History
-    </button>
+    <div class="history-btn-group" style="display:inline-flex; align-items:stretch; border-radius:8px; overflow:hidden; border:1.5px solid #bfdbfe; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+      <button type="button" class="btn-history" id="historyBtn" onclick="openHistoryModal()" data-i18n="btn_history" style="border:none; border-radius:0; border-right:1px solid #bfdbfe; margin:0; padding:6px 12px; transform:none;">
+        📜 History
+      </button>
+      <button type="button" class="btn-history-dl" onclick="downloadCleaningHistory(event)" title="Download Cleaning Verification History (CSV)" style="padding:6px 11px; background:#eff6ff; color:#1d4ed8; border:none; cursor:pointer; font-size:0.95rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+        📥
+      </button>
+    </div>
   </div>
   <p style="font-size:0.78rem;color:var(--muted);margin-bottom:12px;" data-i18n="sub_recent_cleaning_records">Displaying the 5 most recent bus cleaning records. Click any bus to view its full Verification Record, or click History for the complete log.</p>
   <ul class="log-list" id="logList"></ul>
@@ -654,7 +659,12 @@
         <span style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:var(--accent-dark); letter-spacing:0.06em;" data-i18n="modal_depot_archive">Depot Archive</span>
         <h2 style="font-size:1.25rem; font-weight:800; color:#0f172a; margin-top:2px;" data-i18n="title_history_modal_cleaning">📜 Cleaning Verification Record History</h2>
       </div>
-      <button type="button" class="btn" onclick="closeHistoryModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" class="btn" onclick="downloadCleaningHistory(event)" style="padding:6px 12px; background:var(--accent); color:#fff; font-size:0.82rem; font-weight:700; border-radius:6px; display:inline-flex; align-items:center; gap:6px; cursor:pointer; border:none;" title="Download Cleaning Verification History (CSV)">
+          📥 Download CSV
+        </button>
+        <button type="button" class="btn" onclick="closeHistoryModal()" style="padding:4px 10px; background:#f1f5f9; color:#475569; font-size:1rem; cursor:pointer;">✕</button>
+      </div>
     </div>
     <div style="padding: 12px 22px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display:flex; gap:10px; align-items:center;">
       <input type="text" id="historySearchInput" placeholder="Filter history by BM number, registration, or date…" data-i18n-placeholder="placeholder_filter_history" oninput="filterHistoryList()" style="flex:1; padding:9px 14px; border:1.5px solid var(--border); border-radius:8px; font-size:0.88rem;" />
@@ -1444,6 +1454,63 @@
     filterHistoryList();
     renderLog();
     showToast('Cleaning verification record history cleared.', 'error');
+  }
+
+  function downloadCleaningHistory(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    const records = getCleaningHistory();
+    if (!records || !records.length) {
+      showToast('⚠️ No cleaning verification records available to download.', 'warning');
+      return;
+    }
+
+    const headers = [
+      'Record ID',
+      'Bus BM Number',
+      'Registration Number',
+      'Process Type',
+      'Tasks Verified',
+      'Cleaning Started',
+      'Unlocked / Completed Time',
+      'Duration',
+      'Clearance Status',
+      'Remarks'
+    ];
+
+    const rows = records.map(r => [
+      r.id || '',
+      r.bm || '',
+      r.reg || '',
+      r.processType || 'Interior & Exterior Bus Cleaning',
+      r.tasksSummary || (r.totalDone ? (r.totalDone + ' tasks verified') : 'Cleaning Complete'),
+      r.startTime || '',
+      r.unlockTime || '',
+      r.duration || '',
+      r.clearanceState || 'Inspection Passed',
+      r.remarks || ''
+    ]);
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    exportToCsv(`cleaning_verification_history_${dateStr}.csv`, [headers, ...rows]);
+    showToast(`📥 Downloaded ${records.length} cleaning records successfully.`, 'success');
+  }
+
+  function exportToCsv(filename, rows) {
+    const escapeCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+    const csvContent = '\uFEFF' + rows.map(r => r.map(escapeCell).join(',')).join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   async function loadVehicles() {

@@ -1151,9 +1151,14 @@
   <div class="card-title" style="justify-content: space-between; flex-wrap:wrap; gap:8px;">
     <span><span data-i18n="title_completed_routes_log">📋 Completed Routes Log</span> <span id="completedCountBadge" style="background:#dcfce7;color:#166534;font-size:0.78rem;padding:2px 10px;border-radius:999px;font-weight:800;"></span></span>
     <div style="display:flex;align-items:center;gap:8px;">
-      <button type="button" class="btn-action-history" onclick="openAllBusesHistoryModal()" data-i18n="btn_all_buses_history">
-        📜 All Buses History
-      </button>
+      <div class="history-btn-group" style="display:inline-flex; align-items:stretch; border-radius:8px; overflow:hidden; border:1.5px solid #bfdbfe; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <button type="button" class="btn-action-history" onclick="openAllBusesHistoryModal()" data-i18n="btn_all_buses_history" style="border:none; border-radius:0; border-right:1px solid #bfdbfe; margin:0; padding:6px 12px; transform:none;">
+          📜 All Buses History
+        </button>
+        <button type="button" class="btn-history-dl" onclick="downloadDepotHistory(event)" title="Download Completed Routes Operational History (CSV)" style="padding:6px 11px; background:#eff6ff; color:#1d4ed8; border:none; cursor:pointer; font-size:0.95rem; font-weight:700; display:inline-flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
+          📥
+        </button>
+      </div>
       <button type="button" onclick="clearCompletedLog()" style="background:none;border:1.5px solid #fca5a5;padding:6px 12px;border-radius:8px;font-size:0.82rem;font-weight:700;color:#dc2626;cursor:pointer;" data-i18n="btn_clear_log">
         🗑 Clear Log
       </button>
@@ -1212,7 +1217,12 @@
           Select any bus from the fleet to view its last 5 operational history records
         </p>
       </div>
-      <button type="button" class="modal-close-btn" onclick="closeAllBusesHistoryModal()" title="Close">✕</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" id="btnDownloadModalHistory" onclick="downloadCurrentHistoryModalView(event)" style="padding:6px 14px; background:var(--accent); color:#fff; border-radius:8px; font-size:0.82rem; font-weight:700; border:none; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="Download current history view as CSV">
+          📥 Download CSV
+        </button>
+        <button type="button" class="modal-close-btn" onclick="closeAllBusesHistoryModal()" title="Close">✕</button>
+      </div>
     </div>
 
     <!-- Navigation / Breadcrumbs (visible in Level 2 & Level 3) -->
@@ -1734,6 +1744,109 @@
     currentHistoryRecord = rec;
     historyViewLevel     = 3;
     renderHistoryView();
+  }
+
+  function downloadDepotHistory(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    const log = getCompletedLog();
+    if (!log || !log.length) {
+      showToast('⚠️ No completed route history records available to download.', 'warning');
+      return;
+    }
+
+    const headers = [
+      'Record ID',
+      'Bus BM Number',
+      'Registration Number',
+      'Model',
+      'Route Number',
+      'Schedule Number',
+      'Scheduled Time',
+      'Route Completion Time',
+      'Receiving Facility Depot',
+      'Bus Home Depot',
+      'Status'
+    ];
+
+    const rows = log.map(r => [
+      r.id || '',
+      r.bm || '',
+      r.reg || '',
+      r.model || 'ELECTRIC BUS AC EiV12',
+      r.route || '',
+      r.schedule || '',
+      r.scheduledTime || r.departureTime || '',
+      r.completedAt || '',
+      r.depot ? ('Depot ' + r.depot) : '',
+      r.homeDepot ? ('Depot ' + r.homeDepot) : '',
+      r.status || 'Route Completed & Verified'
+    ]);
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    exportToCsv(`depot_completed_routes_history_${dateStr}.csv`, [headers, ...rows]);
+    showToast(`📥 Downloaded ${log.length} completed route history records successfully.`, 'success');
+  }
+
+  function downloadCurrentHistoryModalView(e) {
+    if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+    if (historyViewLevel === 2 || historyViewLevel === 3) {
+      if (!currentHistory5List || !currentHistory5List.length) {
+        showToast('⚠️ No history records found for this bus.', 'warning');
+        return;
+      }
+      const bus = currentHistoryBus || { bm_no: 'BM_BUS', reg_no: '' };
+      const headers = [
+        'History Rank',
+        'Category / Event',
+        'Bus BM Number',
+        'Registration',
+        'Model',
+        'Receiving Facility Depot',
+        'Bus Home Depot',
+        'Allocated Route',
+        'Allocated Schedule',
+        'Scheduled Departure Time',
+        'Route Completion Time',
+        'Operational Status'
+      ];
+      const rows = currentHistory5List.map(rec => [
+        `#${rec.rank}`,
+        rec.categoryLabel || 'Route Operation Completed',
+        rec.bm || bus.bm_no || '',
+        rec.reg || bus.reg_no || '',
+        rec.model || bus.model || '',
+        rec.receivingDepot || '',
+        rec.homeDepot || '',
+        rec.route || '',
+        rec.schedule || '',
+        rec.scheduledTime || '',
+        rec.completionTime || '',
+        rec.status || 'Depot Verified'
+      ]);
+      const dateStr = new Date().toISOString().slice(0, 10);
+      exportToCsv(`bus_${bus.bm_no}_operational_history_${dateStr}.csv`, [headers, ...rows]);
+      showToast(`📥 Downloaded history records for Bus ${bus.bm_no}.`, 'success');
+    } else {
+      downloadDepotHistory(e);
+    }
+  }
+
+  function exportToCsv(filename, rows) {
+    const escapeCell = (val) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""');
+      return `"${str}"`;
+    };
+    const csvContent = '\uFEFF' + rows.map(r => r.map(escapeCell).join(',')).join('\r\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   }
 
   // ──────────────────────────────────────────────

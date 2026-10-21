@@ -2705,7 +2705,7 @@
                         ➕ Add Bus (New Induction)
                     </button>
                     <button type="button" id="tab-btn-hist-bus" class="modal-tab-btn" onclick="switchAddDeleteTab('hist')">
-                        📋 Fleet Audit Log &amp; Changes
+                        📋 Fleet Audit Log &amp; Changes 📥
                     </button>
                 </div>
 
@@ -9138,6 +9138,84 @@ let busCategoriesMap = new Map();
             } catch (e) {}
         }
 
+        function downloadFleetAuditLogCsv() {
+            let addedBuses = {};
+            let deletedBuses = {};
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") {
+                    addedBuses = window.DepotSyncEngine.getAddedBuses() || {};
+                }
+            } catch(e) {}
+            if (Object.keys(addedBuses).length === 0) {
+                try { addedBuses = JSON.parse(localStorage.getItem("depot_added_buses") || "{}"); } catch(e){}
+            }
+
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === "function") {
+                    deletedBuses = window.DepotSyncEngine.getDeletedBuses() || {};
+                }
+            } catch(e) {}
+            if (Object.keys(deletedBuses).length === 0) {
+                try { deletedBuses = JSON.parse(localStorage.getItem("depot_deleted_buses") || "{}"); } catch(e){}
+            }
+
+            const addedList = Object.values(addedBuses);
+            const deletedList = Object.values(deletedBuses);
+
+            if (addedList.length === 0 && deletedList.length === 0) {
+                alert("No fleet audit log records available to download.");
+                return;
+            }
+
+            const headers = [
+                "Audit Action",
+                "Bus BM Number",
+                "Registration",
+                "Assigned Depot",
+                "Category",
+                "Initial SoC (%)",
+                "Reason / Remarks",
+                "Action Timestamp"
+            ];
+
+            const rows = [];
+            addedList.forEach(b => {
+                let bm = typeof b === "string" ? b : (b.busNumber || b.bm || b.bmNumber || "");
+                let reg = b.regNumber || b.regNo || "";
+                let depot = b.depot || "1";
+                let cat = b.busCategory || b.category || "B";
+                let soc = b.soc || 100;
+                let reason = b.reason || "New Electric Bus Induction";
+                let time = formatAuditTimestamp(b.addedAt || b.timestamp);
+                rows.push(["ADDITION (NEW INDUCTION)", bm, reg, "Depot " + depot, cat, soc, reason, time]);
+            });
+
+            deletedList.forEach(b => {
+                let bm = typeof b === "string" ? b : (b.bm || b.busNumber || "");
+                let reg = b.regNo || b.regNumber || "";
+                let depot = b.depot || "1";
+                let reason = b.reason || "Fleet withdrawal / scheduled decommissioning";
+                let time = formatAuditTimestamp(b.deletedAt || b.timestamp);
+                rows.push(["DELETION (WITHDRAWN)", bm, reg, "Depot " + depot, "—", "—", reason, time]);
+            });
+
+            const escapeCell = (val) => {
+                if (val === null || val === undefined) return '""';
+                const str = String(val).replace(/"/g, '""');
+                return `"${str}"`;
+            };
+            const csvContent = '\uFEFF' + [headers, ...rows].map(r => r.map(escapeCell).join(',')).join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `fleet_audit_log_history_${new Date().toISOString().slice(0, 10)}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
         function renderFleetHistoryTab() {
             const container = document.getElementById("fleet-history-content");
             if (!container) return;
@@ -9166,6 +9244,14 @@ let busCategoriesMap = new Map();
             const deletedList = Object.values(deletedBuses);
 
             let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:#f8fafc; border:1.5px solid #e2e8f0; border-radius:10px; padding:10px 16px; flex-wrap:wrap; gap:10px;">
+                    <span style="font-size:0.86rem; color:#475569; font-weight:700;">
+                        📋 Fleet Audit &amp; Modification History Records (${addedList.length} Added, ${deletedList.length} Deleted)
+                    </span>
+                    <button type="button" onclick="downloadFleetAuditLogCsv()" style="padding:7px 16px; background:#16a34a; color:#fff; border:none; border-radius:8px; font-weight:800; font-size:0.82rem; cursor:pointer; display:inline-flex; align-items:center; gap:6px; box-shadow:0 1px 3px rgba(0,0,0,0.08);" title="Download full fleet audit history log as CSV">
+                        📥 Download Audit Log (CSV)
+                    </button>
+                </div>
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(340px, 1fr)); gap:18px;">
                     <!-- ADDED BUSES -->
                     <div style="background:#fff; border:1.5px solid #bbf7d0; border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">

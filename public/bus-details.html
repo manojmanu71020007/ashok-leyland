@@ -203,7 +203,10 @@
             Persistent daily battery telemetry recorded in local storage for this vehicle.
           </p>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button id="downloadHistoryBtn" onclick="downloadSocHistoryCsv()" style="background:#16a34a; border:1px solid #15803d; color:#fff; padding:6px 14px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="Download Daily SoC History as CSV">
+            📥 Download History (CSV)
+          </button>
           <button id="refreshHistoryBtn" style="background:var(--panel-2); border:1px solid var(--border); color:var(--text); padding:6px 14px; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer;">
             🔄 Refresh Logs
           </button>
@@ -552,6 +555,54 @@
     // -----------------------------------------------------------------------
     // Daily SoC History Table & Inspection
     // -----------------------------------------------------------------------
+    let cachedSocSummaries = [];
+
+    function downloadSocHistoryCsv() {
+      const busKey = physicalBusName || searchKey || 'vehicle';
+      if (!cachedSocSummaries || !cachedSocSummaries.length) {
+        alert('No daily SoC history records available to download yet.');
+        return;
+      }
+
+      const headers = [
+        'Vehicle Key',
+        'Date',
+        'Start SoC (%)',
+        'End / Latest SoC (%)',
+        'Min SoC (%)',
+        'Max SoC (%)',
+        'Updates Count',
+        'Condition'
+      ];
+
+      const rows = cachedSocSummaries.map(item => [
+        busKey,
+        item.date,
+        Math.round(item.startSoc),
+        Math.round(item.endSoc),
+        Math.round(item.minSoc),
+        Math.round(item.maxSoc),
+        item.count || 0,
+        item.condition || 'Good'
+      ]);
+
+      const escapeCell = (val) => {
+        if (val === null || val === undefined) return '""';
+        const str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+      const csvContent = '\uFEFF' + [headers, ...rows].map(r => r.map(escapeCell).join(',')).join('\r\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${busKey}_daily_soc_history_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+
     async function loadSocHistory() {
       const busKey = physicalBusName || searchKey;
       const tbody = document.getElementById("historyTableBody");
@@ -562,6 +613,7 @@
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
         const summaries = Array.isArray(json.summaries) ? json.summaries : [];
+        cachedSocSummaries = summaries;
 
         badge.textContent = `${summaries.length} Day${summaries.length === 1 ? '' : 's'} Tracked`;
 
