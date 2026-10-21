@@ -6,13 +6,21 @@
   "start_url": "/login.html?source=pwa",
   "scope": "/",
   "display": "standalone",
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "display_override": [
+    "window-controls-overlay",
+    "standalone",
+    "minimal-ui"
+  ],
   "orientation": "any",
-  "background_color": "#093b84",
-  "theme_color": "#093b84",
+  "background_color": "#082f6d",
+  "theme_color": "#082f6d",
   "lang": "en",
   "dir": "ltr",
-  "categories": ["business", "productivity", "utilities"],
+  "categories": [
+    "business",
+    "productivity",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -45,21 +53,45 @@
       "short_name": "Admin",
       "description": "Manage fleet, allocations, and depot status",
       "url": "/admin.html?source=pwa_shortcut",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Bus Scheduling",
       "short_name": "Scheduling",
       "description": "Schedule duties, calculate battery feasibility",
       "url": "/scheduling.html?source=pwa_shortcut",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     },
     {
       "name": "Depot Operations",
       "short_name": "Depot",
       "description": "Yard charging, cleaning & servicing",
       "url": "/depot-operations.html?source=pwa_shortcut",
-      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/splash-screen.png",
+      "sizes": "474x1024",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Ashok-Leyland Bus Management System Splash Screen"
     }
   ]
 }

@@ -6848,6 +6848,11 @@ const server = http.createServer(async (req, res) => {
 
     // ── Progressive Web App (PWA) Core Routes ──
 
+    if (pathname === "/splash-screen.png") {
+        sendFile(res, path.join(BASE_DIR, "splash-screen.png"), "image/png");
+        return;
+    }
+
     if (pathname === "/manifest.json" || pathname === "/manifest.webmanifest") {
 
         sendFile(res, path.join(BASE_DIR, "manifest.json"), "application/manifest+json; charset=utf-8");

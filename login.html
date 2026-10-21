@@ -690,6 +690,25 @@
     </script>
 </head>
 <body>
+    <!-- Branded App Splash Screen Overlay (Cleaned, unclipped, with Powered by Ashok Leyland) -->
+    <div id="app-splash-overlay" style="position:fixed; inset:0; z-index:999999; background:#082f6d url('/splash-screen.png') no-repeat center center / contain; background-color:#082f6d; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity 0.6s ease, visibility 0.6s ease;"></div>
+    <script>
+        (function() {
+            function dismissSplash() {
+                const s = document.getElementById('app-splash-overlay');
+                if (s) {
+                    s.style.opacity = '0';
+                    s.style.visibility = 'hidden';
+                    s.style.pointerEvents = 'none';
+                    setTimeout(function() { if (s && s.parentNode) s.parentNode.removeChild(s); }, 650);
+                }
+            }
+            window.addEventListener('load', function() { setTimeout(dismissSplash, 1100); });
+            document.addEventListener('touchstart', dismissSplash, { once: true, passive: true });
+            document.addEventListener('click', dismissSplash, { once: true, passive: true });
+            setTimeout(dismissSplash, 2200);
+        })();
+    </script>
 <main class="page-wrapper">
 
     <!-- ── Top Header: 3 Parallel Lines (Depot Menu), Active Chip & Language Selector ── -->
