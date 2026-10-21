@@ -1,5 +1,5 @@
 // Ashok-Leyland Bus Management System PWA Service Worker
-const CACHE_NAME = 'ashok-leyland-pwa-v5';
+const CACHE_NAME = 'ashok-leyland-pwa-v6';
 
 const STATIC_ASSETS = [
     '/',
@@ -96,20 +96,16 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // C. Static Assets (CSS, JS, Images, Icons): Stale-While-Revalidate
+    // C. Static Assets (CSS, JS, Images, Icons): Network-First for fresh photos, fallback to cache
     event.respondWith(
-        caches.match(req).then((cached) => {
-            const fetchPromise = fetch(req)
-                .then((networkRes) => {
-                    if (networkRes && networkRes.status === 200) {
-                        const copy = networkRes.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-                    }
-                    return networkRes;
-                })
-                .catch(() => null);
-
-            return cached || fetchPromise;
-        })
+        fetch(req)
+            .then((networkRes) => {
+                if (networkRes && networkRes.status === 200) {
+                    const copy = networkRes.clone();
+                    caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+                }
+                return networkRes;
+            })
+            .catch(() => caches.match(req))
     );
 });

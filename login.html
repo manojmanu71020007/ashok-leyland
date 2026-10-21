@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- PWA Web App Manifest & Mobile App Capabilities -->
-    <link rel="manifest" href="/manifest.json" />
+    <link rel="manifest" href="/manifest.json?v=6" />
     <meta name="theme-color" content="#093b84" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Ashok-Leyland BMS" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=6" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=6" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png?v=6" />
     <script src="/pwa-app.js" defer></script>
     <title>Login – Electric Bus Management System</title>
     <style>
@@ -690,26 +690,7 @@
     </script>
 </head>
 <body>
-    <!-- Branded App Splash Screen Overlay (Cleaned, unclipped, with Powered by Ashok Leyland) -->
-    <div id="app-splash-overlay" style="position:fixed; inset:0; z-index:999999; background:#082f6d url('/splash-screen.png') no-repeat center center / contain; background-color:#082f6d; display:flex; flex-direction:column; align-items:center; justify-content:center; transition:opacity 0.6s ease, visibility 0.6s ease;"></div>
-    <script>
-        (function() {
-            function dismissSplash() {
-                const s = document.getElementById('app-splash-overlay');
-                if (s) {
-                    s.style.opacity = '0';
-                    s.style.visibility = 'hidden';
-                    s.style.pointerEvents = 'none';
-                    setTimeout(function() { if (s && s.parentNode) s.parentNode.removeChild(s); }, 650);
-                }
-            }
-            window.addEventListener('load', function() { setTimeout(dismissSplash, 1100); });
-            document.addEventListener('touchstart', dismissSplash, { once: true, passive: true });
-            document.addEventListener('click', dismissSplash, { once: true, passive: true });
-            setTimeout(dismissSplash, 2200);
-        })();
-    </script>
-<main class="page-wrapper">
+    <main class="page-wrapper">
 
     <!-- ── Top Header: 3 Parallel Lines (Depot Menu), Active Chip & Language Selector ── -->
     <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;">
