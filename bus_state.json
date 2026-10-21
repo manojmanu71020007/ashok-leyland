@@ -1961,29 +1961,48 @@
     "chargingStatus": null
   },
   "BM052": {
-    "uniqueId": "BM052",
-    "vehicleId": "BM052",
-    "regNo": "KA51AH2955",
-    "busNumber": "600F",
-    "scheduleId": "RESERVE",
-    "soc": 0,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 82,
     "condition": "Good",
-    "status": "Blocked",
-    "assignedRouteId": "BM052",
-    "assignedRouteShortName": "600F",
-    "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
-    "blocked": true,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
+    "driver": "Driver Assigned",
+    "updatedAt": "2026-10-21T17:09:59.749Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Charging Bay",
+    "socBefore": 11,
+    "socAfter": 82,
+    "fullDutyDistanceKm": 102,
+    "lastChargedTime": "10:39:59 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-21T17:09:59.749Z",
+        "soc": 82,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM052",
+    "busNumber": "600F",
     "bmNumber": "BM052",
-    "fullDutyDistanceKm": 0,
-    "busCategory": "B",
-    "testedRangeKm": 118.8912,
-    "actualRangeFinal": 118.8912,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": null
+    "assignedRouteId": "BM052",
+    "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": true
   },
   "BUS-14": {
     "uniqueId": "BUS-14",
@@ -8707,7 +8726,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-21T08:34:32.079Z",
+    "updatedAt": "2026-10-21T17:09:59.749Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -8726,19 +8745,13 @@
     "chargingStatus": "Completed",
     "chargerBay": "Charging Bay",
     "socBefore": 11,
-    "socAfter": 90,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": "02:04:31 pm",
+    "socAfter": 82,
+    "fullDutyDistanceKm": 102,
+    "lastChargedTime": "10:39:59 pm",
     "history": [
       {
-        "timestamp": "2026-10-20T10:11:16.078Z",
-        "soc": 100,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-21T08:34:32.079Z",
-        "soc": 90,
+        "timestamp": "2026-10-21T17:09:59.749Z",
+        "soc": 82,
         "condition": "Good",
         "status": "On Time"
       }
@@ -9568,16 +9581,16 @@
       "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 82,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 102,
+      "fullDutyDistanceKm": 102,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -13098,16 +13111,16 @@
       "assignedRouteDisplay": "Route BM052 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 82,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 102,
+      "fullDutyDistanceKm": 102,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -16610,16 +16623,16 @@
       "bmNumber": "BM052",
       "routeCategory": "COMPLEX",
       "timeSlot": "EXTREME_PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 0,
+      "soc": 82,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 102,
+      "fullDutyDistanceKm": 102,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
@@ -18947,18 +18960,6 @@
       "chargerBay": "Bay #3",
       "startTime": "8:29 pm, 21 Oct 2026",
       "startTimestamp": 1792594773005
-    },
-    {
-      "bm": "BM052",
-      "reg": "KA51AH2955",
-      "page": "charging",
-      "depot": "2",
-      "reason": "Under Fast Charging (target 100% floor)",
-      "startTime": "10:39:07 pm, 21 Oct 2026",
-      "time": "10:39:07 pm",
-      "startTimestamp": 1792602547646,
-      "startSoc": "0",
-      "chargerBay": "Charging Bay"
     }
   ],
   "_depotAssignments": {
@@ -19193,6 +19194,11 @@
       "needsCharging": false,
       "chargingCompleted": true,
       "chargingCompletedAt": "09:48:52 am, 21 Oct 2026"
+    },
+    "BM052": {
+      "needsCharging": false,
+      "chargingCompleted": true,
+      "chargingCompletedAt": "10:39:59 pm, 21 Oct 2026"
     }
   }
 }
