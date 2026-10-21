@@ -769,10 +769,16 @@
   function updateDepotUI() {
     const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
 
+    const clnNum = document.getElementById('cleaningDepotNum');
+    if (clnNum) clnNum.textContent = currentOperatingDepot;
+    const clnSubNum = document.getElementById('cleaningDepotSubNum');
+    if (clnSubNum) clnSubNum.textContent = currentOperatingDepot;
+    const clnFleetCount = document.getElementById('cleaningDepotFleetCount');
+    if (clnFleetCount) clnFleetCount.textContent = String(activeCount);
     const clnTitle = document.getElementById('cleaningPageTitle');
     if (clnTitle) clnTitle.innerHTML = `Cleaning <span id="cleaningDepotNum">${currentOperatingDepot}</span> Log`;
     const clnSub = document.getElementById('cleaningPageSub');
-    if (clnSub) clnSub.innerHTML = `Record bus cleaning status — Depot ${currentOperatingDepot} (${activeCount} Active Buses)`;
+    if (clnSub) clnSub.innerHTML = `Record bus cleaning status — Depot <span id="cleaningDepotSubNum">${currentOperatingDepot}</span> (<span id="cleaningDepotFleetCount">${activeCount}</span> Active Buses)`;
   }
 
   window.switchOperatingDepot = function(num) {
@@ -785,7 +791,20 @@
       window.history.replaceState(null, '', url.toString());
     } catch(e){}
     updateDepotUI();
+    const curBm = document.getElementById('busSelect') ? document.getElementById('busSelect').value : '';
+    if (curBm && getBusDepot(curBm) !== currentOperatingDepot) {
+      document.getElementById('busSelect').value = '';
+      if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
+      const box = document.getElementById('busInfoBox');
+      if (box) box.classList.remove('show');
+      updateLockUI('');
+    }
     filterBuses();
+    renderOngoingButtons();
+    renderLog();
+    if (document.getElementById('ongoingModal')?.style.display === 'flex') {
+      openOngoingModal();
+    }
   };
 
   async function loadDepotAssignments() {
@@ -842,19 +861,31 @@
 
   function isBusLockedForCleaning(bm) {
     if (!bm) return false;
-    return getLockedBuses().some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('clean'));
+    return getLockedBuses().some(x => {
+      const isClean = String(x.page || '').toLowerCase().includes('clean');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isSameBusId(x.bm, bm) && isClean && String(depot) === String(currentOperatingDepot);
+    });
   }
 
   function isBusLockedAnywhere(bm, reg) {
     if (!bm && !reg) return false;
     const locked = getLockedBuses();
-    return locked.some(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)));
+    return locked.some(x => {
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
+      return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg));
+    });
   }
 
   function getBusLockInfo(bm, reg) {
     if (!bm && !reg) return null;
     const locked = getLockedBuses();
-    return locked.find(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg))) || null;
+    return locked.find(x => {
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
+      return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg));
+    }) || null;
   }
 
   function isBusInCharging(bm, reg) {
@@ -863,6 +894,8 @@
     return locked.some(x => {
       const isCharg = String(x.page || '').toLowerCase().includes('charg');
       if (!isCharg) return false;
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
       return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)) || (x.bm && reg && isSameBusId(x.bm, reg));
     });
   }
@@ -1011,12 +1044,14 @@
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const regNo = getRegNoForBm(bm);
+    const busDepot = getBusDepot(bm) || currentOperatingDepot;
 
     if (!locked.some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('clean'))) {
       locked.push({
         bm,
         reg: regNo,
         page: 'cleaning',
+        depot: busDepot,
         reason: 'Under Bus Interior & Exterior Cleaning (Washing Bay)',
         startTime: fullTimeStr,
         time: timeStr,
@@ -1069,6 +1104,7 @@
       id: 'clean_' + Date.now(),
       bm: bm,
       reg: getRegNoForBm(bm),
+      depot: getBusDepot(bm) || currentOperatingDepot,
       processType: 'Interior & Exterior Bus Cleaning',
       startTime: startTime,
       unlockTime: fullTimeStr,
@@ -1222,7 +1258,11 @@
 
   function renderOngoingButtons() {
     const locked = getLockedBuses();
-    const cleanCount = locked.filter(x => String(x.page || '').toLowerCase().includes('clean')).length;
+    const cleanCount = locked.filter(x => {
+      const isClean = String(x.page || '').toLowerCase().includes('clean');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isClean && String(depot) === String(currentOperatingDepot);
+    }).length;
 
     const cleanEl = document.getElementById('ongoingCleaningCount');
     if (cleanEl) cleanEl.textContent = cleanCount;
@@ -1230,13 +1270,17 @@
 
   function openOngoingModal() {
     const locked = getLockedBuses();
-    const list = locked.filter(x => String(x.page || '').toLowerCase().includes('clean'));
+    const list = locked.filter(x => {
+      const isClean = String(x.page || '').toLowerCase().includes('clean');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isClean && String(depot) === String(currentOperatingDepot);
+    });
     const modal = document.getElementById('ongoingModal');
     const title = document.getElementById('ongoingModalTitle');
     const body = document.getElementById('ongoingModalBody');
     if (!modal || !title || !body) return;
 
-    title.innerHTML = `🧹 ${t('buses_in_ongoing_cleaning', 'Buses in Ongoing Cleaning')} (${list.length})`;
+    title.innerHTML = `🧹 ${t('buses_in_ongoing_cleaning', 'Buses in Ongoing Cleaning')} (${list.length}) — Depot ${currentOperatingDepot}`;
 
     if (!list.length) {
       body.innerHTML = `
@@ -1398,7 +1442,11 @@
 
   function filterHistoryList() {
     const q = (document.getElementById('historySearchInput')?.value || '').trim().toLowerCase();
-    const records = getCleaningHistory();
+    const allRecords = getCleaningHistory();
+    const records = allRecords.filter(r => {
+      const depot = r.depot || getBusDepot(r.bm);
+      return String(depot) === String(currentOperatingDepot);
+    });
     const filtered = q
       ? records.filter(r => (r.bm || '').toLowerCase().includes(q) || (r.reg || '').toLowerCase().includes(q) || (r.unlockTime || '').toLowerCase().includes(q) || (r.remarks || '').toLowerCase().includes(q))
       : records;
@@ -1643,7 +1691,11 @@
   function renderLog() {
     const card = document.getElementById('logCard');
     const list  = document.getElementById('logList');
-    const records = getCleaningHistory();
+    const allRecords = getCleaningHistory();
+    const records = allRecords.filter(e => {
+      const depot = e.depot || getBusDepot(e.bm);
+      return String(depot) === String(currentOperatingDepot);
+    });
     if (!records.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
 
@@ -1692,8 +1744,17 @@
     renderLog();
     const curBm = document.getElementById('busSelect').value;
     if (curBm) {
-      updateLockUI(curBm);
-      updateChecklistAndUnlockState();
+      if (getBusDepot(curBm) !== currentOperatingDepot) {
+        document.getElementById('busSelect').value = '';
+        document.getElementById('busInfoBox').classList.remove('show');
+        updateLockUI('');
+      } else {
+        updateLockUI(curBm);
+        updateChecklistAndUnlockState();
+      }
+    }
+    if (document.getElementById('ongoingModal')?.style.display === 'flex') {
+      openOngoingModal();
     }
   }
 

@@ -844,6 +844,12 @@
   function updateDepotUI() {
     const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
 
+    const chgNum = document.getElementById('chargingDepotNum');
+    if (chgNum) chgNum.textContent = currentOperatingDepot;
+    const chgSubNum = document.getElementById('chargingDepotSubNum');
+    if (chgSubNum) chgSubNum.textContent = currentOperatingDepot;
+    const chgFleetCount = document.getElementById('chargingDepotFleetCount');
+    if (chgFleetCount) chgFleetCount.textContent = String(activeCount);
     const chgTitle = document.getElementById('chargingPageTitle');
     if (chgTitle) chgTitle.innerHTML = `Charging <span id="chargingDepotNum">${currentOperatingDepot}</span> Log`;
     const chgSub = document.getElementById('chargingPageSub');
@@ -860,7 +866,20 @@
       window.history.replaceState(null, '', url.toString());
     } catch(e){}
     updateDepotUI();
+    const curBm = document.getElementById('busSelect') ? document.getElementById('busSelect').value : '';
+    if (curBm && getBusDepot(curBm) !== currentOperatingDepot) {
+      document.getElementById('busSelect').value = '';
+      if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
+      const box = document.getElementById('busInfoBox');
+      if (box) box.classList.remove('show');
+      updateLockUI('');
+    }
     filterBuses();
+    renderOngoingButtons();
+    renderLog();
+    if (document.getElementById('ongoingModal')?.style.display === 'flex') {
+      openOngoingModal();
+    }
   };
 
   async function loadDepotAssignments() {
@@ -917,19 +936,31 @@
 
   function isBusLockedForCharging(bm) {
     if (!bm) return false;
-    return getLockedBuses().some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'));
+    return getLockedBuses().some(x => {
+      const isChg = String(x.page || '').toLowerCase().includes('charg');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isSameBusId(x.bm, bm) && isChg && String(depot) === String(currentOperatingDepot);
+    });
   }
 
   function isBusLockedAnywhere(bm, reg) {
     if (!bm && !reg) return false;
     const locked = getLockedBuses();
-    return locked.some(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)));
+    return locked.some(x => {
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
+      return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg));
+    });
   }
 
   function getBusLockInfo(bm, reg) {
     if (!bm && !reg) return null;
     const locked = getLockedBuses();
-    return locked.find(x => isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg))) || null;
+    return locked.find(x => {
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
+      return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg));
+    }) || null;
   }
 
   function isBusInCleaning(bm, reg) {
@@ -938,6 +969,8 @@
     return locked.some(x => {
       const isClean = String(x.page || '').toLowerCase().includes('clean');
       if (!isClean) return false;
+      const depot = x.depot || getBusDepot(x.bm);
+      if (String(depot) !== String(currentOperatingDepot)) return false;
       return isSameBusId(x.bm, bm) || (reg && isSameBusId(x.reg, reg)) || (x.bm && reg && isSameBusId(x.bm, reg));
     });
   }
@@ -1045,12 +1078,14 @@
     const fullTimeStr = timeStr + ', ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     const regNo = getRegNoForBm(bm);
     const bay = 'Charging Bay';
+    const busDepot = getBusDepot(bm) || currentOperatingDepot;
 
     if (!locked.some(x => isSameBusId(x.bm, bm) && String(x.page || '').toLowerCase().includes('charg'))) {
       locked.push({
         bm,
         reg: regNo,
         page: 'charging',
+        depot: busDepot,
         reason: 'Under Fast Charging (target 100% floor)',
         startTime: fullTimeStr,
         time: timeStr,
@@ -1099,6 +1134,7 @@
       id: 'charg_' + Date.now(),
       bm: bm,
       reg: getRegNoForBm(bm),
+      depot: getBusDepot(bm) || currentOperatingDepot,
       processType: 'Depot Fast Plug-in Charging',
       startTime: startTime,
       unlockTime: fullTimeStr,
@@ -1298,7 +1334,11 @@
 
   function renderOngoingButtons() {
     const locked = getLockedBuses();
-    const chargeCount = locked.filter(x => String(x.page || '').toLowerCase().includes('charg')).length;
+    const chargeCount = locked.filter(x => {
+      const isChg = String(x.page || '').toLowerCase().includes('charg');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isChg && String(depot) === String(currentOperatingDepot);
+    }).length;
 
     const chargeEl = document.getElementById('ongoingChargingCount');
     if (chargeEl) chargeEl.textContent = chargeCount;
@@ -1306,13 +1346,17 @@
 
   function openOngoingModal() {
     const locked = getLockedBuses();
-    const list = locked.filter(x => String(x.page || '').toLowerCase().includes('charg'));
+    const list = locked.filter(x => {
+      const isChg = String(x.page || '').toLowerCase().includes('charg');
+      const depot = x.depot || getBusDepot(x.bm);
+      return isChg && String(depot) === String(currentOperatingDepot);
+    });
     const modal = document.getElementById('ongoingModal');
     const title = document.getElementById('ongoingModalTitle');
     const body = document.getElementById('ongoingModalBody');
     if (!modal || !title || !body) return;
 
-    title.innerHTML = `⚡ ${t('buses_in_ongoing_charging', 'Buses in Ongoing Charging')} (${list.length})`;
+    title.innerHTML = `⚡ ${t('buses_in_ongoing_charging', 'Buses in Ongoing Charging')} (${list.length}) — Depot ${currentOperatingDepot}`;
 
     if (!list.length) {
       body.innerHTML = `
@@ -1515,7 +1559,11 @@
 
   function filterHistoryList() {
     const q = (document.getElementById('historySearchInput')?.value || '').trim().toLowerCase();
-    const records = getChargingHistory();
+    const allRecords = getChargingHistory();
+    const records = allRecords.filter(r => {
+      const depot = r.depot || getBusDepot(r.bm);
+      return String(depot) === String(currentOperatingDepot);
+    });
     const filtered = q
       ? records.filter(r => (r.bm || '').toLowerCase().includes(q) || (r.reg || '').toLowerCase().includes(q) || (r.unlockTime || '').toLowerCase().includes(q) || (r.chargerBay || r.bay || '').toLowerCase().includes(q) || (r.remarks || '').toLowerCase().includes(q))
       : records;
@@ -1872,7 +1920,11 @@
   function renderLog() {
     const card = document.getElementById('logCard');
     const list  = document.getElementById('logList');
-    const records = getChargingHistory();
+    const allRecords = getChargingHistory();
+    const records = allRecords.filter(e => {
+      const depot = e.depot || getBusDepot(e.bm);
+      return String(depot) === String(currentOperatingDepot);
+    });
     if (!records.length) { card.style.display = 'none'; return; }
     card.style.display = 'block';
 
@@ -1921,7 +1973,18 @@
     renderOngoingButtons();
     renderLog();
     const curBm = document.getElementById('busSelect').value;
-    if (curBm) updateLockUI(curBm);
+    if (curBm) {
+      if (getBusDepot(curBm) !== currentOperatingDepot) {
+        document.getElementById('busSelect').value = '';
+        document.getElementById('busInfoBox').classList.remove('show');
+        updateLockUI('');
+      } else {
+        updateLockUI(curBm);
+      }
+    }
+    if (document.getElementById('ongoingModal')?.style.display === 'flex') {
+      openOngoingModal();
+    }
   }
 
   window.addEventListener('storage', (e) => {
