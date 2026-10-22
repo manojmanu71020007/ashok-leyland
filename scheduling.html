@@ -863,7 +863,7 @@
                             <span data-i18n="label_departure_time">Departure time</span>
                             <span id="manual-override-badge" class="manual-override-badge" style="display:none;" data-i18n="manual_override_badge">⚠️ Manual Over-ride</span>
                         </div>
-                        <input id="departure" type="time" value="">
+                        <input id="departure" type="time" value="" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Departure time is determined strictly by scheduled timetable departure dataset" tabindex="-1">
                         <div id="manual-override-hint" class="manual-override-hint" style="display:none;">
                             <span data-i18n="manual_override_hint_text">⚠️ Manual Over-ride: Time modified from scheduled timetable</span>
                             <button type="button" id="btn-reset-time" class="btn-reset-time" onclick="resetToScheduledTime()" data-i18n="btn_reset_auto">Reset to Timetable</button>
@@ -3359,27 +3359,10 @@
             }
 
             if (depInput) {
-                const handleDeparture = async () => {
-                    currentlyAllocatedBus = null;
-                    const val = depInput.value;
-                    isManualOverride = !!val;
-                    if (scheduledTimeSelect) {
-                        if (val) {
-                            const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]`);
-                            if (exactOpt) {
-                                scheduledTimeSelect.value = val;
-                            } else {
-                                scheduledTimeSelect.value = "";
-                            }
-                        } else {
-                            scheduledTimeSelect.value = "";
-                        }
-                    }
-                    updateManualOverrideUI();
-                    await recommend();
-                };
-                depInput.addEventListener("input", handleDeparture);
-                depInput.addEventListener("change", handleDeparture);
+                depInput.readOnly = true;
+                depInput.addEventListener("keydown", (e) => e.preventDefault());
+                depInput.addEventListener("paste", (e) => e.preventDefault());
+                depInput.addEventListener("focus", () => depInput.blur());
             }
 
             const driverSelect = document.getElementById("driver");

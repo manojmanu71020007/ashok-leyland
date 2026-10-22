@@ -186,6 +186,174 @@
             border-radius: 9px;
             padding: 12px;
         }
+        .kpi.kpi-clickable {
+            cursor: pointer;
+            position: relative;
+            border-left: 4px solid var(--blue);
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
+            user-select: none;
+        }
+        .kpi.kpi-clickable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(2, 132, 199, 0.2);
+            border-left-color: #0369a1;
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        }
+        .kpi.kpi-clickable:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
+        }
+        .kpi.kpi-clickable:focus-visible {
+            outline: 2px solid #0284c7;
+            outline-offset: 2px;
+        }
+        .kpi-action-pill {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: #0369a1;
+            background: rgba(255, 255, 255, 0.92);
+            border: 1px solid #7dd3fc;
+            border-radius: 12px;
+            padding: 2px 7px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            letter-spacing: 0.02em;
+            transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .kpi.kpi-clickable:hover .kpi-action-pill {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
+        .route-alloc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 16px;
+        }
+        .route-alloc-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .route-alloc-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            border-color: #94a3b8;
+        }
+        .route-alloc-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .route-alloc-bus-title {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .route-alloc-reg-no {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+        .route-alloc-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .route-alloc-metric-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 8px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .route-alloc-metric-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .route-alloc-metric-val {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .route-alloc-soc-bar-wrap {
+            background: #e2e8f0;
+            border-radius: 6px;
+            height: 6px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        .route-alloc-soc-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+        }
+        .route-alloc-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #f1f5f9;
+        }
+        .btn-dealloc-duty {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fca5a5;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-dealloc-duty:hover {
+            background: #ef4444;
+            color: #ffffff;
+            border-color: #ef4444;
+        }
+        .btn-inspect-duty {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #93c5fd;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-inspect-duty:hover {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #0284c7;
+        }
         .kpi strong {
             display: block;
             font-size: 1.45rem;
@@ -2166,7 +2334,7 @@
                         Scheduled Departure Time (from dataset)
                         <select id="scheduled-time-select" title="Select scheduled timetable departure"><option value="" data-i18n="option_choose_departure_time">Choose a departure time</option></select>
                     </label>
-                    <label>Departure time<input id="departure" type="time" value="" title="Select or enter departure time"></label>
+                    <label>Departure time<input id="departure" type="time" value="" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Departure time is determined strictly by scheduled timetable departure dataset" tabindex="-1"></label>
                     <label class="wide">Schedule distance (km)<input id="distance" type="number" min="1" value="" readonly style="background-color:#f1f5f9; color:#475569; cursor:not-allowed;" title="Read-only: Schedule distance is fixed based on route GTFS data"></label>
                 </div>
 
@@ -2233,8 +2401,11 @@
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
                     <div class="kpi"><strong id="bus-total">0</strong><span id="bus-total-label">Total buses available</span></div>
-                    <div class="kpi" id="kpi-bus-allocated">
-                        <strong id="bus-allocated-kpi">0</strong>
+                    <div class="kpi kpi-clickable" id="kpi-bus-allocated" role="button" tabindex="0" onclick="openRouteAllocatedBusesModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRouteAllocatedBusesModal();}" title="Click to view all buses allocated to this route (independent of departure time)">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <strong id="bus-allocated-kpi">0</strong>
+                            <span class="kpi-action-pill">View Fleet ➔</span>
+                        </div>
                         <span id="bus-allocated-kpi-label">Allocated buses</span>
                     </div>
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span>Selected bus SOC</span></div>
@@ -2622,6 +2793,54 @@
                         <!-- Populated dynamically by JavaScript -->
                     </div>
                 </section>
+            </div>
+        </div>
+
+        <!-- Route Allocated Buses Modal Dialog -->
+        <div id="route-allocated-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeRouteAllocatedBusesModal()">
+            <div class="modal-dialog" style="max-width:980px;" role="dialog" aria-modal="true" aria-labelledby="route-allocated-modal-title">
+                <div class="modal-header">
+                    <div>
+                        <div class="eyebrow" style="margin-bottom:4px; color:#0284c7;">Route Fleet Allocation Directory</div>
+                        <h2 id="route-allocated-modal-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span>🚌 Route Allocated Buses</span>
+                            <span id="route-allocated-route-badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:.85rem; padding:3px 10px; border-radius:6px; border:1px solid #93c5fd;">Route 356Z</span>
+                            <span id="route-allocated-count-badge" style="background:#dcfce7; color:#15803d; font-weight:800; font-size:.85rem; padding:3px 10px; border-radius:6px; border:1px solid #86efac;">0 Buses Allocated</span>
+                        </h2>
+                        <p id="route-allocated-modal-subtitle" style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
+                            All vehicles currently allocated to this route across all departure times, schedules, and shifts.
+                        </p>
+                    </div>
+                    <button type="button" id="close-route-allocated-modal-btn" class="modal-close-btn" aria-label="Close dialog" onclick="closeRouteAllocatedBusesModal()">✕</button>
+                </div>
+
+                <div class="modal-search-wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px; background:#f8fafc; padding:12px 24px; border-bottom:1px solid var(--line); flex-wrap:wrap;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:280px; flex-wrap:wrap;">
+                        <label style="font-size:0.8rem; font-weight:700; color:var(--muted); margin:0; display:flex; align-items:center; gap:6px;">
+                            <span>Route:</span>
+                            <select id="route-allocated-modal-route-select" onchange="switchRouteAllocatedModalRoute(this.value)" style="padding:6px 10px; border-radius:6px; border:1px solid var(--line); font-size:0.84rem; background:#fff; font-weight:600;">
+                                <!-- Populated dynamically -->
+                            </select>
+                        </label>
+                        <div style="position:relative; flex:1; min-width:180px; max-width:260px;">
+                            <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.8rem; color:#64748b;">🔍</span>
+                            <input type="text" id="route-allocated-search" placeholder="Filter by BM, Reg, Shift..." oninput="filterRouteAllocatedModalList()" style="width:100%; padding:6px 10px 6px 30px; font-size:0.82rem; border-radius:6px; border:1px solid var(--line); background:#fff;" />
+                        </div>
+                    </div>
+                    <div style="font-size:0.78rem; color:#64748b; display:flex; align-items:center; gap:8px;">
+                        <span id="route-allocated-depot-counts" style="font-weight:600;"></span>
+                    </div>
+                </div>
+
+                <div id="route-allocated-modal-body" class="modal-body" style="padding:20px 24px; gap:16px; max-height:68vh; overflow-y:auto;">
+                    <!-- Populated dynamically -->
+                </div>
+                <div class="modal-footer" style="padding:12px 24px; background:#f8fafc; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:0.78rem; color:var(--muted);">
+                        💡 Independent of departure time — displays all buses allocated for this specific route.
+                    </div>
+                    <button type="button" class="btn secondary" onclick="closeRouteAllocatedBusesModal()" style="padding:6px 16px; font-size:0.85rem; border-radius:6px; cursor:pointer;">Close</button>
+                </div>
             </div>
         </div>
 
@@ -4591,27 +4810,11 @@ let busCategoriesMap = new Map();
                     timeSelect.innerHTML = optionsHtml;
 
                     const currentDep = depInput ? depInput.value : "";
-                    if (keepManualTime && currentDep) {
-                        if (timeMap.has(currentDep)) {
-                            timeSelect.value = currentDep;
-                        } else {
-                            const shiftName = getShiftForTimeAndRoute(currentDep, routeCode);
-                            const customOpt = document.createElement("option");
-                            customOpt.value = currentDep;
-                            customOpt.dataset.manual = "true";
-                            customOpt.textContent = `Manual Time: ${currentDep} (Shift: ${shiftName})`;
-                            customOpt.selected = true;
-                            timeSelect.appendChild(customOpt);
-                            timeSelect.value = currentDep;
-                        }
+                    if (currentDep && timeMap.has(currentDep)) {
+                        timeSelect.value = currentDep;
                     } else {
-                        if (currentDep && timeMap.has(currentDep)) {
-                            timeSelect.value = currentDep;
-                            if (depInput) depInput.value = currentDep;
-                        } else {
-                            timeSelect.value = "";
-                            if (depInput) depInput.value = "";
-                        }
+                        timeSelect.value = "";
+                        if (depInput) depInput.value = "";
                     }
                 } else {
                     const currentDep = depInput ? depInput.value : "";
@@ -4628,18 +4831,7 @@ let busCategoriesMap = new Map();
         }
 
         function isDepartureManualOverride(timeStr, routeCode) {
-            if (window._manualDepartureFlag === true) return true;
-            const timeSelect = document.getElementById("scheduled-time-select");
-            if (timeSelect) {
-                const selOpt = timeSelect.selectedOptions ? timeSelect.selectedOptions[0] : null;
-                if (selOpt && selOpt.dataset.manual === "true") return true;
-            }
-            const cleanTime = (timeStr || "").substring(0, 5);
-            const rCode = String(routeCode || "").toUpperCase().trim();
-            const matching = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase().trim() === rCode && s.outTime);
-            if (!matching.length) return false;
-            const isDatasetTime = matching.some(s => s.outTime.substring(0, 5) === cleanTime);
-            return !isDatasetTime;
+            return false;
         }
 
                 function getTimeCategory(timeStr) {
@@ -7513,6 +7705,328 @@ let busCategoriesMap = new Map();
             el.textContent = String(assignedCount);
         }
 
+        // ── Route Allocated Buses Modal Implementation ──────────────────
+        let _currentRouteAllocatedModalRoute = "";
+
+        function openRouteAllocatedBusesModal(targetRouteCode) {
+            try {
+                const backdrop = document.getElementById("route-allocated-buses-modal-backdrop");
+                if (!backdrop) return;
+
+                // Determine which route to inspect
+                let chosenRouteCode = targetRouteCode;
+                if (!chosenRouteCode) {
+                    const routeSelect = document.getElementById("route-select");
+                    const selVal = routeSelect ? routeSelect.value : "";
+                    if (selVal) {
+                        const rObj = directionalRoutes.find(r => r.id === selVal || r.code === selVal || r.routeId === selVal);
+                        if (rObj) chosenRouteCode = rObj.code;
+                    }
+                }
+                if (!chosenRouteCode) {
+                    // Fall back to a route with allocated duties, or the first directional route
+                    const duties = loadAllocatedDuties() || [];
+                    for (const r of directionalRoutes) {
+                        if (duties.some(d => normalizeRoute(d.routeCode || d.busNumber || d.routeId) === normalizeRoute(r.code))) {
+                            chosenRouteCode = r.code;
+                            break;
+                        }
+                    }
+                    if (!chosenRouteCode && directionalRoutes.length > 0) {
+                        chosenRouteCode = directionalRoutes[0].code;
+                    }
+                }
+
+                _currentRouteAllocatedModalRoute = chosenRouteCode || "356Z";
+
+                populateRouteAllocatedModalDropdown(_currentRouteAllocatedModalRoute);
+
+                const searchInput = document.getElementById("route-allocated-search");
+                if (searchInput) searchInput.value = "";
+
+                backdrop.style.display = "flex";
+                backdrop.setAttribute("aria-hidden", "false");
+                document.body.style.overflow = "hidden";
+
+                renderRouteAllocatedBusesModal(_currentRouteAllocatedModalRoute);
+            } catch (err) {
+                console.error("Error in openRouteAllocatedBusesModal:", err);
+            }
+        }
+
+        function closeRouteAllocatedBusesModal() {
+            try {
+                const backdrop = document.getElementById("route-allocated-buses-modal-backdrop");
+                if (!backdrop) return;
+                backdrop.style.display = "none";
+                backdrop.setAttribute("aria-hidden", "true");
+                document.body.style.overflow = "";
+            } catch (err) {
+                console.error("Error in closeRouteAllocatedBusesModal:", err);
+            }
+        }
+
+        function populateRouteAllocatedModalDropdown(selectedCode) {
+            const sel = document.getElementById("route-allocated-modal-route-select");
+            if (!sel) return;
+            const allDuties = loadAllocatedDuties() || [];
+
+            sel.innerHTML = directionalRoutes.map(r => {
+                const count = allDuties.filter(d => normalizeRoute(d.routeCode || d.busNumber || d.routeId) === normalizeRoute(r.code)).length;
+                const countBadge = count > 0 ? ` (${count} allocated)` : ` (0)`;
+                const isSel = normalizeRoute(r.code) === normalizeRoute(selectedCode);
+                return `<option value="${escapeHtml(r.code)}" ${isSel ? 'selected' : ''}>Route ${escapeHtml(r.code)}: ${escapeHtml(r.origin)} ➔ ${escapeHtml(r.destination)}${countBadge}</option>`;
+            }).join("");
+        }
+
+        function switchRouteAllocatedModalRoute(routeCode) {
+            _currentRouteAllocatedModalRoute = routeCode;
+            const searchInput = document.getElementById("route-allocated-search");
+            if (searchInput) searchInput.value = "";
+            renderRouteAllocatedBusesModal(routeCode);
+        }
+
+        function filterRouteAllocatedModalList() {
+            const searchInput = document.getElementById("route-allocated-search");
+            const query = (searchInput ? searchInput.value : "").trim().toLowerCase();
+            renderRouteAllocatedBusesModal(_currentRouteAllocatedModalRoute, query);
+        }
+
+        function renderRouteAllocatedBusesModal(routeCode, searchQuery = "") {
+            const bodyEl = document.getElementById("route-allocated-modal-body");
+            const routeBadgeEl = document.getElementById("route-allocated-route-badge");
+            const countBadgeEl = document.getElementById("route-allocated-count-badge");
+            const subtitleEl = document.getElementById("route-allocated-modal-subtitle");
+            const depotCountsEl = document.getElementById("route-allocated-depot-counts");
+            if (!bodyEl) return;
+
+            const routeObj = directionalRoutes.find(r => normalizeRoute(r.code) === normalizeRoute(routeCode)) || {
+                code: routeCode,
+                origin: "Origin",
+                destination: "Destination",
+                distKm: 30
+            };
+
+            if (routeBadgeEl) routeBadgeEl.textContent = `Route ${routeObj.code}`;
+            if (subtitleEl) {
+                subtitleEl.textContent = `All vehicles allocated to Route ${routeObj.code} (${routeObj.origin} ➔ ${routeObj.destination}) across all shifts and departure times.`;
+            }
+
+            const allDuties = loadAllocatedDuties() || [];
+            let duties = allDuties.filter(d => normalizeRoute(d.routeCode || d.busNumber || d.routeId) === normalizeRoute(routeObj.code));
+
+            // Sort by departure time
+            duties.sort((a, b) => String(a.departureTime || '').localeCompare(String(b.departureTime || '')));
+
+            const totalAllocated = duties.length;
+            if (countBadgeEl) {
+                countBadgeEl.textContent = `${totalAllocated} Bus${totalAllocated === 1 ? '' : 'es'} Allocated`;
+                countBadgeEl.style.background = totalAllocated > 0 ? "#dcfce7" : "#f1f5f9";
+                countBadgeEl.style.color = totalAllocated > 0 ? "#15803d" : "#64748b";
+                countBadgeEl.style.borderColor = totalAllocated > 0 ? "#86efac" : "#cbd5e1";
+            }
+
+            // Depot counts
+            let d1Count = 0, d2Count = 0;
+            duties.forEach(d => {
+                const depot = getBusDepot(d.bm);
+                if (depot === "2") d2Count++;
+                else d1Count++;
+            });
+            if (depotCountsEl) {
+                depotCountsEl.innerHTML = `Depot 1: <strong style="color:#0369a1;">${d1Count}</strong> &nbsp;|&nbsp; Depot 2: <strong style="color:#7e22ce;">${d2Count}</strong>`;
+            }
+
+            // Filter by search query if present
+            if (searchQuery) {
+                const q = searchQuery.toLowerCase();
+                duties = duties.filter(d => {
+                    const bm = String(d.bm || '').toLowerCase();
+                    const reg = String(d.regNo || getBusRegNo(d.bm) || '').toLowerCase();
+                    const shift = String(d.shift || '').toLowerCase();
+                    const depTime = String(d.departureTime || '').toLowerCase();
+                    const sched = String(d.scheduleId || '').toLowerCase();
+                    return bm.includes(q) || reg.includes(q) || shift.includes(q) || depTime.includes(q) || sched.includes(q);
+                });
+            }
+
+            if (duties.length === 0) {
+                if (totalAllocated === 0) {
+                    bodyEl.innerHTML = `
+                        <div style="text-align:center; padding:48px 24px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                            <div style="font-size:2.6rem; margin-bottom:10px;">🚌</div>
+                            <h3 style="font-size:1.15rem; font-weight:700; color:#1e293b; margin:0 0 6px;">No buses currently allocated to Route ${escapeHtml(routeObj.code)}</h3>
+                            <p style="font-size:0.86rem; color:#64748b; max-width:520px; margin:0 auto 16px; line-height:1.5;">
+                                There are currently no vehicles allocated to Route ${escapeHtml(routeObj.code)} (${escapeHtml(routeObj.origin)} ➔ ${escapeHtml(routeObj.destination)}).
+                                To allocate a bus, choose a scheduled departure time and click <strong>"Allocate Bus &amp; Commit Duty"</strong> in the main allocation panel.
+                            </p>
+                            <div style="display:inline-flex; gap:10px; align-items:center; background:#e0f2fe; color:#0369a1; padding:8px 16px; border-radius:8px; font-size:0.8rem; font-weight:600;">
+                                <span>💡 Route Distance: ${Number(routeObj.distKm).toFixed(1)} km</span>
+                                <span>•</span>
+                                <span>Corridor: ${escapeHtml(routeObj.origin)} ➔ ${escapeHtml(routeObj.destination)}</span>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    bodyEl.innerHTML = `
+                        <div style="text-align:center; padding:40px 20px; background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px;">
+                            <div style="font-size:2rem; margin-bottom:8px;">🔍</div>
+                            <div style="font-weight:700; color:#1e293b; margin-bottom:4px;">No matching buses found</div>
+                            <div style="font-size:0.82rem; color:#64748b;">No allocated buses on Route ${escapeHtml(routeObj.code)} match "${escapeHtml(searchQuery)}".</div>
+                        </div>
+                    `;
+                }
+                return;
+            }
+
+            // Render cards
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center; background:#f0f9ff; border:1px solid #bae6fd; border-radius:10px; padding:10px 16px; margin-bottom:16px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:1.1rem;">📍</span>
+                        <div>
+                            <strong style="color:#0369a1; font-size:0.9rem;">Route ${escapeHtml(routeObj.code)}: ${escapeHtml(routeObj.origin)} ➔ ${escapeHtml(routeObj.destination)}</strong>
+                            <div style="font-size:0.75rem; color:#64748b;">Schedule Length: ${Number(routeObj.distKm).toFixed(1)} km &nbsp;|&nbsp; Single Charge Operation Required</div>
+                        </div>
+                    </div>
+                    <span style="background:#0284c7; color:#fff; font-size:0.75rem; font-weight:700; padding:3px 10px; border-radius:12px;">
+                        ${duties.length} ${duties.length === 1 ? 'Bus' : 'Buses'} Allocated
+                    </span>
+                </div>
+                <div class="route-alloc-grid">
+            `;
+
+            duties.forEach(duty => {
+                const cleanBm = String(duty.bm || '').toUpperCase().trim();
+                const regNo = duty.regNo || getBusRegNo(cleanBm);
+                const depot = getBusDepot(cleanBm);
+                const depotLabel = depot === "2" ? "Depot 2" : "Depot 1";
+                const depotBadgeStyle = depot === "2"
+                    ? "background:#faf5ff; color:#7e22ce; border:1px solid #e9d5ff;"
+                    : "background:#eff6ff; color:#1d4ed8; border:1px solid #bfdbfe;";
+
+                let liveSoc = null;
+                try {
+                    const rawLocal = localStorage.getItem('depot_bus_soc_' + cleanBm);
+                    if (rawLocal !== null && !isNaN(Number(rawLocal))) liveSoc = Number(rawLocal);
+                } catch(e) {}
+                if (liveSoc === null && typeof busStates !== "undefined" && busStates[cleanBm] && Number.isFinite(Number(busStates[cleanBm].soc))) {
+                    liveSoc = Number(busStates[cleanBm].soc);
+                }
+                if (liveSoc === null) liveSoc = Number(duty.soc) || 85;
+
+                const fullDutyKm = Math.round(liveSoc * 1.42);
+                const socBarColor = liveSoc >= 60 ? "#16a34a" : (liveSoc >= 30 ? "#d97706" : "#dc2626");
+
+                const shiftName = duty.shift || getShiftForTimeAndRoute(duty.departureTime || "13:10", routeObj.code);
+                const departureTime = duty.departureTime || "—";
+                const scheduleId = duty.scheduleId || `${routeObj.code}/1`;
+                const driverName = duty.driverName || duty.driver || "Auto Assigned";
+
+                html += `
+                    <div class="route-alloc-card" data-bm="${escapeHtml(cleanBm)}" data-duty-id="${escapeHtml(duty.id || '')}">
+                        <div>
+                            <div class="route-alloc-card-header">
+                                <div>
+                                    <div class="route-alloc-bus-title">
+                                        <span>🚌 ${escapeHtml(cleanBm)}</span>
+                                        <span style="font-size:0.7rem; font-weight:700; padding:2px 8px; border-radius:10px; ${depotBadgeStyle}">
+                                            ${depotLabel}
+                                        </span>
+                                    </div>
+                                    <div class="route-alloc-reg-no">${escapeHtml(regNo)}</div>
+                                </div>
+                                <span style="font-size:0.72rem; font-weight:700; color:#15803d; background:#dcfce7; border:1px solid #86efac; padding:2px 8px; border-radius:10px;">
+                                    ● Ready for Dispatch
+                                </span>
+                            </div>
+
+                            <div class="route-alloc-metrics">
+                                <div class="route-alloc-metric-item">
+                                    <span class="route-alloc-metric-label">Departure Time</span>
+                                    <strong class="route-alloc-metric-val" style="color:#0284c7;">🕒 ${escapeHtml(departureTime)}</strong>
+                                </div>
+                                <div class="route-alloc-metric-item">
+                                    <span class="route-alloc-metric-label">Duty Shift</span>
+                                    <strong class="route-alloc-metric-val">${escapeHtml(shiftName)}</strong>
+                                </div>
+                                <div class="route-alloc-metric-item">
+                                    <span class="route-alloc-metric-label">Schedule ID</span>
+                                    <strong class="route-alloc-metric-val" style="font-size:0.82rem;">${escapeHtml(scheduleId)}</strong>
+                                </div>
+                                <div class="route-alloc-metric-item">
+                                    <span class="route-alloc-metric-label">Driver</span>
+                                    <strong class="route-alloc-metric-val" style="font-size:0.82rem;" title="${escapeHtml(driverName)}">👤 ${escapeHtml(driverName)}</strong>
+                                </div>
+                                <div class="route-alloc-metric-item" style="grid-column: span 2;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span class="route-alloc-metric-label">Live Battery SOC</span>
+                                        <strong class="route-alloc-metric-val" style="color:${socBarColor};">${liveSoc}% (${fullDutyKm} km Full Duty)</strong>
+                                    </div>
+                                    <div class="route-alloc-soc-bar-wrap">
+                                        <div class="route-alloc-soc-bar" style="width:${Math.min(100, Math.max(0, liveSoc))}%; background:${socBarColor};"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="route-alloc-card-footer">
+                            <button type="button" class="btn-inspect-duty" onclick="openBusTasksModal('${escapeHtml(routeObj.code)}', '${escapeHtml(cleanBm)}', '${escapeHtml(scheduleId)}', '${escapeHtml(routeObj.code)}')" title="Inspect GTFS route duty tasks for ${escapeHtml(cleanBm)}">
+                                <span>📋 View Tasks</span>
+                            </button>
+                            <button type="button" class="btn-dealloc-duty" onclick="deallocateDutyFromRoute('${escapeHtml(duty.id || cleanBm)}', '${escapeHtml(cleanBm)}')" title="De-allocate this duty assignment">
+                                <span>✕ De-allocate</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            bodyEl.innerHTML = html;
+        }
+
+        function deallocateDutyFromRoute(dutyIdOrBm, bm) {
+            if (!confirm(`Are you sure you want to de-allocate bus ${bm} from Route ${_currentRouteAllocatedModalRoute}?`)) {
+                return;
+            }
+            try {
+                let duties = loadAllocatedDuties() || [];
+                const targetBm = normalizeBm(bm);
+                duties = duties.filter(d => {
+                    if (dutyIdOrBm && d.id === dutyIdOrBm) return false;
+                    if (targetBm && normalizeBm(d.bm) === targetBm && normalizeRoute(d.routeCode || d.busNumber || d.routeId) === normalizeRoute(_currentRouteAllocatedModalRoute)) {
+                        return false;
+                    }
+                    return true;
+                });
+                saveAllocatedDuties(duties);
+                allocatedDuties = duties;
+
+                showAllocationToast(`✅ De-allocated Bus ${bm} from Route ${_currentRouteAllocatedModalRoute}`, "success");
+
+                // Refresh modal
+                renderRouteAllocatedBusesModal(_currentRouteAllocatedModalRoute);
+                populateRouteAllocatedModalDropdown(_currentRouteAllocatedModalRoute);
+
+                // Update KPIs and main view
+                const rObj = directionalRoutes.find(r => normalizeRoute(r.code) === normalizeRoute(_currentRouteAllocatedModalRoute));
+                if (rObj) {
+                    updateRouteKpis(rObj);
+                }
+                renderRoutes(false, true);
+            } catch (err) {
+                console.error("Error in deallocateDutyFromRoute:", err);
+                showAllocationToast("⚠️ Error de-allocating bus duty.", "error");
+            }
+        }
+
+        window.openRouteAllocatedBusesModal = openRouteAllocatedBusesModal;
+        window.closeRouteAllocatedBusesModal = closeRouteAllocatedBusesModal;
+        window.switchRouteAllocatedModalRoute = switchRouteAllocatedModalRoute;
+        window.filterRouteAllocatedModalList = filterRouteAllocatedModalList;
+        window.deallocateDutyFromRoute = deallocateDutyFromRoute;
+
         // ── Locked Buses Modal Implementation ───────────────────────
         function openLockedBusesModal() {
             try {
@@ -8126,8 +8640,7 @@ let busCategoriesMap = new Map();
             if (scheduledTimeSelect) {
                 let _schedTimeDebounce = null;
                 scheduledTimeSelect.addEventListener("change", () => {
-                    const selOpt = scheduledTimeSelect.selectedOptions ? scheduledTimeSelect.selectedOptions[0] : null;
-                    window._manualDepartureFlag = !!(selOpt && selOpt.dataset.manual === "true");
+                    window._manualDepartureFlag = false;
                     const depInput = document.getElementById("departure");
                     if (depInput) {
                         depInput.value = scheduledTimeSelect.value || "";
@@ -8145,44 +8658,10 @@ let busCategoriesMap = new Map();
 
             const depInput = document.getElementById("departure");
             if (depInput) {
-                let depDebounce = null;
-                const handleDeparture = () => {
-                    if (depDebounce) clearTimeout(depDebounce);
-                    depDebounce = setTimeout(() => {
-                        window._manualDepartureFlag = true;
-                        invalidateAllocCache();
-                        const val = depInput.value;
-                        if (scheduledTimeSelect) {
-                            if (val) {
-                                const exactOpt = scheduledTimeSelect.querySelector(`option[value="${val}"]:not([data-manual="true"])`);
-                                if (exactOpt) {
-                                    scheduledTimeSelect.value = val;
-                                    window._manualDepartureFlag = true;
-                                } else {
-                                    let manualOpt = scheduledTimeSelect.querySelector('option[data-manual="true"]');
-                                    if (!manualOpt) {
-                                        manualOpt = document.createElement("option");
-                                        manualOpt.dataset.manual = "true";
-                                        scheduledTimeSelect.appendChild(manualOpt);
-                                    }
-                                    const selectedRouteId = routeSelect ? routeSelect.value : "";
-                                    const routeObj = directionalRoutes.find(r => r.id === selectedRouteId || r.code === selectedRouteId || r.routeId === selectedRouteId) || directionalRoutes[0];
-                                    const shiftName = getShiftForTimeAndRoute(val, routeObj ? routeObj.code : "");
-                                    manualOpt.value = val;
-                                    manualOpt.textContent = `Manual Time: ${val} (Shift: ${shiftName})`;
-                                    scheduledTimeSelect.value = val;
-                                    window._manualDepartureFlag = true;
-                                }
-                            } else {
-                                scheduledTimeSelect.value = "";
-                            }
-                        }
-                        syncScheduleTiming();
-                        recommend();
-                    }, 80);
-                };
-                depInput.addEventListener("input", handleDeparture);
-                depInput.addEventListener("change", handleDeparture);
+                depInput.readOnly = true;
+                depInput.addEventListener("keydown", (e) => e.preventDefault());
+                depInput.addEventListener("paste", (e) => e.preventDefault());
+                depInput.addEventListener("focus", () => depInput.blur());
             }
 
             const recBtn = document.getElementById("recommend");
@@ -8505,6 +8984,10 @@ let busCategoriesMap = new Map();
                     }
                     if (lockedBusesModalBackdrop && lockedBusesModalBackdrop.style.display === "flex") {
                         closeLockedBusesModal();
+                    }
+                    const routeAllocModal = document.getElementById("route-allocated-buses-modal-backdrop");
+                    if (routeAllocModal && routeAllocModal.style.display === "flex") {
+                        closeRouteAllocatedBusesModal();
                     }
                 }
             });
