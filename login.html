@@ -834,6 +834,15 @@
 
                     <button type="submit" class="primary-btn" id="btn-login" data-i18n="btn_login_submit">Sign In</button>
 
+                    <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.24);border-radius:10px;text-align:center;">
+                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.85);display:block;margin-bottom:5px;">
+                            ⚡ Admin Bypass Credential:
+                        </span>
+                        <button type="button" onclick="fillAdminBypass()" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;font-size:0.78rem;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                            🔑 Quick Fill: admin@gmail.com / adminlogin
+                        </button>
+                    </div>
+
 
                 </form>
 
@@ -911,6 +920,15 @@
                     </div>
 
                     <button type="submit" class="primary-btn" id="btn-signup" data-i18n="btn_signup_submit">Complete Registration &amp; Set Password</button>
+
+                    <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.24);border-radius:10px;text-align:center;">
+                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.85);display:block;margin-bottom:5px;">
+                            ⚡ Admin Bypass (No Google Auth Required):
+                        </span>
+                        <button type="button" onclick="fillAdminBypass()" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;font-size:0.78rem;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
+                            🔑 Quick Fill: admin@gmail.com / adminlogin
+                        </button>
+                    </div>
                 </form>
 
                 <div class="footer-note">By signing up, you agree to our terms and privacy policy.</div>
@@ -1157,6 +1175,14 @@
     onAuthStateChanged(auth, async (user) => {
         if (!user) {
             isExplicitLogout = false;
+            try {
+                const hasAdminSession = ((sessionStorage.getItem("isLoggedIn") === "true") || (localStorage.getItem("isLoggedIn") === "true")) &&
+                    ((sessionStorage.getItem("userEmail") === "admin@gmail.com") || (localStorage.getItem("userEmail") === "admin@gmail.com")) &&
+                    (localStorage.getItem("smartbus_loggedout") !== "1");
+                if (hasAdminSession) {
+                    window.location.href = "/admin.html";
+                }
+            } catch(e) {}
             return;
         }
 
@@ -1197,6 +1223,26 @@
     // ── Expose to global scope (onclick attributes) ────────────────────────────
     window.signInWithGoogle  = signInWithGoogle;
     window.signUpWithGoogle  = signUpWithGoogle;
+    window.fillAdminBypass   = function() {
+        const isLoginActive = document.getElementById("panel-login")?.classList.contains("active");
+        if (isLoginActive) {
+            const eInput = document.getElementById("login-email");
+            const pInput = document.getElementById("login-password");
+            if (eInput) eInput.value = "admin@gmail.com";
+            if (pInput) pInput.value = "adminlogin";
+            document.getElementById("form-login")?.dispatchEvent(new Event("submit", { cancelable: true }));
+        } else {
+            const nInput = document.getElementById("signup-name");
+            const eInput = document.getElementById("signup-email");
+            const pInput = document.getElementById("signup-password");
+            const cInput = document.getElementById("signup-confirm");
+            if (nInput) nInput.value = "Admin";
+            if (eInput) eInput.value = "admin@gmail.com";
+            if (pInput) pInput.value = "adminlogin";
+            if (cInput) cInput.value = "adminlogin";
+            document.getElementById("form-signup")?.dispatchEvent(new Event("submit", { cancelable: true }));
+        }
+    };
 
     // ══════════════════════════════════════════════════════════════════════════
     //  SIGN IN WITH GOOGLE
@@ -1348,13 +1394,35 @@
     // ══════════════════════════════════════════════════════════════════════════
     document.getElementById("form-login").addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!isConfigured) { showSetupBanner(); return; }
 
         const email    = document.getElementById("login-email").value.trim();
         const password = document.getElementById("login-password").value;
         const btn      = document.getElementById("btn-login");
 
         clearAlert("login-alert");
+
+        // ── Admin Bypass: admin@gmail.com / adminlogin ──
+        if (email.toLowerCase() === "admin@gmail.com" && password === "adminlogin") {
+            setLoading(btn, true, "Signing in as Admin…");
+            recordUserRegistration("admin@gmail.com", "Admin");
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", "admin@gmail.com");
+            localStorage.setItem("userName", "Admin");
+            localStorage.setItem("accessMode", "admin");
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", "admin@gmail.com");
+            sessionStorage.setItem("userName", "Admin");
+            sessionStorage.setItem("accessMode", "admin");
+            localStorage.removeItem("smartbus_loggedout");
+
+            showAlert("login-alert", "success", "Admin bypass verified. Redirecting to admin dashboard…");
+            setTimeout(() => {
+                window.location.href = "/admin.html";
+            }, 300);
+            return;
+        }
+
+        if (!isConfigured) { showSetupBanner(); return; }
 
         if (!email || !password) {
             showAlert("login-alert", "error", "Please enter both your email address and password.");
@@ -1391,7 +1459,6 @@
     // ══════════════════════════════════════════════════════════════════════════
     document.getElementById("form-signup").addEventListener("submit", async (e) => {
         e.preventDefault();
-        if (!isConfigured) { showSetupBanner(); return; }
 
         const name     = document.getElementById("signup-name").value.trim();
         const email    = document.getElementById("signup-email").value.trim();
@@ -1400,6 +1467,32 @@
         const btn      = document.getElementById("btn-signup");
 
         clearAlert("signup-alert");
+
+        // ── Admin Bypass: admin@gmail.com / adminlogin ──
+        if (email.toLowerCase() === "admin@gmail.com" && password === "adminlogin") {
+            setLoading(btn, true, "Registering & signing in as Admin…");
+            recordUserRegistration("admin@gmail.com", name || "Admin");
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", "admin@gmail.com");
+            localStorage.setItem("userName", name || "Admin");
+            localStorage.setItem("accessMode", "admin");
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", "admin@gmail.com");
+            sessionStorage.setItem("userName", name || "Admin");
+            sessionStorage.setItem("accessMode", "admin");
+            localStorage.removeItem("smartbus_loggedout");
+
+            window._isSigningUpWithGoogle = false;
+            window._googleUser = null;
+
+            showAlert("signup-alert", "success", "Admin bypass account active! Redirecting to admin dashboard…");
+            setTimeout(() => {
+                window.location.href = "/admin.html";
+            }, 300);
+            return;
+        }
+
+        if (!isConfigured) { showSetupBanner(); return; }
 
         // ── Validation ──
         if (!name) {

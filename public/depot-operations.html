@@ -995,17 +995,17 @@
   </div>
   <div class="stat-card" id="cardDepot1Fleet">
     <div class="stat-label">Depot 1 Fleet</div>
-    <div class="stat-value" id="statDepot1Count" style="color:#0f766e;">61</div>
+    <div class="stat-value" id="statDepot1Count" style="color:#0f766e;">62</div>
     <div class="stat-sub">assigned buses</div>
   </div>
   <div class="stat-card" id="cardDepot2Fleet">
     <div class="stat-label">Depot 2 Fleet</div>
-    <div class="stat-value" id="statDepot2Count" style="color:#6d28d9;">61</div>
+    <div class="stat-value" id="statDepot2Count" style="color:#6d28d9;">60</div>
     <div class="stat-sub">assigned buses</div>
   </div>
 </div>
 
-<!-- ── Currently Allocated Buses ── -->
+<!-- ── Currently Allocated Buses (With Integrated Search & Selection Box) ── -->
 <div class="card">
   <div class="card-title" style="justify-content: space-between; flex-wrap:wrap; gap:8px;">
     <span><span data-i18n="title_currently_allocated">🟣 Currently Allocated Buses</span> <span id="allocCountBadge" style="background:#ede9fe;color:#5b21b6;font-size:0.78rem;padding:2px 10px;border-radius:999px;font-weight:800;"></span></span>
@@ -1013,17 +1013,136 @@
       🔄 Refresh
     </button>
   </div>
-  <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">
-    Buses currently dispatched on routes across Depot 1 and Depot 2. Click <strong>Route Completed</strong> to mark them as returned.
+  <p style="font-size:0.82rem;color:var(--muted);margin-bottom:14px;">
+    Buses currently dispatched on routes across Depot 1 and Depot 2. Use the search and selection box below, or click <strong>Route Completed</strong> on any active bus to mark it returned.
   </p>
 
-  <!-- Search Allocated Buses in Both Depots -->
+  <!-- ── Search & Selection Box (Inside Currently Allocated Buses) ── -->
+  <div class="bus-select-panel" style="background:#f8fafc;border:1.5px solid var(--border);border-radius:14px;padding:16px;margin-bottom:20px;">
+    <div style="font-size:0.92rem;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;">
+      <span data-i18n="card_select_bus_route_complete">🚌 Select Bus to Mark Route Complete</span>
+      <span style="font-size:0.75rem;font-weight:600;color:var(--muted);background:#fff;padding:2px 8px;border-radius:6px;border:1px solid var(--border);">All Fleet &amp; Allocated Buses</span>
+    </div>
+
+    <!-- Search Box -->
+    <div class="search-wrap" style="margin-bottom:10px;">
+      <span class="search-icon">🔍</span>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search by BM number or Registration No…"
+        data-i18n-placeholder="placeholder_search_bm"
+        oninput="filterBuses()"
+        autocomplete="off"
+      />
+    </div>
+
+    <!-- Select Dropdown -->
+    <div class="select-wrap">
+      <select id="busSelect" onchange="onBusSelected()">
+        <option value="" data-i18n="option_choose_bus">— Choose a bus —</option>
+      </select>
+    </div>
+
+    <!-- Bus Info Box -->
+    <div class="bus-info-box" id="busInfoBox">
+      <div class="bus-info-grid">
+        <div class="info-item">
+          <label data-i18n="label_bm_number">BM Number</label>
+          <span id="infoBM">—</span>
+        </div>
+        <div class="info-item">
+          <label data-i18n="label_reg_no">Registration No.</label>
+          <span id="infoReg">—</span>
+        </div>
+        <div class="info-item">
+          <label data-i18n="label_model">Model</label>
+          <span id="infoModel">—</span>
+        </div>
+        <div class="info-item">
+          <label>Assigned Depot</label>
+          <span id="infoDepot" style="font-weight:800;color:var(--accent);">—</span>
+        </div>
+        <div class="info-item">
+          <label data-i18n="label_current_status">Current Status</label>
+          <span id="infoStatus">—</span>
+        </div>
+      </div>
+      <!-- Route / Schedule Info (shown when allocated) -->
+      <div id="routeInfoRow" style="margin-top:12px; display:none;">
+        <div class="bus-info-grid">
+          <div class="info-item">
+            <label data-i18n="label_allocated_route">Allocated Route</label>
+            <span id="infoRoute">—</span>
+          </div>
+          <div class="info-item">
+            <label data-i18n="label_dispatch_time">Dispatch Time</label>
+            <span id="infoDispatch">—</span>
+          </div>
+          <div class="info-item">
+            <label data-i18n="label_schedule">Schedule</label>
+            <span id="infoSchedule">—</span>
+          </div>
+          <div class="info-item">
+            <label data-i18n="label_driver">Driver</label>
+            <span id="infoDriver">—</span>
+          </div>
+        </div>
+      </div>
+      <div id="busHistoryActionRow" style="margin-top:12px; display:flex; justify-content:flex-end;">
+        <button type="button" class="btn-bus-history-link" onclick="openCurrentBusHistory()">
+          📜 View Bus History ›
+        </button>
+      </div>
+    </div>
+
+    <!-- Warning banners -->
+    <div class="warning-banner warning-not-allocated" id="warnNotAllocated">
+      ⚠️ <span id="warnText">This bus is not currently allocated on a route. Only allocated buses can be marked as route completed.</span>
+    </div>
+    <div class="warning-banner warning-already-done" id="warnAlreadyDone">
+      ✅ <span>This bus has already been returned to depot and is available for re-allocation.</span>
+    </div>
+    <div class="warning-banner warning-transfer" id="warnDepotTransfer" style="display:none;background:#fef3c7;border:1.5px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:12px;font-size:0.88rem;font-weight:600;margin-top:12px;">
+      ⚡ <span>Cross-Depot Route Completion: This bus is currently registered under <strong>Depot <span id="warnFromDepot">2</span></strong>. Completing route here will return and transfer it into <strong>Depot <span id="warnToDepot">1</span></strong>'s fleet, decrementing Depot <span id="warnFromDepot2">2</span> and incrementing Depot <span id="warnToDepot2">1</span>.</span>
+    </div>
+
+    <!-- Route Completed Button -->
+    <button
+      type="button"
+      class="btn-route-complete"
+      id="btnRouteComplete"
+      onclick="onRouteCompleteClick()"
+      disabled
+      data-i18n="btn_route_complete"
+    >
+      ✅ Route Completed — Return Bus to Depot
+    </button>
+
+    <!-- Success Banner -->
+    <div class="success-banner" id="successBanner">
+      <div class="success-icon">✅</div>
+      <div class="success-content">
+        <h3 id="successTitle">Route completed!</h3>
+        <p id="successText">Bus is now available for re-allocation.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Active Route Dispatches List Section ── -->
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+    <div style="font-size:0.92rem; font-weight:800; color:var(--text); display:flex; align-items:center; gap:6px;">
+      <span>📋 Active Route Dispatches</span>
+    </div>
+  </div>
+
+  <!-- Search Filter for Allocated Dispatches -->
   <div class="search-wrap" style="margin-bottom:14px;">
     <span class="search-icon">🔍</span>
     <input
       type="text"
       id="allocSearchInput"
-      placeholder="Search currently allocated buses in both depots by BM, Route, Driver, or Depot…"
+      placeholder="Filter active dispatches in both depots by BM, Route, Driver, or Depot…"
       oninput="renderAllocatedList()"
       autocomplete="off"
     />
@@ -1033,115 +1152,6 @@
       <div class="empty-icon">🚌</div>
       <p>No buses are currently allocated on routes.</p>
       <p style="font-size:0.78rem;margin-top:4px;">Allocate buses from the Scheduling page first.</p>
-    </div>
-  </div>
-</div>
-
-<!-- ── Bus Selection Card ── -->
-<div class="card">
-  <div class="card-title" data-i18n="card_select_bus_route_complete">🚌 Select Bus to Mark Route Complete</div>
-
-  <!-- Search Box -->
-  <div class="search-wrap">
-    <span class="search-icon">🔍</span>
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search by BM number or Registration No…"
-      data-i18n-placeholder="placeholder_search_bm"
-      oninput="filterBuses()"
-      autocomplete="off"
-    />
-  </div>
-
-  <!-- Select Dropdown -->
-  <div class="select-wrap">
-    <select id="busSelect" onchange="onBusSelected()">
-      <option value="" data-i18n="option_choose_bus">— Choose a bus —</option>
-    </select>
-  </div>
-
-  <!-- Bus Info Box -->
-  <div class="bus-info-box" id="busInfoBox">
-    <div class="bus-info-grid">
-      <div class="info-item">
-        <label data-i18n="label_bm_number">BM Number</label>
-        <span id="infoBM">—</span>
-      </div>
-      <div class="info-item">
-        <label data-i18n="label_reg_no">Registration No.</label>
-        <span id="infoReg">—</span>
-      </div>
-      <div class="info-item">
-        <label data-i18n="label_model">Model</label>
-        <span id="infoModel">—</span>
-      </div>
-      <div class="info-item">
-        <label>Assigned Depot</label>
-        <span id="infoDepot" style="font-weight:800;color:var(--accent);">—</span>
-      </div>
-      <div class="info-item">
-        <label data-i18n="label_current_status">Current Status</label>
-        <span id="infoStatus">—</span>
-      </div>
-    </div>
-    <!-- Route / Schedule Info (shown when allocated) -->
-    <div id="routeInfoRow" style="margin-top:12px; display:none;">
-      <div class="bus-info-grid">
-        <div class="info-item">
-          <label data-i18n="label_allocated_route">Allocated Route</label>
-          <span id="infoRoute">—</span>
-        </div>
-        <div class="info-item">
-          <label data-i18n="label_dispatch_time">Dispatch Time</label>
-          <span id="infoDispatch">—</span>
-        </div>
-        <div class="info-item">
-          <label data-i18n="label_schedule">Schedule</label>
-          <span id="infoSchedule">—</span>
-        </div>
-        <div class="info-item">
-          <label data-i18n="label_driver">Driver</label>
-          <span id="infoDriver">—</span>
-        </div>
-      </div>
-    </div>
-    <div id="busHistoryActionRow" style="margin-top:12px; display:flex; justify-content:flex-end;">
-      <button type="button" class="btn-bus-history-link" onclick="openCurrentBusHistory()">
-        📜 View Bus History ›
-      </button>
-    </div>
-  </div>
-
-  <!-- Warning banners -->
-  <div class="warning-banner warning-not-allocated" id="warnNotAllocated">
-    ⚠️ <span id="warnText">This bus is not currently allocated on a route. Only allocated buses can be marked as route completed.</span>
-  </div>
-  <div class="warning-banner warning-already-done" id="warnAlreadyDone">
-    ✅ <span>This bus has already been returned to depot and is available for re-allocation.</span>
-  </div>
-  <div class="warning-banner warning-transfer" id="warnDepotTransfer" style="display:none;background:#fef3c7;border:1.5px solid #fcd34d;color:#92400e;padding:12px 16px;border-radius:12px;font-size:0.88rem;font-weight:600;margin-top:12px;">
-    ⚡ <span>Cross-Depot Route Completion: This bus is currently registered under <strong>Depot <span id="warnFromDepot">2</span></strong>. Completing route here will return and transfer it into <strong>Depot <span id="warnToDepot">1</span></strong>'s fleet, decrementing Depot <span id="warnFromDepot2">2</span> and incrementing Depot <span id="warnToDepot2">1</span>.</span>
-  </div>
-
-  <!-- Route Completed Button -->
-  <button
-    type="button"
-    class="btn-route-complete"
-    id="btnRouteComplete"
-    onclick="onRouteCompleteClick()"
-    disabled
-    data-i18n="btn_route_complete"
-  >
-    ✅ Route Completed — Return Bus to Depot
-  </button>
-
-  <!-- Success Banner -->
-  <div class="success-banner" id="successBanner">
-    <div class="success-icon">✅</div>
-    <div class="success-content">
-      <h3 id="successTitle">Route completed!</h3>
-      <p id="successText">Bus is now available for re-allocation.</p>
     </div>
   </div>
 </div>
