@@ -209,12 +209,21 @@
         injectPwaStyles();
     }
 
-    // 2. Service Worker Registration
+    // 2. Service Worker Registration & Live Update Auto-Refresh
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!refreshing) {
+                refreshing = true;
+                window.location.reload();
+            }
+        });
+
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('/sw.js', { scope: '/' })
                 .then((registration) => {
                     console.log('[PWA] Service Worker registered with scope:', registration.scope);
+                    registration.update().catch(() => {});
                     registration.addEventListener('updatefound', () => {
                         const installingWorker = registration.installing;
                         if (installingWorker) {

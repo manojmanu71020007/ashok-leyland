@@ -1325,7 +1325,23 @@
         let currentlyAllocatedBus = null;
         let currentScheduleMatch = null;
         let isManualOverride = false;
-        const userSelectedCandidateMap = {};
+        const CANDIDATE_OVERRIDES_KEY = "smartbus_selected_candidate_overrides";
+        function loadCandidateOverrides() {
+            try {
+                const raw = localStorage.getItem(CANDIDATE_OVERRIDES_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed && typeof parsed === "object") return parsed;
+                }
+            } catch (e) {}
+            return {};
+        }
+        function saveCandidateOverrides(map) {
+            try {
+                localStorage.setItem(CANDIDATE_OVERRIDES_KEY, JSON.stringify(map || {}));
+            } catch (e) {}
+        }
+        const userSelectedCandidateMap = loadCandidateOverrides();
 
         function getSelectedRouteObj() {
             if (!routeSelect || !routeSelect.value) return null;
@@ -2384,10 +2400,10 @@
 
             // Designate the prioritized bus as MANDATORY allocation recommendation under Matrix Status
             if (lockedCand) {
-                lockedCand.isHighestSocLocked = true;
-                lockedCand.isLocked = true;
-                lockedCand.isMandatoryLocked = true;
-                lockedCand.matrixStatusType = matrixStatusType;
+                lockedCand.isHighestSocLocked = false;
+                lockedCand.isLocked = false;
+                lockedCand.isMandatoryLocked = false;
+                lockedCand.isMandatory = true;
                 lockedCand.role = `⭐ Mandatory Allocation (Cat ${lockedCand.busCategory} — Highest SoC: ${lockedCand.liveSoc}%)`;
                 lockedCand.allocType = `⭐ Mandatory Allocation (Matrix ${matrixStatusType} — Cat ${lockedCand.busCategory})`;
             }
@@ -2462,7 +2478,7 @@
             let dispatchReason = "";
             if (bus.isCandidateOverride) {
                 dispatchReason = `⚠️ Operator Override: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) was chosen by the operator instead of mandatory recommendation Bus ${bus.overrideFrom || ''} under Matrix Status ${matrixStatusType || 'Rule'}. Feasibility and energy margin are validated for full duty operation.`;
-            } else if (bus.isHighestSocLocked || bus.isLocked || bus.isMandatoryLocked) {
+            } else if (bus.isMandatory || bus.isHighestSocLocked || bus.isLocked || bus.isMandatoryLocked) {
                 dispatchReason = `⭐ Mandatory Allocation: Under Matrix Status ${matrixStatusType || 'Rule'}, Bus ${bus.bm} (Category ${busCat}) is recommended as the mandatory dispatch vehicle because it has the highest battery SoC (${liveSoc}%) among prioritized category candidates. Operator can choose an alternate candidate bus to override.`;
             } else {
                 dispatchReason = `Available Candidate: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) is eligible and available in Depot ${currentOperatingDepot} (can be selected as operator override).`;
@@ -2498,7 +2514,7 @@
             }
 
             const depVal = depInput ? (depInput.value || "13:10") : "13:10";
-            const mandatoryCand = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
+            const mandatoryCand = candidates.find(c => c.isMandatory || c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
             const matrixLabel = (mandatoryCand && mandatoryCand.matrixStatusType) ? mandatoryCand.matrixStatusType : "Matrix";
             
             const isCurrentOverride = Boolean(currentlyAllocatedBus && mandatoryCand && String(currentlyAllocatedBus.bm).toUpperCase() !== String(mandatoryCand.bm).toUpperCase());
@@ -2610,12 +2626,14 @@
         function selectCandidateBus(bm) {
             if (!bm) return;
             const routeObj = getSelectedRouteObj();
-            const departure = (depInput ? depInput.value : "13:10") || "13:10";
+            const depVal = depInput ? depInput.value : "";
+            const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
+            const departure = (depVal || schedVal || "13:10").trim();
             const depShort = departure.substring(0, 5);
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
             const slotKey = `${routeCode}_${depShort}`;
             const candidates = getRouteCandidateBuses(routeObj, departure);
-            const mandatoryCandidate = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
+            const mandatoryCandidate = candidates.find(c => c.isMandatory || c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
 
             let chosenCandidate = candidates.find(c => String(c.bm).toUpperCase() === String(bm).toUpperCase());
             if (!chosenCandidate && typeof getModalAvailableBusesList === 'function') {
@@ -2658,6 +2676,7 @@
                 chosenCandidate.role = `⚠️ Operator Override (Selected ${chosenCandidate.bm} instead of mandatory ${mandatoryCandidate.bm})`;
                 chosenCandidate.reason = generateWhyBusSelectedReason(chosenCandidate, routeObj, departure, shiftName, isManualOverride, true, chosenCandidate.matrixStatusType);
                 userSelectedCandidateMap[slotKey] = chosenCandidate.bm;
+                saveCandidateOverrides(userSelectedCandidateMap);
                 currentlyAllocatedBus = chosenCandidate;
 
                 renderCandidateBuses(candidates);
@@ -2678,6 +2697,7 @@
                 chosenCandidate.allocType = `⭐ Mandatory Allocation (Matrix ${chosenCandidate.matrixStatusType || 'Rule'})`;
                 chosenCandidate.reason = generateWhyBusSelectedReason(chosenCandidate, routeObj, departure, shiftName, isManualOverride, false, chosenCandidate.matrixStatusType);
                 delete userSelectedCandidateMap[slotKey];
+                saveCandidateOverrides(userSelectedCandidateMap);
                 currentlyAllocatedBus = chosenCandidate;
 
                 renderCandidateBuses(candidates);
@@ -2727,15 +2747,57 @@
 
             const candidates = getRouteCandidateBuses(routeObj, departureTime);
 
+            // Check active operator selection override for this specific route and slot
+            const slotKey = `${routeCode}_${depShort}`;
+            const userSelectedOverrides = loadCandidateOverrides();
+            const chosenBm = userSelectedOverrides[slotKey] || userSelectedCandidateMap[slotKey];
+            const mandatoryCand = candidates.find(c => c.isMandatory || c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
+
+            let allocated = null;
+            if (chosenBm && mandatoryCand && String(chosenBm).toUpperCase() !== String(mandatoryCand.bm).toUpperCase()) {
+                let foundCand = candidates.find(c => String(c.bm).toUpperCase() === String(chosenBm).toUpperCase());
+                if (!foundCand && typeof getModalAvailableBusesList === "function") {
+                    const poolBus = getModalAvailableBusesList().find(b => String(b.bm).toUpperCase() === String(chosenBm).toUpperCase());
+                    if (poolBus) {
+                        const liveSoc = getBusSocByBm(poolBus.bm);
+                        const busCat = getBusCategory(poolBus.bm, liveSoc);
+                        const reqSocVal = (mandatoryCand && mandatoryCand.reqSoc) ? mandatoryCand.reqSoc : reqSoc;
+                        foundCand = {
+                            bm: poolBus.bm,
+                            regNo: poolBus.regNo || getBusRegNo(poolBus.bm),
+                            liveSoc: liveSoc,
+                            busCategory: busCat,
+                            reqSoc: reqSocVal,
+                            surplus: Math.round(liveSoc - reqSocVal),
+                            fullDutyKm: calculateFullDutyDistance(liveSoc),
+                            role: "Operator Selected Bus",
+                            allocType: "Operator Selected Bus",
+                            shift: targetShift,
+                            matrixStatusType: mandatoryCand.matrixStatusType || "Rule"
+                        };
+                    }
+                }
+                if (foundCand) {
+                    foundCand.isCandidateOverride = true;
+                    foundCand.overrideFrom = mandatoryCand.bm;
+                    foundCand.overrideFromSoc = mandatoryCand.liveSoc;
+                    foundCand.overrideFromCategory = mandatoryCand.busCategory;
+                    foundCand.matrixStatusType = mandatoryCand.matrixStatusType;
+                    foundCand.allocType = `Committed Duty Allocation (Operator Override from ${mandatoryCand.bm})`;
+                    foundCand.role = `⚠️ Operator Override (Selected ${foundCand.bm} instead of mandatory ${mandatoryCand.bm})`;
+                    foundCand.reason = generateWhyBusSelectedReason(foundCand, routeObj, depTimeClean, targetShift, isManualOverride, true, foundCand.matrixStatusType);
+                    allocated = foundCand;
+                }
+            }
+
             // Check if this specific route and departure time already has an officially committed duty
             const existingDuty = (allocatedDuties || []).find(d => {
                 const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.routeId);
                 const curRoute = normalizeRoute(routeCode);
-                return dRoute === curRoute && (d.departureTime || '').substring(0, 5) === depShort;
+                return dRoute === curRoute && (d.departureTime || "").substring(0, 5) === depShort;
             });
 
-            let allocated = null;
-            if (existingDuty) {
+            if (!allocated && existingDuty) {
                 const liveSoc = getBusSocByBm(existingDuty.bm);
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
                 const tInfo = getTimeCategory(depShort);
@@ -2767,7 +2829,7 @@
                         overrideFromSoc: existingDuty.overrideFromSoc || null,
                         overrideFromCategory: existingDuty.overrideFromCategory || null,
                         matrixStatusType: existingDuty.matrixStatusType || (candidates[0] ? candidates[0].matrixStatusType : "Rule"),
-                        allocType: existingDuty.allocType || (isDutyCandOverride ? `Committed Duty (Operator Override from ${existingDuty.overrideFrom || ''})` : "Committed Duty Allocation"),
+                        allocType: existingDuty.allocType || (isDutyCandOverride ? `Committed Duty (Operator Override from ${existingDuty.overrideFrom || ""})` : "Committed Duty Allocation"),
                         condition: "Good",
                         driver: existingDuty.driver || "Assigned",
                         driverId: existingDuty.driverId || null,
@@ -2775,30 +2837,10 @@
                         reason: existingDuty.reason || `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean}.`
                     };
                 } else if (candidates.length > 0) {
-                    allocated = candidates[0];
-                }
-            } else if (candidates.length > 0) {
-                const slotKey = `${routeCode}_${depShort}`;
-                const chosenBm = userSelectedCandidateMap[slotKey];
-                const mandatoryCand = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
-                if (chosenBm && mandatoryCand && String(chosenBm).toUpperCase() !== String(mandatoryCand.bm).toUpperCase()) {
-                    const foundCand = candidates.find(c => String(c.bm).toUpperCase() === String(chosenBm).toUpperCase());
-                    if (foundCand) {
-                        foundCand.isCandidateOverride = true;
-                        foundCand.overrideFrom = mandatoryCand.bm;
-                        foundCand.overrideFromSoc = mandatoryCand.liveSoc;
-                        foundCand.overrideFromCategory = mandatoryCand.busCategory;
-                        foundCand.matrixStatusType = mandatoryCand.matrixStatusType;
-                        foundCand.allocType = `Committed Duty Allocation (Operator Override from ${mandatoryCand.bm})`;
-                        foundCand.role = `⚠️ Operator Override (Selected ${foundCand.bm} instead of mandatory ${mandatoryCand.bm})`;
-                        foundCand.reason = generateWhyBusSelectedReason(foundCand, routeObj, depTimeClean, targetShift, isManualOverride, true, foundCand.matrixStatusType);
-                        allocated = foundCand;
-                    } else {
-                        allocated = mandatoryCand;
-                    }
-                } else {
                     allocated = mandatoryCand;
                 }
+            } else if (!allocated && candidates.length > 0) {
+                allocated = mandatoryCand;
             }
             if (allocated && !allocated.reason) {
                 allocated.reason = generateWhyBusSelectedReason(allocated, routeObj, depTimeClean, targetShift, isManualOverride, !!allocated.isUserSelected);
@@ -2891,12 +2933,12 @@
                     badgeBg = "#fef3c7";
                     badgeColor = "#b45309";
                     badgeBorder = "#f59e0b";
-                    badgeText = `🔒 Allocated (Operator Override from Bus ${escapeHtml(alloc.overrideFrom || 'Mandatory')})`;
+                    badgeText = `✅ Allocated (Operator Override from Bus ${escapeHtml(alloc.overrideFrom || 'Mandatory')})`;
                 } else {
                     badgeBg = "#dcfce7";
                     badgeColor = "#166534";
                     badgeBorder = "#86efac";
-                    badgeText = "🔒 Officially Committed & Allocated to Duty";
+                    badgeText = "✅ Officially Committed & Allocated to Duty";
                 }
             } else if (isCandOverride) {
                 badgeBg = "#fef3c7";
@@ -2912,7 +2954,7 @@
 
             const statusPill = isCommitted
                 ? (isCandOverride
-                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:800;">🔒 Officially Allocated (Operator Override)</div>`
+                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:800;">● Officially Allocated (Operator Override)</div>`
                     : `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;font-weight:800;">● Officially Allocated</div>`)
                 : (isCandOverride
                     ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:800;">⚠️ Operator Override Selected</div>`
@@ -3284,7 +3326,7 @@
             if (allocModeEl) {
                 if (isCandOverride) {
                     allocModeEl.innerHTML = `<span style="color:#b45309;font-weight:800;background:#fffbeb;padding:2px 8px;border-radius:4px;border:1px solid #fde68a;">⚠️ Operator Override (Selected ${escapeHtml(allocatedBus.bm)} over ${escapeHtml(allocatedBus.overrideFrom || 'Mandatory')})</span>`;
-                } else if (allocatedBus.isHighestSocLocked || allocatedBus.isMandatoryLocked) {
+                } else if (allocatedBus.isMandatory || allocatedBus.isHighestSocLocked || allocatedBus.isMandatoryLocked) {
                     allocModeEl.innerHTML = `<span style="color:#0284c7;font-weight:700;">⭐ Mandatory Recommendation (Matrix ${escapeHtml(allocatedBus.matrixStatusType || 'Rule')})</span>`;
                 } else {
                     allocModeEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Standard Allocation</span>`;
@@ -3660,6 +3702,7 @@
                         allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
                         saveAllocatedDuties(allocatedDuties);
                         delete userSelectedCandidateMap[`${routeObj.code}_${depShort}`];
+                        saveCandidateOverrides(userSelectedCandidateMap);
                         await recommend();
                         showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
                     } else {
@@ -3813,11 +3856,13 @@
                             } catch(e) {}
                         }
 
+                        delete userSelectedCandidateMap[`${routeObj.code}_${depShort}`];
+                        saveCandidateOverrides(userSelectedCandidateMap);
                         await recommend();
                         if (isCandOverride) {
                             showAllocationToast(`⚠️ Bus ${alloc.bm} successfully allocated as Operator Override (Mandatory was Bus ${alloc.overrideFrom}) to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime}!`, "success");
                         } else {
-                            showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
+                            showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! Confirmed for duty dispatch.`, "success");
                         }
                     }
                 });
