@@ -427,21 +427,44 @@
             border-color: #16a34a;
             background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);
         }
-        .candidate-bus-card.locked-highest-soc {
-            border-color: #f59e0b;
-            background: linear-gradient(135deg, #fffdf5 0%, #ffffff 60%, #fef3c7 100%);
-            box-shadow: 0 4px 16px rgba(245, 158, 11, 0.20), 0 0 0 1px #f59e0b;
+        .candidate-bus-card.locked-highest-soc,
+        .candidate-bus-card.mandatory-cand-card {
+            border-color: #0284c7;
+            background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 60%, #e0f2fe 100%);
+            box-shadow: 0 4px 16px rgba(2, 132, 199, 0.16), 0 0 0 1px #0284c7;
         }
-        .candidate-bus-card.locked-highest-soc:hover {
-            border-color: #d97706;
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.32);
+        .candidate-bus-card.locked-highest-soc:hover,
+        .candidate-bus-card.mandatory-cand-card:hover {
+            border-color: #0369a1;
+            box-shadow: 0 6px 20px rgba(2, 132, 199, 0.28);
         }
-        .candidate-bus-card.locked-highest-soc.selected {
-            border-color: #d97706;
-            background: linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #fef9c3 100%);
-            box-shadow: 0 4px 18px rgba(217, 119, 6, 0.32), 0 0 0 2px #d97706;
+        .candidate-bus-card.locked-highest-soc.selected,
+        .candidate-bus-card.mandatory-cand-card.selected {
+            border-color: #0284c7;
+            background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #dbeafe 100%);
+            box-shadow: 0 4px 18px rgba(2, 132, 199, 0.28), 0 0 0 2px #0284c7;
         }
-        .cand-locked-banner {
+        .candidate-bus-card.candidate-override-selected {
+            border-color: #f59e0b !important;
+            background: linear-gradient(135deg, #fffbeb 0%, #ffffff 50%, #fef3c7 100%) !important;
+            box-shadow: 0 4px 18px rgba(245, 158, 11, 0.30), 0 0 0 2px #f59e0b !important;
+        }
+        .cand-locked-banner,
+        .cand-mandatory-banner {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 4px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+        }
+        .cand-override-banner {
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -468,13 +491,39 @@
             border-radius: 4px;
             border: 1px solid #bae6fd;
         }
-        .cand-select-btn.locked-btn {
+        .cand-select-btn.locked-btn,
+        .cand-select-btn.mandatory-selected-btn {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border-color: #0369a1;
+            color: #ffffff;
+            font-weight: 800;
+        }
+        .cand-select-btn.locked-btn:hover,
+        .cand-select-btn.mandatory-selected-btn:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            border-color: #075985;
+            color: #ffffff;
+        }
+        .cand-select-btn.mandatory-unselected-btn {
+            background: #f0f9ff;
+            border-color: #7dd3fc;
+            color: #0369a1;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .cand-select-btn.mandatory-unselected-btn:hover {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0284c7;
+        }
+        .cand-select-btn.override-selected-btn {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             border-color: #d97706;
             color: #ffffff;
             font-weight: 800;
         }
-        .cand-select-btn.locked-btn:hover {
+        .cand-select-btn.override-selected-btn:hover {
             background: linear-gradient(135deg, #d97706, #b45309);
             border-color: #b45309;
             color: #ffffff;
@@ -494,6 +543,7 @@
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.12);
         }
         .cand-select-btn.avail-other-btn,
+        .cand-select-btn.candidate-avail-btn,
         .cand-select-btn.standby-locked-btn {
             background: #f8fafc;
             border-color: #cbd5e1;
@@ -503,6 +553,7 @@
             transition: all 0.2s ease;
         }
         .cand-select-btn.avail-other-btn:hover,
+        .cand-select-btn.candidate-avail-btn:hover,
         .cand-select-btn.standby-locked-btn:hover {
             background: #f0f9ff;
             color: #0369a1;
@@ -940,6 +991,7 @@
                     <div class="rule"><span data-i18n="label_departure_time">Departure Time</span><strong id="departure-time-rule">—</strong></div>
                     <div class="rule"><span>Bus category</span><strong id="bus-category-rule">—</strong></div>
                     <div class="rule"><span>Matrix status</span><strong id="matrix-status-rule">—</strong></div>
+                    <div class="rule"><span>Allocation Mode</span><strong id="allocation-mode-rule">—</strong></div>
                     <div class="rule"><span>Departure Mode</span><strong id="departure-mode-rule">—</strong></div>
                     <div class="rule"><span>Driver status</span><strong id="driver-rule">—</strong></div>
                 </div>
@@ -1273,6 +1325,7 @@
         let currentlyAllocatedBus = null;
         let currentScheduleMatch = null;
         let isManualOverride = false;
+        const userSelectedCandidateMap = {};
 
         function getSelectedRouteObj() {
             if (!routeSelect || !routeSelect.value) return null;
@@ -2329,24 +2382,24 @@
                 lockedCand = recommendedPool.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
             }
 
-            // Lock the selected bus as MANDATORY allocation
+            // Designate the prioritized bus as MANDATORY allocation recommendation under Matrix Status
             if (lockedCand) {
                 lockedCand.isHighestSocLocked = true;
                 lockedCand.isLocked = true;
                 lockedCand.isMandatoryLocked = true;
                 lockedCand.matrixStatusType = matrixStatusType;
-                lockedCand.role = `🔒 Locked Vehicle (Cat ${lockedCand.busCategory} — Highest SoC: ${lockedCand.liveSoc}%)`;
-                lockedCand.allocType = `🔒 Locked Vehicle (Matrix ${matrixStatusType} — Cat ${lockedCand.busCategory})`;
+                lockedCand.role = `⭐ Mandatory Allocation (Cat ${lockedCand.busCategory} — Highest SoC: ${lockedCand.liveSoc}%)`;
+                lockedCand.allocType = `⭐ Mandatory Allocation (Matrix ${matrixStatusType} — Cat ${lockedCand.busCategory})`;
             }
 
-            // Set all other recommended candidates as Available for Other Routes (until locked for a route)
+            // Set all other recommended candidates as available candidates (operator can select to override)
             recommendedPool.forEach(cand => {
                 if (cand !== lockedCand) {
                     cand.isHighestSocLocked = false;
                     cand.isLocked = false;
                     cand.isMandatoryLocked = false;
                     cand.matrixStatusType = matrixStatusType;
-                    cand.role = `Available for Other Routes (Cat ${cand.busCategory} — ${cand.liveSoc}% SoC)`;
+                    cand.role = `Available Candidate (Cat ${cand.busCategory} — ${cand.liveSoc}% SoC)`;
                     cand.allocType = `Available for Other Routes (Cat ${cand.busCategory})`;
                 }
             });
@@ -2407,10 +2460,12 @@
             let energyReason = `Current battery SoC of ${liveSoc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
 
             let dispatchReason = "";
-            if (bus.isHighestSocLocked || bus.isLocked) {
-                dispatchReason = `🔒 Mandatory Locked Allocation: Under Matrix Status ${matrixStatusType || 'Rule'}, Bus ${bus.bm} (Category ${busCat}) has been locked as the mandatory dispatch vehicle because it has the highest battery SoC (${liveSoc}%) among the prioritized category candidates. This locked bus cannot be changed and only this bus will be allocated.`;
+            if (bus.isCandidateOverride) {
+                dispatchReason = `⚠️ Operator Override: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) was chosen by the operator instead of mandatory recommendation Bus ${bus.overrideFrom || ''} under Matrix Status ${matrixStatusType || 'Rule'}. Feasibility and energy margin are validated for full duty operation.`;
+            } else if (bus.isHighestSocLocked || bus.isLocked || bus.isMandatoryLocked) {
+                dispatchReason = `⭐ Mandatory Allocation: Under Matrix Status ${matrixStatusType || 'Rule'}, Bus ${bus.bm} (Category ${busCat}) is recommended as the mandatory dispatch vehicle because it has the highest battery SoC (${liveSoc}%) among prioritized category candidates. Operator can choose an alternate candidate bus to override.`;
             } else {
-                dispatchReason = `Available for Other Routes: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) is eligible and available for other routes in Depot ${currentOperatingDepot} until locked.`;
+                dispatchReason = `Available Candidate: Bus ${bus.bm} (Category ${busCat}, ${liveSoc}% SoC) is eligible and available in Depot ${currentOperatingDepot} (can be selected as operator override).`;
             }
 
             if (isOverridden) {
@@ -2443,48 +2498,82 @@
             }
 
             const depVal = depInput ? (depInput.value || "13:10") : "13:10";
-            const lockedCand = candidates.find(c => c.isHighestSocLocked || c.isLocked) || candidates[0];
-            const matrixLabel = (lockedCand && lockedCand.matrixStatusType) ? lockedCand.matrixStatusType : "Matrix";
-            const countText = `${candidates.length} Recommended Candidates (1 Locked)`;
+            const mandatoryCand = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
+            const matrixLabel = (mandatoryCand && mandatoryCand.matrixStatusType) ? mandatoryCand.matrixStatusType : "Matrix";
+            
+            const isCurrentOverride = Boolean(currentlyAllocatedBus && mandatoryCand && String(currentlyAllocatedBus.bm).toUpperCase() !== String(mandatoryCand.bm).toUpperCase());
+
+            const countText = `${candidates.length} Recommended Candidates (1 Mandatory)`;
             if (countBadge) countBadge.textContent = countText;
             if (candKpiCount) candKpiCount.textContent = `${candidates.length}`;
 
             const subTitle = document.getElementById("candidate-buses-sub");
             if (subTitle) {
-                if (lockedCand) {
+                if (isCurrentOverride && currentlyAllocatedBus) {
+                    subTitle.innerHTML = `⚠️ <strong>Operator Override Active:</strong> Bus <strong>${escapeHtml(currentlyAllocatedBus.bm)}</strong> (Cat ${escapeHtml(currentlyAllocatedBus.busCategory)}, ${currentlyAllocatedBus.liveSoc}% SoC) selected instead of mandatory Bus <strong>${escapeHtml(mandatoryCand.bm)}</strong>. Click any candidate below to switch selection.`;
+                } else if (mandatoryCand) {
                     subTitle.innerHTML = isManualOverride
-                        ? `Recommended ${candidates.length} candidate buses — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> (Cat ${escapeHtml(lockedCand.busCategory)}, ${lockedCand.liveSoc}% SoC) is locked as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong> <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Over-ride at ${escapeHtml(depVal)}</span>`
-                        : `Recommended ${candidates.length} candidate buses for this departure — <strong>Bus ${escapeHtml(lockedCand.bm)}</strong> (Cat ${escapeHtml(lockedCand.busCategory)}, ${lockedCand.liveSoc}% SoC) is locked as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong> (cannot be changed)`;
+                        ? `Recommended ${candidates.length} candidate buses — <strong>Bus ${escapeHtml(mandatoryCand.bm)}</strong> (Cat ${escapeHtml(mandatoryCand.busCategory)}, ${mandatoryCand.liveSoc}% SoC) is recommended as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong> <span class="manual-override-pill" style="margin-left:6px;">⚠️ Manual Departure at ${escapeHtml(depVal)}</span>. <em>Click any candidate below to allocate as an operator override.</em>`
+                        : `Recommended ${candidates.length} candidate buses for this departure — <strong>Bus ${escapeHtml(mandatoryCand.bm)}</strong> (Cat ${escapeHtml(mandatoryCand.busCategory)}, ${mandatoryCand.liveSoc}% SoC) is recommended as mandatory allocation under Matrix Status <strong>${escapeHtml(matrixLabel)}</strong>. <em>Click any candidate below to allocate as an operator override.</em>`;
                 } else {
                     subTitle.innerHTML = `Recommended candidate buses for this departure`;
                 }
             }
 
-            // In Candidate Buses region: Show bus number, bus category, current soc, and locked badge for mandatory locked bus!
             const cardsHtml = candidates.map((bus) => {
-                const isLocked = Boolean(bus.isHighestSocLocked || bus.isLocked);
+                const isMandatory = Boolean(mandatoryCand && String(bus.bm).toUpperCase() === String(mandatoryCand.bm).toUpperCase());
+                const isSelected = currentlyAllocatedBus 
+                    ? (String(bus.bm).toUpperCase() === String(currentlyAllocatedBus.bm).toUpperCase())
+                    : isMandatory;
+                const isSelectedOverride = isSelected && !isMandatory;
+
                 const catClass = bus.busCategory === 'A' ? 'cat-pill-a' : (bus.busCategory === 'B' ? 'cat-pill-b' : 'cat-pill-c');
-                const cardClasses = [
-                    'candidate-bus-card',
-                    isLocked ? 'locked-highest-soc selected' : 'available-other-card'
-                ].filter(Boolean).join(' ');
 
-                const lockBanner = isLocked 
-                    ? `<span class="cand-locked-banner" title="Locked as mandatory allocation under Matrix Status ${escapeHtml(bus.matrixStatusType || matrixLabel)} (Cat ${escapeHtml(bus.busCategory)}, ${bus.liveSoc}% SoC)">🔒 LOCKED FOR ALLOCATION</span>`
-                    : `<span class="cand-avail-banner">Available for Other Routes</span>`;
+                let cardClassList = ['candidate-bus-card'];
+                if (isMandatory) {
+                    cardClassList.push('mandatory-cand-card');
+                    if (isSelected) cardClassList.push('selected');
+                } else {
+                    cardClassList.push('available-other-card');
+                    if (isSelectedOverride) cardClassList.push('candidate-override-selected selected');
+                }
+                const cardClasses = cardClassList.join(' ');
 
-                const btnText = isLocked
-                    ? `🔒 Locked Vehicle (${bus.liveSoc}%)`
-                    : `Available for Other Routes`;
+                let bannerHtml = '';
+                let statusSubText = '';
+                let btnText = '';
+                let btnClass = 'cand-select-btn';
 
-                const btnClass = isLocked ? 'cand-select-btn locked-btn' : 'cand-select-btn avail-other-btn';
+                if (isMandatory) {
+                    bannerHtml = `<span class="cand-mandatory-banner" title="Recommended as mandatory allocation under Matrix Status ${escapeHtml(bus.matrixStatusType || matrixLabel)} (Cat ${escapeHtml(bus.busCategory)}, ${bus.liveSoc}% SoC)">⭐ MANDATORY ALLOCATION</span>`;
+                    statusSubText = `<span style="font-size:0.7rem;font-weight:700;color:#0369a1;">● Matrix Recommendation</span>`;
+                    if (isSelected) {
+                        btnText = `✓ Selected (Mandatory)`;
+                        btnClass += ' mandatory-selected-btn active';
+                    } else {
+                        btnText = `Select Mandatory ➔`;
+                        btnClass += ' mandatory-unselected-btn';
+                    }
+                } else {
+                    if (isSelectedOverride) {
+                        bannerHtml = `<span class="cand-override-banner" title="Operator Override: Selected Bus ${bus.bm} instead of mandatory recommendation ${mandatoryCand.bm}">⚠️ OPERATOR OVERRIDE</span>`;
+                        statusSubText = `<span style="font-size:0.7rem;font-weight:700;color:#b45309;">● Selected as Override</span>`;
+                        btnText = `✓ Selected (Override)`;
+                        btnClass += ' override-selected-btn active';
+                    } else {
+                        bannerHtml = `<span class="cand-avail-banner">⚡ Eligible Candidate</span>`;
+                        statusSubText = `<span style="font-size:0.7rem;font-weight:600;color:#0284c7;">Available in Depot</span>`;
+                        btnText = `Select Candidate ➔`;
+                        btnClass += ' candidate-avail-btn';
+                    }
+                }
 
                 return `
                     <div class="${cardClasses}" 
                          data-bm="${escapeHtml(bus.bm)}" 
                          onclick="selectCandidateBus('${escapeHtml(bus.bm)}')" 
                          role="button" tabindex="0" 
-                         title="${isLocked ? `Bus ${bus.bm} is locked for mandatory allocation` : `Bus ${bus.bm} is available for other routes until locked.`}"
+                         title="${isMandatory ? `Bus ${bus.bm} is the mandatory allocation recommendation under Matrix rules` : `Click to select Bus ${bus.bm} as an operator override`}"
                          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();selectCandidateBus('${escapeHtml(bus.bm)}');}">
                         <div class="cand-card-top">
                             <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2495,17 +2584,17 @@
                         </div>
 
                         <div style="display:flex;align-items:center;justify-content:space-between;margin:2px 0;">
-                            ${lockBanner}
-                            ${isLocked ? `<span style="font-size:0.7rem;font-weight:700;color:#b45309;">● Mandatory Allocation</span>` : `<span style="font-size:0.7rem;font-weight:600;color:#0284c7;">Available in Depot</span>`}
+                            ${bannerHtml}
+                            ${statusSubText}
                         </div>
 
-                        <div class="cand-soc-row" ${isLocked ? 'style="border-color:#fde68a;background:#fffdf7;"' : ''}>
+                        <div class="cand-soc-row" ${isSelectedOverride ? 'style="border-color:#fde68a;background:#fffdf7;"' : (isSelected ? 'style="border-color:#bae6fd;background:#f0f9ff;"' : '')}>
                             <span class="cand-soc-lbl">Current SoC</span>
-                            <strong class="cand-soc-val" style="${isLocked ? 'color:#b45309;font-size:1.12rem;' : 'color:#475569;'}">⚡ ${bus.liveSoc}%</strong>
+                            <strong class="cand-soc-val" style="${isSelectedOverride ? 'color:#b45309;font-size:1.12rem;' : (isSelected ? 'color:#0369a1;font-size:1.12rem;' : 'color:#475569;')}">⚡ ${bus.liveSoc}%</strong>
                         </div>
 
                         <div class="cand-footer">
-                            <button type="button" class="${btnClass} ${isLocked ? 'active' : ''}" 
+                            <button type="button" class="${btnClass}" 
                                     onclick="event.stopPropagation(); selectCandidateBus('${escapeHtml(bus.bm)}');">
                                 ${btnText}
                             </button>
@@ -2522,30 +2611,87 @@
             if (!bm) return;
             const routeObj = getSelectedRouteObj();
             const departure = (depInput ? depInput.value : "13:10") || "13:10";
+            const depShort = departure.substring(0, 5);
+            const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
+            const slotKey = `${routeCode}_${depShort}`;
             const candidates = getRouteCandidateBuses(routeObj, departure);
-            const lockedCandidate = candidates.find(c => c.isHighestSocLocked || c.isLocked) || candidates[0];
+            const mandatoryCandidate = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
 
-            if (lockedCandidate && String(bm).toUpperCase() !== String(lockedCandidate.bm).toUpperCase()) {
-                showAllocationToast(`ℹ️ Bus ${bm} is available for other routes until locked. For this departure, Bus ${lockedCandidate.bm} (Category ${lockedCandidate.busCategory}, ${lockedCandidate.liveSoc}% SoC) is locked for allocation under Matrix rules.`, "info");
+            let chosenCandidate = candidates.find(c => String(c.bm).toUpperCase() === String(bm).toUpperCase());
+            if (!chosenCandidate && typeof getModalAvailableBusesList === 'function') {
+                const poolBus = getModalAvailableBusesList().find(b => String(b.bm).toUpperCase() === String(bm).toUpperCase());
+                if (poolBus) {
+                    const liveSoc = getBusSocByBm(poolBus.bm);
+                    const busCat = getBusCategory(poolBus.bm, liveSoc);
+                    const reqSoc = (mandatoryCandidate && mandatoryCandidate.reqSoc) ? mandatoryCandidate.reqSoc : 63;
+                    chosenCandidate = {
+                        bm: poolBus.bm,
+                        regNo: poolBus.regNo || getBusRegNo(poolBus.bm),
+                        liveSoc: liveSoc,
+                        busCategory: busCat,
+                        reqSoc: reqSoc,
+                        surplus: Math.round(liveSoc - reqSoc),
+                        fullDutyKm: calculateFullDutyDistance(liveSoc),
+                        role: "Operator Selected Bus",
+                        allocType: "Operator Selected Bus",
+                        shift: mandatoryCandidate ? mandatoryCandidate.shift : "General Shift",
+                        matrixStatusType: mandatoryCandidate ? mandatoryCandidate.matrixStatusType : "Rule"
+                    };
+                }
+            }
+
+            if (!chosenCandidate) {
+                showAllocationToast(`⚠️ Bus ${bm} not found in eligible candidate fleet.`, "error");
                 return;
             }
 
-            if (lockedCandidate) {
-                currentlyAllocatedBus = lockedCandidate;
-                const shiftName = lockedCandidate.shift || getShiftForTimeAndRoute(departure, routeObj ? routeObj.code : "");
-                lockedCandidate.reason = generateWhyBusSelectedReason(lockedCandidate, routeObj, departure, shiftName, isManualOverride, false, lockedCandidate.matrixStatusType);
+            const shiftName = chosenCandidate.shift || (mandatoryCandidate ? mandatoryCandidate.shift : getShiftForTimeAndRoute(departure, routeCode));
+            const isOverride = mandatoryCandidate && (String(chosenCandidate.bm).toUpperCase() !== String(mandatoryCandidate.bm).toUpperCase());
+
+            if (isOverride) {
+                chosenCandidate.isCandidateOverride = true;
+                chosenCandidate.overrideFrom = mandatoryCandidate.bm;
+                chosenCandidate.overrideFromSoc = mandatoryCandidate.liveSoc;
+                chosenCandidate.overrideFromCategory = mandatoryCandidate.busCategory;
+                chosenCandidate.matrixStatusType = mandatoryCandidate.matrixStatusType;
+                chosenCandidate.allocType = `Committed Duty Allocation (Operator Override from ${mandatoryCandidate.bm})`;
+                chosenCandidate.role = `⚠️ Operator Override (Selected ${chosenCandidate.bm} instead of mandatory ${mandatoryCandidate.bm})`;
+                chosenCandidate.reason = generateWhyBusSelectedReason(chosenCandidate, routeObj, departure, shiftName, isManualOverride, true, chosenCandidate.matrixStatusType);
+                userSelectedCandidateMap[slotKey] = chosenCandidate.bm;
+                currentlyAllocatedBus = chosenCandidate;
+
                 renderCandidateBuses(candidates);
                 renderAllocatedCard({
-                    allocated: lockedCandidate,
+                    allocated: chosenCandidate,
                     matchedSched: currentScheduleMatch,
                     shift: shiftName,
-                    departureTime: lockedCandidate.departureTime || departure,
-                    reqSoc: lockedCandidate.reqSoc
+                    departureTime: chosenCandidate.departureTime || departure,
+                    reqSoc: chosenCandidate.reqSoc
                 });
-                updateAllocationPanelMetrics(lockedCandidate);
+                updateAllocationPanelMetrics(chosenCandidate);
                 updateSelectedBusDutyBanner();
-                updateAllocateButton(lockedCandidate);
-                showAllocationToast(`🔒 Bus ${lockedCandidate.bm} (Category ${lockedCandidate.busCategory}, ${lockedCandidate.liveSoc}% SoC) is locked for Route ${lockedCandidate.routeCode || (routeObj ? routeObj.code : '')} at ${departure}. Ready to allocate!`, "success");
+                updateAllocateButton(chosenCandidate);
+                showAllocationToast(`⚠️ Operator Override: Selected Bus ${chosenCandidate.bm} (Cat ${chosenCandidate.busCategory}, ${chosenCandidate.liveSoc}% SoC) instead of mandatory Bus ${mandatoryCandidate.bm}. Ready to allocate!`, "warning");
+            } else {
+                chosenCandidate.isCandidateOverride = false;
+                chosenCandidate.overrideFrom = null;
+                chosenCandidate.allocType = `⭐ Mandatory Allocation (Matrix ${chosenCandidate.matrixStatusType || 'Rule'})`;
+                chosenCandidate.reason = generateWhyBusSelectedReason(chosenCandidate, routeObj, departure, shiftName, isManualOverride, false, chosenCandidate.matrixStatusType);
+                delete userSelectedCandidateMap[slotKey];
+                currentlyAllocatedBus = chosenCandidate;
+
+                renderCandidateBuses(candidates);
+                renderAllocatedCard({
+                    allocated: chosenCandidate,
+                    matchedSched: currentScheduleMatch,
+                    shift: shiftName,
+                    departureTime: chosenCandidate.departureTime || departure,
+                    reqSoc: chosenCandidate.reqSoc
+                });
+                updateAllocationPanelMetrics(chosenCandidate);
+                updateSelectedBusDutyBanner();
+                updateAllocateButton(chosenCandidate);
+                showAllocationToast(`⭐ Restored mandatory allocation: Bus ${chosenCandidate.bm} (Cat ${chosenCandidate.busCategory}, ${chosenCandidate.liveSoc}% SoC). Ready to allocate!`, "info");
             }
         }
         window.selectCandidateBus = selectCandidateBus;
@@ -2598,6 +2744,7 @@
                     : (complexity === "standard" ? (busCat === "B" || busCat === "A") : true);
 
                 if (isCatCompliant && liveSoc >= reqSoc - 2) {
+                    const isDutyCandOverride = Boolean(existingDuty.isCandidateOverride);
                     allocated = {
                         bm: existingDuty.bm,
                         regNo: existingDuty.regNo || getBusRegNo(existingDuty.bm),
@@ -2606,7 +2753,7 @@
                         busCategory: busCat,
                         reqSoc: reqSoc,
                         surplus: Math.round(liveSoc - reqSoc),
-                        role: "Committed Duty",
+                        role: isDutyCandOverride ? "Committed Duty (Operator Override)" : "Committed Duty",
                         shift: existingDuty.shift || targetShift,
                         departureTime: depTimeClean,
                         routeCode: routeCode,
@@ -2615,16 +2762,43 @@
                         isCommitted: true,
                         isComplexRoute: isComplexRoute,
                         isManualOverride: existingDuty.isManualOverride,
-                        allocType: "Committed Duty Allocation",
+                        isCandidateOverride: isDutyCandOverride,
+                        overrideFrom: existingDuty.overrideFrom || null,
+                        overrideFromSoc: existingDuty.overrideFromSoc || null,
+                        overrideFromCategory: existingDuty.overrideFromCategory || null,
+                        matrixStatusType: existingDuty.matrixStatusType || (candidates[0] ? candidates[0].matrixStatusType : "Rule"),
+                        allocType: existingDuty.allocType || (isDutyCandOverride ? `Committed Duty (Operator Override from ${existingDuty.overrideFrom || ''})` : "Committed Duty Allocation"),
                         condition: "Good",
-                        driver: "Assigned",
-                        reason: `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean}.`
+                        driver: existingDuty.driver || "Assigned",
+                        driverId: existingDuty.driverId || null,
+                        driverName: existingDuty.driverName || null,
+                        reason: existingDuty.reason || `Bus ${existingDuty.bm} is officially allocated to Route ${routeCode} at ${depTimeClean}.`
                     };
                 } else if (candidates.length > 0) {
                     allocated = candidates[0];
                 }
             } else if (candidates.length > 0) {
-                allocated = candidates[0];
+                const slotKey = `${routeCode}_${depShort}`;
+                const chosenBm = userSelectedCandidateMap[slotKey];
+                const mandatoryCand = candidates.find(c => c.isHighestSocLocked || c.isLocked || c.isMandatoryLocked) || candidates[0];
+                if (chosenBm && mandatoryCand && String(chosenBm).toUpperCase() !== String(mandatoryCand.bm).toUpperCase()) {
+                    const foundCand = candidates.find(c => String(c.bm).toUpperCase() === String(chosenBm).toUpperCase());
+                    if (foundCand) {
+                        foundCand.isCandidateOverride = true;
+                        foundCand.overrideFrom = mandatoryCand.bm;
+                        foundCand.overrideFromSoc = mandatoryCand.liveSoc;
+                        foundCand.overrideFromCategory = mandatoryCand.busCategory;
+                        foundCand.matrixStatusType = mandatoryCand.matrixStatusType;
+                        foundCand.allocType = `Committed Duty Allocation (Operator Override from ${mandatoryCand.bm})`;
+                        foundCand.role = `⚠️ Operator Override (Selected ${foundCand.bm} instead of mandatory ${mandatoryCand.bm})`;
+                        foundCand.reason = generateWhyBusSelectedReason(foundCand, routeObj, depTimeClean, targetShift, isManualOverride, true, foundCand.matrixStatusType);
+                        allocated = foundCand;
+                    } else {
+                        allocated = mandatoryCand;
+                    }
+                } else {
+                    allocated = mandatoryCand;
+                }
             }
             if (allocated && !allocated.reason) {
                 allocated.reason = generateWhyBusSelectedReason(allocated, routeObj, depTimeClean, targetShift, isManualOverride, !!allocated.isUserSelected);
@@ -2685,20 +2859,27 @@
 
             card.style.display = "block";
             const isCommitted = alloc.isCommitted === true;
+            const isCandOverride = Boolean(alloc.isCandidateOverride);
             const isHighestLocked = Boolean(alloc.isHighestSocLocked);
 
             if (isCommitted) {
-                card.style.borderColor = "#86efac";
-                card.style.borderLeftColor = "#16a34a";
-                card.style.background = "linear-gradient(135deg, #ecfdf5 0%, #ffffff 70%, #d1fae5 100%)";
-            } else if (isHighestLocked) {
+                if (isCandOverride) {
+                    card.style.borderColor = "#f59e0b";
+                    card.style.borderLeftColor = "#d97706";
+                    card.style.background = "linear-gradient(135deg, #fffbeb 0%, #ffffff 70%, #fef3c7 100%)";
+                } else {
+                    card.style.borderColor = "#86efac";
+                    card.style.borderLeftColor = "#16a34a";
+                    card.style.background = "linear-gradient(135deg, #ecfdf5 0%, #ffffff 70%, #d1fae5 100%)";
+                }
+            } else if (isCandOverride) {
                 card.style.borderColor = "#f59e0b";
                 card.style.borderLeftColor = "#d97706";
                 card.style.background = "linear-gradient(135deg, #fffdf5 0%, #ffffff 70%, #fef3c7 100%)";
             } else {
-                card.style.borderColor = "#86efac";
-                card.style.borderLeftColor = "#16a34a";
-                card.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
+                card.style.borderColor = "#0284c7";
+                card.style.borderLeftColor = "#0369a1";
+                card.style.background = "linear-gradient(135deg, #f0f9ff 0%, #ffffff 70%, #e0f2fe 100%)";
             }
 
             let badgeBg = "#e0f2fe";
@@ -2706,40 +2887,64 @@
             let badgeBorder = "#bae6fd";
             let badgeText = "⚡ Candidate Match (Ready to Allocate)";
             if (isCommitted) {
-                badgeBg = "#dcfce7";
-                badgeColor = "#166534";
-                badgeBorder = "#86efac";
-                badgeText = "🔒 Officially Committed & Locked to this Duty";
-            } else if (isHighestLocked) {
+                if (isCandOverride) {
+                    badgeBg = "#fef3c7";
+                    badgeColor = "#b45309";
+                    badgeBorder = "#f59e0b";
+                    badgeText = `🔒 Allocated (Operator Override from Bus ${escapeHtml(alloc.overrideFrom || 'Mandatory')})`;
+                } else {
+                    badgeBg = "#dcfce7";
+                    badgeColor = "#166534";
+                    badgeBorder = "#86efac";
+                    badgeText = "🔒 Officially Committed & Allocated to Duty";
+                }
+            } else if (isCandOverride) {
                 badgeBg = "#fef3c7";
-                badgeColor = "#92400e";
+                badgeColor = "#b45309";
                 badgeBorder = "#f59e0b";
-                badgeText = `🔒 Locked Vehicle (Highest Battery SoC: ${alloc.liveSoc}%)`;
+                badgeText = `⚠️ Operator Override Active (Bus ${alloc.bm} selected)`;
             } else {
                 badgeBg = "#e0f2fe";
                 badgeColor = "#0369a1";
                 badgeBorder = "#bae6fd";
-                badgeText = "⚡ Alternate Candidate Selected";
+                badgeText = `⭐ Mandatory Allocation (Highest Battery SoC: ${alloc.liveSoc}%)`;
             }
 
             const statusPill = isCommitted
-                ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;">● Officially Allocated</div>`
-                : (isHighestLocked
-                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;font-weight:800;">🔒 Locked for Route Allocation</div>`
-                    : `<div id="alloc-status-pill" class="alloc-status-pill">● Ready for Allocation</div>`);
+                ? (isCandOverride
+                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:800;">🔒 Officially Allocated (Operator Override)</div>`
+                    : `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#dcfce7;color:#166534;border:1px solid #86efac;font-weight:800;">● Officially Allocated</div>`)
+                : (isCandOverride
+                    ? `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#fef3c7;color:#b45309;border:1px solid #f59e0b;font-weight:800;">⚠️ Operator Override Selected</div>`
+                    : `<div id="alloc-status-pill" class="alloc-status-pill" style="background:#eff6ff;color:#0369a1;border:1px solid #93c5fd;font-weight:800;">⭐ Mandatory Recommendation Selected</div>`);
 
             const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
             const catClass = busCat === 'A' ? 'cat-pill-a' : (busCat === 'B' ? 'cat-pill-b' : 'cat-pill-c');
 
             const isOverridden = isManualOverride || (alloc && alloc.isManualOverride);
 
+            const calloutHtml = isCandOverride
+                ? `<div style="margin:4px 0 10px 0;padding:8px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:6px;font-size:0.82rem;color:#92400e;display:flex;align-items:flex-start;gap:8px;">
+                    <span style="font-size:1.1rem;line-height:1;">⚠️</span>
+                    <div>
+                        <strong>Operator Override Active:</strong> Bus <strong>${escapeHtml(alloc.bm)}</strong> (Category ${escapeHtml(busCat)}, ${alloc.liveSoc}% SoC) was chosen by the operator instead of mandatory recommendation Bus <strong>${escapeHtml(alloc.overrideFrom || '')}</strong> (${alloc.overrideFromSoc || ''}% SoC under Matrix Status <strong>${escapeHtml(alloc.matrixStatusType || 'Rule')}</strong>). This bus can be allocated with driver.
+                    </div>
+                </div>`
+                : `<div style="margin:4px 0 10px 0;padding:8px 12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;font-size:0.82rem;color:#0369a1;display:flex;align-items:flex-start;gap:8px;">
+                    <span style="font-size:1.1rem;line-height:1;">⭐</span>
+                    <div>
+                        <strong>Mandatory Allocation:</strong> Bus <strong>${escapeHtml(alloc.bm)}</strong> is recommended under Matrix Status <strong>${escapeHtml(alloc.matrixStatusType || 'Rule')}</strong> rules (Category ${escapeHtml(busCat)}, ${alloc.liveSoc}% SoC). You may choose any alternate candidate bus above to allocate as an operator override.
+                    </div>
+                </div>`;
+
             card.innerHTML = `
                 <div class="auto-alloc-header">
                     <span class="auto-alloc-badge" style="background:${badgeBg};color:${badgeColor};border-color:${badgeBorder};font-weight:800;">${badgeText}</span>
-                    ${isOverridden ? '<span class="manual-override-badge">⚠️ Manual Over-ride</span>' : ''}
+                    ${isCandOverride ? '<span class="manual-override-badge" style="background:#fef3c7;color:#b45309;border-color:#f59e0b;">⚠️ Operator Override</span>' : ''}
+                    ${isOverridden ? '<span class="manual-override-badge">⚠️ Manual Departure</span>' : ''}
                     <span class="cat-pill ${catClass}" style="font-size:0.75rem;padding:3px 9px;">Category ${escapeHtml(busCat)}</span>
                     <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:12px;font-size:0.75rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${escapeHtml(shiftName)}</span>
-                    <span id="alloc-type-badge" class="alloc-type-badge" style="${isHighestLocked ? 'background:#fef3c7;color:#92400e;border-color:#f59e0b;' : ''}">${escapeHtml(alloc.allocType || (isHighestLocked ? "🔒 Locked Vehicle" : "Primary Scheduled Bus"))}</span>
+                    <span id="alloc-type-badge" class="alloc-type-badge" style="${isCandOverride ? 'background:#fef3c7;color:#92400e;border-color:#f59e0b;' : ''}">${escapeHtml(alloc.allocType || (isCandOverride ? "⚠️ Operator Override" : "Primary Scheduled Bus"))}</span>
                 </div>
                 <div class="auto-alloc-body">
                     <div class="auto-alloc-main">
@@ -2748,10 +2953,7 @@
                         </div>
                         ${statusPill}
                     </div>
-                    <div style="margin:4px 0 10px 0;padding:6px 10px;background:#fffdf7;border:1px solid #fde68a;border-radius:6px;font-size:0.78rem;color:#92400e;display:flex;align-items:center;gap:6px;">
-                        <span>🔒</span>
-                        <span><strong>Mandatory Allocation:</strong> Bus ${escapeHtml(alloc.bm)} is locked under Matrix Status <strong>${escapeHtml(alloc.matrixStatusType || 'Rule')}</strong> rules (Category ${escapeHtml(busCat)}, ${alloc.liveSoc}% SoC). This locked bus cannot be changed and only this bus will be allocated.</span>
-                    </div>
+                    ${calloutHtml}
                     <div class="auto-alloc-metrics">
                         <div class="alloc-metric-item">
                             <span class="metric-label">Shift & Schedule</span>
@@ -2870,6 +3072,8 @@
                     matrixStatusRule.textContent = "Choose a route and departure time to allocate bus";
                     matrixStatusRule.style.color = "var(--muted)";
                 }
+                const allocModeRuleEl = document.getElementById("allocation-mode-rule");
+                if (allocModeRuleEl) allocModeRuleEl.innerHTML = "—";
                 const driverRuleEl = document.getElementById("driver-rule");
                 if (driverRuleEl) driverRuleEl.innerHTML = "—";
                 return;
@@ -3019,7 +3223,25 @@
             const rangeValue = allocatedBus.fullDutyKm;
             const grossDutyDist = Math.round(liveSoc * 1.42);
 
-            if (titleEl) titleEl.textContent = `Allocation result of ${busShortName}`;
+            const isCandOverride = Boolean(allocatedBus && allocatedBus.isCandidateOverride);
+
+            if (titleEl) {
+                if (isCandOverride) {
+                    titleEl.innerHTML = `Allocation result of ${escapeHtml(busShortName)} <span class="manual-override-pill" style="background:#fef3c7;color:#b45309;border:1px solid #fde68a;font-size:0.75rem;padding:2px 8px;border-radius:6px;margin-left:6px;vertical-align:middle;display:inline-flex;align-items:center;gap:3px;">⚠️ Operator Override</span>`;
+                } else {
+                    titleEl.textContent = `Allocation result of ${busShortName}`;
+                }
+            }
+
+            const panelNote = document.querySelector(".panel-note");
+            if (panelNote) {
+                if (isCandOverride) {
+                    panelNote.innerHTML = `<span style="color:#b45309;font-weight:700;">⚠️ Operator Override:</span> Bus <strong>${escapeHtml(allocatedBus.bm)}</strong> chosen instead of mandatory recommendation Bus <strong>${escapeHtml(allocatedBus.overrideFrom || '')}</strong>. Telemetry confirms feasibility.`;
+                } else {
+                    panelNote.textContent = "Live telemetry and manual inspection checks confirm this bus can complete the duty.";
+                }
+            }
+
             if (socKpi) socKpi.style.opacity = "1";
             if (rangeKpi) rangeKpi.style.opacity = "1";
 
@@ -3048,10 +3270,25 @@
             if (matrixStatusRule) {
                 const sortedCats = allowedCategories.slice().sort().join('/');
                 const catDisplay = requiresCatA ? 'A' : (sortedCats === 'A/B/C' ? 'A/B/C' : (sortedCats === 'A/B' ? 'A/B' : sortedCats));
-                matrixStatusRule.textContent = isMatrixCompliant
-                    ? `✅ Allowed (Cat ${catDisplay})`
-                    : `⚠️ Required Cat ${catDisplay} (Current: Cat ${busCategory})`;
-                matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
+                if (isCandOverride) {
+                    matrixStatusRule.innerHTML = `<span style="color:#b45309;font-weight:700;" title="Operator Override: Selected Bus ${escapeHtml(allocatedBus.bm)} instead of mandatory Bus ${escapeHtml(allocatedBus.overrideFrom || '')}">⚠️ Override (Mandatory: Bus ${escapeHtml(allocatedBus.overrideFrom || '')})</span>`;
+                } else {
+                    matrixStatusRule.textContent = isMatrixCompliant
+                        ? `✅ Allowed (Cat ${catDisplay})`
+                        : `⚠️ Required Cat ${catDisplay} (Current: Cat ${busCategory})`;
+                    matrixStatusRule.style.color = isMatrixCompliant ? "#16a34a" : "#dc2626";
+                }
+            }
+
+            const allocModeEl = document.getElementById("allocation-mode-rule");
+            if (allocModeEl) {
+                if (isCandOverride) {
+                    allocModeEl.innerHTML = `<span style="color:#b45309;font-weight:800;background:#fffbeb;padding:2px 8px;border-radius:4px;border:1px solid #fde68a;">⚠️ Operator Override (Selected ${escapeHtml(allocatedBus.bm)} over ${escapeHtml(allocatedBus.overrideFrom || 'Mandatory')})</span>`;
+                } else if (allocatedBus.isHighestSocLocked || allocatedBus.isMandatoryLocked) {
+                    allocModeEl.innerHTML = `<span style="color:#0284c7;font-weight:700;">⭐ Mandatory Recommendation (Matrix ${escapeHtml(allocatedBus.matrixStatusType || 'Rule')})</span>`;
+                } else {
+                    allocModeEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Standard Allocation</span>`;
+                }
             }
 
             const driverRuleEl = document.getElementById("driver-rule");
@@ -3095,6 +3332,7 @@
                 return;
             }
 
+            const isCandOverride = Boolean(allocatedBus.isCandidateOverride);
             if (allocatedBus.isCommitted) {
                 recBtn.textContent = `🗑️ De-allocate Bus ${allocatedBus.bm} (Return to Depot Pool)`;
                 recBtn.disabled = false;
@@ -3102,22 +3340,30 @@
                 recBtn.style.cursor = "pointer";
                 recBtn.style.background = "#dc2626";
             } else if (!driverSelect || !driverSelect.value) {
-                recBtn.textContent = `🔒 Select Driver to Allocate Locked Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
+                if (isCandOverride) {
+                    recBtn.textContent = `⚠️ Select Driver to Allocate Override Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
+                    recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                } else {
+                    recBtn.textContent = `⭐ Select Driver to Allocate Mandatory Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
+                    recBtn.style.background = "linear-gradient(135deg, var(--blue), var(--blue-dark))";
+                }
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
-                recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
             } else {
                 const drivers = getDepotDrivers(currentOperatingDepot);
                 const selDriver = drivers.find(d => d.id === driverSelect.value);
                 const drvName = selDriver ? selDriver.name : "Driver";
-                recBtn.textContent = `🔒 Allocate Locked Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`;
+                if (isCandOverride) {
+                    recBtn.textContent = `⚠️ Allocate Override Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`;
+                    recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+                } else {
+                    recBtn.textContent = `⭐ Allocate Mandatory Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`;
+                    recBtn.style.background = "linear-gradient(135deg, var(--blue), var(--blue-dark))";
+                }
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
-                recBtn.style.background = allocatedBus.isHighestSocLocked
-                    ? "linear-gradient(135deg, #d97706, #b45309)"
-                    : "linear-gradient(135deg, var(--blue), var(--blue-dark))";
             }
         }
 
@@ -3413,6 +3659,7 @@
                         const deallocBm = currentlyAllocatedBus.bm;
                         allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
                         saveAllocatedDuties(allocatedDuties);
+                        delete userSelectedCandidateMap[`${routeObj.code}_${depShort}`];
                         await recommend();
                         showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
                     } else {
@@ -3460,13 +3707,17 @@
                         const timeCat = getTimeCategory(depShortTime);
                         const isPeakTime = timeCat.isPeak;
 
-                        if ((isPeakTime || isComplex) && busCat !== "A") {
-                            showAllocationToast(`⚠️ Cannot allocate: ${isPeakTime ? 'Peak hours strictly require' : 'Complex route strictly requires'} Category A buses. Bus ${alloc.bm} is Category ${busCat}.`, "error");
-                            return;
-                        }
-                        if (!isPeakTime && complexity === "moderate" && busCat === "C") {
-                            showAllocationToast(`⚠️ Cannot allocate: Moderate route requires Category B or A buses in off-peak. Bus ${alloc.bm} is Category C.`, "error");
-                            return;
+                        const isCandOverride = Boolean(alloc.isCandidateOverride);
+
+                        if (!isCandOverride) {
+                            if ((isPeakTime || isComplex) && busCat !== "A") {
+                                showAllocationToast(`⚠️ Cannot allocate: ${isPeakTime ? 'Peak hours strictly require' : 'Complex route strictly requires'} Category A buses. Bus ${alloc.bm} is Category ${busCat}.`, "error");
+                                return;
+                            }
+                            if (!isPeakTime && complexity === "moderate" && busCat === "C") {
+                                showAllocationToast(`⚠️ Cannot allocate: Moderate route requires Category B or A buses in off-peak. Bus ${alloc.bm} is Category C.`, "error");
+                                return;
+                            }
                         }
 
                         const targetShift = alloc.shift || getShiftForTimeAndRoute(departureTime, routeObj.code);
@@ -3494,16 +3745,23 @@
                             destination: routeObj.destination,
                             departureTime: departureTime,
                             isManualOverride: isManualOverride,
+                            isCandidateOverride: isCandOverride,
+                            overrideFrom: alloc.overrideFrom || null,
+                            overrideFromSoc: alloc.overrideFromSoc || null,
+                            overrideFromCategory: alloc.overrideFromCategory || null,
+                            matrixStatusType: alloc.matrixStatusType || null,
                             shift: targetShift,
                             soc: alloc.liveSoc,
                             fullDutyKm: alloc.fullDutyKm,
                             routeDist: Number(routeObj.distKm || 28.7),
                             tripCount: (routeObj && routeObj.trips) || 8,
-                            isHighestSocLocked: Boolean(alloc.isHighestSocLocked),
+                            isHighestSocLocked: Boolean(alloc.isHighestSocLocked && !isCandOverride),
                             isLocked: true,
-                            allocType: isManualOverride 
-                                ? "Committed Duty Allocation (Manual Over-ride)" 
-                                : (alloc.isHighestSocLocked ? "Committed Duty Allocation (Locked Highest SoC)" : "Committed Duty Allocation"),
+                            allocType: isCandOverride
+                                ? `Committed Duty (Operator Override from Bus ${alloc.overrideFrom || 'Mandatory'})`
+                                : (isManualOverride 
+                                    ? "Committed Duty Allocation (Manual Over-ride)" 
+                                    : (alloc.isHighestSocLocked ? "Committed Duty Allocation (Mandatory Recommendation)" : "Committed Duty Allocation")),
                             reason: alloc.reason || "",
                             driver: `${selDriver.name} (${selDriver.badge})`,
                             driverId: selDriver.id,
@@ -3556,7 +3814,11 @@
                         }
 
                         await recommend();
-                        showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
+                        if (isCandOverride) {
+                            showAllocationToast(`⚠️ Bus ${alloc.bm} successfully allocated as Operator Override (Mandatory was Bus ${alloc.overrideFrom}) to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime}!`, "success");
+                        } else {
+                            showAllocationToast(`✅ Bus ${alloc.bm} successfully allocated to Route ${routeObj.code} with Driver ${selDriver.name} at ${departureTime} (${targetShift})${isManualOverride ? ' [Manual Over-ride]' : ''}! It is now locked and unavailable for other routes and times.`, "success");
+                        }
                     }
                 });
             }

@@ -6078,13 +6078,14 @@ let busCategoriesMap = new Map();
             card.style.borderLeftColor = "#16a34a";
             card.style.background = "linear-gradient(135deg, #f0fdf4 0%, #ffffff 70%, #ecfdf5 100%)";
 
+            const isCandOverride = Boolean(alloc && alloc.isCandidateOverride);
             const isManualOverride = Boolean(result && (result.isManualOverride || (alloc && alloc.isManualOverride)));
-            const isCommitted = !isManualOverride && !!alloc.isCommitted;
-            const badgeText = isManualOverride ? "⚙️ Manual Override" : (isCommitted ? "🔒 Allocated & Locked to this Duty" : "💡 Recommended Candidate Bus");
-            const badgeBg = isManualOverride ? "#fef3c7" : (isCommitted ? "#dcfce7" : "#e0f2fe");
-            const badgeColor = isManualOverride ? "#b45309" : (isCommitted ? "#15803d" : "#0369a1");
-            const badgeBorder = isManualOverride ? "#fde68a" : (isCommitted ? "#86efac" : "#bae6fd");
-            const allocTypeLabel = isManualOverride ? "Manual Departure Override" : (alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus"));
+            const isCommitted = !isManualOverride && !isCandOverride && !!alloc.isCommitted;
+            const badgeText = isCandOverride ? `⚠️ Operator Override (${alloc.bm} instead of ${alloc.overrideFrom || 'Mandatory'})` : (isManualOverride ? "⚙️ Manual Override" : (isCommitted ? "🔒 Allocated & Locked to this Duty" : "💡 Recommended Candidate Bus"));
+            const badgeBg = (isCandOverride || isManualOverride) ? "#fef3c7" : (isCommitted ? "#dcfce7" : "#e0f2fe");
+            const badgeColor = (isCandOverride || isManualOverride) ? "#b45309" : (isCommitted ? "#15803d" : "#0369a1");
+            const badgeBorder = (isCandOverride || isManualOverride) ? "#fde68a" : (isCommitted ? "#86efac" : "#bae6fd");
+            const allocTypeLabel = isCandOverride ? (alloc.allocType || "Operator Override Allocation") : (isManualOverride ? "Manual Departure Override" : (alloc.allocType || (isCommitted ? "Committed Duty Allocation" : "Primary Scheduled Bus")));
 
             card.innerHTML = `
                 <div class="auto-alloc-header">
@@ -6523,6 +6524,8 @@ let busCategoriesMap = new Map();
             const allocAt = escapeHtml(duty.allocatedAt || "");
             const dutyId = escapeHtml(duty.id || `duty_${bm}`);
 
+            const isCandOverride = Boolean(duty.isCandidateOverride);
+            const overrideBadge = isCandOverride ? `<span style="background:#fef3c7;color:#b45309;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;border:1px solid #fde68a;">⚠️ Operator Override</span>` : "";
             const shiftBadge = `<span style="background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #bae6fd;">Shift: ${shift}</span>`;
             const timeBadge = `<span style="background:#fef3c7;color:#92400e;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:700;border:1px solid #fde68a;">🕒 ${depTime}</span>`;
             const dutyBadge = `<span style="background:#f0fdf4;color:#166534;padding:2px 7px;border-radius:4px;font-size:.68rem;font-weight:800;border:1px solid #bbf7d0;">⚡ ALLOCATED DUTY</span>`;
@@ -6549,6 +6552,7 @@ let busCategoriesMap = new Map();
                         ${titleHtml}
                         <div style="display:flex;gap:6px;align-items:center;margin:3px 0;flex-wrap:wrap;">
                             ${dutyBadge}
+                            ${overrideBadge}
                             ${shiftBadge}
                             ${timeBadge}
                             ${tripsBadge}
