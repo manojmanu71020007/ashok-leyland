@@ -1336,6 +1336,15 @@
       const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
       if (map[clean]) return String(map[clean]);
     } catch(e) {}
+    try {
+      const added = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === 'function')
+        ? window.DepotSyncEngine.getAddedBuses()
+        : JSON.parse(localStorage.getItem('depot_added_buses') || '{}');
+      if (added && added[clean] && added[clean].depot) return String(added[clean].depot);
+    } catch(e) {}
+    if (apiBusStates && apiBusStates._addedBuses && apiBusStates._addedBuses[clean] && apiBusStates._addedBuses[clean].depot) {
+      return String(apiBusStates._addedBuses[clean].depot);
+    }
     if (DEFAULT_DEPOT_MAP[clean]) return DEFAULT_DEPOT_MAP[clean];
     return '1';
   }
@@ -2404,26 +2413,97 @@
   // ──────────────────────────────────────────────
   //  Vehicle loading
   // ──────────────────────────────────────────────
+  let apiBusStates = {};
   async function loadVehicles() {
     try {
-      const res  = await fetch('/vehicles/vehicles.txt');
-      const text = await res.text();
-      const lines = text.trim().split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
-      allVehicles = lines.slice(1).map(line => {
-        const cols = line.split(',').map(c => c.trim());
-        const obj  = {};
-        headers.forEach((h, i) => obj[h] = cols[i] || '');
-        return obj;
-      }).filter(v => v.bm_no && v.status !== 'Deleted' && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(v.bm_no)));
+      const [res, stateRes] = await Promise.all([
+        fetch('/vehicles/vehicles.txt').catch(() => null),
+        fetch('/api/bus-state').catch(() => null)
+      ]);
+      if (stateRes && stateRes.ok) {
+        const sData = await stateRes.json();
+        apiBusStates = sData?.state || {};
+      }
+      if (res && res.ok) {
+        const text = await res.text();
+        const lines = text.trim().split('\n');
+        const headers = lines[0].split(',').map(h => h.trim());
+        allVehicles = lines.slice(1).map(line => {
+          const cols = line.split(',').map(c => c.trim());
+          const obj  = {};
+          headers.forEach((h, i) => obj[h] = cols[i] || '');
+          return obj;
+        }).filter(v => v.bm_no && v.status !== 'Deleted' && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(v.bm_no)));
+      } else {
+        allVehicles = [
+          { vehicle_id:'BM001', bm_no:'BM001', reg_no:'KA51AH4144', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
+          { vehicle_id:'BM002', bm_no:'BM002', reg_no:'KA51AH2434', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
+          { vehicle_id:'BM003', bm_no:'BM003', reg_no:'KA51AH2423', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
+        ];
+      }
     } catch {
-      // Fallback sample data
       allVehicles = [
         { vehicle_id:'BM001', bm_no:'BM001', reg_no:'KA51AH4144', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
         { vehicle_id:'BM002', bm_no:'BM002', reg_no:'KA51AH2434', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
         { vehicle_id:'BM003', bm_no:'BM003', reg_no:'KA51AH2423', make:'Ashok Leyland', model:'ELECTRIC BUS AC EiV12', depot:'Chandapura (BMT-32)', status:'Active' },
       ];
     }
+
+    // Merge newly added buses (e.g. BM600)
+    try {
+      let addedBuses = {};
+      if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === 'function') {
+        addedBuses = window.DepotSyncEngine.getAddedBuses() || {};
+      }
+      if (!addedBuses || Object.keys(addedBuses).length === 0) {
+        try { addedBuses = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+      }
+      if ((!addedBuses || Object.keys(addedBuses).length === 0) && apiBusStates && apiBusStates._addedBuses) {
+        addedBuses = apiBusStates._addedBuses;
+      }
+      if (apiBusStates && typeof apiBusStates === 'object') {
+        Object.keys(apiBusStates).forEach(k => {
+          if (!k.startsWith('_') && apiBusStates[k]?.isNewlyAdded) {
+            if (!addedBuses) addedBuses = {};
+            if (!addedBuses[k]) addedBuses[k] = apiBusStates[k];
+          }
+        });
+      }
+
+      const existingBmSet = new Set(allVehicles.map(v => String(v.bm_no).toUpperCase().trim()));
+      Object.keys(addedBuses || {}).forEach(k => {
+        const cleanBm = String(k).toUpperCase().trim();
+        if (!cleanBm) return;
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(cleanBm)) {
+          return;
+        }
+        try {
+          const delMap = JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}');
+          if (delMap[cleanBm]) return;
+        } catch(e){}
+
+        const info = addedBuses[k] || {};
+        if (!existingBmSet.has(cleanBm)) {
+          const busDepotNum = (info.depot) ? String(info.depot) : getBusDepot(cleanBm);
+          const depotName = busDepotNum === '2' ? 'Attibele (Depot 2)' : 'Chandapura (BMT-32)';
+          allVehicles.push({
+            vehicle_id: cleanBm,
+            bm_no: cleanBm,
+            reg_no: info.regNo || info.regNumber || info.reg_no || (apiBusStates[cleanBm]?.regNo) || ('KA51AH' + cleanBm.replace(/\D/g, '')),
+            make: info.make || 'Ashok Leyland',
+            model: info.model || 'ELECTRIC BUS AC EiV12',
+            depot: depotName,
+            status: info.status || 'Active',
+            isNewlyAdded: true
+          });
+          existingBmSet.add(cleanBm);
+        }
+      });
+    } catch(e) {
+      console.warn('Error merging added buses in depot-operations:', e);
+    }
+
+    recalcDepotCounts();
     filterBuses();
     refreshAll();
   }
@@ -2496,7 +2576,15 @@
     const box = document.getElementById('busInfoBox');
     box.className = `bus-info-box show status-${status}`;
 
-    document.getElementById('infoBM').textContent     = v?.bm_no  || bm;
+    const isNew = (v && v.isNewlyAdded) || (window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(bm));
+    const infoBM = document.getElementById('infoBM');
+    infoBM.textContent = v?.bm_no || bm;
+    if (isNew) {
+      const newBadge = document.createElement('span');
+      newBadge.textContent = '✨ Newly Added Bus';
+      newBadge.style.cssText = 'background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle;';
+      infoBM.append(' ', newBadge);
+    }
     document.getElementById('infoReg').textContent    = v?.reg_no || '—';
     document.getElementById('infoModel').textContent  = v?.model  || '—';
     const depotEl = document.getElementById('infoDepot');

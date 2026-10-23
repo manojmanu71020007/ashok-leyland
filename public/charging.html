@@ -821,6 +821,15 @@
       const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
       if (map[clean]) return String(map[clean]);
     } catch(e) {}
+    try {
+      const added = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === 'function')
+        ? window.DepotSyncEngine.getAddedBuses()
+        : JSON.parse(localStorage.getItem('depot_added_buses') || '{}');
+      if (added && added[clean] && added[clean].depot) return String(added[clean].depot);
+    } catch(e) {}
+    if (apiBusStates && apiBusStates._addedBuses && apiBusStates._addedBuses[clean] && apiBusStates._addedBuses[clean].depot) {
+      return String(apiBusStates._addedBuses[clean].depot);
+    }
     if (DEFAULT_DEPOT_MAP[clean]) return DEFAULT_DEPOT_MAP[clean];
     return '1';
   }
@@ -1717,6 +1726,57 @@
         {bm_no:'BM002',reg_no:'KA51AH2434',model:'EiV12 AC',status:'Active'},
       ];
     }
+
+    // Merge newly added buses (e.g. BM600)
+    try {
+      let addedBuses = {};
+      if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === 'function') {
+        addedBuses = window.DepotSyncEngine.getAddedBuses() || {};
+      }
+      if (!addedBuses || Object.keys(addedBuses).length === 0) {
+        try { addedBuses = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+      }
+      if ((!addedBuses || Object.keys(addedBuses).length === 0) && apiBusStates && apiBusStates._addedBuses) {
+        addedBuses = apiBusStates._addedBuses;
+      }
+      if (apiBusStates && typeof apiBusStates === 'object') {
+        Object.keys(apiBusStates).forEach(k => {
+          if (!k.startsWith('_') && apiBusStates[k]?.isNewlyAdded) {
+            if (!addedBuses) addedBuses = {};
+            if (!addedBuses[k]) addedBuses[k] = apiBusStates[k];
+          }
+        });
+      }
+
+      const existingBmSet = new Set(allVehicles.map(v => String(v.bm_no).toUpperCase().trim()));
+      Object.keys(addedBuses || {}).forEach(k => {
+        const cleanBm = String(k).toUpperCase().trim();
+        if (!cleanBm) return;
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(cleanBm)) {
+          return;
+        }
+        try {
+          const delMap = JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}');
+          if (delMap[cleanBm]) return;
+        } catch(e){}
+
+        const info = addedBuses[k] || {};
+        if (!existingBmSet.has(cleanBm)) {
+          allVehicles.push({
+            bm_no: cleanBm,
+            reg_no: info.regNo || info.regNumber || info.reg_no || (apiBusStates[cleanBm]?.regNo) || ('KA51AH' + cleanBm.replace(/\D/g, '')),
+            model: info.model || 'ELECTRIC BUS AC EiV12',
+            status: info.status || 'Active',
+            isNewlyAdded: true
+          });
+          existingBmSet.add(cleanBm);
+        }
+      });
+    } catch(e) {
+      console.warn('Error merging added buses in charging:', e);
+    }
+
+    recalcDepotCounts();
     filterBuses();
   }
 

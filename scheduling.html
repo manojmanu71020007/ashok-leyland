@@ -1070,6 +1070,15 @@
                 const map = JSON.parse(localStorage.getItem('depot_bus_assignments') || '{}');
                 if (map[clean]) return String(map[clean]);
             } catch(e) {}
+            try {
+                const added = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === 'function')
+                    ? window.DepotSyncEngine.getAddedBuses()
+                    : JSON.parse(localStorage.getItem('depot_added_buses') || '{}');
+                if (added && added[clean] && added[clean].depot) return String(added[clean].depot);
+            } catch(e) {}
+            if (typeof busStates !== 'undefined' && busStates && busStates[clean] && busStates[clean].isNewlyAdded && busStates[clean].depot) {
+                return String(busStates[clean].depot);
+            }
             if (DEFAULT_DEPOT_MAP[clean]) return DEFAULT_DEPOT_MAP[clean];
             return '1';
         }
@@ -1552,6 +1561,16 @@
         function getBusRegNo(bm) {
             if (!bm) return "";
             const key = String(bm).toUpperCase().trim();
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getNewlyAddedInfo === 'function') {
+                const info = window.DepotSyncEngine.getNewlyAddedInfo(key);
+                if (info && (info.regNo || info.regNumber)) return info.regNo || info.regNumber;
+            }
+            try {
+                const added = JSON.parse(localStorage.getItem('depot_added_buses') || '{}');
+                if (added[key] && (added[key].regNo || added[key].regNumber)) return added[key].regNo || added[key].regNumber;
+            } catch(e){}
+            if (typeof busStates !== 'undefined' && busStates && busStates[key] && busStates[key].regNo) return busStates[key].regNo;
+
             const v = routes.find(r => r.bmNumber === bm || r.uniqueId === bm || r.vehicleId === bm || r.bmNumber === key);
             if (v && v.regNo) return v.regNo;
             const s = datasetSchedules.find(x => x.fixBm === bm || x.swapBm === bm || x.fixBm === key || x.swapBm === key);
@@ -2255,6 +2274,36 @@
                 if (candidates.length >= 8) return;
                 if (s.fixBm) addCandidate(s.fixBm, `Route Standby Bus (${s.shift || targetShift})`);
                 if (s.swapBm) addCandidate(s.swapBm, `Route Standby Bus (${s.shift || targetShift})`);
+            });
+
+            // 3.5 Check newly inducted buses for this depot or assigned route
+            let addedBusesMap = {};
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") {
+                try { addedBusesMap = window.DepotSyncEngine.getAddedBuses() || {}; } catch(e){}
+            }
+            if (!addedBusesMap || Object.keys(addedBusesMap).length === 0) {
+                try { addedBusesMap = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+            }
+            if ((!addedBusesMap || Object.keys(addedBusesMap).length === 0) && typeof busStates !== 'undefined' && busStates) {
+                Object.keys(busStates).forEach(k => {
+                    if (!k.startsWith('_') && busStates[k]?.isNewlyAdded) {
+                        if (!addedBusesMap) addedBusesMap = {};
+                        if (!addedBusesMap[k]) addedBusesMap[k] = busStates[k];
+                    }
+                });
+            }
+
+            Object.keys(addedBusesMap || {}).forEach(addedBm => {
+                const bInfo = addedBusesMap[addedBm];
+                const bDepot = (bInfo && bInfo.depot) ? String(bInfo.depot) : getBusDepot(addedBm);
+                if (String(bDepot) === String(currentOperatingDepot)) {
+                    const assignedRoute = (bInfo && (bInfo.assignedRouteShortName || bInfo.assignedRouteId || bInfo.route || bInfo.assignedRouteDisplay)) || '';
+                    if (assignedRoute && (assignedRoute.toUpperCase().includes(routeCode.toUpperCase()) || routeCode.toUpperCase().includes(assignedRoute.toUpperCase()))) {
+                        addCandidate(addedBm, "Inducted Route Fleet Bus");
+                    } else {
+                        addCandidate(addedBm, "Newly Added Fleet Bus");
+                    }
+                }
             });
 
             // 4. Route-designated fleet fallback
@@ -4025,8 +4074,24 @@
         //  AVAILABLE BUSES FOR SCHEDULING (Excluding Cleaning & Charging Buses)
         // ══════════════════════════════════════════════════════════════════════════
         function getModalAvailableBusesList() {
-            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+            let addedBuses = {};
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") {
+                try { addedBuses = window.DepotSyncEngine.getAddedBuses() || {}; } catch(e){}
+            }
+            if (!addedBuses || Object.keys(addedBuses).length === 0) {
+                try { addedBuses = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+            }
+            if ((!addedBuses || Object.keys(addedBuses).length === 0) && typeof busStates !== 'undefined' && busStates) {
+                Object.keys(busStates).forEach(k => {
+                    if (!k.startsWith('_') && busStates[k]?.isNewlyAdded) {
+                        if (!addedBuses) addedBuses = {};
+                        if (!addedBuses[k]) addedBuses[k] = busStates[k];
+                    }
+                });
+            }
+
             const rawKeys = [
+                ...DEFAULT_FLEET_BMS,
                 ...Object.keys(STATIC_BUS_CATEGORIES || {}),
                 ...Object.keys(addedBuses || {}),
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
@@ -4109,8 +4174,24 @@
         }
 
         function getModalRecentlyCompletedBusesList() {
-            const addedBuses = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") ? window.DepotSyncEngine.getAddedBuses() : {};
+            let addedBuses = {};
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAddedBuses === "function") {
+                try { addedBuses = window.DepotSyncEngine.getAddedBuses() || {}; } catch(e){}
+            }
+            if (!addedBuses || Object.keys(addedBuses).length === 0) {
+                try { addedBuses = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
+            }
+            if ((!addedBuses || Object.keys(addedBuses).length === 0) && typeof busStates !== 'undefined' && busStates) {
+                Object.keys(busStates).forEach(k => {
+                    if (!k.startsWith('_') && busStates[k]?.isNewlyAdded) {
+                        if (!addedBuses) addedBuses = {};
+                        if (!addedBuses[k]) addedBuses[k] = busStates[k];
+                    }
+                });
+            }
+
             const rawKeys = [
+                ...DEFAULT_FLEET_BMS,
                 ...Object.keys(STATIC_BUS_CATEGORIES || {}),
                 ...Object.keys(addedBuses || {}),
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
