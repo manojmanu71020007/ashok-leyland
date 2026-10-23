@@ -19389,6 +19389,18 @@
       "reason": "Major Breakdown / Motor Defect",
       "deletedAt": "2026-10-23T12:38:55.098Z",
       "timestamp": 1792759135098
+    },
+    "BM413": {
+      "bm": "BM413",
+      "busNumber": "BM413",
+      "regNo": "KA07OC2007",
+      "regNumber": "KA07OC2007",
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "depot": "Chandapura (BMT-32)",
+      "reason": "Major Breakdown / Motor Defect",
+      "deletedAt": "2026-10-23T14:07:06.334Z",
+      "timestamp": 1792764426334
     }
   },
   "_addedBuses": {
@@ -19438,22 +19450,6 @@
       "make": "Ashok Leyland",
       "addedAt": "2026-10-22T09:18:15.771Z",
       "timestamp": 1792660695771,
-      "isNewlyAdded": true
-    },
-    "BM413": {
-      "bm": "BM413",
-      "busNumber": "BM413",
-      "regNo": "KA07OC2007",
-      "regNumber": "KA07OC2007",
-      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-      "depot": "1",
-      "category": "A",
-      "busCategory": "A",
-      "soc": 100,
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "addedAt": "2026-10-23T14:01:29.774Z",
-      "timestamp": 1792764089774,
       "isNewlyAdded": true
     }
   },
@@ -19638,15 +19634,20 @@
     "bmNumber": "BM413",
     "busNumber": "600F",
     "regNo": "KA07OC2007",
-    "status": "On Time",
+    "status": "Deleted",
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
     "busCategory": "A",
-    "isNewlyAdded": true,
+    "isNewlyAdded": false,
     "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
     "addedAt": "2026-10-23T14:01:29.774Z",
-    "deleted": false,
-    "isDeleted": false
+    "deleted": true,
+    "isDeleted": true,
+    "deletionReason": "Major Breakdown / Motor Defect",
+    "deletedAt": "2026-10-23T14:07:06.334Z",
+    "regNumber": "KA07OC2007",
+    "model": "ELECTRIC BUS AC EiV12",
+    "make": "Ashok Leyland"
   }
 }
