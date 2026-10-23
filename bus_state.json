@@ -19374,7 +19374,8 @@
     "BM303": "2",
     "BM304": "2",
     "BM000": "Chandapura (BMT-32)",
-    "BM600": "1"
+    "BM600": "1",
+    "BM413": "1"
   },
   "_deletedBuses": {
     "BM000": {
@@ -19437,6 +19438,22 @@
       "make": "Ashok Leyland",
       "addedAt": "2026-10-22T09:18:15.771Z",
       "timestamp": 1792660695771,
+      "isNewlyAdded": true
+    },
+    "BM413": {
+      "bm": "BM413",
+      "busNumber": "BM413",
+      "regNo": "KA07OC2007",
+      "regNumber": "KA07OC2007",
+      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+      "depot": "1",
+      "category": "A",
+      "busCategory": "A",
+      "soc": 100,
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "addedAt": "2026-10-23T14:01:29.774Z",
+      "timestamp": 1792764089774,
       "isNewlyAdded": true
     }
   },
@@ -19615,5 +19632,21 @@
         "status": "On Time"
       }
     ]
+  },
+  "BM413": {
+    "uniqueId": "BM413",
+    "bmNumber": "BM413",
+    "busNumber": "600F",
+    "regNo": "KA07OC2007",
+    "status": "On Time",
+    "soc": 100,
+    "condition": "Good",
+    "driver": "Driver Assigned",
+    "busCategory": "A",
+    "isNewlyAdded": true,
+    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
+    "addedAt": "2026-10-23T14:01:29.774Z",
+    "deleted": false,
+    "isDeleted": false
   }
 }
