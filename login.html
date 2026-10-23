@@ -14,7 +14,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=6" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png?v=6" />
     <script src="/pwa-app.js" defer></script>
-    <title>Login – Electric Bus Management System</title>
+    <title>Login – Electric Bus Management System | Ashok Leyland</title>
     <style>
         :root {
             --bg-1: #140b2d;
@@ -53,59 +53,16 @@
         /* ── Layout ── */
         .page-wrapper {
             width: 100%;
-            max-width: 520px;
+            max-width: 440px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
 
-        /* ── Hero ── */
-        .hero { color: #fff; padding: 24px; }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.12);
-            border: 1px solid rgba(255,255,255,0.18);
-            padding: 10px 16px;
-            border-radius: 999px;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            margin-bottom: 24px;
-            font-weight: 600;
-        }
-
-        .hero h1 {
-            font-size: clamp(2rem, 4vw, 3.6rem);
-            line-height: 1.05;
-            margin-bottom: 16px;
-            letter-spacing: -0.03em;
-        }
-
-        .hero p {
-            font-size: 1.05rem;
-            line-height: 1.7;
-            max-width: 560px;
-            color: rgba(255,255,255,0.82);
-        }
-
-        .hero-stats { margin-top: 28px; display: flex; gap: 14px; flex-wrap: wrap; }
-
-        .stat {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.14);
-            border-radius: 18px;
-            padding: 14px 18px;
-            min-width: 150px;
-        }
-
-        .stat strong { display: block; font-size: 1.1rem; color: #fff; margin-bottom: 4px; }
-        .stat span { color: rgba(255,255,255,0.74); font-size: 0.92rem; }
-
         /* ── Card ── */
         .card {
-            background: rgba(255,255,255,0.97);
+            width: 100%;
+            background: rgba(255,255,255,0.98);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
             border-radius: var(--radius);
@@ -114,79 +71,55 @@
             border: 1px solid rgba(255,255,255,0.45);
         }
 
-        /* ── Tab switcher ── */
-        .tab-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            border-bottom: 1px solid #edf2f7;
-        }
-
-        .tab-btn {
-            padding: 18px;
-            border: none;
-            background: transparent;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border-bottom: 3px solid transparent;
-        }
-
-        .tab-btn.active {
-            color: var(--accent-2);
-            border-bottom-color: var(--accent-2);
-            background: rgba(37,99,235,0.04);
-        }
-
-        /* ── Panels ── */
-        .panel { display: none; }
-        .panel.active { display: block; }
-
         .card-header {
-            padding: 28px 32px 16px;
+            padding: 34px 32px 20px;
             text-align: center;
             border-bottom: 1px solid #edf2f7;
+            background: #ffffff;
         }
 
         .logo {
-            width: 68px; height: 68px;
+            width: 64px; height: 64px;
             border-radius: 20px;
             margin: 0 auto 14px;
             display: grid;
             place-items: center;
             background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
             color: white;
-            font-size: 1.9rem;
-            box-shadow: 0 12px 30px rgba(37,99,235,0.28);
+            font-size: 1.8rem;
+            box-shadow: 0 12px 28px rgba(37,99,235,0.28);
         }
 
         .card-header h2 {
-            font-size: 1.75rem;
+            font-size: 1.65rem;
             color: var(--text-dark);
             margin-bottom: 6px;
             letter-spacing: -0.03em;
+            font-weight: 800;
         }
 
-        .card-header p { color: var(--text-muted); font-size: 0.95rem; }
+        .card-header p {
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+        }
 
-        .card-body { padding: 24px 32px 28px; }
+        .card-body { padding: 28px 32px 34px; }
 
         /* ── Form ── */
-        .form-group { margin-bottom: 16px; }
+        .form-group { margin-bottom: 18px; }
 
         label {
             display: block;
             margin-bottom: 7px;
             font-weight: 600;
             color: var(--text-dark);
-            font-size: 0.93rem;
+            font-size: 0.92rem;
         }
 
         .input-wrap { position: relative; }
 
         input[type="text"],
-        input[type="email"],
         input[type="password"] {
             width: 100%;
             border: 1.5px solid var(--border);
@@ -199,7 +132,7 @@
             transition: all 0.25s ease;
         }
 
-        input::placeholder { color: #8b95a7; }
+        input::placeholder { color: #94a3b8; }
 
         input:focus {
             border-color: #5b7cff;
@@ -216,48 +149,6 @@
             cursor: pointer; font-size: 1rem;
             color: #718096; padding: 6px;
         }
-
-        /* ── Password strength ── */
-        .strength-bar {
-            margin-top: 6px;
-            height: 4px;
-            border-radius: 4px;
-            background: #e5e7eb;
-            overflow: hidden;
-        }
-
-        .strength-fill {
-            height: 100%;
-            border-radius: 4px;
-            width: 0%;
-            transition: width 0.3s ease, background 0.3s ease;
-        }
-
-        .strength-label {
-            font-size: 0.78rem;
-            margin-top: 4px;
-            color: var(--text-muted);
-        }
-
-        /* ── Form row ── */
-        .form-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            margin: 4px 0 18px;
-            flex-wrap: wrap;
-        }
-
-        .forgot-link, .secondary-link {
-            color: #375ec5;
-            text-decoration: none;
-            font-weight: 600;
-            transition: 0.2s ease;
-            font-size: 0.9rem;
-        }
-
-        .forgot-link:hover, .secondary-link:hover { text-decoration: underline; opacity: 0.9; }
 
         /* ── Primary button ── */
         .primary-btn {
@@ -278,69 +169,21 @@
         .primary-btn:active { transform: translateY(0); }
         .primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-        /* ── Google button ── */
-        .google-btn {
-            width: 100%;
-            border: 1.5px solid #d1d5db;
-            border-radius: 14px;
-            padding: 13px 18px;
-            font-size: 0.97rem;
-            font-weight: 600;
-            color: #374151;
-            background: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all 0.2s ease;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-        }
-
-        .google-btn:hover { background: #f9fafb; border-color: #9ca3af; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .google-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .google-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
-
-        /* ── Divider ── */
-        .divider {
-            margin: 18px 0 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #94a3b8;
-            font-size: 0.88rem;
-        }
-
-        .divider::before, .divider::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: #e6edf7;
-        }
-
         /* ── Alert messages ── */
         .alert {
-            padding: 11px 14px;
+            padding: 12px 14px;
             border-radius: 12px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 500;
-            margin-bottom: 14px;
+            margin-bottom: 18px;
             display: none;
+            line-height: 1.45;
         }
 
         .alert.show { display: flex; align-items: flex-start; gap: 8px; }
         .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
         .alert-info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
-
-        /* ── Footer note ── */
-        .footer-note {
-            margin-top: 16px;
-            text-align: center;
-            font-size: 0.83rem;
-            color: #94a3b8;
-        }
 
         /* ── Loading spinner ── */
         .spinner {
@@ -356,356 +199,52 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ── Responsive ── */
-        @media (max-width: 920px) {
-            .page-wrapper { max-width: 100%; }
-        }
-
-        @media (max-width: 560px) {
-            body { padding: 16px; }
-            .card-header, .card-body { padding-left: 18px; padding-right: 18px; }
-            .card-header h2 { font-size: 1.5rem; }
-            .hero h1 { font-size: 2rem; }
-        }
-
-        /* ── Password Reset Modal ── */
-        .modal-backdrop {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(10, 15, 30, 0.72);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 10000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .modal-backdrop.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-card {
-            background: #ffffff;
-            border-radius: var(--radius);
-            padding: 32px 28px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
-            position: relative;
-            transform: translateY(16px) scale(0.97);
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .modal-backdrop.show .modal-card {
-            transform: translateY(0) scale(1);
-        }
-        .modal-close-btn {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: none;
-            background: #f1f5f9;
-            color: #64748b;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-        }
-        .modal-close-btn:hover {
-            background: #e2e8f0;
-            color: #0f172a;
-            transform: scale(1.05);
-        }
-        .secondary-btn-outline {
-            width: 100%;
-            border: 1.5px solid #d1d5db;
-            background: #ffffff;
-            color: #374151;
-            padding: 12px 18px;
-            border-radius: 14px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-        .secondary-btn-outline:hover {
-            background: #f9fafb;
-            border-color: #9ca3af;
-        }
-
-        /* ── Top Left 3 Parallel Lines (Depot Menu) ── */
-        .depot-hamburger-btn {
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1.5px solid rgba(255, 255, 255, 0.32);
-            border-radius: 12px;
-            display: inline-flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-            padding: 0;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-        }
-        .depot-hamburger-btn:hover {
-            background: rgba(255, 255, 255, 0.26);
-            border-color: rgba(255, 255, 255, 0.55);
-            transform: translateY(-1px);
-        }
-        .depot-hamburger-btn .hamburger-bar {
-            width: 20px;
-            height: 2.5px;
-            background-color: #ffffff;
-            border-radius: 2px;
-            display: block;
-            transition: all 0.2s ease;
-            pointer-events: none;
-        }
-
-        .depot-active-chip {
-            background: rgba(255, 255, 255, 0.14);
-            border: 1.5px solid rgba(255, 255, 255, 0.28);
-            color: #ffffff;
-            padding: 7px 14px;
-            border-radius: 12px;
-            font-size: 0.84rem;
-            font-weight: 700;
-            cursor: pointer;
+        /* ── Language Selector ── */
+        .lang-selector-wrap {
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 6px 12px;
+            border-radius: 999px;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            transition: all 0.2s ease;
         }
-        .depot-active-chip * {
-            pointer-events: none;
-        }
-        .depot-active-chip:hover {
-            background: rgba(255, 255, 255, 0.24);
-            border-color: rgba(255, 255, 255, 0.45);
-        }
-
-        /* ── Depot Drawer & Backdrop ── */
-        .depot-drawer-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            z-index: 99998;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-        }
-        .depot-drawer-backdrop.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .depot-drawer {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            height: 100vh;
-            height: 100dvh;
-            width: 330px;
-            max-width: 86vw;
-            background: #ffffff;
-            box-shadow: 12px 0 35px rgba(0, 0, 0, 0.35);
-            z-index: 99999;
-            transform: translateX(-100%);
-            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-        }
-        .depot-drawer.show {
-            transform: translateX(0);
-        }
-
-        .depot-drawer-header {
-            padding: 20px 18px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid #e2e8f0;
-            background: #f8fafc;
-        }
-        .depot-drawer-close {
-            background: none;
-            border: 1px solid #cbd5e1;
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            color: #64748b;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.15s ease;
-        }
-        .depot-drawer-close:hover {
-            background: #e2e8f0;
-            color: #0f172a;
-        }
-
-        .depot-drawer-body {
-            padding: 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            flex: 1;
-        }
-
-        .depot-select-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 16px;
-            cursor: pointer;
-            background: #ffffff;
-            transition: all 0.2s ease;
-        }
-        .depot-select-card:hover {
-            border-color: #3b82f6;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
-        }
-        .depot-select-card.active {
-            border-color: #2563eb;
-            background: #f0f7ff;
-            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.15);
-        }
-
-        .depot-card-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .depot-number-badge {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            background: #2563eb;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 1.1rem;
-        }
-        .depot-status-badge {
-            font-size: 0.72rem;
-            font-weight: 700;
-            padding: 3px 8px;
-            border-radius: 999px;
-            background: #dcfce7;
-            color: #166534;
-        }
-        .depot-card-stat {
+        .lang-select {
+            background: transparent;
+            border: none;
+            color: #ffffff;
             font-size: 0.85rem;
-            color: #475569;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 10px;
-            background: rgba(241, 245, 249, 0.7);
-            border-radius: 10px;
-        }
-        .depot-selected-check {
-            font-size: 0.78rem;
-            font-weight: 800;
-            color: #2563eb;
-            background: #dbeafe;
-            padding: 3px 10px;
-            border-radius: 999px;
-        }
-
-        .depot-drawer-footer {
-            padding: 16px;
-            border-top: 1px solid #e2e8f0;
-            background: #f8fafc;
-        }
-
-        .quick-tile {
-            background: rgba(255, 255, 255, 0.10);
-            border: 1.5px solid rgba(255, 255, 255, 0.18);
-            border-radius: 18px;
-            padding: 16px 12px;
-            text-align: center;
+            font-weight: 600;
+            outline: none;
             cursor: pointer;
-            transition: background 0.2s, transform 0.2s;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        }
+        .lang-select option {
+            background: #1e293b;
+            color: #ffffff;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 560px) {
+            body { padding: 16px; }
+            .card-header, .card-body { padding-left: 20px; padding-right: 20px; }
+            .card-header h2 { font-size: 1.45rem; }
         }
     </style>
     <script src="i18n.js"></script>
     <script src="sync-engine.js"></script>
-    <script>
-        // Early definition fallback
-        window.toggleDepotDrawer = window.toggleDepotDrawer || function(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            const d = document.getElementById('depotDrawer');
-            if (d && d.classList.contains('show')) window.closeDepotDrawer(e);
-            else window.openDepotDrawer(e);
-        };
-        window.openDepotDrawer = window.openDepotDrawer || function(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            document.getElementById('depotDrawer')?.classList.add('show');
-            document.getElementById('depotDrawerBackdrop')?.classList.add('show');
-            if (typeof window.updateDepotDrawerUI === 'function') window.updateDepotDrawerUI();
-        };
-        window.closeDepotDrawer = window.closeDepotDrawer || function(e) {
-            if (e && e.preventDefault) e.preventDefault();
-            document.getElementById('depotDrawer')?.classList.remove('show');
-            document.getElementById('depotDrawerBackdrop')?.classList.remove('show');
-        };
-        window.chooseDepot = window.chooseDepot || function(num) {
-            try { localStorage.setItem('selected_depot', String(num)); } catch(e){}
-            try { sessionStorage.setItem('selected_depot', String(num)); } catch(e){}
-            window.closeDepotDrawer();
-        };
-    </script>
 </head>
 <body>
     <main class="page-wrapper">
 
-    <!-- ── Top Header: 3 Parallel Lines (Depot Menu), Active Chip & Language Selector ── -->
-    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <!-- 3 Parallel Lines Button -->
-            <button id="depotHamburgerBtn" class="depot-hamburger-btn" type="button" aria-label="Select Depot Menu" title="Click to Select Depot" onclick="toggleDepotDrawer(event)">
-                <span class="hamburger-bar"></span>
-                <span class="hamburger-bar"></span>
-                <span class="hamburger-bar"></span>
-            </button>
-            <!-- Selected depot indicator chip -->
-            <button id="depotActiveChip" class="depot-active-chip" type="button" onclick="toggleDepotDrawer(event)" title="Switch Depot">
-                <span id="depotActiveChipText">🏢 Depot 1 (56 Buses)</span>
-                <span style="font-size:0.75rem;opacity:0.8;">▾</span>
-            </button>
+    <!-- ── Top Header: Brand Badge & Language Selector ── -->
+    <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div style="background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(8px);">
+                <span>🚍</span>
+                <span>Ashok Leyland Fleet Management</span>
+            </div>
         </div>
 
         <div class="lang-selector-wrap" id="lang-selector-wrap">
@@ -720,1063 +259,444 @@
         </div>
     </div>
 
-    <!-- ── Quick Access Portal Tiles ── -->
-    <div style="width:100%;margin-bottom:22px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding:0 4px;">
-            <p id="quickPortalTitle" style="color:rgba(255,255,255,0.85);font-size:0.82rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin:0;">
-                ⚡ Depot <span id="quickDepotNum">1</span> Quick Actions
-            </p>
-            <span id="quickDepotBadge" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.25);color:#fff;font-size:0.75rem;padding:3px 10px;border-radius:999px;font-weight:800;backdrop-filter:blur(6px);">
-                <span id="quickBusCount">56</span> Buses
-            </span>
-        </div>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(105px, 1fr));gap:10px;">
-            <!-- Charging Tile -->
-            <a id="linkCharging" href="/public/charging.html?depot=1" style="text-decoration:none;">
-                <div class="quick-tile"
-                     onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
-                     onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
-                    <div style="font-size:1.8rem;margin-bottom:6px;">⚡</div>
-                    <div id="tileChargingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Charging 1</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_charging_sub">Log sessions</div>
-                </div>
-            </a>
-            <!-- Cleaning Tile -->
-            <a id="linkCleaning" href="/public/cleaning.html?depot=1" style="text-decoration:none;">
-                <div class="quick-tile"
-                     onmouseover="this.style.background='rgba(255,255,255,0.18)';this.style.transform='translateY(-2px)'"
-                     onmouseout="this.style.background='rgba(255,255,255,0.10)';this.style.transform='translateY(0)'">
-                    <div style="font-size:1.8rem;margin-bottom:6px;">🧹</div>
-                    <div id="tileCleaningText" style="color:#fff;font-weight:700;font-size:0.92rem;">Cleaning 1</div>
-                    <div style="color:rgba(255,255,255,0.6);font-size:0.72rem;margin-top:2px;" data-i18n="tile_cleaning_sub">Status record</div>
-                </div>
-            </a>
-            <!-- Scheduling Tile (Separate Standalone Portal) -->
-            <a id="linkScheduling" href="/scheduling.html?depot=1" style="text-decoration:none;">
-                <div class="quick-tile" style="border-color:rgba(14,165,233,0.45);background:rgba(255,255,255,0.12);"
-                     onmouseover="this.style.background='rgba(14,165,233,0.22)';this.style.transform='translateY(-2px)'"
-                     onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
-                    <div style="font-size:1.8rem;margin-bottom:6px;">🎯</div>
-                    <div id="tileSchedulingText" style="color:#fff;font-weight:700;font-size:0.92rem;">Scheduling 1</div>
-                    <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_scheduling_sub">Smart allocation</div>
-                </div>
-            </a>
-            <!-- Depot Ops Tile -->
-            <a id="linkDepotOps" href="/public/depot-operations.html?depot=1" style="text-decoration:none;">
-                <div class="quick-tile" style="border-color:rgba(168,85,247,0.45);background:rgba(255,255,255,0.12);"
-                     onmouseover="this.style.background='rgba(168,85,247,0.22)';this.style.transform='translateY(-2px)'"
-                     onmouseout="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateY(0)'">
-                    <div style="font-size:1.8rem;margin-bottom:6px;">🚍</div>
-                    <div id="tileDepotOpsText" style="color:#fff;font-weight:700;font-size:0.92rem;">Depot Ops 1</div>
-                    <div style="color:rgba(255,255,255,0.7);font-size:0.72rem;margin-top:2px;" data-i18n="tile_depot_ops_sub">Route complete</div>
-                </div>
-            </a>
-        </div>
+    <!-- ── Existing Session Alert Banner (if logged in) ── -->
+    <div id="existing-session-banner" style="display:none;width:100%;margin-bottom:14px;padding:12px 16px;background:rgba(255,255,255,0.95);border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border:1px solid rgba(37,99,235,0.25);">
     </div>
 
     <!-- ── Auth Card ── -->
     <section class="card" aria-label="Authentication">
 
-        <!-- Tab switcher -->
-        <div class="tab-row" role="tablist">
-            <button class="tab-btn active" id="tab-login" role="tab" aria-selected="true" aria-controls="panel-login" onclick="switchTab('login')" data-i18n="tab_signin">Sign In</button>
-            <button class="tab-btn" id="tab-signup" role="tab" aria-selected="false" aria-controls="panel-signup" onclick="switchTab('signup')" data-i18n="tab_signup">Sign Up</button>
+        <!-- Card Header -->
+        <div class="card-header">
+            <div class="logo">🔐</div>
+            <h2 data-i18n="login_title">Portal Sign In</h2>
+            <p data-i18n="login_sub">Sign in with your username and password to continue</p>
         </div>
 
-        <!-- ══════════════════════════════════════════ LOGIN PANEL ══════════════════════════════════════════ -->
-        <div class="panel active" id="panel-login" role="tabpanel" aria-labelledby="tab-login">
-            <div class="card-header">
-                <div class="logo">🔐</div>
-                <h2 data-i18n="login_title">Welcome Back</h2>
-                <p data-i18n="login_sub">Sign in to your account to continue</p>
-            </div>
-            <div class="card-body">
+        <!-- Card Body -->
+        <div class="card-body">
 
-                <!-- Alert -->
-                <div class="alert alert-error" id="login-alert" role="alert"></div>
+            <!-- Alert Notification -->
+            <div class="alert alert-error" id="login-alert" role="alert"></div>
 
-                <!-- Google sign-in -->
-                <button class="google-btn" id="btn-google-login" type="button" onclick="signInWithGoogle()">
-                    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                        <path fill="none" d="M0 0h48v48H0z"/>
-                    </svg>
-                    <span data-i18n="btn_google_signin">Continue with Google</span>
-                </button>
-
-                <div class="divider" data-i18n="divider_email">or sign in with email</div>
-
-                <form id="form-login" novalidate>
-                    <div class="form-group">
-                        <label for="login-email" data-i18n="label_email">Email Address</label>
-                        <div class="input-wrap">
-                            <input type="email" id="login-email" name="email"
-                                   placeholder="Enter your email" autocomplete="username" required data-i18n-placeholder="placeholder_email" />
-                        </div>
+            <!-- Single, Clean Form: Only Username and Password -->
+            <form id="form-login" novalidate>
+                <div class="form-group">
+                    <label for="login-username" data-i18n="label_username">Username</label>
+                    <div class="input-wrap">
+                        <input type="text" id="login-username" name="username"
+                               placeholder="Enter your username" autocomplete="username" required data-i18n-placeholder="placeholder_username" />
                     </div>
-
-                    <div class="form-group">
-                        <label for="login-password" data-i18n="label_password">Password</label>
-                        <div class="input-wrap">
-                            <input type="password" id="login-password" name="password"
-                                   placeholder="Enter your password" autocomplete="current-password" required data-i18n-placeholder="placeholder_password" />
-                            <button class="toggle-password" type="button" data-target="login-password" aria-label="Show password">👁️</button>
-                        </div>
-                    </div>
-
-                    <div class="form-row" style="justify-content: flex-end;">
-                        <a href="#" class="forgot-link" id="forgot-link" data-i18n="link_forgot_password">Forgot Password?</a>
-                    </div>
-
-                    <button type="submit" class="primary-btn" id="btn-login" data-i18n="btn_login_submit">Sign In</button>
-
-                    <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.24);border-radius:10px;text-align:center;">
-                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.85);display:block;margin-bottom:5px;">
-                            ⚡ Admin Bypass Credential:
-                        </span>
-                        <button type="button" onclick="fillAdminBypass()" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;font-size:0.78rem;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
-                            🔑 Quick Fill: admin@gmail.com / adminlogin
-                        </button>
-                    </div>
-
-
-                </form>
-
-                <div class="footer-note">By signing in, you agree to our terms and privacy policy.</div>
-            </div>
-        </div>
-
-        <!-- ══════════════════════════════════════════ SIGN UP PANEL ══════════════════════════════════════════ -->
-        <div class="panel" id="panel-signup" role="tabpanel" aria-labelledby="tab-signup">
-            <div class="card-header">
-                <div class="logo">🚀</div>
-                <h2 data-i18n="signup_title">Create Account</h2>
-                <p data-i18n="signup_sub">Register for system access</p>
-            </div>
-            <div class="card-body">
-
-                <!-- Alert -->
-                <div class="alert alert-error" id="signup-alert" role="alert"></div>
-
-                <!-- Google sign-up -->
-                <button class="google-btn" id="btn-google-signup" type="button" onclick="signUpWithGoogle()">
-                    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-                        <path fill="none" d="M0 0h48v48H0z"/>
-                    </svg>
-                    <span id="btn-google-signup-label">Step 1: Select Google Account</span>
-                </button>
-
-                <div class="divider">Step 2: Fill Name & Set Password</div>
-
-                <!-- ℹ️ Info box: Google account guidance -->
-                <div class="alert alert-info show" id="signup-instruction-box" style="margin-bottom:14px;">
-                    <span>ℹ️</span>
-                    <span id="signup-instruction-text">Select your Google account above, then enter your full name and create a password to complete registration.</span>
                 </div>
 
-                <form id="form-signup" novalidate>
-                    <div class="form-group">
-                        <label for="signup-name" data-i18n="label_full_name">Full Name</label>
-                        <div class="input-wrap">
-                            <input type="text" id="signup-name" name="name"
-                                   placeholder="Your full name" autocomplete="name" required data-i18n-placeholder="placeholder_full_name" />
-                        </div>
+                <div class="form-group">
+                    <label for="login-password" data-i18n="label_password">Password</label>
+                    <div class="input-wrap">
+                        <input type="password" id="login-password" name="password"
+                               placeholder="Enter your password" autocomplete="current-password" required data-i18n-placeholder="placeholder_password" />
+                        <button class="toggle-password" type="button" data-target="login-password" aria-label="Show password">👁️</button>
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <label for="signup-email" data-i18n="label_email">Google Email Address</label>
-                        <div class="input-wrap">
-                            <input type="email" id="signup-email" name="email"
-                                   placeholder="yourname@gmail.com" autocomplete="email" required />
-                        </div>
-                    </div>
+                <button type="submit" class="primary-btn" id="btn-login" style="margin-top: 8px;" data-i18n="btn_login_submit">Sign In</button>
+            </form>
 
-                    <div class="form-group">
-                        <label for="signup-password" data-i18n="label_password">Create Password</label>
-                        <div class="input-wrap">
-                            <input type="password" id="signup-password" name="password"
-                                   placeholder="Min 8 characters" autocomplete="new-password" required />
-                            <button class="toggle-password" type="button" data-target="signup-password" aria-label="Show password">👁️</button>
-                        </div>
-                        <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
-                        <div class="strength-label" id="strength-label"></div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="signup-confirm" data-i18n="label_confirm_password">Confirm Password</label>
-                        <div class="input-wrap">
-                            <input type="password" id="signup-confirm" name="confirm"
-                                   placeholder="Re-enter your password" autocomplete="new-password" required data-i18n-placeholder="placeholder_confirm_password" />
-                            <button class="toggle-password" type="button" data-target="signup-confirm" aria-label="Show password">👁️</button>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="primary-btn" id="btn-signup" data-i18n="btn_signup_submit">Complete Registration &amp; Set Password</button>
-
-                    <div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,0.08);border:1px dashed rgba(255,255,255,0.24);border-radius:10px;text-align:center;">
-                        <span style="font-size:0.75rem;color:rgba(255,255,255,0.85);display:block;margin-bottom:5px;">
-                            ⚡ Admin Bypass (No Google Auth Required):
-                        </span>
-                        <button type="button" onclick="fillAdminBypass()" style="background:rgba(255,255,255,0.18);border:1px solid rgba(255,255,255,0.35);color:#fff;font-size:0.78rem;font-weight:700;padding:5px 14px;border-radius:999px;cursor:pointer;backdrop-filter:blur(4px);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.28)'" onmouseout="this.style.background='rgba(255,255,255,0.18)'">
-                            🔑 Quick Fill: admin@gmail.com / adminlogin
-                        </button>
-                    </div>
-                </form>
-
-                <div class="footer-note">By signing up, you agree to our terms and privacy policy.</div>
+            <div style="margin-top: 24px; text-align: center; font-size: 0.78rem; color: #94a3b8;">
+                Ashok Leyland Intelligent Transit &amp; Battery Fleet Operations
             </div>
         </div>
 
     </section>
 </main>
 
-<!-- ══════════════════════════════════════════ DEPOT SELECTION DRAWER (FULL SCREEN LEVEL) ══════════════════════════════════════════ -->
-<div id="depotDrawerBackdrop" class="depot-drawer-backdrop" onclick="closeDepotDrawer(event)"></div>
+<!-- ─────────────────────────── Authentication & Direct Routing Script ─────────────────────────── -->
+<script>
+    // ══════════════════════════════════════════════════════════════════════════
+    //  WEBPAGE CREDENTIALS & DIRECT ROUTING
+    // ══════════════════════════════════════════════════════════════════════════
+    const WEBPAGE_ACCOUNTS = {
+        // ── Direct purpose-based username aliases ──
+        "for_admin_login": {
+            password: "Test@123",
+            redirectUrl: "/admin.html",
+            pageName: "Admin Dashboard / Fleet Overview"
+        },
+        "for_scheduling_depot_1": {
+            password: "Test@123",
+            redirectUrl: "/scheduling.html?depot=1",
+            pageName: "Smart Bus Scheduling - Depot 1"
+        },
+        "for_charging_depot_1": {
+            password: "Test@123",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Operations (Depot 1)"
+        },
+        "for_cleaning_depot_1": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Cleaning & Sanitization (Depot 1)"
+        },
+        "for_depot_operations_depot_1": {
+            password: "Test@123",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot 1 Operations Wing"
+        },
+        "for_scheduling_depot_2": {
+            password: "Test@123",
+            redirectUrl: "/scheduling.html?depot=2",
+            pageName: "Smart Bus Scheduling - Depot 2"
+        },
+        "for_charging_depot_2": {
+            password: "Test@123",
+            redirectUrl: "/charging.html?depot=2",
+            pageName: "Charging Operations (Depot 2)"
+        },
+        "for_cleaning_depot_2": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=2",
+            pageName: "Cleaning & Sanitization (Depot 2)"
+        },
+        "for_depot_operations_depot_2": {
+            password: "Test@123",
+            redirectUrl: "/depot-operations.html?depot=2",
+            pageName: "Depot 2 Operations Wing"
+        },
+        // ── 9 OFFICIAL LOGINS FROM MASTER DIRECTORY ──
+        // 1. Central Depot Manager -> Admin Dashboard
+        "cdm001": {
+            password: "Test@123",
+            redirectUrl: "/admin.html",
+            pageName: "Admin Dashboard / Fleet Overview",
+            role: "Central Depot Manager",
+            email: "cdm001@ashokleyland.com",
+            name: "Central Depot Manager"
+        },
 
-<aside id="depotDrawer" class="depot-drawer" aria-label="Select Depot">
-    <div class="depot-drawer-header">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:1.4rem;">🏢</span>
-            <div>
-                <h3 style="margin:0;font-size:1.05rem;font-weight:800;color:#0f172a;">Select Operational Depot</h3>
-                <p style="margin:2px 0 0 0;font-size:0.75rem;color:#64748b;">Ashok Leyland Electric Fleet</p>
-            </div>
-        </div>
-        <button type="button" class="depot-drawer-close" onclick="closeDepotDrawer(event)" aria-label="Close Depot Drawer">✕</button>
-    </div>
+        // 2. Depot 1: Depot Operations & Dispatch
+        "dm-depot-1": {
+            password: "Test@123",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot 1 Operations Wing",
+            role: "Depot 1 Manager",
+            email: "dm_depot1@ashokleyland.com",
+            name: "Depot 1 Manager"
+        },
 
-    <div class="depot-drawer-body">
-        <!-- Depot 1 Option -->
-        <div id="depotCard1" class="depot-select-card active" onclick="chooseDepot(1)">
-            <div class="depot-card-top">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="depot-number-badge">1</div>
-                    <div>
-                        <div style="font-weight:800;font-size:0.98rem;color:#0f172a;">Depot 1 Fleet</div>
-                        <div style="font-size:0.74rem;color:#64748b;">North Operations Wing</div>
-                    </div>
-                </div>
-                <span class="depot-status-badge">Active</span>
-            </div>
-            <div class="depot-card-stat">
-                <span>Assigned Fleet</span>
-                <strong id="drawerDepot1Count" style="color:#2563eb;font-weight:800;">56 Buses</strong>
-            </div>
-            <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-                <span id="depot1Check" class="depot-selected-check">✓ Active Depot</span>
-            </div>
-        </div>
+        // 3. Depot 1: Smart Bus Scheduling
+        "is-depot-1": {
+            password: "Test@123",
+            redirectUrl: "/scheduling.html?depot=1",
+            pageName: "Smart Bus Scheduling - Depot 1",
+            role: "Scheduling In-Charge (Depot 1)",
+            email: "is_depot1@ashokleyland.com",
+            name: "Scheduling Planner - Depot 1"
+        },
 
-        <!-- Depot 2 Option -->
-        <div id="depotCard2" class="depot-select-card" onclick="chooseDepot(2)">
-            <div class="depot-card-top">
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <div class="depot-number-badge" style="background:#7c3aed;">2</div>
-                    <div>
-                        <div style="font-weight:800;font-size:0.98rem;color:#0f172a;">Depot 2 Fleet</div>
-                        <div style="font-size:0.74rem;color:#64748b;">South Operations Wing</div>
-                    </div>
-                </div>
-                <span class="depot-status-badge">Active</span>
-            </div>
-            <div class="depot-card-stat">
-                <span>Assigned Fleet</span>
-                <strong id="drawerDepot2Count" style="color:#7c3aed;font-weight:800;">64 Buses</strong>
-            </div>
-            <div style="margin-top:10px;display:flex;justify-content:flex-end;">
-                <span id="depot2Check" class="depot-selected-check" style="display:none;background:#f3e8ff;color:#7c3aed;">✓ Active Depot</span>
-            </div>
-        </div>
+        // 4. Depot 1: Charging Operations
+        "es-depot-1": {
+            password: "Test@123",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Operations (Depot 1)",
+            role: "Electrical Supervisor (Depot 1)",
+            email: "es_depot1@ashokleyland.com",
+            name: "Charging Lead - Depot 1"
+        },
 
-        <!-- Total Fleet Stat Box -->
-        <div style="margin-top:auto;padding:14px;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:14px;text-align:center;">
-            <div style="font-size:0.75rem;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;">Total Fleet Network</div>
-            <div id="drawerTotalCount" style="font-size:1.35rem;font-weight:900;color:#0f172a;margin-top:4px;">120 Buses</div>
-            <div style="font-size:0.72rem;color:#94a3b8;margin-top:3px;">Real-time sync enabled across all tabs</div>
-        </div>
-    </div>
+        // 5. Depot 1: Cleaning & Sanitization
+        "insp-depot-1-01": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Cleaning & Sanitization (Depot 1)",
+            role: "Sanitization Inspector (Depot 1)",
+            email: "insp_depot1_01@ashokleyland.com",
+            name: "Inspector - Depot 1"
+        },
+        "insp-depot-1-02": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Cleaning & Sanitization (Depot 1)",
+            role: "Sanitization Inspector (Depot 1)",
+            email: "insp_depot1_02@ashokleyland.com",
+            name: "Inspector - Depot 1"
+        },
 
-    <div class="depot-drawer-footer">
-        <button type="button" class="primary-btn" onclick="closeDepotDrawer(event)" style="padding:10px;font-size:0.88rem;border-radius:10px;">
-            Done / Close Menu
-        </button>
-    </div>
-</aside>
+        // 6. Depot 2: Depot Operations & Dispatch
+        "dm-depot-2": {
+            password: "Test@123",
+            redirectUrl: "/depot-operations.html?depot=2",
+            pageName: "Depot 2 Operations Wing",
+            role: "Depot 2 Manager",
+            email: "dm_depot2@ashokleyland.com",
+            name: "Depot 2 Manager"
+        },
 
-<!-- ══════════════════════════════════════════ FORGOT PASSWORD MODAL ══════════════════════════════════════════ -->
-<div class="modal-backdrop" id="reset-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="reset-modal-heading" style="display:none;">
-    <div class="modal-card">
-        <button type="button" class="modal-close-btn" id="modal-close-btn" title="Close" aria-label="Close">✕</button>
+        // 7. Depot 2: Smart Bus Scheduling
+        "is-depot-2": {
+            password: "Test@123",
+            redirectUrl: "/scheduling.html?depot=2",
+            pageName: "Smart Bus Scheduling - Depot 2",
+            role: "Scheduling In-Charge (Depot 2)",
+            email: "is_depot2@ashokleyland.com",
+            name: "Scheduling Planner - Depot 2"
+        },
 
-        <!-- Step 1: Request Password Reset Link -->
-        <div id="reset-view-request">
-            <div class="card-header" style="padding:0 0 16px 0; text-align:center;">
-                <div class="logo">🔑</div>
-                <h2 id="reset-modal-heading" style="font-size:1.5rem; margin-top:6px;">Reset Password</h2>
-                <p style="font-size:0.9rem; color:var(--text-muted); margin-top:6px;">
-                    Enter your account email and we'll send you a password reset link to create a new password.
-                </p>
-            </div>
+        // 8. Depot 2: Charging Operations
+        "es-depot-2": {
+            password: "Test@123",
+            redirectUrl: "/charging.html?depot=2",
+            pageName: "Charging Operations (Depot 2)",
+            role: "Electrical Supervisor (Depot 2)",
+            email: "es_depot2@ashokleyland.com",
+            name: "Charging Lead - Depot 2"
+        },
 
-            <div class="alert" id="reset-alert" role="alert"></div>
+        // 9. Depot 2: Cleaning & Sanitization
+        "insp-depot-2-01": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=2",
+            pageName: "Cleaning & Sanitization (Depot 2)",
+            role: "Sanitization Inspector (Depot 2)",
+            email: "insp_depot2_01@ashokleyland.com",
+            name: "Inspector - Depot 2"
+        },
+        "insp-depot-2-02": {
+            password: "Test@123",
+            redirectUrl: "/cleaning.html?depot=2",
+            pageName: "Cleaning & Sanitization (Depot 2)",
+            role: "Sanitization Inspector (Depot 2)",
+            email: "insp_depot2_02@ashokleyland.com",
+            name: "Inspector - Depot 2"
+        },
+        // 1. Admin Dashboard
+        "admin": {
+            password: "adminlogin",
+            redirectUrl: "/admin.html",
+            pageName: "Admin Dashboard / Fleet Overview",
+            role: "System Administrator",
+            email: "admin@gmail.com",
+            name: "Admin"
+        },
+        "admin@gmail.com": {
+            password: "adminlogin",
+            redirectUrl: "/admin.html",
+            pageName: "Admin Dashboard / Fleet Overview",
+            role: "System Administrator",
+            email: "admin@gmail.com",
+            name: "Admin"
+        },
+        "superadmin": {
+            password: "SuperAdmin@2026",
+            redirectUrl: "/admin.html",
+            pageName: "Super Administrator Portal",
+            role: "Executive Super Admin",
+            email: "superadmin@ashokleyland.com",
+            name: "Executive Super Admin"
+        },
+        "admin_master": {
+            password: "SuperAdmin@2026",
+            redirectUrl: "/admin.html",
+            pageName: "Super Administrator Portal",
+            role: "Executive Super Admin",
+            email: "admin_master@ashokleyland.com",
+            name: "Executive Super Admin"
+        },
 
-            <form id="form-reset-request" novalidate>
-                <div class="form-group" style="margin-bottom:16px;">
-                    <label for="reset-email">Your Account Email</label>
-                    <div class="input-wrap">
-                        <input type="email" id="reset-email" name="email" placeholder="e.g. driver@example.com" autocomplete="email" required />
-                    </div>
-                </div>
+        // 2. Smart Bus Scheduling
+        "scheduling": {
+            password: "Schedule@2026",
+            redirectUrl: "/scheduling.html",
+            pageName: "Smart Bus Scheduling Portal",
+            role: "Fleet Scheduling Officer",
+            email: "scheduling@ashokleyland.com",
+            name: "Scheduling Planner"
+        },
+        "scheduler": {
+            password: "Schedule@2026",
+            redirectUrl: "/scheduling.html",
+            pageName: "Smart Bus Scheduling Portal",
+            role: "Fleet Scheduling Officer",
+            email: "scheduler@ashokleyland.com",
+            name: "Scheduling Planner"
+        },
 
-                <button type="submit" class="primary-btn" id="btn-send-reset" style="margin-bottom:12px;">Send Password Reset Link</button>
-                <button type="button" class="secondary-btn-outline" id="btn-cancel-reset">Cancel</button>
-            </form>
-        </div>
+        // 3. Charging Station Operations (General / Depot 1 / Depot 2)
+        "charging": {
+            password: "Charge@2026",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Station Operations",
+            role: "Charging Supervisor",
+            email: "charging@ashokleyland.com",
+            name: "Charging Supervisor"
+        },
+        "charger_ops": {
+            password: "Charge@2026",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Station Operations",
+            role: "Charging Supervisor",
+            email: "charging@ashokleyland.com",
+            name: "Charging Supervisor"
+        },
+        "charging_depot1": {
+            password: "ChargeDepot1@2026",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Operations (Depot 1)",
+            role: "Depot 1 Charging Lead",
+            email: "charging1@ashokleyland.com",
+            name: "Depot 1 Charging Lead"
+        },
+        "charging1": {
+            password: "ChargeDepot1@2026",
+            redirectUrl: "/charging.html?depot=1",
+            pageName: "Charging Operations (Depot 1)",
+            role: "Depot 1 Charging Lead",
+            email: "charging1@ashokleyland.com",
+            name: "Depot 1 Charging Lead"
+        },
+        "charging_depot2": {
+            password: "ChargeDepot2@2026",
+            redirectUrl: "/charging.html?depot=2",
+            pageName: "Charging Operations (Depot 2)",
+            role: "Depot 2 Charging Lead",
+            email: "charging2@ashokleyland.com",
+            name: "Depot 2 Charging Lead"
+        },
+        "charging2": {
+            password: "ChargeDepot2@2026",
+            redirectUrl: "/charging.html?depot=2",
+            pageName: "Charging Operations (Depot 2)",
+            role: "Depot 2 Charging Lead",
+            email: "charging2@ashokleyland.com",
+            name: "Depot 2 Charging Lead"
+        },
 
-        <!-- Step 2: Set New Password (Triggered when user opens link with ?mode=resetPassword&oobCode=...) -->
-        <div id="reset-view-confirm" style="display:none;">
-            <div class="card-header" style="padding:0 0 16px 0; text-align:center;">
-                <div class="logo">🔒</div>
-                <h2 style="font-size:1.5rem; margin-top:6px;">Set New Password</h2>
-                <p style="font-size:0.9rem; color:var(--text-muted); margin-top:6px;" id="reset-user-email-target">
-                    Enter your new password below.
-                </p>
-            </div>
+        // 4. Bus Cleaning & Sanitization (General / Depot 1 / Depot 2)
+        "cleaning": {
+            password: "Clean@2026",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Bus Cleaning & Sanitization",
+            role: "Sanitization Supervisor",
+            email: "cleaning@ashokleyland.com",
+            name: "Cleaning Supervisor"
+        },
+        "cleaner_ops": {
+            password: "Clean@2026",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Bus Cleaning & Sanitization",
+            role: "Sanitization Supervisor",
+            email: "cleaning@ashokleyland.com",
+            name: "Cleaning Supervisor"
+        },
+        "cleaning_depot1": {
+            password: "CleanDepot1@2026",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Cleaning Operations (Depot 1)",
+            role: "Depot 1 Cleaning Lead",
+            email: "cleaning1@ashokleyland.com",
+            name: "Depot 1 Cleaning Lead"
+        },
+        "cleaning1": {
+            password: "CleanDepot1@2026",
+            redirectUrl: "/cleaning.html?depot=1",
+            pageName: "Cleaning Operations (Depot 1)",
+            role: "Depot 1 Cleaning Lead",
+            email: "cleaning1@ashokleyland.com",
+            name: "Depot 1 Cleaning Lead"
+        },
+        "cleaning_depot2": {
+            password: "CleanDepot2@2026",
+            redirectUrl: "/cleaning.html?depot=2",
+            pageName: "Cleaning Operations (Depot 2)",
+            role: "Depot 2 Cleaning Lead",
+            email: "cleaning2@ashokleyland.com",
+            name: "Depot 2 Cleaning Lead"
+        },
+        "cleaning2": {
+            password: "CleanDepot2@2026",
+            redirectUrl: "/cleaning.html?depot=2",
+            pageName: "Cleaning Operations (Depot 2)",
+            role: "Depot 2 Cleaning Lead",
+            email: "cleaning2@ashokleyland.com",
+            name: "Depot 2 Cleaning Lead"
+        },
 
-            <div class="alert" id="confirm-reset-alert" role="alert"></div>
+        // 5. Depot Operations & Dispatch (General / Depot 1 / Depot 2)
+        "depot_operations": {
+            password: "Depot@2026",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot Operations & Dispatch",
+            role: "Depot Operations Dispatcher",
+            email: "depotops@ashokleyland.com",
+            name: "Operations Dispatcher"
+        },
+        "depot_ops": {
+            password: "Depot@2026",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot Operations & Dispatch",
+            role: "Depot Operations Dispatcher",
+            email: "depotops@ashokleyland.com",
+            name: "Operations Dispatcher"
+        },
+        "depot1_ops": {
+            password: "Depot1Ops@2026",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot 1 Operations & Dispatch",
+            role: "Depot 1 Operations Controller",
+            email: "depot1@ashokleyland.com",
+            name: "Depot 1 Controller"
+        },
+        "depot_ops_d1": {
+            password: "Depot1Ops@2026",
+            redirectUrl: "/depot-operations.html?depot=1",
+            pageName: "Depot 1 Operations & Dispatch",
+            role: "Depot 1 Operations Controller",
+            email: "depot1@ashokleyland.com",
+            name: "Depot 1 Controller"
+        },
+        "depot2_ops": {
+            password: "Depot2Ops@2026",
+            redirectUrl: "/depot-operations.html?depot=2",
+            pageName: "Depot 2 Operations & Dispatch",
+            role: "Depot 2 Operations Controller",
+            email: "depot2@ashokleyland.com",
+            name: "Depot 2 Controller"
+        },
+        "depot_ops_d2": {
+            password: "Depot2Ops@2026",
+            redirectUrl: "/depot-operations.html?depot=2",
+            pageName: "Depot 2 Operations & Dispatch",
+            role: "Depot 2 Operations Controller",
+            email: "depot2@ashokleyland.com",
+            name: "Depot 2 Controller"
+        },
 
-            <form id="form-confirm-reset" novalidate>
-                <div class="form-group" style="margin-bottom:14px;">
-                    <label for="reset-new-password">New Password</label>
-                    <div class="input-wrap">
-                        <input type="password" id="reset-new-password" placeholder="At least 8 characters" autocomplete="new-password" required />
-                        <button class="toggle-password" type="button" data-target="reset-new-password" aria-label="Show password">👁️</button>
-                    </div>
-                </div>
-
-                <div class="form-group" style="margin-bottom:18px;">
-                    <label for="reset-confirm-password">Confirm New Password</label>
-                    <div class="input-wrap">
-                        <input type="password" id="reset-confirm-password" placeholder="Re-enter new password" autocomplete="new-password" required />
-                        <button class="toggle-password" type="button" data-target="reset-confirm-password" aria-label="Show password">👁️</button>
-                    </div>
-                </div>
-
-                <button type="submit" class="primary-btn" id="btn-save-new-password" style="margin-bottom:12px;">Save New Password</button>
-                <button type="button" class="secondary-btn-outline" id="btn-cancel-confirm">Back to Sign In</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- ─────────────────────────── Firebase SDK ─────────────────────────── -->
-<script type="module">
-    // ─── Firebase configuration ────────────────────────────────────────────────
-    const firebaseConfig = {
-        apiKey: "AIzaSyDkTLrbsx9ttciXDYMnljsZ0l46Qgn3lm0",
-        authDomain: "smart-bus-scheduling.firebaseapp.com",
-        projectId: "smart-bus-scheduling",
-        storageBucket: "smart-bus-scheduling.firebasestorage.app",
-        messagingSenderId: "807662015582",
-        appId: "1:807662015582:web:44f9c687827aafe27590cf",
-        measurementId: "G-8KS1F3JP18"
+        // 6. Bus Details & Telemetry Analytics
+        "bus_details": {
+            password: "BusDetails@2026",
+            redirectUrl: "/bus-details.html",
+            pageName: "Bus Details & Telemetry Analytics",
+            role: "Fleet Telemetry Specialist",
+            email: "telemetry@ashokleyland.com",
+            name: "Telemetry Specialist"
+        },
+        "telemetry": {
+            password: "BusDetails@2026",
+            redirectUrl: "/bus-details.html",
+            pageName: "Bus Details & Telemetry Analytics",
+            role: "Fleet Telemetry Specialist",
+            email: "telemetry@ashokleyland.com",
+            name: "Telemetry Specialist"
+        }
     };
-    // ──────────────────────────────────────────────────────────────────────────
 
-    import { initializeApp }                                from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-        getAuth,
-        GoogleAuthProvider,
-        signInWithPopup,
-        signInWithEmailAndPassword,
-        createUserWithEmailAndPassword,
-        updateProfile,
-        updatePassword,
-        fetchSignInMethodsForEmail,
-        sendPasswordResetEmail,
-        confirmPasswordReset,
-        verifyPasswordResetCode,
-        linkWithCredential,
-        EmailAuthProvider,
-        onAuthStateChanged,
-        signOut
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-    const app      = initializeApp(firebaseConfig);
-    const auth     = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // ── Config placeholder detection ──
-    const isConfigured = firebaseConfig.apiKey !== "YOUR_API_KEY";
-
-    // ── Guard: if Firebase is not configured, show setup instructions ──
-    if (!isConfigured) {
-        showSetupBanner();
-    }
-
-    const _urlParams = new URLSearchParams(window.location.search);
-
-    // ── Password requirement & registration tracking ──
-    function getRegisteredUsers() {
-        try {
-            return JSON.parse(localStorage.getItem("smartbus_users_with_passwords") || "{}");
-        } catch(e) {
-            return {};
-        }
-    }
-
-    function recordUserRegistration(email, name) {
-        if (!email) return;
-        try {
-            const users = getRegisteredUsers();
-            users[email.toLowerCase().trim()] = {
-                hasPassword: true,
-                name: name || "",
-                registeredAt: new Date().toISOString()
-            };
-            localStorage.setItem("smartbus_users_with_passwords", JSON.stringify(users));
-        } catch(e) {}
-    }
-
-    function userHasCreatedPassword(user) {
-        if (!user || !user.email) return false;
-        const email = user.email.toLowerCase().trim();
-
-        // 1. Check if Firebase providerData includes 'password' provider
-        if (user.providerData && Array.isArray(user.providerData)) {
-            if (user.providerData.some(p => p.providerId === "password")) {
-                return true;
-            }
-        }
-
-        // 2. Check local registry of accounts that set up a password
-        const reg = getRegisteredUsers();
-        if (reg[email] && reg[email].hasPassword) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // ── Auth state listener ──────────────────────────────────────────────────
-    // Guard against unwanted auto-redirection:
-    // If the user hasn't explicitly logged in, hasn't created a password,
-    // or is in the middle of signing up, we MUST NOT redirect to admin.html!
-    let isExplicitLogout = (localStorage.getItem("smartbus_loggedout") === "1");
-
-    onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            isExplicitLogout = false;
-            try {
-                const hasAdminSession = ((sessionStorage.getItem("isLoggedIn") === "true") || (localStorage.getItem("isLoggedIn") === "true")) &&
-                    ((sessionStorage.getItem("userEmail") === "admin@gmail.com") || (localStorage.getItem("userEmail") === "admin@gmail.com")) &&
-                    (localStorage.getItem("smartbus_loggedout") !== "1");
-                if (hasAdminSession) {
-                    window.location.href = "/admin.html";
-                }
-            } catch(e) {}
-            return;
-        }
-
-        const pendingLogout = localStorage.getItem("smartbus_loggedout");
-        if (pendingLogout === "1" || isExplicitLogout) {
-            isExplicitLogout = true;
-            try { localStorage.removeItem("smartbus_loggedout"); } catch(e){}
-            try { localStorage.removeItem("accessMode"); } catch(e){}
-            try { localStorage.removeItem("isLoggedIn"); } catch(e){}
-            try { localStorage.removeItem("userEmail"); } catch(e){}
-            try { localStorage.removeItem("userName"); } catch(e){}
-            try { sessionStorage.removeItem("isLoggedIn"); } catch(e){}
-            try { sessionStorage.removeItem("userEmail"); } catch(e){}
-            try { sessionStorage.removeItem("userName"); } catch(e){}
-            try { await signOut(auth); } catch(e){}
-            return;
-        }
-
-        // If user is currently in the middle of signing up, DO NOT redirect!
-        if (window._isSigningUpWithGoogle || window._googleUser) {
-            return;
-        }
-
-        // Check if user has an active session AND has created a password
-        const hasSession = (sessionStorage.getItem("isLoggedIn") === "true") || (localStorage.getItem("isLoggedIn") === "true");
-        const hasPassword = userHasCreatedPassword(user);
-
-        // If no password was created, or no active session exists:
-        // Do NOT redirect! User must explicitly sign in or sign up.
-        if (!hasPassword || !hasSession) {
-            return;
-        }
-
-        // Verified active session with password: redirect to admin
-        window.location.href = "/admin.html";
-    });
-
-    // ── Expose to global scope (onclick attributes) ────────────────────────────
-    window.signInWithGoogle  = signInWithGoogle;
-    window.signUpWithGoogle  = signUpWithGoogle;
-    window.fillAdminBypass   = function() {
-        const isLoginActive = document.getElementById("panel-login")?.classList.contains("active");
-        if (isLoginActive) {
-            const eInput = document.getElementById("login-email");
-            const pInput = document.getElementById("login-password");
-            if (eInput) eInput.value = "admin@gmail.com";
-            if (pInput) pInput.value = "adminlogin";
-            document.getElementById("form-login")?.dispatchEvent(new Event("submit", { cancelable: true }));
-        } else {
-            const nInput = document.getElementById("signup-name");
-            const eInput = document.getElementById("signup-email");
-            const pInput = document.getElementById("signup-password");
-            const cInput = document.getElementById("signup-confirm");
-            if (nInput) nInput.value = "Admin";
-            if (eInput) eInput.value = "admin@gmail.com";
-            if (pInput) pInput.value = "adminlogin";
-            if (cInput) cInput.value = "adminlogin";
-            document.getElementById("form-signup")?.dispatchEvent(new Event("submit", { cancelable: true }));
-        }
-    };
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  SIGN IN WITH GOOGLE
-    //  Check if user has set a password:
-    //  - If YES: allow login and redirect to admin.
-    //  - If NO: block login, switch to sign up tab, and prompt to set password!
-    // ══════════════════════════════════════════════════════════════════════════
-    async function signInWithGoogle() {
-        if (!isConfigured) { showSetupBanner(); return; }
-        const btn = document.getElementById("btn-google-login");
-        setLoading(btn, true, "Signing in…");
-        clearAlert("login-alert");
-
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-
-            // Verify whether this account has set a password
-            const hasPassword = userHasCreatedPassword(user);
-
-            if (!hasPassword) {
-                // User has NOT created a password yet!
-                // Strictly block entry to admin.html per requirements
-                showAlert("login-alert", "error",
-                    `No password has been set up for <strong>${user.email}</strong>. Please complete registration and set up a password first.`);
-
-                // Switch to Sign Up tab
-                window._isSigningUpWithGoogle = true;
-                window._googleUser = user;
-                switchTab("signup");
-
-                const emailInput = document.getElementById("signup-email");
-                const nameInput  = document.getElementById("signup-name");
-                const passInput  = document.getElementById("signup-password");
-
-                if (emailInput) {
-                    emailInput.value = user.email || "";
-                    emailInput.readOnly = true;
-                    emailInput.style.backgroundColor = "#f8fafc";
-                    emailInput.style.borderColor = "#22c55e";
-                }
-                if (nameInput) {
-                    nameInput.value = user.displayName || "";
-                }
-
-                showAlert("signup-alert", "info",
-                    `Please enter your Full Name and set a Password below to complete registration for <strong>${user.email}</strong>.`);
-
-                const submitBtn = document.getElementById("btn-signup");
-                if (submitBtn) {
-                    submitBtn.textContent = "Complete Registration & Set Password";
-                }
-                setTimeout(() => {
-                    if (!nameInput.value) nameInput.focus();
-                    else passInput?.focus();
-                }, 200);
-
-                return;
-            }
-
-            // User has a registered password! Grant access
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("userEmail", user.email || "");
-            localStorage.setItem("userName", user.displayName || user.email || "");
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", user.email || "");
-            sessionStorage.setItem("userName", user.displayName || user.email || "");
-            localStorage.removeItem("smartbus_loggedout");
-            localStorage.removeItem("accessMode");
-
-            window.location.href = "/admin.html";
-
-        } catch (err) {
-            showAlert("login-alert", "error", friendlyError(err));
-        } finally {
-            setLoading(btn, false, "Continue with Google");
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  SIGN UP WITH GOOGLE
-    //  Flow: User selects Google account -> UI prompts for Name & Password setup ->
-    //  User fills name & creates password -> Clicks Create Account -> Links password ->
-    //  Only then is account created and allowed into admin!
-    // ══════════════════════════════════════════════════════════════════════════
-    async function signUpWithGoogle() {
-        if (!isConfigured) { showSetupBanner(); return; }
-        const btn = document.getElementById("btn-google-signup");
-        setLoading(btn, true, "Connecting Google…");
-        clearAlert("signup-alert");
-
-        // Flag so onAuthStateChanged will NOT redirect to admin!
-        window._isSigningUpWithGoogle = true;
-
-        try {
-            const result = await signInWithPopup(auth, provider);
-            const user = result.user;
-            window._googleUser = user;
-
-            // Pre-fill the form fields
-            const emailInput = document.getElementById("signup-email");
-            const nameInput  = document.getElementById("signup-name");
-            const passInput  = document.getElementById("signup-password");
-            const confInput  = document.getElementById("signup-confirm");
-
-            if (emailInput) {
-                emailInput.value = user.email || "";
-                emailInput.readOnly = true;
-                emailInput.style.backgroundColor = "#f8fafc";
-                emailInput.style.borderColor = "#22c55e";
-            }
-            if (nameInput) {
-                nameInput.value = user.displayName || "";
-            }
-            if (passInput) passInput.value = "";
-            if (confInput) confInput.value = "";
-
-            showAlert("signup-alert", "success",
-                `Google account selected: <strong>${user.email}</strong>.<br>Please confirm your Full Name and set a Password below to complete your registration.`);
-
-            const instructionBox = document.getElementById("signup-instruction-box");
-            if (instructionBox) {
-                instructionBox.className = "alert alert-success show";
-                instructionBox.innerHTML = `<span>✅</span><span>Google Account connected: <strong>${user.email}</strong>. Please enter your name and password below.</span>`;
-            }
-
-            const submitBtn = document.getElementById("btn-signup");
-            if (submitBtn) {
-                submitBtn.textContent = "Complete Registration & Set Password";
-            }
-
-            // Focus on password setup
-            setTimeout(() => {
-                if (!nameInput.value) nameInput.focus();
-                else passInput.focus();
-            }, 150);
-
-        } catch (err) {
-            window._isSigningUpWithGoogle = false;
-            window._googleUser = null;
-            showAlert("signup-alert", "error", friendlyError(err));
-        } finally {
-            setLoading(btn, false, "Step 1: Select Google Account");
-        }
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  LOGIN FORM — email / password
-    // ══════════════════════════════════════════════════════════════════════════
-    document.getElementById("form-login").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const email    = document.getElementById("login-email").value.trim();
-        const password = document.getElementById("login-password").value;
-        const btn      = document.getElementById("btn-login");
-
-        clearAlert("login-alert");
-
-        // ── Admin Bypass: admin@gmail.com / adminlogin ──
-        if (email.toLowerCase() === "admin@gmail.com" && password === "adminlogin") {
-            setLoading(btn, true, "Signing in as Admin…");
-            recordUserRegistration("admin@gmail.com", "Admin");
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("userEmail", "admin@gmail.com");
-            localStorage.setItem("userName", "Admin");
-            localStorage.setItem("accessMode", "admin");
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", "admin@gmail.com");
-            sessionStorage.setItem("userName", "Admin");
-            sessionStorage.setItem("accessMode", "admin");
-            localStorage.removeItem("smartbus_loggedout");
-
-            showAlert("login-alert", "success", "Admin bypass verified. Redirecting to admin dashboard…");
-            setTimeout(() => {
-                window.location.href = "/admin.html";
-            }, 300);
-            return;
-        }
-
-        if (!isConfigured) { showSetupBanner(); return; }
-
-        if (!email || !password) {
-            showAlert("login-alert", "error", "Please enter both your email address and password.");
-            return;
-        }
-
-        setLoading(btn, true, "Signing in…");
-
-        try {
-            const cred = await signInWithEmailAndPassword(auth, email, password);
-            const user = cred.user;
-
-            // Password validated by Firebase!
-            recordUserRegistration(user.email, user.displayName);
-
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("userEmail", user.email || email);
-            localStorage.setItem("userName", user.displayName || email);
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", user.email || email);
-            sessionStorage.setItem("userName", user.displayName || email);
-            localStorage.removeItem("smartbus_loggedout");
-            localStorage.removeItem("accessMode");
-
-            window.location.href = "/admin.html";
-        } catch (err) {
-            showAlert("login-alert", "error", friendlyError(err));
-            setLoading(btn, false, "Sign In");
-        }
-    });
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  SIGN UP FORM — Email + Password
-    // ══════════════════════════════════════════════════════════════════════════
-    document.getElementById("form-signup").addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const name     = document.getElementById("signup-name").value.trim();
-        const email    = document.getElementById("signup-email").value.trim();
-        const password = document.getElementById("signup-password").value;
-        const confirm  = document.getElementById("signup-confirm").value;
-        const btn      = document.getElementById("btn-signup");
-
-        clearAlert("signup-alert");
-
-        // ── Admin Bypass: admin@gmail.com / adminlogin ──
-        if (email.toLowerCase() === "admin@gmail.com" && password === "adminlogin") {
-            setLoading(btn, true, "Registering & signing in as Admin…");
-            recordUserRegistration("admin@gmail.com", name || "Admin");
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("userEmail", "admin@gmail.com");
-            localStorage.setItem("userName", name || "Admin");
-            localStorage.setItem("accessMode", "admin");
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", "admin@gmail.com");
-            sessionStorage.setItem("userName", name || "Admin");
-            sessionStorage.setItem("accessMode", "admin");
-            localStorage.removeItem("smartbus_loggedout");
-
-            window._isSigningUpWithGoogle = false;
-            window._googleUser = null;
-
-            showAlert("signup-alert", "success", "Admin bypass account active! Redirecting to admin dashboard…");
-            setTimeout(() => {
-                window.location.href = "/admin.html";
-            }, 300);
-            return;
-        }
-
-        if (!isConfigured) { showSetupBanner(); return; }
-
-        // ── Validation ──
-        if (!name) {
-            showAlert("signup-alert", "error", "Please enter your full name.");
-            document.getElementById("signup-name").focus();
-            return;
-        }
-        if (!email || !email.includes("@")) {
-            showAlert("signup-alert", "error", "Please enter a valid email address.");
-            document.getElementById("signup-email").focus();
-            return;
-        }
-        if (!password || password.length < 8) {
-            showAlert("signup-alert", "error", "Please set up a password with at least 8 characters.");
-            document.getElementById("signup-password").focus();
-            return;
-        }
-        if (password !== confirm) {
-            showAlert("signup-alert", "error", "Passwords do not match. Please re-enter your password.");
-            document.getElementById("signup-confirm").focus();
-            return;
-        }
-
-        setLoading(btn, true, "Creating account & saving password…");
-
-        try {
-            let user = window._googleUser;
-
-            if (user && user.email && user.email.toLowerCase() === email.toLowerCase()) {
-                // User signed in with Google — link email/password credential
-                const credential = EmailAuthProvider.credential(email, password);
-                try {
-                    const linkResult = await linkWithCredential(user, credential);
-                    user = linkResult.user;
-                } catch (linkErr) {
-                    if (linkErr.code === "auth/provider-already-linked" || linkErr.code === "auth/credential-already-in-use") {
-                        // Already linked to email, update password
-                        await updatePassword(user, password);
-                    } else {
-                        throw linkErr;
-                    }
-                }
-            } else {
-                // Direct email/password registration
-                const cred = await createUserWithEmailAndPassword(auth, email, password);
-                user = cred.user;
-            }
-
-            // Update display name
-            try {
-                await updateProfile(user, { displayName: name });
-            } catch(e) {}
-
-            // Mark user as registered with a password
-            recordUserRegistration(email, name);
-
-            // Save login session
-            localStorage.setItem("isLoggedIn", "true");
-            localStorage.setItem("userEmail", email);
-            localStorage.setItem("userName", name);
-            sessionStorage.setItem("isLoggedIn", "true");
-            sessionStorage.setItem("userEmail", email);
-            sessionStorage.setItem("userName", name);
-            localStorage.removeItem("smartbus_loggedout");
-            localStorage.removeItem("accessMode");
-
-            window._isSigningUpWithGoogle = false;
-            window._googleUser = null;
-
-            showAlert("signup-alert", "success", "Registration complete and password set successfully! Redirecting…");
-
-            // Redirect to admin
-            setTimeout(() => {
-                window.location.href = "/admin.html";
-            }, 600);
-
-        } catch (err) {
-            showAlert("signup-alert", "error", friendlyError(err));
-            setLoading(btn, false, "Complete Registration & Set Password");
-        }
-    });
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  FORGOT PASSWORD / PASSWORD RESET MODAL & WORKFLOW
-    // ══════════════════════════════════════════════════════════════════════════
-    const resetModalBackdrop  = document.getElementById("reset-modal-backdrop");
-    const resetEmailInput     = document.getElementById("reset-email");
-    const formResetRequest    = document.getElementById("form-reset-request");
-    const formConfirmReset    = document.getElementById("form-confirm-reset");
-    const btnSendReset        = document.getElementById("btn-send-reset");
-    const btnSaveNewPassword  = document.getElementById("btn-save-new-password");
-
-    function openResetModal() {
-        if (!resetModalBackdrop) return;
-        // Pre-fill with login email if user typed one
-        const loginEmail = document.getElementById("login-email")?.value.trim() || "";
-        if (loginEmail && resetEmailInput && !resetEmailInput.value) {
-            resetEmailInput.value = loginEmail;
-        }
-        document.getElementById("reset-view-request").style.display = "block";
-        document.getElementById("reset-view-confirm").style.display = "none";
-        clearAlert("reset-alert");
-        resetModalBackdrop.style.display = "flex";
-        setTimeout(() => resetModalBackdrop.classList.add("show"), 10);
-        setTimeout(() => resetEmailInput?.focus(), 100);
-    }
-
-    function closeResetModal() {
-        if (!resetModalBackdrop) return;
-        resetModalBackdrop.classList.remove("show");
-        setTimeout(() => {
-            resetModalBackdrop.style.display = "none";
-            clearAlert("reset-alert");
-            clearAlert("confirm-reset-alert");
-        }, 250);
-    }
-
-    // Trigger on "Forgot Password?" click
-    document.getElementById("forgot-link").addEventListener("click", (e) => {
-        e.preventDefault();
-        openResetModal();
-    });
-
-    // Close buttons
-    document.getElementById("modal-close-btn")?.addEventListener("click", closeResetModal);
-    document.getElementById("btn-cancel-reset")?.addEventListener("click", closeResetModal);
-    document.getElementById("btn-cancel-confirm")?.addEventListener("click", closeResetModal);
-
-    // Close on click outside modal
-    resetModalBackdrop?.addEventListener("click", (e) => {
-        if (e.target === resetModalBackdrop) closeResetModal();
-    });
-
-    // Close on Escape key
-    window.addEventListener("keydown", (e) => {
-        if (e.key === "Escape" && resetModalBackdrop?.classList.contains("show")) {
-            closeResetModal();
-        }
-    });
-
-    // Step 1: Send Password Reset Link
-    formResetRequest?.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        if (!isConfigured) { showSetupBanner(); return; }
-
-        const email = resetEmailInput.value.trim();
-        clearAlert("reset-alert");
-
-        if (!email) {
-            showAlert("reset-alert", "error", "Please enter your email address.");
-            resetEmailInput.focus();
-            return;
-        }
-
-        setLoading(btnSendReset, true, "Sending Link…");
-
-        try {
-            await sendPasswordResetEmail(auth, email);
-            showAlert(
-                "reset-alert",
-                "success",
-                `<div style="line-height:1.55;">
-                    <div style="font-weight:700; margin-bottom:6px;">Reset link requested for <u>${email}</u></div>
-                    <div>If an account exists with this email, Firebase has dispatched a recovery link from <code>noreply@smart-bus-scheduling.firebaseapp.com</code>.</div>
-                    <div style="margin-top:10px; padding:10px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:0.83rem; color:#166534;">
-                        <strong>Not seeing the email?</strong>
-                        <ul style="margin:6px 0 0 16px; padding:0; list-style-type:disc;">
-                            <li>Check your <strong>Spam / Junk / Promotions</strong> folders.</li>
-                            <li>If you haven't registered this email yet, click <strong>Sign Up</strong> above.</li>
-                            <li>If you originally used Google, click <strong>Sign In with Google</strong> instead.</li>
-                        </ul>
-                    </div>
-                </div>`
-            );
-            setLoading(btnSendReset, false, "Resend Reset Link");
-        } catch (err) {
-            showAlert("reset-alert", "error", friendlyError(err));
-            setLoading(btnSendReset, false, "Send Password Reset Link");
-        }
-    });
-
-    // Step 2: Handle incoming password reset action code from email link
-    const _resetMode = _urlParams.get("mode");
-    const _resetOobCode = _urlParams.get("oobCode");
-
-    if (_resetMode === "resetPassword" && _resetOobCode) {
-        // Open modal directly in password reset confirmation mode
-        if (resetModalBackdrop) {
-            document.getElementById("reset-view-request").style.display = "none";
-            document.getElementById("reset-view-confirm").style.display = "block";
-            resetModalBackdrop.style.display = "flex";
-            setTimeout(() => resetModalBackdrop.classList.add("show"), 10);
-        }
-
-        // Verify the reset code with Firebase
-        verifyPasswordResetCode(auth, _resetOobCode)
-            .then((email) => {
-                const targetLabel = document.getElementById("reset-user-email-target");
-                if (targetLabel) {
-                    targetLabel.innerHTML = `Enter a new password for <strong>${email}</strong>`;
-                }
-            })
-            .catch((err) => {
-                showAlert(
-                    "confirm-reset-alert",
-                    "error",
-                    "This password reset link is invalid, expired, or has already been used. Please request a new link."
-                );
-                if (btnSaveNewPassword) btnSaveNewPassword.disabled = true;
-            });
-
-        // Handle saving new password
-        formConfirmReset?.addEventListener("submit", async (e) => {
-            e.preventDefault();
-            const newPassword = document.getElementById("reset-new-password")?.value || "";
-            const confirmPassword = document.getElementById("reset-confirm-password")?.value || "";
-            clearAlert("confirm-reset-alert");
-
-            if (newPassword.length < 8) {
-                showAlert("confirm-reset-alert", "error", "Password must be at least 8 characters long.");
-                return;
-            }
-            if (newPassword !== confirmPassword) {
-                showAlert("confirm-reset-alert", "error", "Passwords do not match. Please re-enter.");
-                return;
-            }
-
-            setLoading(btnSaveNewPassword, true, "Updating Password…");
-
-            try {
-                await confirmPasswordReset(auth, _resetOobCode, newPassword);
-                try { recordUserRegistration(email || "", ""); } catch(e){}
-                showAlert("confirm-reset-alert", "success", "Password updated successfully! You can now sign in.");
-                setLoading(btnSaveNewPassword, false, "Password Updated ✓");
-                setTimeout(() => {
-                    closeResetModal();
-                    switchTab("login");
-                    showAlert("login-alert", "success", "Password successfully changed. Please sign in with your new password.");
-                }, 1600);
-            } catch (err) {
-                showAlert("confirm-reset-alert", "error", friendlyError(err));
-                setLoading(btnSaveNewPassword, false, "Save New Password");
-            }
-        });
-    }
-
-    // ══════════════════════════════════════════════════════════════════════════
-    //  HELPERS
-    // ══════════════════════════════════════════════════════════════════════════
-
-    function friendlyError(err) {
-        const code = err?.code || "";
-        const map = {
-            "auth/configuration-not-found":     "Authentication is not enabled in your Firebase project. In Firebase Console, go to Build > Authentication, click 'Get started', and enable Google and Email/Password.",
-            "auth/unauthorized-domain":         "Domain not authorized. In Firebase Console > Authentication > Settings > Authorized domains, add ashok-leyland-bus-tracking.onrender.com",
-            "auth/operation-not-allowed":       "This sign-in method is not enabled. Go to Firebase Console > Authentication > Sign-in method to enable it.",
-            "auth/invalid-email":               "Invalid email address.",
-            "auth/user-disabled":               "This account has been disabled.",
-            "auth/user-not-found":              "No account found with this email. Please check the spelling or sign up.",
-            "auth/wrong-password":              "Incorrect password. Please try again or click Forgot Password.",
-            "auth/email-already-in-use":        "An account with this email already exists. Please sign in.",
-            "auth/weak-password":               "Password is too weak. Use at least 8 characters.",
-            "auth/popup-closed-by-user":        "Google sign-in was cancelled. Please try again.",
-            "auth/popup-blocked":               "Pop-up was blocked by your browser. Allow pop-ups and try again.",
-            "auth/network-request-failed":      "Network error. Check your internet connection.",
-            "auth/too-many-requests":           "Too many attempts. Please wait a moment and try again.",
-            "auth/invalid-credential":          "Invalid credentials. Please check your email or password.",
-            "auth/expired-action-code":         "The password reset link has expired. Please request a new one.",
-            "auth/invalid-action-code":         "This reset link is invalid or has already been used. Please request a new one.",
-            "auth/account-exists-with-different-credential":
-                                                "An account already exists with the same email but a different sign-in method.",
-        };
-        return map[code] || err?.message || "Something went wrong. Please try again.";
-    }
-
-    function showAlert(id, type, msg) {
-        const el = document.getElementById(id);
+    function showAlert(type, msg) {
+        const el = document.getElementById("login-alert");
         if (!el) return;
         el.className = `alert alert-${type} show`;
         el.innerHTML = `<span>${type === "error" ? "⚠️" : type === "success" ? "✅" : "ℹ️"}</span><span>${msg}</span>`;
     }
 
-    function clearAlert(id) {
-        const el = document.getElementById(id);
+    function clearAlert() {
+        const el = document.getElementById("login-alert");
         if (el) { el.className = "alert"; el.textContent = ""; }
     }
 
@@ -1786,44 +706,11 @@
         btn.innerHTML = loading ? `<span class="spinner"></span>${text}` : text;
     }
 
-    function showSetupBanner() {
-        const existing = document.getElementById("setup-banner");
-        if (existing) return;
-        const banner = document.createElement("div");
-        banner.id = "setup-banner";
-        banner.style.cssText = `
-            position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-            background: #7c3aed; color: white;
-            padding: 12px 20px; text-align: center; font-size: 0.9rem; font-weight: 600;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-        `;
-        banner.innerHTML = `
-            ⚙️ Firebase is not configured yet.
-            <a href="https://console.firebase.google.com/" target="_blank"
-               style="color:#fde68a; text-decoration:underline;">Set up your Firebase project</a>
-            and replace the <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">firebaseConfig</code>
-            in <strong>login.html</strong>.
-        `;
-        document.body.prepend(banner);
-    }
-</script>
-
-<!-- ─── Tab switching + UI helpers (non-module) ─────────────────────── -->
-<script>
-    // Tab switching
-    function switchTab(tab) {
-        const panels = ["login", "signup"];
-        panels.forEach((t) => {
-            document.getElementById(`tab-${t}`).classList.toggle("active", t === tab);
-            document.getElementById(`tab-${t}`).setAttribute("aria-selected", t === tab);
-            document.getElementById(`panel-${t}`).classList.toggle("active", t === tab);
-        });
-    }
-
-    // Toggle password visibility for all toggle buttons
+    // Toggle password visibility
     document.querySelectorAll(".toggle-password").forEach((btn) => {
         btn.addEventListener("click", () => {
             const input = document.getElementById(btn.dataset.target);
+            if (!input) return;
             const isPass = input.type === "password";
             input.type = isPass ? "text" : "password";
             btn.textContent = isPass ? "🙈" : "👁️";
@@ -1831,287 +718,104 @@
         });
     });
 
-    // Password strength meter
-    document.getElementById("signup-password").addEventListener("input", function () {
-        const val   = this.value;
-        const fill  = document.getElementById("strength-fill");
-        const label = document.getElementById("strength-label");
+    // Form Submission: Direct Page Entry
+    document.getElementById("form-login").addEventListener("submit", function(e) {
+        e.preventDefault();
+        clearAlert();
 
-        let score = 0;
-        if (val.length >= 8)                score++;
-        if (/[A-Z]/.test(val))              score++;
-        if (/[0-9]/.test(val))              score++;
-        if (/[^A-Za-z0-9]/.test(val))       score++;
+        const uInput = document.getElementById("login-username");
+        const pInput = document.getElementById("login-password");
+        const btn = document.getElementById("btn-login");
 
-        const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e"];
-        const labels = ["Weak", "Fair", "Good", "Strong"];
+        const rawUser = (uInput?.value || "").trim();
+        const rawPass = pInput?.value || "";
 
-        fill.style.width    = val.length ? `${(score / 4) * 100}%` : "0%";
-        fill.style.background = val.length ? colors[score - 1] || colors[0] : "#e5e7eb";
-        label.textContent   = val.length ? labels[score - 1] || labels[0] : "";
+        if (!rawUser) {
+            showAlert("error", "Please enter your username.");
+            uInput?.focus();
+            return;
+        }
+        if (!rawPass) {
+            showAlert("error", "Please enter your password.");
+            pInput?.focus();
+            return;
+        }
+
+        const normUser = rawUser.toLowerCase();
+        const account = WEBPAGE_ACCOUNTS[normUser];
+
+        if (!account || account.password !== rawPass) {
+            showAlert("error", "Invalid username or password. Please verify your credentials and try again.");
+            pInput.classList.add("error-field");
+            pInput.focus();
+            return;
+        }
+
+        pInput.classList.remove("error-field");
+        setLoading(btn, true, "Entering designated page…");
+
+        // Write session to both localStorage and sessionStorage
+        try {
+            localStorage.setItem("isLoggedIn", "true");
+            localStorage.setItem("userEmail", account.email);
+            localStorage.setItem("userName", account.name);
+            localStorage.setItem("userRole", account.role);
+            localStorage.setItem("designatedPage", account.redirectUrl);
+            localStorage.removeItem("smartbus_loggedout");
+            localStorage.removeItem("accessMode");
+
+            sessionStorage.setItem("isLoggedIn", "true");
+            sessionStorage.setItem("userEmail", account.email);
+            sessionStorage.setItem("userName", account.name);
+            sessionStorage.setItem("userRole", account.role);
+            sessionStorage.setItem("designatedPage", account.redirectUrl);
+
+            if (account.redirectUrl.includes("depot=2")) {
+                localStorage.setItem("selected_depot", "2");
+                sessionStorage.setItem("selected_depot", "2");
+            } else if (account.redirectUrl.includes("depot=1")) {
+                localStorage.setItem("selected_depot", "1");
+                sessionStorage.setItem("selected_depot", "1");
+            }
+        } catch (err) {
+            console.warn("Storage error:", err);
+        }
+
+        showAlert("success", `<strong>Welcome, ${account.name}!</strong> Entering designated page: <u>${account.pageName}</u>…`);
+
+        setTimeout(function() {
+            window.location.href = account.redirectUrl;
+        }, 350);
     });
 
-    // ══════════════════════════════════════════════════════════════════════════
-    //  DEPOT FLEET & QUICK ACTIONS CONTROLLER
-    // ══════════════════════════════════════════════════════════════════════════
-    //  DEPOT FLEET & QUICK ACTIONS CONTROLLER
-    // ══════════════════════════════════════════════════════════════════════════
-    const API_BASE = (window.location.protocol === 'http:' || window.location.protocol === 'https:')
-        ? ''
-        : 'https://ashok-leyland-bus-tracking.onrender.com';
-
-    let selectedDepot = localStorage.getItem('selected_depot') || sessionStorage.getItem('selected_depot') || '1';
-    let depotCounts = { depot1Count: 56, depot2Count: 64, total: 120 };
-
-    function computeCountsFromStorage() {
+    // Check if user already has an active session
+    (function checkExistingSession() {
         try {
-            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === 'function') {
-                const c = window.DepotSyncEngine.getDepotCounts();
-                if (c && typeof c.total === 'number' && c.total > 0) return c;
+            const isLoggedOut = localStorage.getItem("smartbus_loggedout") === "1";
+            const isLoggedIn = (localStorage.getItem("isLoggedIn") === "true") || (sessionStorage.getItem("isLoggedIn") === "true");
+            const userName = localStorage.getItem("userName") || sessionStorage.getItem("userName");
+            const designated = localStorage.getItem("designatedPage") || sessionStorage.getItem("designatedPage") || "/admin.html";
+
+            if (isLoggedIn && !isLoggedOut && userName) {
+                const sessionBox = document.getElementById("existing-session-banner");
+                if (sessionBox) {
+                    sessionBox.style.display = "block";
+                    sessionBox.innerHTML = `
+                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                            <div>
+                                <span style="font-size:0.8rem;color:#1e40af;font-weight:700;">👤 Currently Signed In: <strong>${userName}</strong></span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <a href="${designated}" style="font-size:0.78rem;font-weight:700;color:#2563eb;text-decoration:none;padding:4px 12px;border-radius:999px;background:#dbeafe;">
+                                    Continue to Page →
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
             }
         } catch(e) {}
-        try {
-            let deleted = {};
-            let added = {};
-            try { deleted = JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}'); } catch(e){}
-            try { added = JSON.parse(localStorage.getItem('depot_added_buses') || '{}'); } catch(e){}
-
-            const raw = localStorage.getItem('depot_bus_assignments');
-            if (raw) {
-                const map = JSON.parse(raw);
-                if (map && typeof map === 'object') {
-                    let d1 = 0, d2 = 0;
-                    const allKeys = Array.from(new Set([...Object.keys(map), ...Object.keys(added)]));
-                    for (const k of allKeys) {
-                        const cleanK = String(k).toUpperCase().trim();
-                        if (deleted[cleanK]) continue;
-                        const targetDepot = String(map[cleanK] || (added[cleanK] ? added[cleanK].depot : null) || '1');
-                        if (targetDepot === '2') d2++;
-                        else d1++;
-                    }
-                    if (d1 + d2 > 0) return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
-                }
-            }
-        } catch(e) {}
-        return { depot1Count: 56, depot2Count: 64, total: 120 };
-    }
-
-    let _lastToggleTs = 0;
-    window.toggleDepotDrawer = function(e) {
-        if (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        }
-        const now = Date.now();
-        if (now - _lastToggleTs < 250) return; // Guard against duplicate inline + event listener trigger
-        _lastToggleTs = now;
-
-        const drawer = document.getElementById('depotDrawer');
-        if (drawer && drawer.classList.contains('show')) {
-            window.closeDepotDrawer(e);
-        } else {
-            window.openDepotDrawer(e);
-        }
-    };
-
-    window.openDepotDrawer = function(e) {
-        if (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        }
-        updateDepotDrawerUI();
-        document.getElementById('depotDrawer')?.classList.add('show');
-        document.getElementById('depotDrawerBackdrop')?.classList.add('show');
-    };
-
-    window.closeDepotDrawer = function(e) {
-        if (e) {
-            if (e.preventDefault) e.preventDefault();
-            if (e.stopPropagation) e.stopPropagation();
-        }
-        document.getElementById('depotDrawer')?.classList.remove('show');
-        document.getElementById('depotDrawerBackdrop')?.classList.remove('show');
-    };
-
-    window.chooseDepot = function(num) {
-        selectedDepot = String(num || '1');
-        try { localStorage.setItem('selected_depot', selectedDepot); } catch(e){}
-        try { sessionStorage.setItem('selected_depot', selectedDepot); } catch(e){}
-        updateQuickActionsUI();
-        updateDepotDrawerUI();
-        window.closeDepotDrawer();
-        try {
-            const bc = new BroadcastChannel('depot_operations_sync');
-            bc.postMessage({ type: 'depot_changed', depot: selectedDepot });
-        } catch(e){}
-    };
-
-    function updateQuickActionsUI() {
-        const num = selectedDepot || '1';
-        const count = (num === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
-
-        // Top chip
-        const chipText = document.getElementById('depotActiveChipText');
-        if (chipText) chipText.textContent = `🏢 Depot ${num} (${count} Buses)`;
-
-        // Quick Portal Title & Count
-        const qNum = document.getElementById('quickDepotNum');
-        if (qNum) qNum.textContent = num;
-        const qCount = document.getElementById('quickBusCount');
-        if (qCount) qCount.textContent = count;
-
-        // Quick Action Tiles
-        const chgText = document.getElementById('tileChargingText');
-        if (chgText) chgText.textContent = `Charging ${num}`;
-        const clnText = document.getElementById('tileCleaningText');
-        if (clnText) clnText.textContent = `Cleaning ${num}`;
-        const schText = document.getElementById('tileSchedulingText');
-        if (schText) schText.textContent = `Scheduling ${num}`;
-        const dopsText = document.getElementById('tileDepotOpsText');
-        if (dopsText) dopsText.textContent = `Depot Ops ${num}`;
-
-        // Link Hrefs with depot param
-        const lChg = document.getElementById('linkCharging');
-        if (lChg) lChg.href = `/public/charging.html?depot=${num}`;
-        const lCln = document.getElementById('linkCleaning');
-        if (lCln) lCln.href = `/public/cleaning.html?depot=${num}`;
-        const lSch = document.getElementById('linkScheduling');
-        if (lSch) lSch.href = `/scheduling.html?depot=${num}`;
-        const lOps = document.getElementById('linkDepotOps');
-        if (lOps) lOps.href = `/public/depot-operations.html?depot=${num}`;
-    }
-
-    function updateDepotDrawerUI() {
-        const card1 = document.getElementById('depotCard1');
-        const card2 = document.getElementById('depotCard2');
-        const check1 = document.getElementById('depot1Check');
-        const check2 = document.getElementById('depot2Check');
-
-        if (card1 && card2) {
-            if (selectedDepot === '2') {
-                card1.classList.remove('active');
-                card2.classList.add('active');
-                if (check1) check1.style.display = 'none';
-                if (check2) check2.style.display = 'inline-block';
-            } else {
-                card1.classList.add('active');
-                card2.classList.remove('active');
-                if (check1) check1.style.display = 'inline-block';
-                if (check2) check2.style.display = 'none';
-            }
-        }
-
-        const totalFleet = (typeof depotCounts.total === 'number') ? depotCounts.total : (depotCounts.depot1Count + depotCounts.depot2Count);
-
-        const d1c = document.getElementById('drawerDepot1Count');
-        if (d1c) d1c.textContent = `${depotCounts.depot1Count} Buses`;
-        const d2c = document.getElementById('drawerDepot2Count');
-        if (d2c) d2c.textContent = `${depotCounts.depot2Count} Buses`;
-        const tc = document.getElementById('drawerTotalCount');
-        if (tc) tc.textContent = `${totalFleet} Buses`;
-    }
-
-    async function fetchDepotCounts() {
-        depotCounts = computeCountsFromStorage();
-        updateQuickActionsUI();
-        updateDepotDrawerUI();
-
-        try {
-            const res = await fetch(API_BASE + '/api/depot-state');
-            if (res.ok) {
-                const data = await res.json();
-                if (data.deletedBuses && typeof data.deletedBuses === 'object') {
-                    try { localStorage.setItem('depot_deleted_buses', JSON.stringify(data.deletedBuses)); } catch(e){}
-                }
-                if (data.addedBuses && typeof data.addedBuses === 'object') {
-                    try { localStorage.setItem('depot_added_buses', JSON.stringify(data.addedBuses)); } catch(e){}
-                }
-                if (data.assignments && typeof data.assignments === 'object') {
-                    try { localStorage.setItem('depot_bus_assignments', JSON.stringify(data.assignments)); } catch(e){}
-                }
-
-                if (typeof data.depot1Count === 'number' && typeof data.depot2Count === 'number') {
-                    depotCounts.depot1Count = data.depot1Count;
-                    depotCounts.depot2Count = data.depot2Count;
-                    depotCounts.total = (typeof data.total === 'number') ? data.total : (data.depot1Count + data.depot2Count);
-                } else {
-                    depotCounts = computeCountsFromStorage();
-                }
-
-                updateQuickActionsUI();
-                updateDepotDrawerUI();
-            }
-        } catch (e) {
-            depotCounts = computeCountsFromStorage();
-            updateQuickActionsUI();
-            updateDepotDrawerUI();
-        }
-    }
-
-    // Real-time synchronization across tabs and server
-    try {
-        const bc = new BroadcastChannel('depot_operations_sync');
-        bc.onmessage = (evt) => {
-            if (evt && evt.data) {
-                if (evt.data.depot) {
-                    selectedDepot = String(evt.data.depot);
-                }
-                if (evt.data.counts) {
-                    depotCounts.depot1Count = evt.data.counts.depot1Count;
-                    depotCounts.depot2Count = evt.data.counts.depot2Count;
-                    depotCounts.total = evt.data.counts.total;
-                    updateQuickActionsUI();
-                    updateDepotDrawerUI();
-                }
-            }
-            fetchDepotCounts();
-        };
-    } catch(e) {}
-
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'depot_bus_assignments' || e.key === 'selected_depot' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated') {
-            if (e.key === 'selected_depot' && e.newValue) selectedDepot = e.newValue;
-            fetchDepotCounts();
-        }
-    });
-
-    if (window.DepotSyncEngine) {
-        window.DepotSyncEngine.on('depot-updated', (data) => {
-            if (data && typeof data.depot1Count === 'number') {
-                depotCounts.depot1Count = data.depot1Count;
-                depotCounts.depot2Count = data.depot2Count;
-                depotCounts.total = typeof data.total === 'number' ? data.total : (data.depot1Count + data.depot2Count);
-            } else {
-                depotCounts = computeCountsFromStorage();
-            }
-            updateQuickActionsUI();
-            updateDepotDrawerUI();
-        });
-        window.DepotSyncEngine.on('fleet-updated', () => {
-            fetchDepotCounts();
-        });
-        window.DepotSyncEngine.on('fleet-bus-added', () => {
-            fetchDepotCounts();
-        });
-        window.DepotSyncEngine.on('fleet-bus-deleted', () => {
-            fetchDepotCounts();
-        });
-        window.DepotSyncEngine.on('sync', () => {
-            fetchDepotCounts();
-        });
-    }
-
-    window.addEventListener('focus', () => {
-        fetchDepotCounts();
-    });
-    document.addEventListener('visibilitychange', () => {
-        if (!document.hidden) fetchDepotCounts();
-    });
-
-    // Init depot UI immediately
-    depotCounts = computeCountsFromStorage();
-    updateQuickActionsUI();
-    fetchDepotCounts();
+    })();
 </script>
 </body>
 </html>

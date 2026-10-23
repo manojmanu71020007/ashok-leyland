@@ -14,6 +14,19 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
     <script src="/pwa-app.js" defer></script>
+  <script>
+    (function() {
+      try {
+        const isSess = sessionStorage.getItem("isLoggedIn") === "true";
+        const isLoc = localStorage.getItem("isLoggedIn") === "true";
+        const isLoggedOut = localStorage.getItem("smartbus_loggedout") === "1";
+        if ((!isSess && !isLoc) || isLoggedOut) {
+          window.location.replace("/login.html");
+        }
+      } catch(e) {}
+    })();
+  </script>
+
   <title>Cleaning Log – Depot 32</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
