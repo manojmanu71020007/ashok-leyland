@@ -19400,7 +19400,20 @@
     "BM000": "Chandapura (BMT-32)",
     "BM600": "1"
   },
-  "_deletedBuses": {},
+  "_deletedBuses": {
+    "BM000": {
+      "bm": "BM000",
+      "busNumber": "BM000",
+      "regNo": "KA30MS4013",
+      "regNumber": "KA30MS4013",
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "depot": "Chandapura (BMT-32)",
+      "reason": "Major Breakdown / Motor Defect",
+      "deletedAt": "2026-10-23T12:38:55.098Z",
+      "timestamp": 1792759135098
+    }
+  },
   "_addedBuses": {
     "BM002": {
       "bm": "BM002",
@@ -19434,22 +19447,6 @@
       "timestamp": 1792504211322,
       "isNewlyAdded": true
     },
-    "BM000": {
-      "bm": "BM000",
-      "busNumber": "BM000",
-      "regNo": "KA30MS4013",
-      "regNumber": "KA30MS4013",
-      "reason": "Restored back to active fleet",
-      "depot": "Chandapura (BMT-32)",
-      "category": "C",
-      "busCategory": "C",
-      "soc": 89,
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "addedAt": "2026-10-20T14:08:10.650Z",
-      "timestamp": 1792505290651,
-      "isNewlyAdded": true
-    },
     "BM600": {
       "bm": "BM600",
       "busNumber": "BM600",
@@ -19472,22 +19469,22 @@
     "bmNumber": "BM000",
     "busNumber": "600F",
     "regNo": "KA30MS4013",
-    "status": "Active",
+    "status": "Deleted",
     "soc": 89,
     "condition": "Good",
     "driver": "Driver Assigned",
     "busCategory": "C",
-    "isNewlyAdded": true,
+    "isNewlyAdded": false,
     "additionReason": "Restored back to active fleet",
     "addedAt": "2026-10-20T14:08:10.650Z",
-    "deleted": false,
-    "isDeleted": false,
+    "deleted": true,
+    "isDeleted": true,
     "assignedRouteId": "BM000",
     "assignedRouteDisplay": "Route BM000 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
     "blocked": true,
-    "deletionReason": "Other",
-    "deletedAt": "2026-10-20T13:36:18.688Z",
+    "deletionReason": "Major Breakdown / Motor Defect",
+    "deletedAt": "2026-10-23T12:38:55.098Z",
     "regNumber": "KA30MS4013",
     "model": "ELECTRIC BUS AC EiV12",
     "make": "Ashok Leyland"
