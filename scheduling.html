@@ -938,13 +938,33 @@
                         <input id="distance" type="number" min="1" value="" readonly title="Schedule distance is fixed based on route GTFS data">
                     </label>
                     <label>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;">
-                            <span data-i18n="label_driver">Assigned Driver <span style="color:#dc2626; font-weight:800;">*</span></span>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                            <span data-i18n="label_driver" style="font-weight:700;">Assigned Driver <span style="color:#dc2626; font-weight:800;">*</span></span>
                             <span id="driver-depot-badge" style="font-size:0.75rem; font-weight:700; color:var(--blue); background:#eff6ff; border:1px solid #bfdbfe; padding:2px 8px; border-radius:6px;">Depot 1 Drivers (10 Available)</span>
                         </div>
-                        <select id="driver" title="Select a driver from the dropdown to allocate bus" style="font-weight:600;">
-                            <option value="">-- Choose / Select Driver --</option>
-                        </select>
+                        <div style="position:relative; display:flex; align-items:center; width:100%;">
+                            <input type="text"
+                                   id="driver"
+                                   list="driver-list"
+                                   placeholder="Type any driver name or choose from list..."
+                                   data-i18n-placeholder="placeholder_driver"
+                                   autocomplete="off"
+                                   spellcheck="false"
+                                   style="width:100%; padding-right:88px; font-weight:600; font-size:0.92rem;"
+                                   title="Enter any driver name (letters and spaces only, no numbers or symbols) or choose from the list" />
+                            <select id="driver-quick-select"
+                                    title="Choose a driver from the roster list"
+                                    style="position:absolute; right:3px; width:82px; height:calc(100% - 6px); border:1px solid #cbd5e1; background:#f8fafc; color:#334155; font-size:0.75rem; font-weight:700; border-radius:6px; cursor:pointer; padding:0 4px;"
+                                    onchange="if(this.value){ selectDriverFromRoster(this.value); this.value=''; }">
+                                <option value="">▼ Select</option>
+                            </select>
+                        </div>
+                        <datalist id="driver-list">
+                            <!-- Populated with rostered drivers -->
+                        </datalist>
+                        <div id="driver-validation-msg" style="display:none; font-size:0.75rem; color:#dc2626; margin-top:3px; font-weight:600;">
+                            ⚠️ Numbers and symbols are not allowed. Only letters and spaces can be entered.
+                        </div>
                     </label>
                 </div>
 
@@ -1304,27 +1324,39 @@
         }
 
         function populateDriverDropdown() {
-            const driverSelect = document.getElementById("driver");
-            if (!driverSelect) return;
-
-            const currentVal = driverSelect.value || "";
-            const drivers = getDepotDrivers(currentOperatingDepot);
-
+            const driverInput = document.getElementById("driver");
+            const dataList = document.getElementById("driver-list");
+            const quickSelect = document.getElementById("driver-quick-select");
             const badge = document.getElementById("driver-depot-badge");
+
+            const drivers = getDepotDrivers(currentOperatingDepot);
             if (badge) {
                 badge.textContent = `Depot ${currentOperatingDepot} Drivers (${drivers.length} Available)`;
             }
 
-            let html = `<option value="" ${!currentVal ? "selected" : ""}>-- Choose / Select Driver --</option>`;
-            html += `<optgroup label="🏢 Depot ${currentOperatingDepot} Rostered Drivers (${drivers.length})">`;
-            drivers.forEach(d => {
-                const sel = (currentVal === d.id) ? "selected" : "";
-                html += `<option value="${d.id}" ${sel}>👤 ${d.name} (${d.badge}) - ${d.shift}</option>`;
-            });
-            html += `</optgroup>`;
+            if (dataList) {
+                dataList.innerHTML = drivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)} (${escapeHtml(d.badge)}) - ${escapeHtml(d.shift)}</option>`).join("");
+            }
 
-            driverSelect.innerHTML = html;
+            if (quickSelect) {
+                let qHtml = `<option value="">▼ Select</option>`;
+                qHtml += `<optgroup label="🏢 Depot ${currentOperatingDepot} Rostered Drivers">`;
+                drivers.forEach(d => {
+                    qHtml += `<option value="${escapeHtml(d.name)}">👤 ${escapeHtml(d.name)} (${escapeHtml(d.badge)})</option>`;
+                });
+                qHtml += `</optgroup>`;
+                quickSelect.innerHTML = qHtml;
+            }
         }
+
+        window.selectDriverFromRoster = function(name) {
+            const driverInput = document.getElementById("driver");
+            if (driverInput) {
+                driverInput.value = name;
+                driverInput.dispatchEvent(new Event("input", { bubbles: true }));
+                driverInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        };
 
         let routes = [];
         let directionalRoutes = [...CORRIDOR_ROUTES];
@@ -3398,15 +3430,15 @@
             const driverRuleEl = document.getElementById("driver-rule");
             if (driverRuleEl) {
                 const driverSelectEl = document.getElementById("driver");
+                const curVal = driverSelectEl ? (driverSelectEl.value || "").trim() : "";
                 if (allocatedBus && allocatedBus.driverName) {
                     driverRuleEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Driver: ${escapeHtml(allocatedBus.driverName)}</span>`;
-                } else if (driverSelectEl && driverSelectEl.value) {
-                    const selDrv = (getDepotDrivers(currentOperatingDepot) || []).find(d => d.id === driverSelectEl.value);
-                    driverRuleEl.innerHTML = selDrv 
-                        ? `<span style="color:#16a34a;font-weight:700;">✅ Driver: ${escapeHtml(selDrv.name)} (${escapeHtml(selDrv.badge)})</span>`
-                        : `<span style="color:#16a34a;font-weight:700;">✅ Driver Selected</span>`;
+                } else if (curVal) {
+                    const selDrv = (getDepotDrivers(currentOperatingDepot) || []).find(d => d.id === curVal || d.name.toLowerCase() === curVal.toLowerCase());
+                    const nameToShow = selDrv ? `${selDrv.name} (${selDrv.badge})` : curVal;
+                    driverRuleEl.innerHTML = `<span style="color:#16a34a;font-weight:700;">✅ Driver: ${escapeHtml(nameToShow)}</span>`;
                 } else {
-                    driverRuleEl.innerHTML = `<span style="color:#dc2626;font-weight:700;">⚠️ Select driver from dropdown</span>`;
+                    driverRuleEl.innerHTML = `<span style="color:#dc2626;font-weight:700;">⚠️ Enter or select driver</span>`;
                 }
             }
 
@@ -3443,21 +3475,22 @@
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
                 recBtn.style.background = "#dc2626";
-            } else if (!driverSelect || !driverSelect.value) {
+            } else if (!driverSelect || !driverSelect.value.trim()) {
                 if (isCandOverride) {
-                    recBtn.textContent = `⚠️ Select Driver to Allocate Override Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
+                    recBtn.textContent = `⚠️ Enter or Select Driver to Allocate Override Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
                     recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
                 } else {
-                    recBtn.textContent = `⭐ Select Driver to Allocate Mandatory Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
+                    recBtn.textContent = `⭐ Enter or Select Driver to Allocate Mandatory Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC)`;
                     recBtn.style.background = "linear-gradient(135deg, var(--blue), var(--blue-dark))";
                 }
                 recBtn.disabled = false;
                 recBtn.style.opacity = "1";
                 recBtn.style.cursor = "pointer";
             } else {
+                const curVal = driverSelect.value.trim();
                 const drivers = getDepotDrivers(currentOperatingDepot);
-                const selDriver = drivers.find(d => d.id === driverSelect.value);
-                const drvName = selDriver ? selDriver.name : "Driver";
+                const selDriver = drivers.find(d => d.id === curVal || d.name.toLowerCase() === curVal.toLowerCase());
+                const drvName = selDriver ? selDriver.name : curVal;
                 if (isCandOverride) {
                     recBtn.textContent = `⚠️ Allocate Override Bus ${allocatedBus.bm} (Cat ${allocatedBus.busCategory}, ${allocatedBus.liveSoc}% SoC — Driver: ${drvName})`;
                     recBtn.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
@@ -3717,18 +3750,60 @@
 
             const driverSelect = document.getElementById("driver");
             if (driverSelect) {
-                driverSelect.addEventListener("change", async () => {
+                // Real-time input validation: allow ANY name, but strictly NO numbers or symbols
+                driverSelect.addEventListener("input", async function() {
+                    const original = this.value;
+                    // Strip out any characters that are NOT letters, spaces, or single dot
+                    const cleaned = original.replace(/[^a-zA-Z\s.]/g, "");
+                    const msg = document.getElementById("driver-validation-msg");
+                    if (original !== cleaned) {
+                        this.value = cleaned;
+                        if (msg) {
+                            msg.style.display = "block";
+                            clearTimeout(window._driverMsgTimer);
+                            window._driverMsgTimer = setTimeout(() => {
+                                if (msg) msg.style.display = "none";
+                            }, 2500);
+                        }
+                    } else if (msg && cleaned.trim().length > 0) {
+                        msg.style.display = "none";
+                    }
+
+                    const curVal = this.value.trim();
                     if (currentlyAllocatedBus) {
                         const drivers = getDepotDrivers(currentOperatingDepot);
-                        const selDriver = drivers.find(d => d.id === driverSelect.value);
+                        const selDriver = drivers.find(d => d.id === curVal || d.name.toLowerCase() === curVal.toLowerCase());
                         if (selDriver) {
                             currentlyAllocatedBus.driver = `${selDriver.name} (${selDriver.badge})`;
                             currentlyAllocatedBus.driverId = selDriver.id;
                             currentlyAllocatedBus.driverName = selDriver.name;
+                        } else if (curVal) {
+                            currentlyAllocatedBus.driver = curVal;
+                            currentlyAllocatedBus.driverId = "DRV-CUSTOM";
+                            currentlyAllocatedBus.driverName = curVal;
                         } else {
                             currentlyAllocatedBus.driver = "";
                             currentlyAllocatedBus.driverId = null;
                             currentlyAllocatedBus.driverName = null;
+                        }
+                    }
+                    updateAllocationRulesUI(currentlyAllocatedBus);
+                    updateAllocateButton(currentlyAllocatedBus);
+                });
+
+                driverSelect.addEventListener("change", async function() {
+                    const curVal = this.value.trim();
+                    if (currentlyAllocatedBus) {
+                        const drivers = getDepotDrivers(currentOperatingDepot);
+                        const selDriver = drivers.find(d => d.id === curVal || d.name.toLowerCase() === curVal.toLowerCase());
+                        if (selDriver) {
+                            currentlyAllocatedBus.driver = `${selDriver.name} (${selDriver.badge})`;
+                            currentlyAllocatedBus.driverId = selDriver.id;
+                            currentlyAllocatedBus.driverName = selDriver.name;
+                        } else if (curVal) {
+                            currentlyAllocatedBus.driver = curVal;
+                            currentlyAllocatedBus.driverId = "DRV-CUSTOM";
+                            currentlyAllocatedBus.driverName = curVal;
                         }
                     }
                     await recommend();
@@ -3768,27 +3843,45 @@
                         await recommend();
                         showAllocationToast(`ℹ️ Bus ${deallocBm} de-allocated from Route ${routeObj.code} at ${departureTime} and returned to available depot pool.`, "info");
                     } else {
-                        // STRICT DRIVER SELECTION CHECK: Must select driver from dropdown
-                        const driverSelect = document.getElementById("driver");
-                        if (!driverSelect || !driverSelect.value) {
-                            showAllocationToast("⚠️ Please select a driver from the dropdown menu before allocating the bus!", "error");
-                            if (driverSelect) {
-                                driverSelect.focus();
-                                driverSelect.style.borderColor = "#dc2626";
-                                driverSelect.style.boxShadow = "0 0 0 3px rgba(220, 38, 38, 0.25)";
+                        // DRIVER VALIDATION: Can enter any name (letters and spaces only, no numbers or symbols) or select from roster
+                        const driverInput = document.getElementById("driver");
+                        const rawDriverVal = (driverInput ? driverInput.value : "").trim();
+                        if (!rawDriverVal) {
+                            showAllocationToast("⚠️ Please enter or select a driver before allocating the bus!", "error");
+                            if (driverInput) {
+                                driverInput.focus();
+                                driverInput.style.borderColor = "#dc2626";
+                                driverInput.style.boxShadow = "0 0 0 3px rgba(220, 38, 38, 0.25)";
                                 setTimeout(() => {
-                                    driverSelect.style.borderColor = "";
-                                    driverSelect.style.boxShadow = "";
+                                    driverInput.style.borderColor = "";
+                                    driverInput.style.boxShadow = "";
                                 }, 3000);
                             }
                             return;
                         }
 
-                        const drivers = getDepotDrivers(currentOperatingDepot);
-                        const selDriver = drivers.find(d => d.id === driverSelect.value);
-                        if (!selDriver) {
-                            showAllocationToast("⚠️ Please select a valid driver from the dropdown menu before allocating the bus!", "error");
+                        // Strict check: letters and spaces only, NO numbers or symbols
+                        if (/[0-9]/.test(rawDriverVal) || /[^a-zA-Z\s.]/.test(rawDriverVal)) {
+                            showAllocationToast("⚠️ Driver name must contain only letters and spaces (no numbers or symbols allowed)!", "error");
+                            if (driverInput) {
+                                driverInput.focus();
+                                driverInput.style.borderColor = "#dc2626";
+                                setTimeout(() => { driverInput.style.borderColor = ""; }, 3000);
+                            }
                             return;
+                        }
+
+                        const drivers = getDepotDrivers(currentOperatingDepot);
+                        let selDriver = drivers.find(d => d.id === rawDriverVal || d.name.toLowerCase() === rawDriverVal.toLowerCase());
+                        if (!selDriver) {
+                            // Custom driver name entered by user
+                            selDriver = {
+                                id: `DRV-${Date.now().toString().slice(-4)}`,
+                                name: rawDriverVal,
+                                badge: `BMTC-${currentOperatingDepot}${Math.floor(1000 + Math.random() * 9000)}`,
+                                shift: alloc.shift || "Regular Shift",
+                                depot: String(currentOperatingDepot)
+                            };
                         }
 
                         // Allocate this bus to this route and time only
