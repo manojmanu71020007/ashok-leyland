@@ -5914,6 +5914,17 @@
       if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
         window.DepotSyncEngine.saveLockedBuses(lockedList);
       } else {
+        fetch('/api/complete-route', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bm: bm.toUpperCase(),
+            depot: targetDepot,
+            remarks: `Route completed at Depot ${targetDepot}.`,
+            route: allocEntry?.route || '',
+            driver: allocEntry?.driver || ''
+          })
+        }).catch(() => {});
         fetch('/api/locked-buses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -549,7 +549,43 @@ export const FleetProvider = ({ children }) => {
       if (bmClean) lockedBmMap.set(bmClean, lb);
     });
 
-    // Only explicit locked buses from _lockedBuses are locked (manual depot action only)
+    // Synthesize turnaround locks from servicingStatus so no post-route bus can slip through as unlocked
+    Object.keys(servicingStatus).forEach((bmKey) => {
+      const bmClean = String(bmKey).toUpperCase().trim();
+      const serv = servicingStatus[bmKey];
+      if (!serv || typeof serv !== 'object') return;
+
+      const needsChg = Boolean(serv.needsCharging || (serv.routeCompleted && !serv.chargingCompleted) || serv.status === 'turnaround_charging');
+      const needsCln = Boolean(serv.needsCleaning || (serv.routeCompleted && !serv.cleaningCompleted) || serv.status === 'turnaround_cleaning');
+      const isTurnaroundRequired = Boolean(serv.routeCompleted || needsChg || (needsCln && !serv.cleaningCompleted));
+
+      if (isTurnaroundRequired) {
+        const existingLock = lockedBmMap.get(bmClean);
+        const chgDone = Boolean(serv.chargingCompleted && !needsChg);
+        const clnDone = Boolean(serv.cleaningCompleted && !needsCln);
+        const page = needsChg ? 'charging' : 'cleaning';
+        const reason = needsChg
+          ? 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)'
+          : 'Turnaround (Cleaning & Wash Required Before Scheduling)';
+
+        lockedBmMap.set(bmClean, {
+          ...(existingLock || {}),
+          bm: bmClean,
+          bmNumber: bmClean,
+          reg: existingLock?.reg || staticBusRegs[bmClean] || `KA51AH${bmClean.replace(/\D/g, '').padStart(4, '0')}`,
+          depot: getBusDepot(bmClean, depotAssignments),
+          page: existingLock?.page || page,
+          reason: existingLock?.reason || reason,
+          isTurnaround: true,
+          needsCharging: needsChg,
+          chargingCompleted: chgDone,
+          needsCleaning: needsCln,
+          cleaningCompleted: clnDone,
+          startTime: existingLock?.startTime || serv.routeCompletedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          startTimestamp: existingLock?.startTimestamp || serv.routeCompletedTs || Date.now(),
+        });
+      }
+    });
 
     const fullNormalizedLocked = Array.from(lockedBmMap.values());
 
@@ -605,23 +641,23 @@ export const FleetProvider = ({ children }) => {
       const lockedEntry = fullNormalizedLocked.find(
         (l) => String(l.bm || l.bmNumber || '').toUpperCase() === bm
       );
-      const isLocked = Boolean(lockedEntry);
 
       const chgStatus = String(item.chargingStatus || item.status || '').toLowerCase();
       const isCharging = (lockedEntry && (lockedEntry.page === 'charging' || lockedEntry.reason?.toLowerCase().includes('charg') || lockedEntry.isCharging)) || servicing.status === 'charging' || chgStatus.includes('in progress') || chgStatus === 'charging';
       const isCleaning = (lockedEntry && (lockedEntry.page === 'cleaning' || lockedEntry.reason?.toLowerCase().includes('clean') || lockedEntry.isCleaning)) || servicing.status === 'cleaning' || chgStatus.includes('clean');
       const isNeedsServicing = Boolean(servicing.status === 'needs_servicing' || servicing.routeCompleted);
       const isTurnaroundLocked = Boolean((lockedEntry && lockedEntry.isTurnaround) || isNeedsServicing || (servicing.routeCompleted && (!servicing.chargingCompleted || !servicing.cleaningCompleted)));
-      const needsCharging = Boolean(servicing.needsCharging || (servicing.routeCompleted && !servicing.chargingCompleted) || isCharging);
-      const chargingCompleted = Boolean(servicing.chargingCompleted && !servicing.needsCharging);
-      const needsCleaning = Boolean(servicing.needsCleaning || (servicing.routeCompleted && !servicing.cleaningCompleted) || isCleaning);
-      const cleaningCompleted = Boolean(servicing.cleaningCompleted && !servicing.needsCleaning);
+      const isLocked = Boolean(lockedEntry || isTurnaroundLocked || isCharging || isCleaning);
+      const needsCharging = Boolean(servicing.needsCharging || (servicing.routeCompleted && !servicing.chargingCompleted) || isCharging || (lockedEntry && (lockedEntry.page === 'charging' || lockedEntry.needsCharging)));
+      const chargingCompleted = Boolean(servicing.chargingCompleted && !needsCharging);
+      const needsCleaning = Boolean(servicing.needsCleaning || (servicing.routeCompleted && !servicing.cleaningCompleted) || isCleaning || (lockedEntry && (lockedEntry.page === 'cleaning' || lockedEntry.needsCleaning)));
+      const cleaningCompleted = Boolean(servicing.cleaningCompleted && !needsCleaning);
 
       // 2. Real Allocation Detection: check against allocatedDutiesList (NOT default routes)
       const allocatedDuty = (allocatedDutiesList || []).find(
         (d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase() === bm
       );
-      const isAllocated = Boolean(allocatedDuty);
+      const isAllocated = Boolean(allocatedDuty && !isLocked);
 
       // 3. Operational Status: Strictly 3 states (Available, Allocated, or Locked)
       let status = 'Available';
@@ -629,6 +665,8 @@ export const FleetProvider = ({ children }) => {
         status = 'Charging';
       } else if (isCleaning) {
         status = 'Cleaning';
+      } else if (isTurnaroundLocked) {
+        status = 'Turnaround (Locked)';
       } else if (isAllocated) {
         status = 'Allocated';
       } else if (isLocked) {
@@ -1294,7 +1332,15 @@ export const FleetProvider = ({ children }) => {
       cleaningCompleted: false,
       status: 'turnaround_charging',
     };
+    servicingStatusRef.current[cleanBm] = serviceEntry;
     api.updateServicingStatus(cleanBm, serviceEntry).catch((err) => console.warn('Could not update servicing status:', err));
+    api.completeRouteDuty({
+      bm: cleanBm,
+      depot: completingDepot,
+      remarks: remarks || 'Route completed and bus locked in turnaround for charging & cleaning.',
+      route: (dutyToComplete && (dutyToComplete.routeName || dutyToComplete.routeCode)) || '',
+      driver: (dutyToComplete && dutyToComplete.driver) || '',
+    }).catch((err) => console.warn('Atomic completeRouteDuty error:', err));
 
     setLockedBuses((prev) => {
       const filtered = prev.filter((l) => String(l.bm || l.bmNumber).toUpperCase().trim() !== cleanBm);

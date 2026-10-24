@@ -91,6 +91,14 @@ export const api = {
     return apiRequest('/api/locked-buses');
   },
 
+  // Complete a route duty atomically
+  completeRouteDuty: async ({ bm, depot, remarks = '', route = '', driver = '' }) => {
+    return apiRequest('/api/complete-route', {
+      method: 'POST',
+      body: JSON.stringify({ bm, depot, remarks, route, driver }),
+    });
+  },
+
   // Save locked buses (charging/cleaning)
   saveLockedBuses: async (lockedBuses) => {
     return apiRequest('/api/locked-buses', {

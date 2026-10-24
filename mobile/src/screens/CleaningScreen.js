@@ -72,28 +72,27 @@ export default function CleaningScreen() {
     setSearchInput('');
   };
 
+  // Always resolve the freshest bus data from fleet state
+  const selectedBm = selectedBus ? String(selectedBus.bmNumber || selectedBus.id || '').toUpperCase().trim() : null;
+  const currentSelectedBus = selectedBm ? (buses.find(b => b.bmNumber === selectedBm) || selectedBus) : null;
+  const currentLockEntry = selectedBm ? lockedBuses.find(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() === selectedBm) : null;
+
   // Check lock status
-  const isLockedForCleaning = selectedBus
-    ? lockedBuses.some(
-        (x) =>
-          String(x.bm || x.bmNumber).toUpperCase() === selectedBus.bmNumber &&
-          String(x.page || '').toLowerCase().includes('clean')
-      )
+  const isLockedForCleaning = currentSelectedBus
+    ? Boolean(currentLockEntry && String(currentLockEntry.page || '').toLowerCase().includes('clean'))
     : false;
 
-  const isLockedForCharging = selectedBus
-    ? lockedBuses.some(
-        (x) =>
-          String(x.bm || x.bmNumber).toUpperCase() === selectedBus.bmNumber &&
-          String(x.page || '').toLowerCase().includes('charg')
-      )
+  const isLockedForCharging = currentSelectedBus
+    ? Boolean(currentLockEntry && String(currentLockEntry.page || '').toLowerCase().includes('charg'))
     : false;
 
-  const isNeedsChargingFirst = selectedBus
+  const isNeedsChargingFirst = currentSelectedBus
     ? Boolean(
-        selectedBus.needsCharging ||
-        (selectedBus.isTurnaround && !selectedBus.chargingCompleted) ||
-        isLockedForCharging
+        currentSelectedBus.needsCharging ||
+        (currentSelectedBus.isTurnaround && !currentSelectedBus.chargingCompleted) ||
+        isLockedForCharging ||
+        (currentLockEntry && (currentLockEntry.needsCharging || !currentLockEntry.chargingCompleted || currentLockEntry.page === 'charging')) ||
+        (currentSelectedBus.status && currentSelectedBus.status.toLowerCase().includes('charg'))
       )
     : false;
 
@@ -111,26 +110,26 @@ export default function CleaningScreen() {
   };
 
   const handleLockBus = () => {
-    if (!selectedBus) {
+    if (!currentSelectedBus) {
       Alert.alert('Selection Required', 'Please choose a bus first.');
       return;
     }
-    if (selectedBus.isAllocated) {
-      Alert.alert('Bus On Route', `Bus ${selectedBus.bmNumber} is currently on route. It cannot be cleaned until marked 'Completed Route' in Depot Operations!`);
+    if (currentSelectedBus.isAllocated) {
+      Alert.alert('Bus On Route', `Bus ${currentSelectedBus.bmNumber} is currently on route. It cannot be cleaned until marked 'Completed Route' in Depot Operations!`);
       return;
     }
     if (isNeedsChargingFirst) {
       Alert.alert(
         '⚡ Fast Charging Required First',
-        `Bus ${selectedBus.bmNumber} must complete Fast Charging first before cleaning can begin (Sequential Turnaround: 1st Charging ➔ 2nd Cleaning).`
+        `Bus ${currentSelectedBus.bmNumber} is in turnaround. It MUST complete Fast Charging before cleaning can begin.\n\nSequential Turnaround Order:\n1️⃣ Fast Charging Bay\n2️⃣ Cleaning & Wash Bay`
       );
       return;
     }
 
     const { now, fullTimeStr } = getNowFormatted();
     const entry = {
-      bm: selectedBus.bmNumber,
-      reg: selectedBus.regNo,
+      bm: currentSelectedBus.bmNumber,
+      reg: currentSelectedBus.regNo,
       depot: depotNum,
       page: 'cleaning',
       startTime: fullTimeStr,
@@ -138,7 +137,7 @@ export default function CleaningScreen() {
     };
 
     lockBus(entry);
-    Alert.alert('🧹 Bus Locked for Cleaning', `Bus ${selectedBus.bmNumber} is now locked for cleaning.`);
+    Alert.alert('🧹 Bus Locked for Cleaning', `Bus ${currentSelectedBus.bmNumber} is now locked for cleaning.`);
   };
 
   const handleUnlockAndSubmit = () => {
@@ -367,13 +366,14 @@ export default function CleaningScreen() {
                   <TouchableOpacity
                     style={[
                       styles.lockBtn,
-                      isNeedsChargingFirst && { backgroundColor: '#9CA3AF', opacity: 0.75 }
+                      isNeedsChargingFirst && { backgroundColor: '#9CA3AF', opacity: 0.6 }
                     ]}
                     onPress={handleLockBus}
                     activeOpacity={0.85}
+                    disabled={isNeedsChargingFirst}
                   >
                     <Text style={styles.lockBtnText}>
-                      {isNeedsChargingFirst ? '⚡ Charging Required Before Cleaning' : '🔒 Lock Bus for Cleaning'}
+                      {isNeedsChargingFirst ? '⚡ Fast Charging Required 1st' : '🔒 Lock Bus for Cleaning'}
                     </Text>
                   </TouchableOpacity>
                 ) : (

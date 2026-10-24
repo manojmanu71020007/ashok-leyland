@@ -5178,7 +5178,21 @@ const server = http.createServer(async (req, res) => {
                     const currentState = loadBusState();
 
                     if (Array.isArray(payload.lockedBuses)) {
-
+                        // Strict turnaround validation: Reject locking for cleaning if charging is pending
+                        const curServicing = currentState._servicingStatus || {};
+                        for (const lb of payload.lockedBuses) {
+                            const bKey = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+                            const isCleaningLock = String(lb.page || '').toLowerCase().includes('clean');
+                            const serv = curServicing[bKey] || {};
+                            const needsChargingFirst = Boolean(serv.needsCharging || (serv.routeCompleted && !serv.chargingCompleted));
+                            if (isCleaningLock && needsChargingFirst) {
+                                sendJson(res, {
+                                    ok: false,
+                                    error: `Fast Charging Required First: Bus ${bKey} must complete Fast Charging before cleaning can begin.`
+                                }, 400);
+                                return;
+                            }
+                        }
                         currentState._lockedBuses = payload.lockedBuses;
 
                         saveBusState(currentState);
@@ -5210,6 +5224,126 @@ const server = http.createServer(async (req, res) => {
 
 
     // ── POST /api/unlock-bus (Unlock a specific bus immediately) ──
+    // ?? POST /api/complete-route (Atomic Route Duty Completion & Turnaround Locking) ??
+    if (pathname === "/api/complete-route" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const bmKey = String(payload.bm || payload.bmNumber || payload.bus || "").toUpperCase().trim();
+                if (!bmKey) {
+                    sendJson(res, { ok: false, error: "Missing bm identifier" }, 400);
+                    return;
+                }
+
+                const currentState = loadBusState();
+                const targetDepot = String(payload.depot || currentState._depotAssignments?.[bmKey] || "1").trim();
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+                const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                const fullTs = `${timeStr}, ${dateStr}`;
+
+                // 1. Remove from allocated duties
+                if (Array.isArray(currentState._allocatedDuties)) {
+                    currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() !== bmKey);
+                }
+
+                // 2. Assign target depot
+                if (!currentState._depotAssignments) currentState._depotAssignments = {};
+                currentState._depotAssignments[bmKey] = targetDepot;
+
+                // 3. Create Turnaround Lock (Fast Charging Required 1st!)
+                const regNo = (currentState[bmKey] && (currentState[bmKey].regNo || currentState[bmKey].reg_no)) || `KA51AH${bmKey.replace(/\D/g, '').padStart(4, '0')}`;
+                const turnaroundLock = {
+                    bm: bmKey,
+                    bmNumber: bmKey,
+                    reg: regNo,
+                    depot: targetDepot,
+                    page: 'charging', // STRICT: Fast Charging is Step 1!
+                    reason: 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)',
+                    isTurnaround: true,
+                    needsCharging: true,
+                    chargingCompleted: false,
+                    needsCleaning: true,
+                    cleaningCompleted: false,
+                    startTime: fullTs,
+                    time: timeStr,
+                    startTimestamp: Date.now()
+                };
+
+                if (!Array.isArray(currentState._lockedBuses)) currentState._lockedBuses = [];
+                currentState._lockedBuses = [
+                    turnaroundLock,
+                    ...currentState._lockedBuses.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bmKey)
+                ];
+
+                // 4. Update servicing status
+                if (!currentState._servicingStatus) currentState._servicingStatus = {};
+                currentState._servicingStatus[bmKey] = {
+                    bm: bmKey,
+                    routeCompleted: true,
+                    routeCompletedAt: fullTs,
+                    routeCompletedTs: Date.now(),
+                    depot: targetDepot,
+                    needsCharging: true,
+                    chargingCompleted: false,
+                    needsCleaning: true,
+                    cleaningCompleted: false,
+                    status: 'turnaround_charging'
+                };
+
+                // 5. Update bus state object if present
+                if (currentState[bmKey] && typeof currentState[bmKey] === 'object') {
+                    currentState[bmKey].isLocked = true;
+                    currentState[bmKey].isTurnaround = true;
+                    currentState[bmKey].isAllocated = false;
+                    currentState[bmKey].needsCharging = true;
+                    currentState[bmKey].chargingCompleted = false;
+                    currentState[bmKey].needsCleaning = true;
+                    currentState[bmKey].cleaningCompleted = false;
+                    currentState[bmKey].depot = targetDepot;
+                    currentState[bmKey].status = 'Turnaround (Locked)';
+                    currentState[bmKey].assignedRoute = null;
+                    currentState[bmKey].allocatedDuty = null;
+                }
+
+                // 6. Record in completed routes log
+                if (!Array.isArray(currentState._completedRoutesLog)) currentState._completedRoutesLog = [];
+                currentState._completedRoutesLog.unshift({
+                    id: 'rc_' + Date.now(),
+                    bm: bmKey,
+                    reg: regNo,
+                    route: payload.route || 'Scheduled Duty',
+                    scheduledTime: payload.scheduledTime || '08:30 AM',
+                    completedAt: fullTs,
+                    dateStr: now.toISOString().split('T')[0],
+                    depot: targetDepot,
+                    driver: payload.driver || 'Assigned Driver',
+                    remarks: payload.remarks || 'Route completed and bus locked in turnaround for charging & cleaning.',
+                    status: 'Returned / Completed'
+                });
+
+                saveBusState(currentState);
+                broadcastSyncEvent("route-completed", { bm: bmKey, depot: targetDepot, locked: true });
+                broadcastSyncEvent("locked-buses-updated", { lockedBuses: currentState._lockedBuses || [] });
+                broadcastSyncEvent("servicing-status-updated", { servicingStatus: currentState._servicingStatus || {} });
+                broadcastSyncEvent("allocated-duties-updated", { allocatedDuties: currentState._allocatedDuties || [] });
+
+                sendJson(res, {
+                    ok: true,
+                    bm: bmKey,
+                    locked: true,
+                    status: 'turnaround_charging',
+                    depot: targetDepot,
+                    lockedBuses: currentState._lockedBuses,
+                    servicingStatus: currentState._servicingStatus
+                });
+            } catch (err) {
+                sendJson(res, { ok: false, error: "Failed to complete route", details: err.message }, 500);
+            }
+        });
+        return;
+    }
+
     if (pathname === "/api/unlock-bus" && req.method === "POST") {
         readBody(req, body => {
             try {
