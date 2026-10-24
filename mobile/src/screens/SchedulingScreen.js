@@ -265,6 +265,78 @@ const DEPOT_DRIVERS = {
   ],
 };
 
+// ── Master Dataset Schedules for Route-Duty Pair Matching (Exact match with scheduling.html) ──
+const DEFAULT_DATASET_SCHEDULES = [
+  { scheduleId: '356Z/1', route: '356Z', shift: 'General Shift', fixBm: 'BM238', swapBm: 'BM278', outTime: '07:15:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 45 },
+  { scheduleId: '356Z/2', route: '356Z', shift: 'General Shift', fixBm: 'BM217', swapBm: 'BM256', outTime: '08:30:00', inTime: '16:30:00', category: 'Standard', singleChargeReqKm: 45 },
+  { scheduleId: '356Z/3', route: '356Z', shift: 'Shift B', fixBm: 'BM256', swapBm: 'BM205', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 45 },
+  { scheduleId: '356Z/4', route: '356Z', shift: 'Shift B', fixBm: 'BM217', swapBm: 'BM238', outTime: '14:20:00', inTime: '22:20:00', category: 'Standard', singleChargeReqKm: 45 },
+  { scheduleId: '356Z/5', route: '356Z', shift: 'Night Halt', fixBm: 'BM218', swapBm: 'BM303', outTime: '19:40:00', inTime: '06:00:00', category: 'Standard', singleChargeReqKm: 45 },
+  { scheduleId: '360K/1', route: '360K', shift: 'General Shift', fixBm: 'BM291', swapBm: 'BM264', outTime: '07:00:00', inTime: '15:00:00', category: 'Standard', singleChargeReqKm: 55 },
+  { scheduleId: '360K/2', route: '360K', shift: 'General Shift', fixBm: 'BM205', swapBm: 'BM056', outTime: '08:15:00', inTime: '16:15:00', category: 'Standard', singleChargeReqKm: 55 },
+  { scheduleId: '360K/3', route: '360K', shift: 'Shift B', fixBm: 'BM292', swapBm: 'BM198', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 55 },
+  { scheduleId: '360K/4', route: '360K', shift: 'Shift B', fixBm: 'BM199', swapBm: 'BM005', outTime: '14:00:00', inTime: '22:00:00', category: 'Standard', singleChargeReqKm: 55 },
+  { scheduleId: '360K/5', route: '360K', shift: 'Night Halt', fixBm: 'BM282', swapBm: 'BM080', outTime: '18:30:00', inTime: '06:30:00', category: 'Standard', singleChargeReqKm: 55 },
+  { scheduleId: '600F/1', route: '600F', shift: 'General Shift', fixBm: 'BM003', swapBm: 'BM277', outTime: '06:45:00', inTime: '14:45:00', category: 'Standard', singleChargeReqKm: 42 },
+  { scheduleId: '600F/2', route: '600F', shift: 'General Shift', fixBm: 'BM258', swapBm: 'BM273', outTime: '08:00:00', inTime: '16:00:00', category: 'Standard', singleChargeReqKm: 42 },
+  { scheduleId: '600F/3', route: '600F', shift: 'Shift B', fixBm: 'BM249', swapBm: 'BM203', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 42 },
+  { scheduleId: '600F/4', route: '600F', shift: 'Shift B', fixBm: 'BM265', swapBm: 'BM264', outTime: '14:30:00', inTime: '22:30:00', category: 'Standard', singleChargeReqKm: 42 },
+  { scheduleId: '600F/5', route: '600F', shift: 'Night Halt', fixBm: 'BM255', swapBm: 'BM274', outTime: '19:15:00', inTime: '06:15:00', category: 'Standard', singleChargeReqKm: 42 },
+  { scheduleId: '361C/1', route: '361C', shift: 'General Shift', fixBm: 'BM299', swapBm: 'BM280', outTime: '07:30:00', inTime: '15:30:00', category: 'Complex', singleChargeReqKm: 60 },
+  { scheduleId: '361C/2', route: '361C', shift: 'General Shift', fixBm: 'BM054', swapBm: 'BM303', outTime: '09:00:00', inTime: '17:00:00', category: 'Complex', singleChargeReqKm: 60 },
+  { scheduleId: '361C/3', route: '361C', shift: 'Shift B', fixBm: 'BM289', swapBm: 'BM020', outTime: '13:10:00', inTime: '21:10:00', category: 'Complex', singleChargeReqKm: 60 },
+  { scheduleId: '361C/4', route: '361C', shift: 'Shift B', fixBm: 'BM174', swapBm: 'BM225', outTime: '15:00:00', inTime: '23:00:00', category: 'Complex', singleChargeReqKm: 60 },
+  { scheduleId: '399C/1', route: '399C', shift: 'General Shift', fixBm: 'BM216', swapBm: 'BM282', outTime: '07:45:00', inTime: '15:45:00', category: 'Complex', singleChargeReqKm: 55 },
+  { scheduleId: '399C/2', route: '399C', shift: 'General Shift', fixBm: 'BM272', swapBm: 'BM286', outTime: '09:15:00', inTime: '17:15:00', category: 'Complex', singleChargeReqKm: 55 },
+  { scheduleId: '399C/3', route: '399C', shift: 'Shift B', fixBm: 'BM216', swapBm: 'BM088', outTime: '13:10:00', inTime: '21:10:00', category: 'Complex', singleChargeReqKm: 55 },
+  { scheduleId: '399C/4', route: '399C', shift: 'Shift B', fixBm: 'BM282', swapBm: 'BM272', outTime: '15:30:00', inTime: '23:30:00', category: 'Complex', singleChargeReqKm: 55 },
+  { scheduleId: '328H/1', route: '328H', shift: 'Night Halt', fixBm: 'BM279', swapBm: 'BM294', outTime: '13:10:00', inTime: '10:30:00', category: 'Complex', singleChargeReqKm: 145.7 },
+  { scheduleId: '328H/10', route: '328H', shift: 'Night Halt', fixBm: 'BM294', swapBm: 'BM279', outTime: '13:45:00', inTime: '11:45:00', category: 'Moderate', singleChargeReqKm: 110 },
+  { scheduleId: '328H/12', route: '328H', shift: 'Night Halt', fixBm: 'BM279', swapBm: 'BM294', outTime: '13:50:00', inTime: '11:10:00', category: 'Complex', singleChargeReqKm: 145.7 },
+  { scheduleId: '500DC/12', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM255', outTime: '07:45:00', inTime: '14:45:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: '500DC/13', route: '500DC', shift: 'General Shift', fixBm: 'BM255', swapBm: 'BM274', outTime: '08:00:00', inTime: '15:00:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: '500DC/14', route: '500DC', shift: 'General Shift', fixBm: 'BM274', swapBm: 'BM240', outTime: '08:15:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: '500DC/15', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM274', outTime: '08:30:00', inTime: '15:30:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: '500DC/1', route: '500DC', shift: 'Shift B', fixBm: 'BM255', swapBm: 'BM240', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: 'KBS3A/1', route: 'KBS3A', shift: 'General Shift', fixBm: 'BM086', swapBm: 'BM268', outTime: '07:00:00', inTime: '15:00:00', category: 'Moderate', singleChargeReqKm: 55 },
+  { scheduleId: 'KBS3A/2', route: 'KBS3A', shift: 'General Shift', fixBm: 'BM268', swapBm: 'BM081', outTime: '08:30:00', inTime: '16:30:00', category: 'Moderate', singleChargeReqKm: 55 },
+  { scheduleId: 'KBS3A/3', route: 'KBS3A', shift: 'Shift B', fixBm: 'BM259', swapBm: 'BM210', outTime: '13:10:00', inTime: '21:10:00', category: 'Moderate', singleChargeReqKm: 55 },
+  { scheduleId: 'KBS3A/4', route: 'KBS3A', shift: 'Shift B', fixBm: 'BM210', swapBm: 'BM209', outTime: '14:15:00', inTime: '22:15:00', category: 'Moderate', singleChargeReqKm: 55 },
+  { scheduleId: 'KBS3F/1', route: 'KBS3F', shift: 'General Shift', fixBm: 'BM293', swapBm: 'BM250', outTime: '07:15:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 30 },
+  { scheduleId: 'KBS3F/2', route: 'KBS3F', shift: 'General Shift', fixBm: 'BM250', swapBm: 'BM275', outTime: '08:45:00', inTime: '16:45:00', category: 'Standard', singleChargeReqKm: 30 },
+  { scheduleId: 'KBS3F/3', route: 'KBS3F', shift: 'Shift B', fixBm: 'BM293', swapBm: 'BM082', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 30 },
+  { scheduleId: 'KBS3F/4', route: 'KBS3F', shift: 'Shift B', fixBm: 'BM275', swapBm: 'BM293', outTime: '14:30:00', inTime: '22:30:00', category: 'Standard', singleChargeReqKm: 30 },
+];
+
+const ROUTE_DESIGNATED_BMS = {
+  '356Z': ['BM256', 'BM205', 'BM238', 'BM217', 'BM278', 'BM303'],
+  '360K': ['BM291', 'BM264', 'BM205', 'BM292', 'BM198', 'BM199'],
+  '600F': ['BM003', 'BM277', 'BM258', 'BM273', 'BM249', 'BM010'],
+  '361C': ['BM299', 'BM280', 'BM054', 'BM289', 'BM304'],
+  '399C': ['BM216', 'BM282', 'BM272', 'BM286'],
+  '328H': ['BM279', 'BM294', 'BM282', 'BM153', 'BM285'],
+  '500DC': ['BM240', 'BM255', 'BM274', 'BM283'],
+  'KBS3A': ['BM086', 'BM268', 'BM259', 'BM210'],
+  'KBS3F': ['BM293', 'BM250', 'BM275', 'BM082'],
+};
+
+const parseTimeToMinutes = (t) => {
+  if (!t) return 720;
+  const isAmPm = /am|pm/i.test(t);
+  const clean = t.trim();
+  if (isAmPm) {
+    const [timePart, mod] = clean.split(' ');
+    let [h, m] = (timePart || '12:00').split(':').map(Number);
+    if (isNaN(h)) h = 12;
+    if (isNaN(m)) m = 0;
+    if (/pm/i.test(mod) && h < 12) h += 12;
+    if (/am/i.test(mod) && h === 12) h = 0;
+    return h * 60 + m;
+  }
+  const parts = clean.split(':').map(Number);
+  return (parts[0] || 0) * 60 + (parts[1] || 0);
+};
+
 const adjustTimeStr = (timeStr, deltaMinutes) => {
   try {
     const isAmPm = /am|pm/i.test(timeStr);
@@ -378,36 +450,159 @@ export default function SchedulingScreen() {
 
   // Candidate Buses (2 to 3 Buses ready matching website Matrix Status)
   const candidateBuses = useMemo(() => {
-    let sortedCandidates = [];
-    if (matrixStatus === 'A') {
-      // STRICT PEAK / COMPLEX RULE: ONLY Category A buses are eligible!
-      const catABuses = pool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      if (catABuses.length > 0) {
-        sortedCandidates = catABuses;
-      } else {
-        // Fallback only if no Cat A available in depot
-        sortedCandidates = pool.slice().sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      }
-    } else if (matrixStatus === 'A/B') {
-      // NORMAL OFF-PEAK: Category B prioritized first, then Category A
-      const catBBuses = pool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      const catABuses = pool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      sortedCandidates = [...catBBuses, ...catABuses];
-    } else {
-      // NORMAL OFF-PEAK SIMPLE: Category C, then B, then A
-      const catCBuses = pool.filter((b) => b.busCategory === 'C').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      const catBBuses = pool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      const catABuses = pool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      sortedCandidates = [...catCBuses, ...catBBuses, ...catABuses];
+    const routeCode = String(selectedRoute?.code || selectedRoute?.id || selectedRoute?.routeCode || '356Z').toUpperCase().trim();
+    const depMin = parseTimeToMinutes(scheduledTime);
+
+    // Filter schedules for selected route
+    const routeSchedules = DEFAULT_DATASET_SCHEDULES.filter(
+      (s) => String(s.route || '').toUpperCase().trim() === routeCode
+    );
+
+    // Find closest schedule by departure time (matching scheduling.html)
+    let matchedSched = routeSchedules.find((s) => {
+      if (!s.outTime) return false;
+      return Math.abs(parseTimeToMinutes(s.outTime) - depMin) <= 15;
+    });
+
+    if (!matchedSched && routeSchedules.length > 0) {
+      matchedSched = routeSchedules.slice().sort((a, b) => {
+        const diffA = Math.abs(parseTimeToMinutes(a.outTime || '12:00') - depMin);
+        const diffB = Math.abs(parseTimeToMinutes(b.outTime || '12:00') - depMin);
+        return diffA - diffB;
+      })[0];
     }
 
-    return sortedCandidates.slice(0, 3).map((bus, idx) => ({
+    const targetShift = (matchedSched && matchedSched.shift)
+      ? matchedSched.shift
+      : (depMin >= 300 && depMin < 810 ? 'General Shift' : (depMin >= 810 && depMin < 1320 ? 'Shift B' : 'Night Halt'));
+
+    const candidates = [];
+    const seenBms = new Set();
+
+    const addCand = (bm, role) => {
+      if (!bm) return;
+      const key = String(bm).toUpperCase().trim();
+      if (seenBms.has(key)) return;
+      const found = pool.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key);
+      if (!found) return;
+      seenBms.add(key);
+      candidates.push({
+        ...found,
+        role,
+        shift: targetShift,
+        liveSoc: Number(found.soc ?? 80),
+      });
+    };
+
+    // 1. Primary duty bus from master timetable roster (fixBm)
+    if (matchedSched && matchedSched.fixBm) {
+      addCand(matchedSched.fixBm, `Primary Bus (${targetShift})`);
+    }
+
+    // 2. Designated swap bus from master timetable roster (swapBm)
+    if (matchedSched && matchedSched.swapBm) {
+      addCand(matchedSched.swapBm, `Designated Swap Bus (${targetShift})`);
+    }
+
+    // 3. Other scheduled buses for this route
+    routeSchedules.forEach((s) => {
+      if (candidates.length >= 8) return;
+      if (s.fixBm) addCand(s.fixBm, `Route Standby Bus (${s.shift || targetShift})`);
+      if (s.swapBm) addCand(s.swapBm, `Route Standby Bus (${s.shift || targetShift})`);
+    });
+
+    // 4. Route-designated corridor fallback
+    const designatedList = ROUTE_DESIGNATED_BMS[routeCode] || [];
+    designatedList.forEach((bm) => {
+      if (candidates.length >= 8) return;
+      addCand(bm, 'Route Standby Bus');
+    });
+
+    // 5. Depot reserve fleet search to guarantee at least 3 candidates
+    if (candidates.length < 3) {
+      const aKeys = pool.filter((b) => b.busCategory === 'A');
+      const bKeys = pool.filter((b) => b.busCategory === 'B');
+      const cKeys = pool.filter((b) => b.busCategory === 'C');
+
+      let searchPasses = [];
+      if (matrixStatus === 'A') {
+        searchPasses = [aKeys, bKeys];
+      } else if (matrixStatus === 'A/B') {
+        searchPasses = [bKeys, aKeys, cKeys];
+      } else {
+        searchPasses = [cKeys, bKeys, aKeys];
+      }
+
+      for (const group of searchPasses) {
+        for (const b of group.slice().sort((x, y) => (y.soc || 0) - (x.soc || 0))) {
+          if (candidates.length >= 6) break;
+          addCand(b.bmNumber, 'Depot Reserve Fleet Bus');
+        }
+        if (candidates.length >= 3) break;
+      }
+    }
+
+    // 6. Sort candidates exactly matching scheduling.html:
+    // Category priority (by matrix status) -> Role rank (Primary > Swap > Standby > Depot) -> Battery SoC descending
+    candidates.sort((a, b) => {
+      const getRoleRank = (r) => {
+        const str = (r || '').toLowerCase();
+        if (str.includes('primary')) return 1;
+        if (str.includes('swap')) return 2;
+        if (str.includes('standby')) return 3;
+        return 4;
+      };
+
+      let catPriority = { A: 0, B: 1, C: 2 };
+      if (matrixStatus === 'A/B') {
+        catPriority = { B: 0, A: 1, C: 2 };
+      } else if (matrixStatus === 'A/B/C') {
+        catPriority = { C: 0, B: 1, A: 2 };
+      }
+
+      const catA = catPriority[a.busCategory] ?? 3;
+      const catB = catPriority[b.busCategory] ?? 3;
+      if (catA !== catB) return catA - catB;
+
+      const rankA = getRoleRank(a.role);
+      const rankB = getRoleRank(b.role);
+      if (rankA !== rankB) return rankA - rankB;
+
+      return ((b.liveSoc ?? 0) - (a.liveSoc ?? 0));
+    });
+
+    const recommendedPool = candidates.slice(0, 3);
+
+    // 7. Determine Mandatory Locked Candidate according to Matrix Status (exact match with scheduling.html)
+    let lockedCand = null;
+    if (matrixStatus === 'A/B') {
+      const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+      if (bBuses.length > 0) {
+        lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+      } else {
+        const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
+        lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
+      }
+    } else if (matrixStatus === 'A/B/C') {
+      const cBuses = recommendedPool.filter((c) => c.busCategory === 'C');
+      if (cBuses.length > 0) {
+        lockedCand = cBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+      } else {
+        const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+        lockedCand = bBuses.length > 0 ? bBuses[0] : recommendedPool[0];
+      }
+    } else {
+      const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
+      lockedCand = aBuses.length > 0 ? aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] : recommendedPool[0];
+    }
+
+    return recommendedPool.map((bus) => ({
       ...bus,
-      isHighestSocLocked: idx === 0,
+      isHighestSocLocked: Boolean(lockedCand && lockedCand.bmNumber === bus.bmNumber),
       matrixStatus: matrixStatus,
       fullDutyKm: Math.round(Math.max(0, (bus.soc || 80) - 10) * 1.42),
     }));
-  }, [pool, selectedRoute, matrixStatus]);
+  }, [pool, selectedRoute, scheduledTime, matrixStatus]);
 
   // Mandatory candidate bus is the top recommended bus (idx === 0)
   const mandatoryCandidate = candidateBuses[0] || null;

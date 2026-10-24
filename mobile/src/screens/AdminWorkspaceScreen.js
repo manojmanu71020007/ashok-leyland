@@ -30,6 +30,7 @@ import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile, downloadExcelReport, downloadPdfReport } from '../utils/exportCsv';
 import { getSequentialTasksForDuty } from '../utils/detailedScheduleTrips';
 import { api } from '../api/client';
+import { WebView } from 'react-native-webview';
 
 // ── Multi-Language Dictionary ──
 const I18N = {
@@ -469,26 +470,63 @@ const UserNavIcon = ({ color = '#94a3b8', size = 20, active = false }) => (
   </View>
 );
 
-// ── PHOTO-MATCHING CIRCULAR DONUT CHART ──
-const DonutChart = ({ total = 123, allocated = 6 }) => {
-  const safeTotal = Math.max(0, Number(total) || 0);
-  const safeAllocated = Math.min(safeTotal, Math.max(0, Number(allocated) || 0));
+// ── Universal SubScreen Header with Back Button & Count/Badge ──
+const SubScreenHeader = ({ title, subtitle, onBack, count, badge }) => (
+  <View style={styles.subScreenHeader}>
+    <View style={styles.subScreenHeaderBar}>
+      <TouchableOpacity
+        style={styles.subScreenBackPill}
+        onPress={onBack}
+        activeOpacity={0.8}
+        accessibilityLabel="Go back to Home"
+      >
+        <Text style={styles.subScreenBackIcon}>←</Text>
+        <Text style={styles.subScreenBackLabel}>Back</Text>
+      </TouchableOpacity>
+
+      <View style={styles.subScreenHeaderTitles}>
+        <Text style={styles.subScreenHeaderMainTitle} numberOfLines={1}>
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text style={styles.subScreenHeaderSubTitle} numberOfLines={1}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+
+      {count !== undefined && count !== null ? (
+        <View style={styles.subScreenCountPill}>
+          <Text style={styles.subScreenCountText}>{count}</Text>
+        </View>
+      ) : badge ? (
+        <View style={styles.subScreenBadgePill}>
+          <Text style={styles.subScreenBadgeText}>{badge}</Text>
+        </View>
+      ) : null}
+    </View>
+  </View>
+);
+
+
+// ── PHOTO-MATCHING CIRCULAR DONUT CHART (Dynamically updated by Allocated & Not Allocated) ──
+const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
+  const safeAllocated = Math.max(0, Number(allocated) || 0);
+  const safeNotAllocated = Math.max(0, Number(notAllocated) || 0);
+  // Total is strictly the sum of allocated + not allocated, with fallback to total
+  const safeTotal = (safeAllocated + safeNotAllocated > 0)
+    ? (safeAllocated + safeNotAllocated)
+    : Math.max(1, Number(total) || 123);
+
   const ratio = safeTotal > 0 ? safeAllocated / safeTotal : 0;
-  const theta = Math.min(360, Math.max(0, ratio * 360));
+  const size = 120;
+  const strokeWidth = 12;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference * (1 - ratio);
 
-  // Native iOS / Android / Web math
-  const firstHalfAngle = Math.min(180, theta);
-  const secondHalfAngle = Math.max(0, theta - 180);
-  const firstRotate = -225 + firstHalfAngle;
-  const secondRotate = -225 + secondHalfAngle;
-
+  // 1. Web Platform: Standard SVG
   if (Platform.OS === 'web') {
-    const size = 120;
-    const strokeWidth = 12;
-    const radius = (size - strokeWidth) / 2;
-    const circumference = 2 * Math.PI * radius;
-    const strokeDashoffset = circumference * (1 - ratio);
-
     return (
       <View style={styles.donutWrapper}>
         <svg
@@ -497,14 +535,16 @@ const DonutChart = ({ total = 123, allocated = 6 }) => {
           viewBox={`0 0 ${size} ${size}`}
           style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}
         >
+          {/* Base lavender ring (Not Allocated) */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#ede9fe"
+            stroke="#ddd6fe"
             strokeWidth={strokeWidth}
             fill="none"
           />
+          {/* Dynamic green progress arc (Allocated) */}
           {safeAllocated > 0 && (
             <circle
               cx={size / 2}
@@ -527,72 +567,44 @@ const DonutChart = ({ total = 123, allocated = 6 }) => {
     );
   }
 
+  // 2. Native Mobile Platform (Android & iOS): Hardware-accelerated SVG via WebView
+  const svgHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; overflow:hidden; }
+    body, html { width:100%; height:100%; background:transparent; display:flex; align-items:center; justify-content:center; }
+  </style>
+</head>
+<body>
+  <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+    <g transform="rotate(-90 ${size / 2} ${size / 2})">
+      <circle cx="${size / 2}" cy="${size / 2}" r="${radius}" stroke="#ddd6fe" stroke-width="${strokeWidth}" fill="none" />
+      ${safeAllocated > 0 ? `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" stroke="#10b981" stroke-width="${strokeWidth}" fill="none" stroke-dasharray="${circumference}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round" />` : ''}
+    </g>
+    <text x="${size / 2}" y="${size / 2 - 2}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" text-anchor="middle" fill="#1e293b">${safeTotal}</text>
+    <text x="${size / 2}" y="${size / 2 + 15}" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" text-anchor="middle" fill="#64748b">Total fleet</text>
+  </svg>
+</body>
+</html>
+`;
+
   return (
     <View style={styles.donutWrapper}>
-      {/* 1. Base Lavender Ring */}
-      <View style={styles.donutBaseRing} />
-
-      {/* 2. Allocated Arc: Right half (0° to 180°) */}
-      <View style={styles.donutHalfRight}>
-        <View
-          style={[
-            styles.donutCircleRight,
-            { transform: [{ rotate: `${firstRotate}deg` }] },
-          ]}
-        />
-      </View>
-
-      {/* 3. Allocated Arc: Left half (180° to 360°) */}
-      {theta > 180 && (
-        <View style={styles.donutHalfLeft}>
-          <View
-            style={[
-              styles.donutCircleLeft,
-              { transform: [{ rotate: `${secondRotate}deg` }] },
-            ]}
-          />
-        </View>
-      )}
-
-      {/* 4. Center Metrics matching photo */}
-      <View style={styles.donutCenterContent}>
-        <Text style={styles.donutTotalNum}>{safeTotal}</Text>
-        <Text style={styles.donutTotalLabel}>Total fleet</Text>
-      </View>
+      <WebView
+        originWhitelist={['*']}
+        source={{ html: svgHtml }}
+        style={{ width: size, height: size, backgroundColor: 'transparent' }}
+        scrollEnabled={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        scalesPageToFit={false}
+      />
     </View>
   );
 };
-
-// ── UNIFIED SUBSCREEN HEADER BAR ──
-const SubScreenHeader = ({ title, subtitle, onBack, badge, count }) => (
-  <View style={styles.subScreenHeaderBar}>
-    <TouchableOpacity
-      style={styles.subScreenBackPill}
-      onPress={onBack}
-      activeOpacity={0.75}
-    >
-      <Text style={styles.subScreenBackIcon}>←</Text>
-      <Text style={styles.subScreenBackLabel}>Home</Text>
-    </TouchableOpacity>
-
-    <View style={styles.subScreenHeaderTitles}>
-      <Text style={styles.subScreenHeaderMainTitle} numberOfLines={1}>{title}</Text>
-      {subtitle ? <Text style={styles.subScreenHeaderSubTitle} numberOfLines={1}>{subtitle}</Text> : null}
-    </View>
-
-    {count !== undefined && count !== null ? (
-      <View style={styles.subScreenCountPill}>
-        <Text style={styles.subScreenCountText}>{count}</Text>
-      </View>
-    ) : badge ? (
-      <View style={styles.subScreenBadgePill}>
-        <Text style={styles.subScreenBadgeText}>{badge}</Text>
-      </View>
-    ) : (
-      <View style={{ width: 36 }} />
-    )}
-  </View>
-);
 
 export default function AdminWorkspaceScreen() {
   const {
@@ -664,6 +676,15 @@ export default function AdminWorkspaceScreen() {
   // 'HOME' | 'SCHEDULE' | 'FLEET' | 'PROFILE'
   const [activeAdminTab, setActiveAdminTab] = useState('HOME');
 
+  const navigateToAdminTab = (tab) => {
+    setActiveAdminTab(tab);
+    if (mainScrollRef.current) {
+      try {
+        mainScrollRef.current.scrollTo({ y: 0, animated: false });
+      } catch (e) {}
+    }
+  };
+
   // Open BM Details Modal
   const handleOpenBmDutyDetails = (duty) => {
     const details = generateBusDutyDetails(duty);
@@ -673,7 +694,7 @@ export default function AdminWorkspaceScreen() {
 
   // Scroll smoothly down to Total Buses near Not-Allocated Buses
   const handleScrollToTotalBuses = () => {
-    setActiveAdminTab('TOTAL_FLEET');
+    navigateToAdminTab('TOTAL_FLEET');
   };
 
   // Schedule Requirement State (Supports routes from BOTH Depot 1 and Depot 2)
@@ -1490,7 +1511,7 @@ export default function AdminWorkspaceScreen() {
             <View style={styles.fleetSummaryCard}>
               <View style={styles.fleetSummaryTopRow}>
                 {/* Left: Donut Chart with bold 124 & Total fleet */}
-                <DonutChart total={viewBuses.length} allocated={viewAllocatedDuties.length} />
+                <DonutChart total={viewBuses.length} allocated={viewAllocatedDuties.length} notAllocated={viewNotAllocatedBuses.length} />
 
                 {/* Right: Legend with Live system, Allocated, Not allocated */}
                 <View style={styles.fleetSummaryLegend}>
@@ -1501,7 +1522,7 @@ export default function AdminWorkspaceScreen() {
 
                   <TouchableOpacity
                     style={styles.legendRow}
-                    onPress={() => setActiveAdminTab('ALLOCATED')}
+                    onPress={() => navigateToAdminTab('ALLOCATED')}
                     activeOpacity={0.7}
                   >
                     <View style={styles.legendLabelWrap}>
@@ -1518,7 +1539,7 @@ export default function AdminWorkspaceScreen() {
 
                   <TouchableOpacity
                     style={styles.legendRow}
-                    onPress={() => setActiveAdminTab('NOT_ALLOCATED')}
+                    onPress={() => navigateToAdminTab('NOT_ALLOCATED')}
                     activeOpacity={0.7}
                   >
                     <View style={styles.legendLabelWrap}>
@@ -1541,7 +1562,7 @@ export default function AdminWorkspaceScreen() {
               {/* Bottom Row: Available for Departure */}
               <TouchableOpacity
                 style={styles.fleetSummaryBottomRow}
-                onPress={() => setActiveAdminTab('AVAILABLE_DEPARTURE')}
+                onPress={() => navigateToAdminTab('AVAILABLE_DEPARTURE')}
                 activeOpacity={0.7}
               >
                 <View style={styles.availDepartureLeft}>
@@ -1557,11 +1578,11 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.accountingTitle}>📊 Fleet Breakdown:</Text>
               <Text style={styles.accountingPill}>Total: {viewBuses.length}</Text>
               <Text style={styles.accountingEqual}>=</Text>
-              <TouchableOpacity onPress={() => setActiveAdminTab('AVAILABLE_DEPARTURE')}>
+              <TouchableOpacity onPress={() => navigateToAdminTab('AVAILABLE_DEPARTURE')}>
                 <Text style={[styles.accountingPill, { backgroundColor: '#f5f3ff', color: '#5b21b6' }]}>⚡ Avail: {viewAvailableBuses.length}</Text>
               </TouchableOpacity>
               <Text style={styles.accountingPlus}>+</Text>
-              <TouchableOpacity onPress={() => setActiveAdminTab('ALLOCATED')}>
+              <TouchableOpacity onPress={() => navigateToAdminTab('ALLOCATED')}>
                 <Text style={[styles.accountingPill, { backgroundColor: '#ecfdf5', color: '#065f46' }]}>🟣 On Route: {viewAllocatedDuties.length}</Text>
               </TouchableOpacity>
               <Text style={styles.accountingPlus}>+</Text>
@@ -1580,7 +1601,7 @@ export default function AdminWorkspaceScreen() {
                 {/* Tile 1: Available for departure */}
                 <TouchableOpacity
                   style={styles.hubTile}
-                  onPress={() => setActiveAdminTab('AVAILABLE_DEPARTURE')}
+                  onPress={() => navigateToAdminTab('AVAILABLE_DEPARTURE')}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.hubTileIconBox, { backgroundColor: '#ede9fe' }]}>
@@ -1593,7 +1614,7 @@ export default function AdminWorkspaceScreen() {
                 {/* Tile 2: Allocated buses */}
                 <TouchableOpacity
                   style={styles.hubTile}
-                  onPress={() => setActiveAdminTab('ALLOCATED')}
+                  onPress={() => navigateToAdminTab('ALLOCATED')}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.hubTileIconBox, { backgroundColor: '#dcfce7' }]}>
@@ -1606,7 +1627,7 @@ export default function AdminWorkspaceScreen() {
                 {/* Tile 3: Not allocated */}
                 <TouchableOpacity
                   style={styles.hubTile}
-                  onPress={() => setActiveAdminTab('NOT_ALLOCATED')}
+                  onPress={() => navigateToAdminTab('NOT_ALLOCATED')}
                   activeOpacity={0.8}
                 >
                   <View style={[styles.hubTileIconBox, { backgroundColor: '#dbeafe' }]}>
@@ -1642,7 +1663,7 @@ export default function AdminWorkspaceScreen() {
           <SubScreenHeader
             title="Schedule Overview"
             subtitle="Route candidate evaluation & dispatch readiness"
-            onBack={() => setActiveAdminTab('HOME')}
+            onBack={() => navigateToAdminTab('HOME')}
             badge={`Depot ${selectedRouteDepot}`}
           />
           <View style={styles.rowBetween}>
@@ -1805,7 +1826,7 @@ export default function AdminWorkspaceScreen() {
             <SubScreenHeader
               title="Allocated Buses"
               subtitle="Active dispatches on scheduled corridors"
-              onBack={() => setActiveAdminTab('HOME')}
+              onBack={() => navigateToAdminTab('HOME')}
               count={viewAllocatedDuties.length}
             />
             <View style={styles.sectionContent}>
@@ -2022,7 +2043,7 @@ export default function AdminWorkspaceScreen() {
             <SubScreenHeader
               title="Not-Allocated Buses"
               subtitle="Yard reserve, charging & maintenance isolation"
-              onBack={() => setActiveAdminTab('HOME')}
+              onBack={() => navigateToAdminTab('HOME')}
               count={viewNotAllocatedBuses.length}
             />
             <View style={styles.sectionContent}>
@@ -2145,7 +2166,7 @@ export default function AdminWorkspaceScreen() {
             <SubScreenHeader
               title="Available for Scheduling"
               subtitle="Ready fleet strictly compliant for duty scheduling"
-              onBack={() => setActiveAdminTab('HOME')}
+              onBack={() => navigateToAdminTab('HOME')}
               count={viewAvailableBuses.length}
             />
             <View style={styles.sectionContent}>
@@ -2275,7 +2296,7 @@ export default function AdminWorkspaceScreen() {
             <SubScreenHeader
               title="Total Fleet"
               subtitle="Depot 1 & Depot 2 complete vehicle directory"
-              onBack={() => setActiveAdminTab('HOME')}
+              onBack={() => navigateToAdminTab('HOME')}
               count={viewBuses.length}
             />
 
@@ -2534,7 +2555,7 @@ export default function AdminWorkspaceScreen() {
             <SubScreenHeader
               title="Admin Profile"
               subtitle="Master credentials & system preferences"
-              onBack={() => setActiveAdminTab('HOME')}
+              onBack={() => navigateToAdminTab('HOME')}
               badge="Active"
             />
             {/* Profile Header */}
@@ -3807,7 +3828,7 @@ export default function AdminWorkspaceScreen() {
       {/* ── PHOTO-MATCHING BOTTOM NAVIGATION BAR ── */}
       <View style={styles.adminBottomNav}>
         {/* 1. Home */}
-        <TouchableOpacity style={styles.adminNavTab} onPress={() => setActiveAdminTab('HOME')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.adminNavTab} onPress={() => navigateToAdminTab('HOME')} activeOpacity={0.8}>
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'HOME' && styles.adminNavIconActive]}>
             <HomeNavIcon color={activeAdminTab === 'HOME' ? '#4361ee' : '#94a3b8'} size={21} active={activeAdminTab === 'HOME'} />
           </View>
@@ -3815,7 +3836,7 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
 
         {/* 2. Schedule */}
-        <TouchableOpacity style={styles.adminNavTab} onPress={() => setActiveAdminTab('SCHEDULE')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.adminNavTab} onPress={() => navigateToAdminTab('SCHEDULE')} activeOpacity={0.8}>
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'SCHEDULE' && styles.adminNavIconActive]}>
             <CalendarIcon color={activeAdminTab === 'SCHEDULE' ? '#4361ee' : '#94a3b8'} size={20} />
           </View>
@@ -3828,7 +3849,7 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
 
         {/* 4. Total fleet */}
-        <TouchableOpacity style={styles.adminNavTab} onPress={() => setActiveAdminTab('TOTAL_FLEET')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.adminNavTab} onPress={() => navigateToAdminTab('TOTAL_FLEET')} activeOpacity={0.8}>
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'TOTAL_FLEET' && styles.adminNavIconActive]}>
             <BusFrontIcon color={activeAdminTab === 'TOTAL_FLEET' ? '#4361ee' : '#94a3b8'} size={20} />
           </View>
@@ -3836,7 +3857,7 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
 
         {/* 5. Profile */}
-        <TouchableOpacity style={styles.adminNavTab} onPress={() => setActiveAdminTab('PROFILE')} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.adminNavTab} onPress={() => navigateToAdminTab('PROFILE')} activeOpacity={0.8}>
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'PROFILE' && styles.adminNavIconActive]}>
             <UserNavIcon color={activeAdminTab === 'PROFILE' ? '#4361ee' : '#94a3b8'} size={20} active={activeAdminTab === 'PROFILE'} />
           </View>

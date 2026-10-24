@@ -240,19 +240,15 @@ export const isBusNewlyAdded = (bus, addedBusesMap = null) => {
 
 export const timeToMinutes = (tStr) => {
   if (!tStr) return 720;
-  const isAmPm = /am|pm/i.test(tStr);
-  if (isAmPm) {
-    const parts = tStr.trim().split(/\s+/);
-    const timeParts = (parts[0] || '12:00').split(':').map(Number);
-    let h = timeParts[0] || 0;
-    const m = timeParts[1] || 0;
-    const mod = (parts[1] || '').toUpperCase();
-    if (mod === 'PM' && h < 12) h += 12;
-    if (mod === 'AM' && h === 12) h = 0;
-    return h * 60 + m;
-  }
-  const p = tStr.split(':');
-  return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+  const str = String(tStr).trim();
+  const isPM = /pm/i.test(str);
+  const isAM = /am/i.test(str);
+  const parts = str.replace(/[^0-9:]/g, '').split(':');
+  let h = parseInt(parts[0], 10) || 0;
+  const m = parseInt(parts[1], 10) || 0;
+  if (isPM && h < 12) h += 12;
+  if (isAM && h === 12) h = 0;
+  return h * 60 + m;
 };
 
 export const STATIC_BUS_CATEGORIES = {
@@ -373,8 +369,24 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
   return Math.min(100, Math.round(baseSoc + reservePct));
 }
 
-export function getRouteComplexity(distKm) {
-  const d = Number(distKm || 0);
+export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
+  if (matchedSched && matchedSched.category) {
+    const sc = String(matchedSched.category).toLowerCase();
+    if (sc.includes('comp')) return 'complex';
+    if (sc.includes('mod')) return 'moderate';
+    if (sc.includes('stand')) return 'standard';
+    if (sc.includes('simp')) return 'simple';
+  }
+  let routeObj = (distOrRoute && typeof distOrRoute === 'object') ? distOrRoute : null;
+  let dist = (typeof distOrRoute === 'number') ? distOrRoute : (routeObj ? (routeObj.distance || routeObj.distKm) : 0);
+  if (routeObj && routeObj.category) {
+    const sc = String(routeObj.category).toLowerCase();
+    if (sc.includes('comp')) return 'complex';
+    if (sc.includes('mod')) return 'moderate';
+    if (sc.includes('stand')) return 'standard';
+    if (sc.includes('simp')) return 'simple';
+  }
+  const d = Number(dist || 0);
   if (d > 35) return 'complex';
   if (d >= 30) return 'moderate';
   if (d < 25) return 'simple';
