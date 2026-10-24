@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Ashok Leyland Fleet",
+    "slug": "ashok-leyland-fleet",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f8fafc"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.ashokleyland.fleetmanager"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#f8fafc"
+      },
+      "package": "com.ashokleyland.fleetmanager",
+      "permissions": [
+        "CAMERA",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Ashok Leyland Fleet to use camera to scan bus barcodes and charger bay QR codes."
+        }
+      ]
+    ],
+    "web": {
+      "favicon": "./assets/icon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "eb37e5d6-941a-4435-93d8-0badc70a91ad"
+      }
+    }
+  }
+}

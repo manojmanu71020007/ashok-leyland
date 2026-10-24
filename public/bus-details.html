@@ -683,8 +683,12 @@
       link.setAttribute('download', `${busKey}_daily_soc_history_${new Date().toISOString().slice(0, 10)}.csv`);
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        try {
+            if (link.parentNode) document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch(e){}
+    }, 60000);
     }
 
     async function loadSocHistory() {

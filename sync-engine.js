@@ -1,3 +1,24 @@
+
+    function mergeHistoryLists(serverList, localList) {
+        if (!Array.isArray(serverList)) return Array.isArray(localList) ? localList : [];
+        if (!Array.isArray(localList)) return serverList;
+        const map = new Map();
+        serverList.forEach(item => {
+            if (!item) return;
+            const key = String(item.id || (item.bm + '_' + (item.unlockTime || item.completedAt || item.startTime || item.completedTs || '')));
+            map.set(key, item);
+        });
+        const extraLocal = [];
+        localList.forEach(item => {
+            if (!item) return;
+            const key = String(item.id || (item.bm + '_' + (item.unlockTime || item.completedAt || item.startTime || item.completedTs || '')));
+            if (!map.has(key)) {
+                map.set(key, item);
+                extraLocal.push(item);
+            }
+        });
+        return [...extraLocal, ...serverList];
+    }
 /**
  * DepotSyncEngine - Real-Time Cross-Device Synchronization Client
  * 
@@ -23,6 +44,9 @@
     const ADDED_BUSES_KEY = 'depot_added_buses';
     const DELETED_BUSES_KEY = 'depot_deleted_buses';
     const SERVICING_STATUS_KEY = 'smartbus_servicing_status';
+    const CHARGING_HISTORY_KEY = 'depot_charging_history';
+    const CLEANING_HISTORY_KEY = 'depot_cleaning_history';
+    const COMPLETED_LOG_KEY = 'depot_route_completed_log';
 
     let currentVersion = 0;
     let eventSource = null;
@@ -36,6 +60,9 @@
         'depot-updated': new Set(),
         'fleet-updated': new Set(),
         'servicing-status': new Set(),
+        'charging-history': new Set(),
+        'cleaning-history': new Set(),
+        'completed-routes': new Set(),
         'sync': new Set()
     };
 
@@ -129,6 +156,36 @@
                 localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(stateData.servicingStatus));
             } catch (e) {}
             notify('servicing-status', stateData.servicingStatus);
+        }
+
+        // 8. Sync charging history (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.chargingHistory)) {
+            try {
+                const local = getChargingHistoryLocal();
+                const merged = mergeHistoryLists(stateData.chargingHistory, local);
+                localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(merged));
+                notify('charging-history', merged);
+            } catch (e) {}
+        }
+
+        // 9. Sync cleaning history (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.cleaningHistory)) {
+            try {
+                const local = getCleaningHistoryLocal();
+                const merged = mergeHistoryLists(stateData.cleaningHistory, local);
+                localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(merged));
+                notify('cleaning-history', merged);
+            } catch (e) {}
+        }
+
+        // 10. Sync completed routes log (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.completedRoutesLog)) {
+            try {
+                const local = getCompletedRoutesLocal();
+                const merged = mergeHistoryLists(stateData.completedRoutesLog, local);
+                localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(merged));
+                notify('completed-routes', merged);
+            } catch (e) {}
         }
 
         notify('sync', stateData);
@@ -232,6 +289,45 @@
                 } catch (err) {
                     fetchFullSync();
                 }
+            });
+
+            eventSource.addEventListener('charging-history-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const history = payload?.data?.chargingHistory || payload?.chargingHistory;
+                    if (Array.isArray(history)) {
+                        localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(history));
+                        notify('charging-history', history);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
+            });
+
+            eventSource.addEventListener('cleaning-history-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const history = payload?.data?.cleaningHistory || payload?.cleaningHistory;
+                    if (Array.isArray(history)) {
+                        localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(history));
+                        notify('cleaning-history', history);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
+            });
+
+            eventSource.addEventListener('completed-routes-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const log = payload?.data?.completedRoutesLog || payload?.completedRoutesLog;
+                    if (Array.isArray(log)) {
+                        localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(log));
+                        notify('completed-routes', log);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
             });
 
             eventSource.addEventListener('servicing-status-updated', (e) => {
@@ -502,14 +598,29 @@
         } catch(e) { return {}; }
     }
 
+    const NEWLY_ADDED_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days (1 month)
+
     function isNewlyAddedBus(bm) {
         if (!bm) return false;
         const clean = String(bm).toUpperCase().trim();
         const added = getAddedBusesLocal();
-        if (added[clean]) return true;
+        const entry = added[clean];
+        if (entry) {
+            const addedTime = entry.addedAt ? new Date(entry.addedAt).getTime() : (entry.timestamp ? Number(entry.timestamp) : null);
+            if (addedTime && !isNaN(addedTime)) {
+                return (Date.now() - addedTime) < NEWLY_ADDED_MAX_AGE_MS;
+            }
+            return true;
+        }
         try {
             const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
-            if (states[clean] && states[clean].isNewlyAdded) return true;
+            if (states[clean] && states[clean].isNewlyAdded) {
+                const addedTime = states[clean].addedAt ? new Date(states[clean].addedAt).getTime() : (states[clean].timestamp ? Number(states[clean].timestamp) : null);
+                if (addedTime && !isNaN(addedTime)) {
+                    return (Date.now() - addedTime) < NEWLY_ADDED_MAX_AGE_MS;
+                }
+                return true;
+            }
         } catch(e) {}
         return false;
     }
@@ -806,6 +917,76 @@
         }
     }
 
+
+    function getChargingHistoryLocal() {
+        try {
+            const raw = localStorage.getItem(CHARGING_HISTORY_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushChargingHistory(data) {
+        let list = Array.isArray(data) ? data : [data, ...getChargingHistoryLocal()];
+        try { localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('charging-history', list);
+        try {
+            await fetch(API_BASE + '/api/charging-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chargingHistory: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushChargingHistory error:', e);
+        }
+    }
+
+    function getCleaningHistoryLocal() {
+        try {
+            const raw = localStorage.getItem(CLEANING_HISTORY_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushCleaningHistory(data) {
+        let list = Array.isArray(data) ? data : [data, ...getCleaningHistoryLocal()];
+        try { localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('cleaning-history', list);
+        try {
+            await fetch(API_BASE + '/api/cleaning-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cleaningHistory: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushCleaningHistory error:', e);
+        }
+    }
+
+    function getCompletedRoutesLocal() {
+        try {
+            const raw = localStorage.getItem(COMPLETED_LOG_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushCompletedRoutes(data) {
+        let list = Array.isArray(data) ? data : [data, ...getCompletedRoutesLocal()];
+        try { localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('completed-routes', list);
+        try {
+            await fetch(API_BASE + '/api/completed-routes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completedRoutesLog: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushCompletedRoutes error:', e);
+        }
+    }
+
     // Cross-tab broadcast receiver
     try {
         const bc = new BroadcastChannel('depot_operations_sync');
@@ -853,6 +1034,14 @@
         updateBusServicing: updateBusServicingApi,
         saveBusServicing: updateBusServicingApi,
         clearBusServicing: clearBusServicingApi,
+        getChargingHistory: getChargingHistoryLocal,
+        saveChargingHistory: pushChargingHistory,
+        getCleaningHistory: getCleaningHistoryLocal,
+        saveCleaningHistory: pushCleaningHistory,
+        getCompletedRoutes: getCompletedRoutesLocal,
+        saveCompletedRoutes: pushCompletedRoutes,
+        unlockBus: unlockBusApi,
+        unlockAllBuses: unlockAllBusesApi,
         getVersion: () => currentVersion
     };
 })(window);

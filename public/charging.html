@@ -1470,6 +1470,7 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <strong style="font-size:1.08rem; color:var(--text);">${x.bm}</strong>
+                ${(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(x.bm)) ? '<span class="badge-newly-added" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 1px 4px rgba(16,185,129,0.3);">✨ Newly Added Bus</span>' : ''}
                 <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dbeafe; color:#1e40af;">
                   ⚡ ${t('badge_charging_bay', 'Charging Bay')}
                 </span>
@@ -1577,8 +1578,19 @@
 
   function addChargingHistory(item) {
     const hist = getChargingHistory();
-    hist.unshift(item);
-    localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(hist));
+    if (!hist.some(x => x.id === item.id)) {
+      hist.unshift(item);
+    }
+    try { localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(hist)); } catch (e) {}
+    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveChargingHistory === 'function') {
+      window.DepotSyncEngine.saveChargingHistory(hist);
+    } else {
+      fetch('/api/charging-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ item, chargingHistory: hist })
+      }).catch(e => console.warn('Could not post charging history:', e));
+    }
   }
 
   function openProcessDetailModal(id) {
@@ -1586,7 +1598,9 @@
     const item = hist.find(x => x.id === id);
     if (!item) return;
 
-    document.getElementById('modalBusTitle').innerHTML = `⚡ Bus ${item.bm} <span style="font-size:0.9rem;font-weight:600;color:var(--muted);">(${item.reg || ''})</span>`;
+    const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(item.bm);
+    const newBadge = isNew ? '<span class="badge-newly-added" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.75rem; font-weight:800; padding:2px 8px; border-radius:6px; margin-left:6px; vertical-align:middle;">✨ Newly Added Bus</span>' : '';
+    document.getElementById('modalBusTitle').innerHTML = `⚡ Bus ${item.bm} ${newBadge} <span style="font-size:0.9rem;font-weight:600;color:var(--muted);">(${item.reg || ''})</span>`;
     document.getElementById('modalDetailBody').innerHTML = `
       <div class="detail-modal-row">
         <span class="detail-modal-label">${t('label_process_type', 'Process Type:')}</span>
@@ -1683,6 +1697,7 @@
         <div style="flex:1;">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <strong style="font-size:1.05rem; color:var(--text);">${e.bm}</strong>
+            ${(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(e.bm)) ? '<span class="badge-newly-added" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 1px 4px rgba(16,185,129,0.3);">✨ Newly Added Bus</span>' : ''}
             <span style="font-size:0.75rem; font-weight:700; padding:2px 8px; border-radius:999px; background:#dcfce7; color:#166534;">
               ${e.reg || 'KA51AH'}
             </span>
@@ -1778,8 +1793,12 @@
     link.setAttribute('download', filename);
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+        try {
+            if (link.parentNode) document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch(e){}
+    }, 60000);
   }
 
   let apiBusStates = {};
@@ -2084,6 +2103,7 @@
               <button type="button" class="clickable-bus-btn" onclick="event.stopPropagation();openProcessDetailModal('${e.id}')" title="Click to view details for ${e.bm}">
                 ⚡ ${e.bm}
               </button>
+              ${(window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(e.bm)) ? '<span class="badge-newly-added" style="background:linear-gradient(135deg, #10b981, #059669); color:#fff; font-size:0.72rem; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 1px 4px rgba(16,185,129,0.3);">✨ Newly Added</span>' : ''}
               <span style="font-size:0.8rem;color:var(--muted);">${e.reg || ''}</span>
               <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#dcfce7;color:#166534;font-weight:700;">${e.startSoc || '20%'} ➔ ${e.finalSoc || '80%'}</span>
               <span style="font-size:0.75rem;padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-weight:600;">${e.chargingStatus || e.status || 'Completed'}</span>
@@ -2160,6 +2180,7 @@
     window.DepotSyncEngine.on('allocated-duties', handleSyncChargingState);
     window.DepotSyncEngine.on('bus-state', handleSyncChargingState);
     window.DepotSyncEngine.on('sync', handleSyncChargingState);
+    window.DepotSyncEngine.on('charging-history', () => { renderLog(); if (document.getElementById('historyModal')?.style.display === 'flex') filterHistoryList(); });
     window.DepotSyncEngine.on('fleet-bus-added', () => { loadVehicles(); });
     window.DepotSyncEngine.on('fleet-bus-deleted', () => { loadVehicles(); });
     window.DepotSyncEngine.on('fleet-updated', () => { loadVehicles(); });
