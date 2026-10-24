@@ -19018,31 +19018,6 @@
   "_swapLog": [],
   "_allocatedDuties": [
     {
-      "id": "duty_BM080_356Z_1792813933587",
-      "bm": "BM080",
-      "bmNumber": "BM080",
-      "regNo": "KA51AH3336",
-      "routeId": "356Z",
-      "routeCode": "356Z",
-      "busNumber": "356Z",
-      "routeName": "Chandapura ➔ Anekal (356Z) — 28.7 km",
-      "origin": "Chandapura",
-      "destination": "Anekal",
-      "departureTime": "01:45 PM",
-      "isManualOverride": false,
-      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
-      "shift": "General Shift",
-      "soc": 96,
-      "fullDutyKm": 122,
-      "routeDist": 28.7,
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Ramesh Kumar",
-      "depot": "1",
-      "allocatedAt": "9:22 AM, 21 Oct 2026",
-      "status": "Allocated"
-    },
-    {
       "id": "duty_BM600_KBS3A_1792773859383",
       "bm": "BM600",
       "bmNumber": "BM600",
@@ -19264,7 +19239,7 @@
     "BM062": "1",
     "BM068": "1",
     "BM075": "1",
-    "BM080": "1",
+    "BM080": "2",
     "BM081": "1",
     "BM082": "1",
     "BM086": "2",
@@ -19624,6 +19599,20 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "cleaningCompletedAt": "07:46:31 am, 24 Oct 2026"
+    },
+    "BM080": {
+      "bm": "BM080",
+      "routeCompleted": true,
+      "routeCompletedAt": "9:24 AM",
+      "routeCompletedTs": 1792814048111,
+      "depot": "2",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "chargingCompletedAt": null,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "cleaningCompletedAt": null,
+      "status": "needs_servicing"
     }
   },
   "BM600": {
