@@ -609,6 +609,7 @@ export const FleetProvider = ({ children }) => {
       const isCharging = (lockedEntry && (lockedEntry.page === 'charging' || lockedEntry.reason?.toLowerCase().includes('charg') || lockedEntry.isCharging)) || servicing.status === 'charging' || chgStatus.includes('in progress') || chgStatus === 'charging';
       const isCleaning = (lockedEntry && (lockedEntry.page === 'cleaning' || lockedEntry.reason?.toLowerCase().includes('clean') || lockedEntry.isCleaning)) || servicing.status === 'cleaning' || chgStatus.includes('clean');
       const isNeedsServicing = Boolean(servicing.status === 'needs_servicing');
+      const isTurnaroundLocked = Boolean((lockedEntry && lockedEntry.isTurnaround) || isNeedsServicing);
       const needsCharging = Boolean(servicing.needsCharging || isCharging);
       const needsCleaning = Boolean(servicing.needsCleaning || isCleaning);
 

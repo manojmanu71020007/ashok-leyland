@@ -867,8 +867,8 @@ export default function AdminWorkspaceScreen() {
     return dutyBm === cleanBm;
   };
   const allNotAllocatedBuses = buses.filter((b) => !allAllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
-  const d1NotAllocatedBuses = d1Buses.filter((d) => !d1AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
-  const d2NotAllocatedBuses = d2Buses.filter((d) => !d2AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
+  const d1NotAllocatedBuses = d1Buses.filter((b) => !d1AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
+  const d2NotAllocatedBuses = d2Buses.filter((b) => !d2AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
 
   // Current View based on selected adminDepotFilter ('all' | '1' | '2')
   const viewBuses = adminDepotFilter === 'all' ? buses : adminDepotFilter === '1' ? d1Buses : d2Buses;

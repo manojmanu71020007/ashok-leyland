@@ -298,7 +298,7 @@ const adjustTimeStr = (timeStr, deltaMinutes) => {
 };
 
 export default function SchedulingScreen() {
-  const { buses, allocateBusToRoute } = useFleet();
+  const { buses, allBuses, lockedBuses = [], allocatedDuties = [], allocateBusToRoute } = useFleet();
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
@@ -370,7 +370,8 @@ export default function SchedulingScreen() {
     return !isAlloc && !isLock && b.status !== 'Blocked' && b.status !== 'Deleted';
   };
 
-  const depotBuses = buses.filter((b) => String(b.depot || '1') === depotNum);
+  const resolvedAll = (allBuses && allBuses.length > 0) ? allBuses : buses;
+  const depotBuses = resolvedAll.filter((b) => String(b.depot || '1') === depotNum);
   const readyBuses = depotBuses.filter(isBusAvailableForScheduling);
   const eligibleDepotBuses = depotBuses.filter((b) => !b.isLocked && !b.isCharging && !b.isCleaning && !b.isAllocated && !b.isNeedsServicing && !b.needsCharging && !b.needsCleaning);
   const pool = readyBuses.length > 0 ? readyBuses : eligibleDepotBuses;
