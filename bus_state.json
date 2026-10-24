@@ -2269,7 +2269,7 @@
     "soc": 96,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-24T17:32:06.938Z",
+    "updatedAt": "2026-10-24T18:09:53.106Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -2287,18 +2287,26 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Bay #1",
-    "socBefore": 15,
+    "socBefore": 16,
     "socAfter": 96,
     "fullDutyDistanceKm": 122,
-    "lastChargedTime": "11:02 pm",
+    "lastChargedTime": "11:39 pm",
     "history": [
       {
         "timestamp": "2026-10-24T17:32:06.938Z",
         "soc": 96,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-24T18:09:53.106Z",
+        "soc": 96,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
+    "needsCharging": false,
+    "chargingCompleted": true,
     "uniqueId": "BM056",
     "busNumber": "600F",
     "bmNumber": "BM056",
@@ -9613,7 +9621,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-24T17:32:06.938Z",
+    "updatedAt": "2026-10-24T18:09:53.106Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -9631,18 +9639,26 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Bay #1",
-    "socBefore": 15,
+    "socBefore": 16,
     "socAfter": 96,
     "fullDutyDistanceKm": 122,
-    "lastChargedTime": "11:02 pm",
+    "lastChargedTime": "11:39 pm",
     "history": [
       {
         "timestamp": "2026-10-24T17:32:06.938Z",
         "soc": 96,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-24T18:09:53.106Z",
+        "soc": 96,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
+    "needsCharging": false,
+    "chargingCompleted": true,
     "uniqueId": "KA35MS0000",
     "bmNumber": "KA35MS0000",
     "blocked": true
@@ -19522,23 +19538,7 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [
-    {
-      "bm": "BM056",
-      "bmNumber": "BM056",
-      "reg": "KA51AH2953",
-      "depot": "1",
-      "page": "charging",
-      "reason": "Turnaround (Fast Charging Required First Before Cleaning & Scheduling)",
-      "isTurnaround": true,
-      "needsCharging": true,
-      "chargingCompleted": false,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "startTime": "11:00 PM",
-      "startTimestamp": 1792863009722
-    }
-  ],
+  "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
     "BM002": "1",
@@ -19958,15 +19958,12 @@
     "BM056": {
       "bm": "BM056",
       "routeCompleted": true,
-      "routeCompletedAt": "05:30 pm, 24 Oct 2026",
-      "routeCompletedTs": 1792863010741,
-      "depot": "1",
       "needsCharging": false,
       "chargingCompleted": true,
       "needsCleaning": true,
       "cleaningCompleted": false,
       "status": "turnaround_cleaning",
-      "chargingCompletedAt": "11:02 pm, 24 Oct 2026"
+      "chargingCompletedAt": "11:39 pm, 24 Oct 2026"
     },
     "BM057": {
       "bm": "BM057",
@@ -20638,6 +20635,29 @@
     "postRouteServicingPending": false
   },
   "_chargingHistory": [
+    {
+      "id": "charg_1792865389599",
+      "bm": "BM056",
+      "reg": "KA51AH2953",
+      "depot": "1",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "11:00 PM",
+      "unlockTime": "11:39 pm, 24 Oct 2026",
+      "duration": "40 mins",
+      "startSoc": "16%",
+      "finalSoc": "96%",
+      "socBef": 16,
+      "socAft": 96,
+      "delta": 80,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ High Range Fleet Category A (Single Charge Ready)",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "11:39 pm",
+      "dateStr": "24 Oct 2026",
+      "fullDutyKm": 122
+    },
     {
       "id": "charg_1792863124598",
       "bm": "BM056",
