@@ -312,7 +312,7 @@
     "chargingStatus": null
   },
   "BM001": {
-    "status": "Active",
+    "status": "Deleted",
     "rawStatus": "On Time",
     "soc": 95,
     "condition": "Good",
@@ -647,7 +647,16 @@
     "assignedRouteId": "BM001",
     "assignedRouteDisplay": "Route BM001 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "deleted": true,
+    "isDeleted": true,
+    "deletionReason": "Major Breakdown / Motor Defect",
+    "deletedAt": "2026-10-24T04:08:26.055Z",
+    "isNewlyAdded": false,
+    "regNo": "KA51AH4144",
+    "regNumber": "KA51AH4144",
+    "model": "ELECTRIC BUS AC EiV12",
+    "make": "Ashok Leyland"
   },
   "BUS-01": {
     "status": "Blocked",
@@ -8328,7 +8337,7 @@
   },
   "_assignments": {
     "BM001": "BM001",
-    "600F": "BM300",
+    "600F": "BM999",
     "BM002": "BM002",
     "BM003": "BM003",
     "BM004": "BM004",
@@ -8456,7 +8465,8 @@
     "BM299": "BM299",
     "BM300": "BM300",
     "BM303": "BM303",
-    "BM304": "BM304"
+    "BM304": "BM304",
+    "BM999": "BM999"
   },
   "_blockedBuses": [
     "BM002",
@@ -8802,9 +8812,9 @@
     "blocked": true
   },
   "600F": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
     "updatedAt": "2026-10-24T01:53:14.107Z",
@@ -8879,9 +8889,9 @@
         "status": "On Time"
       }
     ],
-    "uniqueId": "BM300",
-    "bmNumber": "BM300",
-    "blocked": true
+    "uniqueId": "BM999",
+    "bmNumber": "BM999",
+    "blocked": false
   },
   "KBS3A": {
     "status": "Blocked",
@@ -12746,6 +12756,34 @@
       "fullDutyDistanceKm": 99,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM999": {
+      "uniqueId": "BM999",
+      "unique_id": "BM999",
+      "vehicleId": "BM999",
+      "bmNumber": "BM999",
+      "busName": "BM999",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM999",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM999 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 100,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
+      "operationMode": "Single Charge Operation",
+      "blocked": false
     }
   },
   "_busAssignments": {
@@ -12778,32 +12816,32 @@
       "blocked": false
     },
     "600F": {
-      "uniqueId": "BM300",
-      "unique_id": "BM300",
-      "vehicleId": "BM300",
-      "bmNumber": "BM300",
-      "busName": "BM300",
+      "uniqueId": "BM999",
+      "unique_id": "BM999",
+      "vehicleId": "BM999",
+      "bmNumber": "BM999",
+      "busName": "BM999",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "BM300",
+      "assignedRouteId": "BM999",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route BM300 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM999 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM002": {
       "uniqueId": "BM002",
@@ -16388,6 +16426,34 @@
       "fullDutyDistanceKm": 99,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM999": {
+      "uniqueId": "BM999",
+      "unique_id": "BM999",
+      "vehicleId": "BM999",
+      "bmNumber": "BM999",
+      "busName": "BM999",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM999",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM999 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 100,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
+      "operationMode": "Single Charge Operation",
+      "blocked": false
     }
   },
   "_blockedRouteIds": [
@@ -18815,6 +18881,25 @@
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
+    },
+    "BM999": {
+      "assignedVehicle": "BM999",
+      "bmNumber": "BM999",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 100,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
+      "operationMode": "Single Charge Operation",
+      "gtfsDistanceKm": 114.75,
+      "blocked": false
     }
   },
   "_swapLog": [],
@@ -18892,31 +18977,6 @@
       "driver": "Ramesh Kumar (BMTC-4101)",
       "depot": "1",
       "allocatedAt": "9:52 AM, 21 Oct 2026",
-      "status": "Allocated"
-    },
-    {
-      "id": "duty_BM001_500DC_0815",
-      "bm": "BM001",
-      "bmNumber": "BM001",
-      "regNo": "KA51AH4144",
-      "routeId": "500DC",
-      "routeCode": "500DC",
-      "busNumber": "500DC",
-      "routeName": "Attibele ➔ Whitefield (500DC) — 32.5 km",
-      "origin": "Attibele",
-      "destination": "Whitefield (500DC)",
-      "departureTime": "08:15 AM",
-      "shift": "General Shift",
-      "soc": 95,
-      "fullDutyKm": 126,
-      "routeDist": 32.5,
-      "tripCount": 8,
-      "busCategory": "B",
-      "driver": "Ramesh Kumar (BMTC-4101)",
-      "driverId": "DRV-101",
-      "driverName": "Ramesh Kumar",
-      "depot": "1",
-      "allocatedAt": "08:15 AM, 21 Oct 2026",
       "status": "Allocated"
     },
     {
@@ -19171,6 +19231,18 @@
       "reason": "Major Breakdown / Motor Defect",
       "deletedAt": "2026-10-23T14:07:06.334Z",
       "timestamp": 1792764426334
+    },
+    "BM001": {
+      "bm": "BM001",
+      "busNumber": "BM001",
+      "regNo": "KA51AH4144",
+      "regNumber": "KA51AH4144",
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "depot": "Chandapura (BMT-32)",
+      "reason": "Major Breakdown / Motor Defect",
+      "deletedAt": "2026-10-24T04:08:26.055Z",
+      "timestamp": 1792814906055
     }
   },
   "_addedBuses": {
@@ -19188,22 +19260,6 @@
       "make": "Ashok Leyland",
       "addedAt": "2026-10-20T13:31:30.628Z",
       "timestamp": 1792503090628,
-      "isNewlyAdded": true
-    },
-    "BM001": {
-      "bm": "BM001",
-      "busNumber": "BM001",
-      "regNo": "KA51AH4144",
-      "regNumber": "KA51AH4144",
-      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-      "depot": "1",
-      "category": "B",
-      "busCategory": "B",
-      "soc": 95,
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "addedAt": "2026-10-20T13:50:11.322Z",
-      "timestamp": 1792504211322,
       "isNewlyAdded": true
     },
     "BM600": {
@@ -19497,7 +19553,7 @@
     "bmNumber": "BM999",
     "busNumber": "600F",
     "regNo": "KA93MN8016",
-    "status": "On Time",
+    "status": "Active",
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
@@ -19506,6 +19562,10 @@
     "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
     "addedAt": "2026-10-24T04:01:47.827Z",
     "deleted": false,
-    "isDeleted": false
+    "isDeleted": false,
+    "assignedRouteId": "BM999",
+    "assignedRouteDisplay": "Route BM999 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": false
   }
 }
