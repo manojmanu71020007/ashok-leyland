@@ -25,6 +25,40 @@
         }
       } catch(e) {}
     })();
+
+    function handleLogout(e) {
+      if (e) {
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopPropagation === 'function') e.stopPropagation();
+      }
+      try {
+        localStorage.setItem("smartbus_loggedout", "1");
+        localStorage.removeItem("accessMode");
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userName");
+        localStorage.removeItem("userRole");
+        localStorage.removeItem("designatedPage");
+        sessionStorage.removeItem("isLoggedIn");
+        sessionStorage.removeItem("userEmail");
+        sessionStorage.removeItem("userName");
+        sessionStorage.removeItem("userRole");
+        sessionStorage.removeItem("designatedPage");
+      } catch(err) {
+        console.warn("Error during logout cleanup:", err);
+      }
+      window.location.replace("/login.html");
+    }
+    window.handleLogout = handleLogout;
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const btn = document.getElementById("logout-btn");
+      if (btn) {
+        btn.onclick = handleLogout;
+        btn.addEventListener("click", handleLogout);
+      }
+    });
+
   </script>
 
   <title>Cleaning Log – Depot 32</title>
@@ -521,7 +555,38 @@
     .depot-fleet-summary strong {
       color: var(--text);
     }
-  </style>
+  
+        /* ── Logout button ── */
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #ffffff !important;
+            border: none;
+            border-radius: 999px;
+            padding: 7px 16px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.28);
+            transition: all 0.2s ease;
+            letter-spacing: 0.01em;
+            text-decoration: none;
+            line-height: 1;
+            font-family: inherit;
+        }
+        .logout-btn:hover {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(220, 38, 38, 0.38);
+            color: #ffffff !important;
+        }
+        .logout-btn:active {
+            transform: translateY(0);
+        }
+
+</style>
   <script src="/i18n.js"></script>
   <script src="/public/sync-engine.js"></script>
 </head>
@@ -531,7 +596,8 @@
   <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
     <a href="/login.html" class="back-link" style="margin-bottom:0;" data-i18n="nav_back_portal">← Back to Portal</a>
   </div>
-  <div class="lang-selector-wrap" id="lang-selector-wrap">
+  <div style="display:inline-flex; align-items:center; gap:10px;">
+    <div class="lang-selector-wrap" id="lang-selector-wrap">
     <span class="lang-globe-icon" aria-hidden="true">🌐</span>
     <select id="lang-select" class="lang-select" aria-label="Select Language">
       <option value="en">English</option>
@@ -540,6 +606,11 @@
       <option value="te">తెలుగు (Telugu)</option>
       <option value="ta">தமிழ் (Tamil)</option>
     </select>
+  </div>
+    <button id="logout-btn" class="logout-btn" type="button" onclick="handleLogout(event)" title="Sign out and return to login">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span style="pointer-events:none;" data-i18n="btn_sign_out">Sign Out</span>
+    </button>
   </div>
 </div>
 

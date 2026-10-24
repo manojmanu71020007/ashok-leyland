@@ -689,6 +689,13 @@
             te: "సైన్ అవుట్",
             ta: "வெளியேறு"
         },
+        "admin_signout": {
+            en: "Sign Out",
+            kn: "ಸೈನ್ ಔಟ್",
+            hi: "साइन आउट",
+            te: "సైన్ అవుట్",
+            ta: "வெளியேறு"
+        },
                 "btn_nav_total_buses": {
             en: "Total Buses",
             kn: "ಒಟ್ಟು ಬಸ್‌ಗಳು",
