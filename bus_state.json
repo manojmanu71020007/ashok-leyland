@@ -2264,42 +2264,48 @@
     "chargingStatus": null
   },
   "BM056": {
-    "uniqueId": "BM056",
-    "vehicleId": "BM056",
-    "regNo": "KA51AH2953",
-    "busNumber": "600F",
-    "scheduleId": "360K/3",
-    "soc": 100,
-    "soh": 0.98,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 96,
     "condition": "Good",
-    "status": "Turnaround (Locked)",
-    "assignedRouteId": "BM056",
-    "assignedRouteShortName": "600F",
-    "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
-    "depot": "1",
-    "blocked": false,
-    "updatedAt": "2026-10-04T13:47:42.773Z",
-    "bmNumber": "BM056",
-    "fullDutyDistanceKm": 125,
-    "busCategory": "A",
-    "testedRangeKm": 124.6589,
-    "actualRangeFinal": 124.6589,
-    "socBefore": 0,
-    "socAfter": 0,
-    "chargingStatus": "Completed",
     "driver": "Driver Assigned",
+    "updatedAt": "2026-10-24T17:32:06.938Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
     "operation": "Single Charge Operation",
-    "isLocked": true,
-    "needsCharging": true,
-    "chargingCompleted": false,
-    "needsCleaning": true,
-    "cleaningCompleted": false,
-    "postRouteServicingPending": false,
-    "liveSoc": 100,
-    "isTurnaround": true,
-    "isAllocated": false,
-    "assignedRoute": null,
-    "allocatedDuty": null
+    "chargingStatus": "Completed",
+    "chargerBay": "Bay #1",
+    "socBefore": 15,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "11:02 pm",
+    "history": [
+      {
+        "timestamp": "2026-10-24T17:32:06.938Z",
+        "soc": 96,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "uniqueId": "BM056",
+    "busNumber": "600F",
+    "bmNumber": "BM056",
+    "assignedRouteId": "BM056",
+    "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": false
   },
   "BUS-16": {
     "uniqueId": "BUS-16",
@@ -9603,11 +9609,11 @@
   },
   "600F": {
     "status": "Blocked",
-    "rawStatus": "Active",
+    "rawStatus": "On Time",
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-24T07:04:14.783Z",
+    "updatedAt": "2026-10-24T17:32:06.938Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -9623,16 +9629,16 @@
       }
     },
     "operation": "Single Charge Operation",
-    "chargingStatus": null,
-    "chargerBay": null,
-    "socBefore": 0,
-    "socAfter": 0,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": null,
+    "chargingStatus": "Completed",
+    "chargerBay": "Bay #1",
+    "socBefore": 15,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "11:02 pm",
     "history": [
       {
-        "timestamp": "2026-10-24T07:04:14.783Z",
-        "soc": 90,
+        "timestamp": "2026-10-24T17:32:06.938Z",
+        "soc": 96,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10501,11 +10507,11 @@
         "A"
       ],
       "matrixCompliant": true,
-      "soc": 100,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -14031,11 +14037,11 @@
         "A"
       ],
       "matrixCompliant": true,
-      "soc": 100,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -17471,11 +17477,11 @@
         "A"
       ],
       "matrixCompliant": true,
-      "soc": 100,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 128,
-      "fullDutyDistanceKm": 128,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -19955,11 +19961,12 @@
       "routeCompletedAt": "05:30 pm, 24 Oct 2026",
       "routeCompletedTs": 1792863010741,
       "depot": "1",
-      "needsCharging": true,
-      "chargingCompleted": false,
+      "needsCharging": false,
+      "chargingCompleted": true,
       "needsCleaning": true,
       "cleaningCompleted": false,
-      "status": "turnaround_charging"
+      "status": "turnaround_cleaning",
+      "chargingCompletedAt": "11:02 pm, 24 Oct 2026"
     },
     "BM057": {
       "bm": "BM057",
@@ -20631,6 +20638,29 @@
     "postRouteServicingPending": false
   },
   "_chargingHistory": [
+    {
+      "id": "charg_1792863124598",
+      "bm": "BM056",
+      "reg": "KA51AH2953",
+      "depot": "1",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "11:00 PM",
+      "unlockTime": "11:02 pm, 24 Oct 2026",
+      "duration": "2 mins",
+      "startSoc": "15%",
+      "finalSoc": "96%",
+      "socBef": 15,
+      "socAft": 96,
+      "delta": 81,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ High Range Fleet Category A (Single Charge Ready)",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "11:02 pm",
+      "dateStr": "24 Oct 2026",
+      "fullDutyKm": 122
+    },
     {
       "id": "charg_1792856252876",
       "bm": "BM001",
