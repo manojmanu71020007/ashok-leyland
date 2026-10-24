@@ -2313,7 +2313,11 @@
     "assignedRouteId": "BM056",
     "assignedRouteDisplay": "Route BM056 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-16": {
     "uniqueId": "BUS-16",
@@ -19970,13 +19974,13 @@
     },
     "BM056": {
       "bm": "BM056",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "11:39 pm, 24 Oct 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "12:12 am, 25 Oct 2026"
     },
     "BM057": {
       "bm": "BM057",
@@ -20858,6 +20862,23 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1792867338803",
+      "bm": "BM056",
+      "reg": "KA51AH2953",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "12:12 am, 25 Oct 2026",
+      "unlockTime": "12:12 am, 25 Oct 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "12:12 am",
+      "dateStr": "25 Oct 2026"
+    },
     {
       "id": "clean_1792865830770",
       "bm": "BM080",
