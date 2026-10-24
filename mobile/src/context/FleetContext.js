@@ -393,13 +393,40 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   return 'standard';
 }
 
-export function getMatrixStatus(complexity, isPeak) {
-  if (isPeak || complexity === 'complex') {
-    return 'A';
+export function getMatrixStatus(complexity, timeCatOrIsPeak) {
+  const c = String(complexity || 'standard').toLowerCase();
+
+  let timeCatKey = 'NORMAL';
+  if (typeof timeCatOrIsPeak === 'object' && timeCatOrIsPeak !== null) {
+    timeCatKey = timeCatOrIsPeak.key || (timeCatOrIsPeak.isPeak ? 'PEAK' : 'NORMAL');
+  } else if (typeof timeCatOrIsPeak === 'string') {
+    timeCatKey = timeCatOrIsPeak.toUpperCase();
+  } else if (typeof timeCatOrIsPeak === 'boolean') {
+    timeCatKey = timeCatOrIsPeak ? 'PEAK' : 'NORMAL';
   }
-  if (complexity === 'simple') {
-    return 'A/B/C';
-  }
+
+  const isExtPeak = timeCatKey === 'EXTREME_PEAK';
+  const isPeakOnly = timeCatKey === 'PEAK';
+  const isNormal = timeCatKey === 'NORMAL';
+
+  // Rule 1: Complex route -> Strictly Category A (whatever the time)
+  if (c === 'complex') return 'A';
+
+  // Rule 2: Extreme Peak time -> Strictly Category A (whatever the route)
+  if (isExtPeak) return 'A';
+
+  // Rule 3: Moderate / Standard route + Peak time -> Strictly Category A
+  if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A';
+
+  // Rule 4: Moderate / Standard route + Normal time -> Category B first, then Category A (A/B)
+  if ((c === 'moderate' || c === 'standard') && isNormal) return 'A/B';
+
+  // Rule 5: Simple route + Peak time -> Category B first, then Category A (A/B)
+  if (c === 'simple' && isPeakOnly) return 'A/B';
+
+  // Rule 6: Simple route + Normal time -> Category C first, then Category B, then A (A/B/C)
+  if (c === 'simple' && isNormal) return 'A/B/C';
+
   return 'A/B';
 }
 

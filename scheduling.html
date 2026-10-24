@@ -4882,28 +4882,28 @@
 
 
 
-            // Determine Matrix status type for this route & departure time:
-
-            // - "A": Complex route OR Peak/Extreme Peak time
-
-            // - "A/B/C": Simple route in Normal (off-peak) time
-
-            // - "A/B": Standard or Moderate route in Normal (off-peak) time
+            // Determine Matrix status type for this route & departure time per specifications:
+            // - Rule 1: Complex route -> Strictly Category A (whatever the time)
+            // - Rule 2: Extreme Peak time -> Strictly Category A (whatever the route)
+            // - Rule 3: Moderate / Standard route + Peak time -> Strictly Category A
+            // - Rule 4: Moderate / Standard route + Normal time -> Category B first, then A (A/B)
+            // - Rule 5: Simple route + Peak time -> Category B first, then A (A/B)
+            // - Rule 6: Simple route + Normal time -> Category C first, then A/B (A/B/C)
+            const isExtremePeak = (tInfo.key === "EXTREME_PEAK");
+            const isPeakOnly = (tInfo.key === "PEAK");
+            const isNormalTime = (tInfo.key === "NORMAL");
 
             let matrixStatusType = "A";
-
-            if (!isPeak && !isComplexRoute) {
-
-                if (isSimpleRoute) {
-
-                    matrixStatusType = "A/B/C";
-
-                } else {
-
-                    matrixStatusType = "A/B";
-
-                }
-
+            if (isComplexRoute || isExtremePeak) {
+                matrixStatusType = "A";
+            } else if ((complexity === "moderate" || complexity === "standard") && isPeakOnly) {
+                matrixStatusType = "A";
+            } else if ((complexity === "moderate" || complexity === "standard") && isNormalTime) {
+                matrixStatusType = "A/B";
+            } else if (isSimpleRoute && isPeakOnly) {
+                matrixStatusType = "A/B";
+            } else if (isSimpleRoute && isNormalTime) {
+                matrixStatusType = "A/B/C";
             }
 
 
@@ -5338,12 +5338,10 @@
 
                 grid.innerHTML = `
 
-                    <div style="grid-column:1/-1;padding:16px;background:#fef2f2;border:1px solid #fecdd3;border-radius:8px;color:#991b1b;font-size:0.86rem;text-align:center;">
-
-                        <strong>⚠️ ${isNoDriver ? 'No Driver Assigned to Schedule' : 'No eligible candidate buses currently available for this route & time.'}</strong>
-
-                        <p style="margin-top:4px;font-size:0.78rem;color:#7f1d1d;">${isNoDriver ? 'Please select "Driver Assigned" to evaluate and unlock candidate buses.' : 'Please ensure buses have sufficient battery SoC updated in the Charging Portal.'}</p>
-
+                    <div style="grid-column:1/-1;padding:18px 20px;background:#fef2f2;border:1.5px solid #fecdd3;border-radius:12px;color:#991b1b;font-size:0.9rem;text-align:center;">
+                        <div style="font-size:1.6rem;margin-bottom:6px;">⚠️</div>
+                        <strong style="font-size:1.02rem;color:#991b1b;">${isNoDriver ? 'No Driver Assigned to Schedule' : 'No buses are available to fill the requirements for that particular route and time.'}</strong>
+                        <p style="margin-top:6px;font-size:0.8rem;color:#7f1d1d;line-height:1.4;">${isNoDriver ? 'Please select "Driver Assigned" to evaluate and unlock candidate buses.' : `All available depot fleet vehicles either do not match Matrix Status <strong>${escapeHtml(matrixStatusType)}</strong> or are currently under charging, cleaning, or below required operating SoC.`}</p>
                     </div>
 
                 `;

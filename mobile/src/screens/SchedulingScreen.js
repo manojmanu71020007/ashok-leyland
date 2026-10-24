@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
-import { useFleet, getTimeCategory, getRouteComplexity, getMatrixStatus } from '../context/FleetContext';
+import {
+  useFleet,
+  getTimeCategory,
+  getRouteComplexity,
+  getMatrixStatus,
+  getBusActualRangeKm,
+  getBusDrainRatePerKm,
+  getRequiredSingleChargeSoc,
+  STATIC_BUS_CATEGORIES,
+  STATIC_BUS_RANGES,
+  getBusCategory,
+  getBusRegNo,
+} from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import BatteryBar from '../components/BatteryBar';
@@ -428,12 +440,6 @@ export default function SchedulingScreen() {
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [driverPickerOpen, setDriverPickerOpen] = useState(false);
 
-  // Time Category & Peak Matrix evaluation (Exact match to website scheduling.html)
-  const timeCatInfo = getTimeCategory(scheduledTime);
-  const isPeak = timeCatInfo.isPeak;
-  const complexity = getRouteComplexity(selectedRoute.distance);
-  const matrixStatus = getMatrixStatus(complexity, isPeak);
-
   // Available buses in that depot strictly (excluding locked buses for charging, cleaning, or allocated)
   const isBusAvailableForScheduling = (b) => {
     const bm = String(b.bmNumber || b.id || '').toUpperCase().trim();
@@ -448,29 +454,120 @@ export default function SchedulingScreen() {
   const eligibleDepotBuses = depotBuses.filter((b) => !b.isLocked && !b.isCharging && !b.isCleaning && !b.isAllocated && !b.isNeedsServicing && !b.needsCharging && !b.needsCleaning);
   const pool = readyBuses.length > 0 ? readyBuses : eligibleDepotBuses;
 
-  // Candidate Buses (2 to 3 Buses ready matching website Matrix Status)
-  const candidateBuses = useMemo(() => {
+  // 1. Master Matched Timetable Duty & Schedule Pair (Exact match with scheduling.html)
+  const matchedSched = useMemo(() => {
     const routeCode = String(selectedRoute?.code || selectedRoute?.id || selectedRoute?.routeCode || '356Z').toUpperCase().trim();
     const depMin = parseTimeToMinutes(scheduledTime);
-
-    // Filter schedules for selected route
     const routeSchedules = DEFAULT_DATASET_SCHEDULES.filter(
       (s) => String(s.route || '').toUpperCase().trim() === routeCode
     );
-
-    // Find closest schedule by departure time (matching scheduling.html)
-    let matchedSched = routeSchedules.find((s) => {
+    let found = routeSchedules.find((s) => {
       if (!s.outTime) return false;
       return Math.abs(parseTimeToMinutes(s.outTime) - depMin) <= 15;
     });
-
-    if (!matchedSched && routeSchedules.length > 0) {
-      matchedSched = routeSchedules.slice().sort((a, b) => {
+    if (!found && routeSchedules.length > 0) {
+      found = routeSchedules.slice().sort((a, b) => {
         const diffA = Math.abs(parseTimeToMinutes(a.outTime || '12:00') - depMin);
         const diffB = Math.abs(parseTimeToMinutes(b.outTime || '12:00') - depMin);
         return diffA - diffB;
       })[0];
     }
+    return found || null;
+  }, [selectedRoute, scheduledTime]);
+
+  // 2. Route Complexity & Time Category Matrix evaluation (Exact match to website scheduling.html)
+  const complexity = getRouteComplexity(selectedRoute, matchedSched, scheduledTime);
+  const timeCatInfo = getTimeCategory(scheduledTime);
+  const isPeak = Boolean(timeCatInfo && timeCatInfo.isPeak);
+  const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
+
+  // 3. Strict Feasibility Evaluation Engine (Exact 1:1 match with scheduling.html evaluateBusFeasibility)
+  const evaluateBusFeasibility = useCallback((busOrBm, candidateRole, routeDist, depTimeShort, targetShift) => {
+    if (!busOrBm) return { feasible: false, reason: 'No vehicle assigned in schedule' };
+    const key = typeof busOrBm === 'string' ? busOrBm.toUpperCase().trim() : String(busOrBm.bmNumber || busOrBm.id || '').toUpperCase().trim();
+    const busObj = typeof busOrBm === 'object' ? busOrBm : pool.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key);
+
+    // Depot Isolation Check
+    if (busObj && String(busObj.depot || '1') !== depotNum) {
+      return { feasible: false, bm: key, reason: `Bus ${key} belongs to Depot ${busObj.depot} (Active view: Depot ${depotNum}).` };
+    }
+
+    // Lock / servicing / allocation check
+    if (!busObj || busObj.isLocked || busObj.isCharging || busObj.isCleaning || busObj.status === 'Blocked' || busObj.status === 'Deleted') {
+      return { feasible: false, bm: key, reason: `Bus ${key} is locked under cleaning/charging.` };
+    }
+    const alreadyAllocated = allocatedDuties.find((d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === key);
+    if (alreadyAllocated) {
+      return { feasible: false, bm: key, reason: `Bus ${key} is already allocated to Route ${alreadyAllocated.routeCode || alreadyAllocated.busNumber}.` };
+    }
+
+    const liveSoc = Number(busObj.soc ?? 85);
+    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort);
+    const minAllowedSoc = constantMinReqSoc - 2;
+    if (liveSoc < minAllowedSoc) {
+      return { feasible: false, bm: key, liveSoc, reqSoc: constantMinReqSoc, reason: `Bus ${key} battery at ${liveSoc}% does not match minimum required SoC (${constantMinReqSoc}%).` };
+    }
+
+    const drainDetails = getBusDrainRatePerKm(key, depTimeShort);
+    const drainPerKm = drainDetails.effectiveDrainPerKm;
+    const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
+    let operatingKm = Number(routeDist) || 28.7;
+    if (matchedSched && matchedSched.singleChargeReqKm) {
+      operatingKm = Number(matchedSched.singleChargeReqKm);
+    }
+    if (operatingKm > 65) operatingKm = 65;
+    if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
+      return { feasible: false, bm: key, liveSoc, reason: `Usable range (${usableCoverableKm} km) cannot cover required ${operatingKm.toFixed(1)} km.` };
+    }
+
+    const page4Category = busObj.busCategory || STATIC_BUS_CATEGORIES[key] || getBusCategory(key);
+    const isExtremePeak = (timeCatInfo.key === 'EXTREME_PEAK');
+    const isPeakOnly = (timeCatInfo.key === 'PEAK');
+    const isNormalTime = (timeCatInfo.key === 'NORMAL');
+    const isComplex = (complexity === 'complex');
+    const isModerate = (complexity === 'moderate');
+    const isStandard = (complexity === 'standard');
+    const isSimple = (complexity === 'simple');
+
+    // Matrix Rules (Page 4 Specifications)
+    if (isComplex && page4Category !== 'A') {
+      return { feasible: false, bm: key, reason: `Complex route strictly requires Category A bus. Bus ${key} is Category ${page4Category}.` };
+    }
+    if (isExtremePeak && page4Category !== 'A') {
+      return { feasible: false, bm: key, reason: `Extreme Peak hours strictly require Category A bus. Bus ${key} is Category ${page4Category}.` };
+    }
+    if ((isModerate || isStandard) && isPeakOnly && page4Category !== 'A') {
+      return { feasible: false, bm: key, reason: `Route during Peak hours strictly requires Category A bus. Bus ${key} is Category ${page4Category}.` };
+    }
+    if ((isModerate || isStandard) && isNormalTime && page4Category === 'C') {
+      return { feasible: false, bm: key, reason: `Normal time requires Category B (or A). Category C bus ${key} cannot be allocated.` };
+    }
+    if (isSimple && isPeakOnly && page4Category === 'C') {
+      return { feasible: false, bm: key, reason: `Simple route during Peak requires Category B (or A). Category C bus ${key} cannot be allocated.` };
+    }
+
+    return {
+      feasible: true,
+      bm: key,
+      busObj,
+      liveSoc,
+      busCategory: page4Category,
+      constantMinReqSoc,
+      minAllowedSoc,
+      reqSoc: constantMinReqSoc,
+      usableCoverableKm,
+      actualRangeKm: drainDetails.busRangeKm,
+      role: candidateRole
+    };
+  }, [pool, depotNum, allocatedDuties, matchedSched, timeCatInfo, complexity]);
+
+  // 4. Candidate Buses Generation & Mandatory Assignment (Exact 1:1 match with scheduling.html getRouteCandidateBuses)
+  const candidateBuses = useMemo(() => {
+    const routeCode = String(selectedRoute?.code || selectedRoute?.id || selectedRoute?.routeCode || '356Z').toUpperCase().trim();
+    const depTimeClean = scheduledTime || '13:10';
+    const depShort = depTimeClean.substring(0, 5);
+    const depMin = parseTimeToMinutes(depShort);
+    const routeDist = Number(selectedRoute?.distance || 28.7);
 
     const targetShift = (matchedSched && matchedSched.shift)
       ? matchedSched.shift
@@ -483,15 +580,37 @@ export default function SchedulingScreen() {
       if (!bm) return;
       const key = String(bm).toUpperCase().trim();
       if (seenBms.has(key)) return;
-      const found = pool.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key);
-      if (!found) return;
-      seenBms.add(key);
-      candidates.push({
-        ...found,
-        role,
-        shift: targetShift,
-        liveSoc: Number(found.soc ?? 80),
-      });
+      const feas = evaluateBusFeasibility(key, role, routeDist, depShort, targetShift);
+      if (feas && feas.feasible) {
+        seenBms.add(key);
+        const b = feas.busObj || pool.find((x) => String(x.bmNumber || x.id || '').toUpperCase().trim() === key) || {};
+        const liveSoc = feas.liveSoc;
+        const operatingKm = (matchedSched && matchedSched.singleChargeReqKm) ? Number(matchedSched.singleChargeReqKm) : routeDist;
+        const energyNeeded = Math.round(operatingKm * 1.25);
+        const projectedArrivalSoc = Math.max(0, Math.round(liveSoc - (operatingKm / 1.42)));
+        const bufferSoc = Math.max(0, projectedArrivalSoc - 10);
+        candidates.push({
+          ...b,
+          bmNumber: key,
+          bm: key,
+          regNo: b.regNo || getBusRegNo(key),
+          role,
+          shift: targetShift,
+          liveSoc,
+          soc: liveSoc,
+          busCategory: feas.busCategory,
+          category: feas.busCategory,
+          constantMinReqSoc: feas.constantMinReqSoc,
+          reqSoc: feas.constantMinReqSoc,
+          fullDutyKm: Math.round(Math.max(0, liveSoc - 10) * 1.42),
+          actualRangeKm: feas.actualRangeKm,
+          energyNeeded,
+          projectedArrivalSoc,
+          bufferSoc,
+          departureTime: depTimeClean,
+          routeCode: routeCode,
+        });
+      }
     };
 
     // 1. Primary duty bus from master timetable roster (fixBm)
@@ -505,6 +624,9 @@ export default function SchedulingScreen() {
     }
 
     // 3. Other scheduled buses for this route
+    const routeSchedules = DEFAULT_DATASET_SCHEDULES.filter(
+      (s) => String(s.route || '').toUpperCase().trim() === routeCode
+    );
     routeSchedules.forEach((s) => {
       if (candidates.length >= 8) return;
       if (s.fixBm) addCand(s.fixBm, `Route Standby Bus (${s.shift || targetShift})`);
@@ -520,21 +642,22 @@ export default function SchedulingScreen() {
 
     // 5. Depot reserve fleet search to guarantee at least 3 candidates
     if (candidates.length < 3) {
-      const aKeys = pool.filter((b) => b.busCategory === 'A');
-      const bKeys = pool.filter((b) => b.busCategory === 'B');
-      const cKeys = pool.filter((b) => b.busCategory === 'C');
+      const allDepotFleet = pool.slice().sort((a, b) => Number(b.soc ?? 0) - Number(a.soc ?? 0));
+      const aKeys = allDepotFleet.filter((b) => b.busCategory === 'A');
+      const bKeys = allDepotFleet.filter((b) => b.busCategory === 'B');
+      const cKeys = allDepotFleet.filter((b) => b.busCategory === 'C');
 
       let searchPasses = [];
       if (matrixStatus === 'A') {
-        searchPasses = [aKeys, bKeys];
+        searchPasses = [aKeys];
       } else if (matrixStatus === 'A/B') {
-        searchPasses = [bKeys, aKeys, cKeys];
+        searchPasses = [bKeys, aKeys];
       } else {
         searchPasses = [cKeys, bKeys, aKeys];
       }
 
       for (const group of searchPasses) {
-        for (const b of group.slice().sort((x, y) => (y.soc || 0) - (x.soc || 0))) {
+        for (const b of group) {
           if (candidates.length >= 6) break;
           addCand(b.bmNumber, 'Depot Reserve Fleet Bus');
         }
@@ -542,15 +665,14 @@ export default function SchedulingScreen() {
       }
     }
 
-    // 6. Sort candidates exactly matching scheduling.html:
-    // Category priority (by matrix status) -> Role rank (Primary > Swap > Standby > Depot) -> Battery SoC descending
+    // 6. Sort candidates matching scheduling.html:
+    // Category priority (by matrix status) -> Role rank (Primary > Swap > Standby) -> Battery SoC descending
     candidates.sort((a, b) => {
       const getRoleRank = (r) => {
         const str = (r || '').toLowerCase();
         if (str.includes('primary')) return 1;
         if (str.includes('swap')) return 2;
-        if (str.includes('standby')) return 3;
-        return 4;
+        return 3;
       };
 
       let catPriority = { A: 0, B: 1, C: 2 };
@@ -568,7 +690,7 @@ export default function SchedulingScreen() {
       const rankB = getRoleRank(b.role);
       if (rankA !== rankB) return rankA - rankB;
 
-      return ((b.liveSoc ?? 0) - (a.liveSoc ?? 0));
+      return (Number(b.liveSoc ?? 0) - Number(a.liveSoc ?? 0));
     });
 
     const recommendedPool = candidates.slice(0, 3);
@@ -585,32 +707,56 @@ export default function SchedulingScreen() {
       }
     } else if (matrixStatus === 'A/B/C') {
       const cBuses = recommendedPool.filter((c) => c.busCategory === 'C');
+      const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+      const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
       if (cBuses.length > 0) {
         lockedCand = cBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+      } else if (bBuses.length > 0) {
+        lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
       } else {
-        const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
-        lockedCand = bBuses.length > 0 ? bBuses[0] : recommendedPool[0];
+        lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
       }
     } else {
       const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
       lockedCand = aBuses.length > 0 ? aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] : recommendedPool[0];
     }
 
-    return recommendedPool.map((bus) => ({
-      ...bus,
-      isHighestSocLocked: Boolean(lockedCand && lockedCand.bmNumber === bus.bmNumber),
-      matrixStatus: matrixStatus,
-      fullDutyKm: Math.round(Math.max(0, (bus.soc || 80) - 10) * 1.42),
-    }));
-  }, [pool, selectedRoute, scheduledTime, matrixStatus]);
+    if (lockedCand) {
+      lockedCand.isMandatory = true;
+      lockedCand.isHighestSocLocked = true;
+      lockedCand.role = `⭐ Mandatory Allocation (Cat ${lockedCand.busCategory} — Highest SoC: ${lockedCand.liveSoc}%)`;
+      lockedCand.allocType = `⭐ Mandatory Allocation (Matrix ${matrixStatus} — Cat ${lockedCand.busCategory})`;
+    }
 
-  // Mandatory candidate bus is the top recommended bus (idx === 0)
+    recommendedPool.forEach((cand) => {
+      if (cand !== lockedCand) {
+        cand.isMandatory = false;
+        cand.isHighestSocLocked = false;
+        cand.matrixStatusType = matrixStatus;
+        cand.role = `Available Candidate (Cat ${cand.busCategory} — ${cand.liveSoc}% SoC)`;
+        cand.allocType = `Available for Other Routes (Cat ${cand.busCategory})`;
+      }
+    });
+
+    // Final candidates order: Mandatory locked bus is ALWAYS first (index 0)
+    const finalCandidates = [];
+    if (lockedCand) finalCandidates.push(lockedCand);
+    recommendedPool.forEach((cand) => {
+      if (cand !== lockedCand) finalCandidates.push(cand);
+    });
+
+    return finalCandidates;
+  }, [pool, selectedRoute, scheduledTime, matrixStatus, matchedSched, evaluateBusFeasibility]);
+
+  // Mandatory candidate bus is ALWAYS index 0
   const mandatoryCandidate = candidateBuses[0] || null;
 
-  // Active candidate bus (selected by user, null by default until user taps)
-  const activeCandidate = selectedCandidateBm ? candidateBuses.find((c) => c.bmNumber === selectedCandidateBm) : null;
+  // Active candidate: if user clicked a bus, use it; otherwise automatically default to the Mandatory bus (matching scheduling.html)
+  const activeCandidate = selectedCandidateBm
+    ? (candidateBuses.find((c) => c.bmNumber === selectedCandidateBm) || mandatoryCandidate)
+    : mandatoryCandidate;
 
-  // Check if current selection is a Manual Over-ride (choosing any bus other than mandatory allocation bus)
+  // Check if current selection is an Operator Override (choosing any bus other than mandatory allocation bus)
   const isManualOverride = Boolean(
     activeCandidate &&
     mandatoryCandidate &&
@@ -624,7 +770,7 @@ export default function SchedulingScreen() {
     moderate: { NORMAL: ['B', 'A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
     complex: { NORMAL: ['A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
   };
-  const timeKey = timeCatInfo.category || (isPeak ? 'PEAK' : 'NORMAL');
+  const timeKey = timeCatInfo.key || (isPeak ? 'PEAK' : 'NORMAL');
   const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.standard)[timeKey] || ['A'];
   const requiresCatA = complexity.toLowerCase() === 'complex' || isPeak;
   const isMatrixCompliant = activeCandidate
@@ -645,8 +791,8 @@ export default function SchedulingScreen() {
   const handleCommitAllocation = () => {
     if (!activeCandidate) {
       Alert.alert(
-        'Select Candidate Bus',
-        'Please tap on one of the recommended candidate buses above to select it before allocating.'
+        'No Buses Available',
+        'No buses are available to fill the requirements for that particular route and time.'
       );
       return;
     }
@@ -670,8 +816,8 @@ export default function SchedulingScreen() {
         `• Driver: ${finalDriverName}\n` +
         `• Battery SoC: ${activeCandidate.soc}%\n` +
         (isManualOverride
-          ? `• Allocation: Manual Over-ride (Mandatory was ${mandatoryCandidate?.bmNumber || 'BM---'})\n`
-          : '• Allocation: Mandatory Recommendation\n') +
+          ? `• Allocation: Operator Override (Mandatory was ${mandatoryCandidate?.bmNumber || 'BM---'})\n`
+          : `• Allocation: ${activeCandidate.allocType || 'Mandatory Recommendation'}\n`) +
         `\nDo you want to confirm and commit this dispatch duty?`,
       [
         {
@@ -845,7 +991,18 @@ export default function SchedulingScreen() {
 
             {/* Candidate Cards Grid */}
             <View style={styles.candidateGrid}>
-              {candidateBuses.map((bus) => {
+              {candidateBuses.length === 0 ? (
+                <View style={{ width: '100%', padding: 18, backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fecdd3', borderRadius: 12, alignItems: 'center', marginVertical: 8 }}>
+                  <Text style={{ fontSize: 28, marginBottom: 6 }}>⚠️</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#991b1b', textAlign: 'center', marginBottom: 4 }}>
+                    No buses are available to fill the requirements for that particular route and time.
+                  </Text>
+                  <Text style={{ fontSize: 11.5, color: '#7f1d1d', textAlign: 'center', lineHeight: 16 }}>
+                    All depot vehicles either do not match Matrix Status {matrixStatus} or are currently undergoing charging, cleaning, or have insufficient SoC.
+                  </Text>
+                </View>
+              ) : (
+                candidateBuses.map((bus) => {
                 const isLocked = bus.isHighestSocLocked;
                 const isSelected = activeCandidate && activeCandidate.bmNumber === bus.bmNumber;
                 const isOverrideBus = isSelected && !isLocked;
@@ -873,19 +1030,25 @@ export default function SchedulingScreen() {
                       </View>
                     </View>
 
-                    {/* Lock Banner */}
+                    {/* Allocation Status Banner matching scheduling.html */}
                     <View style={styles.candLockBannerRow}>
                       {isLocked ? (
-                        <View style={styles.lockedBanner}>
-                          <Text style={styles.lockedBannerText}>🔒 LOCKED FOR ALLOCATION</Text>
+                        <View style={styles.mandatoryBanner}>
+                          <Text style={styles.mandatoryBannerText}>⭐ MANDATORY ALLOCATION</Text>
                         </View>
                       ) : (
-                        <View style={styles.availBanner}>
-                          <Text style={styles.availBannerText}>Available for Other Routes</Text>
-                        </View>
+                        isOverrideBus ? (
+                          <View style={styles.overrideBanner}>
+                            <Text style={styles.overrideBannerText}>⚠️ OPERATOR OVERRIDE</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.availBanner}>
+                            <Text style={styles.availBannerText}>⚡ Eligible Candidate</Text>
+                          </View>
+                        )
                       )}
-                      <Text style={[styles.candSubStatus, { color: isLocked ? '#b45309' : (isOverrideBus ? '#d97706' : '#0284c7') }]}>
-                        {isLocked ? '● Mandatory Allocation' : (isOverrideBus ? '⚠️ Manual Over-ride Candidate' : 'Available in Depot')}
+                      <Text style={[styles.candSubStatus, { color: isLocked ? '#0369a1' : (isOverrideBus ? '#b45309' : '#0284c7') }]}>
+                        {isLocked ? '● Matrix Recommendation' : (isOverrideBus ? '● Selected as Override' : 'Available in Depot')}
                       </Text>
                     </View>
 
@@ -917,15 +1080,15 @@ export default function SchedulingScreen() {
                     >
                       <Text style={[styles.candFooterBtnText, isSelected && styles.candFooterBtnTextActive]}>
                         {isOverrideBus
-                          ? '⚠️ Manual Over-ride Selected'
+                          ? '✓ Selected (Override)'
                           : isSelected
-                          ? '✓ Bus Details Open Below'
-                          : '👉 Click to Open Bus Details'}
+                          ? (isLocked ? '✓ Selected (Mandatory)' : '✓ Selected')
+                          : (isLocked ? 'Select Mandatory ➔' : 'Select Candidate ➔')}
                       </Text>
                     </View>
                   </TouchableOpacity>
                 );
-              })}
+              }))}}
             </View>
           </View>
 
@@ -978,11 +1141,11 @@ export default function SchedulingScreen() {
                   <Text style={styles.panelTitle}>Allocation result of {activeCandidate.bmNumber}</Text>
                   {isManualOverride ? (
                     <View style={styles.manualOverridePill}>
-                      <Text style={styles.manualOverridePillText}>⚠️ Manual Over-ride</Text>
+                      <Text style={styles.manualOverridePillText}>⚠️ Operator Override</Text>
                     </View>
                   ) : (
                     <View style={styles.mandatoryPill}>
-                      <Text style={styles.mandatoryPillText}>⚡ Mandatory Allocation</Text>
+                      <Text style={styles.mandatoryPillText}>⭐ Mandatory Allocation</Text>
                     </View>
                   )}
                 </View>
@@ -990,6 +1153,15 @@ export default function SchedulingScreen() {
                   {isManualOverride
                     ? `⚠️ Operator Override: You have manually selected Bus ${activeCandidate.bmNumber} instead of the system mandatory bus (${mandatoryCandidate?.bmNumber}).`
                     : 'Live telemetry and manual inspection checks confirm this bus can complete the duty.'}
+                </Text>
+              </View>
+
+              <View style={[styles.allocCalloutBox, isManualOverride && styles.allocCalloutBoxOverride]}>
+                <Text style={styles.allocCalloutIcon}>{isManualOverride ? '⚠️' : '⭐'}</Text>
+                <Text style={[styles.allocCalloutText, isManualOverride && styles.allocCalloutTextOverride]}>
+                  {isManualOverride
+                    ? `Operator Override Active: Bus ${activeCandidate.bmNumber} (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC) was chosen by the operator instead of mandatory recommendation Bus ${mandatoryCandidate?.bmNumber} (${mandatoryCandidate?.soc}% SoC under Matrix Status ${matrixStatus}). This bus can be allocated with driver.`
+                    : `Mandatory Allocation: Bus ${activeCandidate.bmNumber} is recommended under Matrix Status ${matrixStatus} rules (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC). You may choose any alternate candidate bus above to allocate as an operator override.`}
                 </Text>
               </View>
               <TouchableOpacity
@@ -1110,8 +1282,8 @@ export default function SchedulingScreen() {
                 <Text style={styles.ruleLabel}>Allocation Type</Text>
                 <Text style={[styles.ruleVal, isManualOverride ? { color: '#d97706', fontWeight: '900' } : { color: '#0369a1', fontWeight: '800' }]}>
                   {isManualOverride
-                    ? `⚠️ Manual Over-ride (Mandatory was Bus ${mandatoryCandidate?.bmNumber})`
-                    : '⚡ Mandatory Allocation (System Recommended)'}
+                    ? `⚠️ Operator Override (Selected ${activeCandidate.bmNumber} instead of mandatory ${mandatoryCandidate?.bmNumber})`
+                    : (activeCandidate.allocType || `⭐ Mandatory Allocation (Matrix ${matrixStatus} — Cat ${activeCandidate.busCategory || 'A'})`)}
                 </Text>
               </View>
               <View style={styles.ruleItem}>
@@ -1937,6 +2109,64 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     marginBottom: 12,
+  },
+  mandatoryBanner: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#93c5fd',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  mandatoryBannerText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0369a1',
+    letterSpacing: 0.3,
+  },
+  overrideBanner: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#f59e0b',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  overrideBannerText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#b45309',
+    letterSpacing: 0.3,
+  },
+  allocCalloutBox: {
+    marginTop: 10,
+    marginBottom: 12,
+    padding: 10,
+    backgroundColor: '#f0f9ff',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  allocCalloutBoxOverride: {
+    backgroundColor: '#fffbeb',
+    borderColor: '#fde68a',
+  },
+  allocCalloutIcon: {
+    fontSize: 16,
+    lineHeight: 20,
+  },
+  allocCalloutText: {
+    flex: 1,
+    fontSize: 12,
+    lineHeight: 18,
+    color: '#0369a1',
+    fontWeight: '500',
+  },
+  allocCalloutTextOverride: {
+    color: '#92400e',
   },
   panelOverride: {
     borderColor: '#f59e0b',

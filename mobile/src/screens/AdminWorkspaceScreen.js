@@ -899,9 +899,8 @@ export default function AdminWorkspaceScreen() {
 
   // ── Candidate Bus Evaluation (Exact Match to website Matrix Status & Peak Rules) ──
   const timeCatInfo = getTimeCategory(scheduledTime);
-  const isPeak = timeCatInfo.isPeak;
-  const complexity = getRouteComplexity(selectedRoute.distance);
-  const matrixStatus = getMatrixStatus(complexity, isPeak);
+  const complexity = getRouteComplexity(selectedRoute);
+  const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
 
   // Available buses from the route's assigned depot
   const routeDepotBuses = buses.filter((b) => String(b.depot || '1') === selectedRouteDepot);
@@ -911,20 +910,15 @@ export default function AdminWorkspaceScreen() {
   const candidateBus = useMemo(() => {
     let sorted = [];
     if (matrixStatus === 'A') {
-      // STRICT PEAK / COMPLEX RULE: ONLY Category A buses are eligible!
-      const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      if (catABuses.length > 0) {
-        sorted = catABuses;
-      } else {
-        sorted = candidatePool.slice().sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      }
+      // STRICT RULE: ONLY Category A buses are eligible! If none available, do NOT fallback to B or C
+      sorted = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
     } else if (matrixStatus === 'A/B') {
-      // NORMAL OFF-PEAK: Category B prioritized first, then Category A
+      // Category B prioritized first, then Category A fallback. Category C strictly excluded!
       const catBBuses = candidatePool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
       const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
       sorted = [...catBBuses, ...catABuses];
     } else {
-      // NORMAL OFF-PEAK SIMPLE: Category C, then B, then A
+      // Simple + Normal: Category C prioritized first, then Category B, then A
       const catCBuses = candidatePool.filter((b) => b.busCategory === 'C').sort((a, b) => (b.soc || 0) - (a.soc || 0));
       const catBBuses = candidatePool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
       const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
