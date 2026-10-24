@@ -5875,24 +5875,7 @@
 
 
 
-    // Set post-route servicing requirement: Must complete 1st Charging, then 2nd Cleaning before re-allocation!
-    const turnaroundLock = {
-      bm: bm.toUpperCase(),
-      bmNumber: bm.toUpperCase(),
-      reg: v?.reg_no || '—',
-      depot: targetDepot,
-      page: 'charging',
-      reason: 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)',
-      isTurnaround: true,
-      needsCharging: true,
-      chargingCompleted: false,
-      needsCleaning: true,
-      cleaningCompleted: false,
-      startTime: fullTs,
-      time: timeStr,
-      startTimestamp: Date.now()
-    };
-
+    // Set post-route servicing requirement: Bus is in Locked status in yard awaiting manual servicing
     const serviceEntry = {
       bm: bm.toUpperCase(),
       routeCompleted: true,
@@ -5903,13 +5886,12 @@
       chargingCompleted: false,
       needsCleaning: true,
       cleaningCompleted: false,
-      status: 'turnaround_charging'
+      status: 'needs_servicing'
     };
 
     try {
       let lockedList = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
       lockedList = lockedList.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bm.toUpperCase());
-      lockedList.push(turnaroundLock);
       localStorage.setItem(LOCKED_KEY, JSON.stringify(lockedList));
       if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
         window.DepotSyncEngine.saveLockedBuses(lockedList);

@@ -3953,13 +3953,9 @@ let busCategoriesMap = new Map();
                     }
                 }
 
-                // 6. Mandatory post-trip turnaround buffer (30m cooldown)
-                if (bState.lastTripCompletedAt || bState.lastRouteCompletedAt) {
-                    const compTime = new Date(bState.lastTripCompletedAt || bState.lastRouteCompletedAt).getTime();
-                    const elapsedMins = (Date.now() - compTime) / 60000;
-                    if (elapsedMins < 30 && (bState.status === "Cooldown" || bState.status === "Turnaround" || bState.postRouteServicingPending)) {
-                        return;
-                    }
+                // 6. Post-trip servicing requirement
+                if (bState.postRouteServicingPending || (bState.status === "Locked" || bState.status === "Turnaround")) {
+                    return;
                 }
 
                 const liveSoc = typeof getBusSocByBm === "function" ? getBusSocByBm(bm) : 80;

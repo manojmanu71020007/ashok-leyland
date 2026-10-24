@@ -549,44 +549,7 @@ export const FleetProvider = ({ children }) => {
       if (bmClean) lockedBmMap.set(bmClean, lb);
     });
 
-    // Synthesize turnaround locks from servicingStatus so no post-route bus can slip through as unlocked
-    Object.keys(servicingStatus).forEach((bmKey) => {
-      const bmClean = String(bmKey).toUpperCase().trim();
-      const serv = servicingStatus[bmKey];
-      if (!serv || typeof serv !== 'object') return;
-
-      const needsChg = Boolean(serv.needsCharging || (serv.routeCompleted && !serv.chargingCompleted) || serv.status === 'turnaround_charging');
-      const needsCln = Boolean(serv.needsCleaning || (serv.routeCompleted && !serv.cleaningCompleted) || serv.status === 'turnaround_cleaning');
-      const isTurnaroundRequired = Boolean(serv.routeCompleted || needsChg || (needsCln && !serv.cleaningCompleted));
-
-      if (isTurnaroundRequired) {
-        const existingLock = lockedBmMap.get(bmClean);
-        const chgDone = Boolean(serv.chargingCompleted && !needsChg);
-        const clnDone = Boolean(serv.cleaningCompleted && !needsCln);
-        const page = needsChg ? 'charging' : 'cleaning';
-        const reason = needsChg
-          ? 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)'
-          : 'Turnaround (Cleaning & Wash Required Before Scheduling)';
-
-        lockedBmMap.set(bmClean, {
-          ...(existingLock || {}),
-          bm: bmClean,
-          bmNumber: bmClean,
-          reg: existingLock?.reg || staticBusRegs[bmClean] || `KA51AH${bmClean.replace(/\D/g, '').padStart(4, '0')}`,
-          depot: getBusDepot(bmClean, depotAssignments),
-          page: existingLock?.page || page,
-          reason: existingLock?.reason || reason,
-          isTurnaround: true,
-          needsCharging: needsChg,
-          chargingCompleted: chgDone,
-          needsCleaning: needsCln,
-          cleaningCompleted: clnDone,
-          startTime: existingLock?.startTime || serv.routeCompletedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-          startTimestamp: existingLock?.startTimestamp || serv.routeCompletedTs || Date.now(),
-        });
-      }
-    });
-
+    // Explicit bay locks from backend (manual lock actions only)
     const fullNormalizedLocked = Array.from(lockedBmMap.values());
 
     let allocatedDutiesList = [];
@@ -1118,52 +1081,48 @@ export const FleetProvider = ({ children }) => {
     const curServ = servicingStatusRef.current?.[cleanBm] || {};
     const isCleaningDone = Boolean(curServ.cleaningCompleted || !curServ.needsCleaning);
 
-    // 2. If cleaning is still pending, transition turnaround lock to cleaning; otherwise unlock completely!
-    if (!isCleaningDone) {
-      const turnaroundCleaningLock = {
-        bm: cleanBm,
-        bmNumber: cleanBm,
-        reg: record.reg || staticBusRegs[cleanBm] || `KA51AH${cleanBm.replace(/\D/g, '').padStart(4, '0')}`,
-        depot: getBusDepot(cleanBm, {}),
-        page: 'cleaning',
-        reason: 'Turnaround (Cleaning & Wash Required Before Scheduling)',
-        isTurnaround: true,
-        needsCharging: false,
-        chargingCompleted: true,
-        needsCleaning: true,
-        cleaningCompleted: false,
-        startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        startTimestamp: Date.now(),
-      };
-      setLockedBuses((prev) => {
-        const filtered = prev.filter((x) => String(x.bm || x.bmNumber).toUpperCase().trim() !== cleanBm);
-        const updated = [turnaroundCleaningLock, ...filtered];
-        api.saveLockedBuses(updated).catch((e) => console.warn(e));
-        return updated;
-      });
-      setBuses((prev) =>
-        prev.map((b) => {
-          if (b.bmNumber === cleanBm) {
-            return {
-              ...b,
-              isLocked: true,
-              isCharging: false,
-              isCleaning: false,
-              isTurnaround: true,
-              isNeedsServicing: true,
-              needsCharging: false,
-              chargingCompleted: true,
-              needsCleaning: true,
-              cleaningCompleted: false,
-              status: 'Turnaround (Locked)',
-            };
-          }
-          return b;
-        })
-      );
-    } else {
-      await unlockBus(cleanBm, 'charging');
+    // 2. Unlock from charging bay lock (manual cleaning lock will occur in Cleaning screen)
+    await unlockBus(cleanBm, 'charging');
+
+    // 3. Update servicing status FIRST so server knows charging is complete
+    const updatedServ = {
+      bm: cleanBm,
+      needsCharging: false,
+      chargingCompleted: true,
+      chargingCompletedAt: record.unlockTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+      routeCompleted: !isCleaningDone,
+      needsCleaning: !isCleaningDone,
+      cleaningCompleted: isCleaningDone,
+      status: isCleaningDone ? 'available' : 'needs_servicing',
+    };
+    servicingStatusRef.current[cleanBm] = updatedServ;
+    try {
+      await api.updateServicingStatus(cleanBm, updatedServ);
+    } catch (e) {
+      console.warn('Could not post to /api/servicing-status:', e);
     }
+
+    setBuses((prev) =>
+      prev.map((b) => {
+        if (b.bmNumber === cleanBm) {
+          return {
+            ...b,
+            soc: Number(record.socAft),
+            isLocked: !isCleaningDone,
+            isCharging: false,
+            isCleaning: false,
+            isTurnaround: !isCleaningDone,
+            isNeedsServicing: !isCleaningDone,
+            needsCharging: false,
+            chargingCompleted: true,
+            needsCleaning: !isCleaningDone,
+            cleaningCompleted: isCleaningDone,
+            status: !isCleaningDone ? 'Locked' : 'Available',
+          };
+        }
+        return b;
+      })
+    );
 
     // 3. Update bus state (SoC, lastChargedTime, fullDutyDistanceKm, remarks)
     try {
@@ -1303,23 +1262,8 @@ export const FleetProvider = ({ children }) => {
     // 2. Transfer depot on backend if returning to different depot (or reinforce current depot)
     api.assignDepot(cleanBm, completingDepot).catch((err) => console.warn('Could not assign depot on backend:', err));
 
-    // 3. Post-route completion: bus locked in Turnaround (1st Charging, then 2nd Cleaning)
-    const turnaroundLock = {
-      bm: cleanBm,
-      bmNumber: cleanBm,
-      reg: (dutyToComplete && dutyToComplete.regNo) || (foundBus && foundBus.regNo) || staticBusRegs[cleanBm] || `KA51AH${cleanBm.replace(/\D/g, '').padStart(4, '0')}`,
-      depot: completingDepot,
-      page: 'charging', // 1st step: must go for fast charging!
-      reason: 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)',
-      isTurnaround: true,
-      needsCharging: true,
-      chargingCompleted: false,
-      needsCleaning: true,
-      cleaningCompleted: false,
-      startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-      startTimestamp: Date.now(),
-    };
-
+    // 3. Post-route completion: bus held in Locked status in the yard.
+    // NOTE: Does NOT automatically lock in charging or cleaning bay!
     const serviceEntry = {
       bm: cleanBm,
       routeCompleted: true,
@@ -1330,23 +1274,23 @@ export const FleetProvider = ({ children }) => {
       chargingCompleted: false,
       needsCleaning: true,
       cleaningCompleted: false,
-      status: 'turnaround_charging',
+      status: 'needs_servicing',
     };
     servicingStatusRef.current[cleanBm] = serviceEntry;
     api.updateServicingStatus(cleanBm, serviceEntry).catch((err) => console.warn('Could not update servicing status:', err));
     api.completeRouteDuty({
       bm: cleanBm,
       depot: completingDepot,
-      remarks: remarks || 'Route completed and bus locked in turnaround for charging & cleaning.',
+      remarks: remarks || 'Route completed and bus returned to yard awaiting servicing.',
       route: (dutyToComplete && (dutyToComplete.routeName || dutyToComplete.routeCode)) || '',
       driver: (dutyToComplete && dutyToComplete.driver) || '',
     }).catch((err) => console.warn('Atomic completeRouteDuty error:', err));
 
+    // Clear any active bay locks for cleanBm so it starts clean awaiting manual lock
     setLockedBuses((prev) => {
       const filtered = prev.filter((l) => String(l.bm || l.bmNumber).toUpperCase().trim() !== cleanBm);
-      const updated = [turnaroundLock, ...filtered];
-      api.saveLockedBuses(updated).catch((err) => console.warn('Could not save locked buses:', err));
-      return updated;
+      api.saveLockedBuses(filtered).catch((err) => console.warn('Could not save locked buses:', err));
+      return filtered;
     });
 
     // 4. Record in completed routes log

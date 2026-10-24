@@ -5251,30 +5251,12 @@ const server = http.createServer(async (req, res) => {
                 if (!currentState._depotAssignments) currentState._depotAssignments = {};
                 currentState._depotAssignments[bmKey] = targetDepot;
 
-                // 3. Create Turnaround Lock (Fast Charging Required 1st!)
+                // 3. Post-route turnaround: bus is held in Locked status in the yard.
+                // NOTE: Locking for charging or cleaning should NOT take place automatically!
                 const regNo = (currentState[bmKey] && (currentState[bmKey].regNo || currentState[bmKey].reg_no)) || `KA51AH${bmKey.replace(/\D/g, '').padStart(4, '0')}`;
-                const turnaroundLock = {
-                    bm: bmKey,
-                    bmNumber: bmKey,
-                    reg: regNo,
-                    depot: targetDepot,
-                    page: 'charging', // STRICT: Fast Charging is Step 1!
-                    reason: 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)',
-                    isTurnaround: true,
-                    needsCharging: true,
-                    chargingCompleted: false,
-                    needsCleaning: true,
-                    cleaningCompleted: false,
-                    startTime: fullTs,
-                    time: timeStr,
-                    startTimestamp: Date.now()
-                };
-
-                if (!Array.isArray(currentState._lockedBuses)) currentState._lockedBuses = [];
-                currentState._lockedBuses = [
-                    turnaroundLock,
-                    ...currentState._lockedBuses.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bmKey)
-                ];
+                if (Array.isArray(currentState._lockedBuses)) {
+                    currentState._lockedBuses = currentState._lockedBuses.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bmKey);
+                }
 
                 // 4. Update servicing status
                 if (!currentState._servicingStatus) currentState._servicingStatus = {};
@@ -6519,6 +6501,24 @@ const server = http.createServer(async (req, res) => {
                         const updatedEntry = normalizeBusStateEntry(payload, existing);
 
 
+
+                        // If charging record or confirmed SoC submitted, update servicing status
+                        if (payload.operation === 'Single Charge Operation' || payload.chargingStatus === 'Completed' || payload.socAfter) {
+                            if (!currentState._servicingStatus) currentState._servicingStatus = {};
+                            const cur = currentState._servicingStatus[uniqueId] || {};
+                            currentState._servicingStatus[uniqueId] = {
+                                ...cur,
+                                bm: uniqueId,
+                                needsCharging: false,
+                                chargingCompleted: true,
+                                chargingCompletedAt: new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                            };
+                            updatedEntry.needsCharging = false;
+                            updatedEntry.chargingCompleted = true;
+                            if (Array.isArray(currentState._lockedBuses)) {
+                                currentState._lockedBuses = currentState._lockedBuses.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== uniqueId || String(x.page || '').toLowerCase() !== 'charging');
+                            }
+                        }
 
                         // Store primarily under uniqueId (physical vehicle)
 

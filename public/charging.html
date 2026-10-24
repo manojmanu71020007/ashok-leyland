@@ -1305,35 +1305,12 @@
       existingServ.chargingCompleted = true;
       existingServ.chargingCompletedAt = fullTimeStr;
 
-      // If cleaning is still pending, transition lock to cleaning; otherwise unlock completely!
-      if (!wasCleaningDone) {
-        existingServ.status = 'turnaround_cleaning';
-        existingServ.needsCleaning = true;
-        const cleanLock = {
-          bm: cleanBm,
-          bmNumber: cleanBm,
-          reg: getRegNoForBm(bm),
-          depot: getBusDepot(bm) || currentOperatingDepot,
-          page: 'cleaning',
-          reason: 'Turnaround (Cleaning & Wash Required Before Scheduling)',
-          isTurnaround: true,
-          needsCharging: false,
-          chargingCompleted: true,
-          needsCleaning: true,
-          cleaningCompleted: false,
-          startTime: fullTimeStr,
-          time: timeStr,
-          startTimestamp: Date.now()
-        };
-        locked = locked.filter(x => !isSameBusId(x.bm, bm));
-        locked.push(cleanLock);
-        setLockedBuses(locked);
-      } else {
-        existingServ.status = 'available';
-        existingServ.routeCompleted = false;
-        locked = locked.filter(x => !isSameBusId(x.bm, bm));
-        setLockedBuses(locked);
-      }
+      // Unlock from charging bay (manual locking for cleaning occurs in Cleaning page)
+      existingServ.status = wasCleaningDone ? 'available' : 'needs_servicing';
+      existingServ.needsCleaning = !wasCleaningDone;
+      existingServ.routeCompleted = !wasCleaningDone;
+      locked = locked.filter(x => !isSameBusId(x.bm, bm));
+      setLockedBuses(locked);
 
       servMap[cleanBm] = existingServ;
       localStorage.setItem('smartbus_servicing_status', JSON.stringify(servMap));
