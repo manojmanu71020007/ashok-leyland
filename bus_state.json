@@ -19511,33 +19511,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM019_361C_1792857729071",
-      "bm": "BM019",
-      "bmNumber": "BM019",
-      "regNo": "KA51AH2552",
-      "routeId": "361C",
-      "routeCode": "361C",
-      "busNumber": "361C",
-      "routeName": "Attibele ➔ Kempegowda Bus Station (361C) — 38.5 km",
-      "origin": "Attibele",
-      "destination": "Kempegowda Bus Station",
-      "departureTime": "01:10 PM",
-      "isManualOverride": false,
-      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
-      "shift": "Night Halt",
-      "soc": 100,
-      "fullDutyKm": 128,
-      "routeDist": 38.5,
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Basavaraju K. (BMTC-4201)",
-      "depot": "2",
-      "allocatedAt": "9:32 PM, 21 Oct 2026",
-      "status": "Allocated"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
@@ -19547,7 +19521,7 @@
     "BM005": "1",
     "BM010": "1",
     "BM012": "1",
-    "BM019": "2",
+    "BM019": "1",
     "BM020": "1",
     "BM024": "1",
     "BM032": "1",
@@ -19873,7 +19847,10 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "status": "available",
+      "routeCompletedAt": "9:33 PM",
+      "routeCompletedTs": 1792857832542,
+      "depot": "1"
     },
     "BM020": {
       "bm": "BM020",
@@ -20872,6 +20849,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1792857832543",
+      "bm": "BM019",
+      "reg": "KA51AH2552",
+      "route": "Attibele ➔ Kempegowda Bus Station (361C) — 38.5 km",
+      "scheduledTime": "01:10 PM",
+      "completedAt": "9:33 PM, 21 Oct 2026",
+      "dateStr": "2026-10-24",
+      "depot": "1",
+      "prevDepot": "2",
+      "isTransferred": true,
+      "driver": "Basavaraju K. (BMTC-4201)",
+      "remarks": "Transferred from Depot 2 to Depot 1 on route completion.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "comp_1792857545927",
       "bm": "BM152",
