@@ -19511,33 +19511,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM193_356Z_1792860162900",
-      "bm": "BM193",
-      "bmNumber": "BM193",
-      "regNo": "KA51AH7660",
-      "routeId": "356Z",
-      "routeCode": "356Z",
-      "busNumber": "356Z",
-      "routeName": "Chandapura ➔ Anekal (356Z) — 28.7 km",
-      "origin": "Chandapura",
-      "destination": "Anekal",
-      "departureTime": "01:45 PM",
-      "isManualOverride": true,
-      "allocType": "Committed Duty (Operator Override from Bus BM019)",
-      "shift": "General Shift",
-      "soc": 100,
-      "fullDutyKm": 128,
-      "routeDist": 28.7,
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Ramesh Kumar (BMTC-4101)",
-      "depot": "1",
-      "allocatedAt": "10:12 PM, 21 Oct 2026",
-      "status": "Allocated"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
@@ -19579,7 +19553,7 @@
     "BM185": "1",
     "BM187": "1",
     "BM191": "1",
-    "BM193": "1",
+    "BM193": "2",
     "BM197": "1",
     "BM198": "1",
     "BM199": "1",
@@ -20231,7 +20205,10 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "status": "available",
+      "routeCompletedAt": "10:15 PM",
+      "routeCompletedTs": 1792860335382,
+      "depot": "2"
     },
     "BM197": {
       "bm": "BM197",
@@ -20875,6 +20852,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1792860335383",
+      "bm": "BM193",
+      "reg": "KA51AH7660",
+      "route": "Scheduled Route",
+      "scheduledTime": "10:00 AM",
+      "completedAt": "10:15 PM, 21 Oct 2026",
+      "dateStr": "2026-10-24",
+      "depot": "2",
+      "prevDepot": "1",
+      "isTransferred": true,
+      "driver": "Assigned Driver",
+      "remarks": "Transferred from Depot 1 to Depot 2 on route completion.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "comp_1792857832543",
       "bm": "BM019",
