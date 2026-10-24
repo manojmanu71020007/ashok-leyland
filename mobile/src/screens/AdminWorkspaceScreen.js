@@ -2613,35 +2613,7 @@ export default function AdminWorkspaceScreen() {
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <TouchableOpacity
-                  onPress={() => {
-                    Alert.alert(
-                      'Unlock All Buses',
-                      'Are you sure you want to unlock all currently locked buses and return them to Available fleet?',
-                      [
-                        { text: 'Cancel', style: 'cancel' },
-                        {
-                          text: 'Unlock All',
-                          style: 'destructive',
-                          onPress: async () => {
-                            await unlockAllBuses();
-                            Alert.alert('Success', 'All buses unlocked successfully!');
-                          },
-                        },
-                      ]
-                    );
-                  }}
-                  style={{
-                    backgroundColor: '#fee2e2',
-                    borderColor: '#fca5a5',
-                    borderWidth: 1,
-                    paddingVertical: 6,
-                    paddingHorizontal: 10,
-                    borderRadius: 8,
-                  }}
-                >
-                  <Text style={{ color: '#991b1b', fontWeight: '800', fontSize: 12 }}>🔓 Unlock All</Text>
-                </TouchableOpacity>
+                
                 <TouchableOpacity onPress={() => setLockedModalOpen(false)} style={styles.modalCloseBtn}>
                   <Text style={styles.modalCloseText}>✕</Text>
                 </TouchableOpacity>
@@ -2837,36 +2809,7 @@ export default function AdminWorkspaceScreen() {
                           </Text>
                         </View>
                       </View>
-                      <TouchableOpacity
-                        style={{
-                          backgroundColor: '#fee2e2',
-                          borderColor: '#fca5a5',
-                          borderWidth: 1,
-                          paddingVertical: 5,
-                          paddingHorizontal: 12,
-                          borderRadius: 6,
-                          alignSelf: 'flex-start',
-                          marginTop: 6,
-                        }}
-                        onPress={() => {
-                          const targetBm = item.bm || item.bmNumber;
-                          Alert.alert(
-                            `Unlock Bus ${targetBm}`,
-                            `Unlock bus ${targetBm} and return it to Available fleet?`,
-                            [
-                              { text: 'Cancel', style: 'cancel' },
-                              {
-                                text: 'Unlock',
-                                onPress: async () => {
-                                  await unlockBus(targetBm);
-                                },
-                              },
-                            ]
-                          );
-                        }}
-                      >
-                        <Text style={{ color: '#991b1b', fontWeight: '800', fontSize: 11 }}>🔓 Unlock Bus</Text>
-                      </TouchableOpacity>
+                      
                     </View>
                   );
                 })

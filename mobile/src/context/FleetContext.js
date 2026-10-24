@@ -549,7 +549,41 @@ export const FleetProvider = ({ children }) => {
       if (bmClean) lockedBmMap.set(bmClean, lb);
     });
 
-    // Explicit bay locks from backend (manual lock actions only)
+    // Explicit bay locks from backend + Post-Route Turnaround locked buses (like BM056)
+    Object.keys(servicingStatus).forEach((bmKey) => {
+      const bmClean = String(bmKey).toUpperCase().trim();
+      const serv = servicingStatus[bmKey];
+      if (!serv || typeof serv !== 'object') return;
+
+      const needsChg = Boolean(serv.needsCharging || (serv.routeCompleted && !serv.chargingCompleted) || serv.status === 'turnaround_charging');
+      const needsCln = Boolean(serv.needsCleaning || (serv.routeCompleted && !serv.cleaningCompleted) || serv.status === 'turnaround_cleaning');
+      const isTurnaroundRequired = Boolean(serv.routeCompleted || needsChg || (needsCln && !serv.cleaningCompleted));
+
+      if (isTurnaroundRequired && !lockedBmMap.has(bmClean)) {
+        const chgDone = Boolean(serv.chargingCompleted && !needsChg);
+        const clnDone = Boolean(serv.cleaningCompleted && !needsCln);
+        const reason = needsChg
+          ? 'Turnaround (Fast Charging Required Before Cleaning & Scheduling)'
+          : 'Turnaround (Cleaning & Wash Required Before Scheduling)';
+
+        lockedBmMap.set(bmClean, {
+          bm: bmClean,
+          bmNumber: bmClean,
+          reg: staticBusRegs[bmClean] || `KA51AH${bmClean.replace(/\D/g, '').padStart(4, '0')}`,
+          depot: getBusDepot(bmClean, depotAssignments),
+          page: 'turnaround', // Turnaround lock (not active in bay yet)
+          reason: reason,
+          isTurnaround: true,
+          needsCharging: needsChg,
+          chargingCompleted: chgDone,
+          needsCleaning: needsCln,
+          cleaningCompleted: clnDone,
+          startTime: serv.routeCompletedAt || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+          startTimestamp: serv.routeCompletedTs || Date.now(),
+        });
+      }
+    });
+
     const fullNormalizedLocked = Array.from(lockedBmMap.values());
 
     let allocatedDutiesList = [];

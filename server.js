@@ -5152,9 +5152,40 @@ const server = http.createServer(async (req, res) => {
             try {
 
                 const currentState = loadBusState();
+                const lockedMap = new Map();
+                (currentState._lockedBuses || []).forEach(lb => {
+                    const k = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+                    if (k) lockedMap.set(k, lb);
+                });
 
-                const lockedBuses = currentState._lockedBuses || [];
+                // Synthesize turnaround locked buses (awaiting charging/cleaning)
+                const servStatus = currentState._servicingStatus || {};
+                Object.keys(servStatus).forEach(bmKey => {
+                    const k = String(bmKey).toUpperCase().trim();
+                    const s = servStatus[bmKey];
+                    if (!s || typeof s !== 'object') return;
+                    const needsChg = Boolean(s.needsCharging || (s.routeCompleted && !s.chargingCompleted));
+                    const needsCln = Boolean(s.needsCleaning || (s.routeCompleted && !s.cleaningCompleted));
+                    if ((s.routeCompleted || needsChg || needsCln) && !lockedMap.has(k)) {
+                        lockedMap.set(k, {
+                            bm: k,
+                            bmNumber: k,
+                            reg: (currentState[k] && (currentState[k].regNo || currentState[k].reg_no)) || `KA51AH${k.replace(/\D/g, '').padStart(4, '0')}`,
+                            depot: String(currentState._depotAssignments?.[k] || '1'),
+                            page: 'turnaround',
+                            reason: needsChg ? 'Turnaround (Fast Charging Required Before Cleaning & Scheduling)' : 'Turnaround (Cleaning & Wash Required Before Scheduling)',
+                            isTurnaround: true,
+                            needsCharging: needsChg,
+                            chargingCompleted: !needsChg,
+                            needsCleaning: needsCln,
+                            cleaningCompleted: !needsCln,
+                            startTime: s.routeCompletedAt || new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }),
+                            startTimestamp: s.routeCompletedTs || Date.now()
+                        });
+                    }
+                });
 
+                const lockedBuses = Array.from(lockedMap.values());
                 sendJson(res, { ok: true, count: lockedBuses.length, lockedBuses });
 
             } catch (error) {

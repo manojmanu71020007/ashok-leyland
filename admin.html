@@ -2893,7 +2893,7 @@
                         <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:#64748b;">🔍</span>
                         <input type="text" id="locked-bus-search-input" placeholder="Search locked buses by bus number (e.g. BM153), bus short name (e.g. 500DC), reason..." style="width:100%; padding:8px 12px 8px 34px; border-radius:8px; border:1px solid #cbd5e1; font-size:0.84rem;" />
                     </div>
-<button type="button" id="btn-unlock-all-modal" class="btn-unlock-all" onclick="unlockAllBusesFromAdmin()" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:8px; padding:7px 14px; font-weight:700; font-size:0.82rem; cursor:pointer; white-space:nowrap;">🔓 Unlock All Buses</button>
+
                 </div>
 
                 <div id="locked-modal-body" class="modal-body" style="padding:20px 24px; gap:16px;">
@@ -4915,7 +4915,42 @@ let busCategoriesMap = new Map();
             }
             try {
                 const parsed = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
-                _cachedLockedBuses = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+                const lockedMap = new Map();
+                (Array.isArray(parsed) ? parsed : []).forEach(lb => {
+                    const k = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+                    if (k) lockedMap.set(k, lb);
+                });
+
+                // Synthesize turnaround locked buses from smartbus_servicing_status (like BM056)
+                try {
+                    const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+                    Object.keys(servMap).forEach(bmKey => {
+                        const k = String(bmKey).toUpperCase().trim();
+                        const s = servMap[bmKey];
+                        if (!s || typeof s !== 'object') return;
+                        const needsChg = Boolean(s.needsCharging || (s.routeCompleted && !s.chargingCompleted));
+                        const needsCln = Boolean(s.needsCleaning || (s.routeCompleted && !s.cleaningCompleted));
+                        if ((s.routeCompleted || needsChg || needsCln) && !lockedMap.has(k)) {
+                            lockedMap.set(k, {
+                                bm: k,
+                                bmNumber: k,
+                                reg: getBusRegNo(k),
+                                depot: String(getBusDepot(k) || '1'),
+                                page: 'turnaround',
+                                reason: needsChg ? 'Turnaround (Fast Charging Required Before Cleaning & Scheduling)' : 'Turnaround (Cleaning & Wash Required Before Scheduling)',
+                                isTurnaround: true,
+                                needsCharging: needsChg,
+                                chargingCompleted: !needsChg,
+                                needsCleaning: needsCln,
+                                cleaningCompleted: !needsCln,
+                                startTime: s.routeCompletedAt || 'Today',
+                                startTimestamp: s.routeCompletedTs || Date.now()
+                            });
+                        }
+                    });
+                } catch(e) {}
+
+                _cachedLockedBuses = Array.from(lockedMap.values());
             } catch {
                 _cachedLockedBuses = [];
             }
@@ -8237,11 +8272,14 @@ let busCategoriesMap = new Map();
                 const isCharge = item.pages.has('charging');
                 const isBoth = isClean && isCharge;
 
+                const isTurn = Boolean(item.isTurnaround || item.pages.has('turnaround'));
                 let badgeHtml = '';
                 if (isBoth) {
                     badgeHtml = '<span class="lock-pill-both">🧼 &amp; ⚡ Cleaning &amp; Charging</span>';
                 } else if (isClean) {
                     badgeHtml = '<span class="lock-pill-cleaning">🧹 Deep Cleaning</span>';
+                } else if (isTurn) {
+                    badgeHtml = '<span class="lock-pill-both" style="background:#fef3c7; color:#92400e; border:1px solid #fde68a;">🔄 Turnaround Locked</span>';
                 } else {
                     badgeHtml = '<span class="lock-pill-charging">⚡ Fast DC Charging</span>';
                 }
@@ -8279,11 +8317,7 @@ let busCategoriesMap = new Map();
                                 🔒 Not Allocated
                             </span>
                         </td>
-                        <td>
-                            <button type="button" onclick="unlockBusFromAdmin('${escapeHtml(item.bm)}')" style="background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; border-radius:6px; padding:4px 10px; font-weight:700; font-size:0.75rem; cursor:pointer;">
-                                🔓 Unlock
-                            </button>
-                        </td>
+                        
                     </tr>
                 `;
             }).join('');
@@ -8299,7 +8333,6 @@ let busCategoriesMap = new Map();
                                 <th>Reason for Lock</th>
                                 <th>Process Started</th>
                                 <th>Allocation Status</th>
-                                <th>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -9101,7 +9134,15 @@ let busCategoriesMap = new Map();
                 if (busStateResponse && busStateResponse.ok) {
                     try {
                         const busStatePayload = await busStateResponse.json();
-                        if (busStatePayload?.state) busStates = busStatePayload.state;
+                        if (busStatePayload?.state) {
+                            busStates = busStatePayload.state;
+                            if (busStatePayload.state._servicingStatus) {
+                                try { localStorage.setItem("smartbus_servicing_status", JSON.stringify(busStatePayload.state._servicingStatus)); } catch(e) {}
+                            }
+                            if (busStatePayload.state._lockedBuses) {
+                                try { localStorage.setItem(LOCKED_KEY, JSON.stringify(busStatePayload.state._lockedBuses)); } catch(e) {}
+                            }
+                        }
                     } catch (e) {}
                 }
                 syncLocalStorageBusStates();
@@ -9210,6 +9251,12 @@ let busCategoriesMap = new Map();
                                     localStorage.setItem("depot_bus_soc_" + upperBm, String(newSoc));
                                 }
                             }
+                        }
+                        if (data.state._servicingStatus) {
+                            try { localStorage.setItem("smartbus_servicing_status", JSON.stringify(data.state._servicingStatus)); } catch(e) {}
+                        }
+                        if (data.state._lockedBuses) {
+                            try { localStorage.setItem(LOCKED_KEY, JSON.stringify(data.state._lockedBuses)); } catch(e) {}
                         }
                         syncLocalStorageBusStates();
                         if (changed) {
