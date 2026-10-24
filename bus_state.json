@@ -19206,17 +19206,6 @@
       "bmNumber": "BM002"
     },
     {
-      "bm": "BM010",
-      "reg": "KA51AH2424",
-      "page": "cleaning",
-      "depot": "1",
-      "reason": "Under Bus Interior & Exterior Cleaning (Washing Bay)",
-      "startTime": "02:42:42 pm, 22 Oct 2026",
-      "time": "02:42:42 pm",
-      "startTimestamp": 1792660362760,
-      "bmNumber": "BM010"
-    },
-    {
       "bm": "BM020",
       "reg": "KA51AH2556",
       "page": "cleaning",
@@ -19605,7 +19594,12 @@
       "chargingCompleted": true,
       "chargingCompletedAt": "7:23 am, 24 Oct 2026"
     },
-    "BM255": "needs_servicing"
+    "BM255": "needs_servicing",
+    "BM010": {
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "cleaningCompletedAt": "07:46:31 am, 24 Oct 2026"
+    }
   },
   "BM600": {
     "status": "On Time",
