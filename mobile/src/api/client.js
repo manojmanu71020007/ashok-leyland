@@ -99,6 +99,23 @@ export const api = {
     });
   },
 
+  // Unlock an individual bus
+  unlockBus: async (bm) => {
+    return apiRequest('/api/unlock-bus', {
+      method: 'POST',
+      body: JSON.stringify({ bm: String(bm).toUpperCase().trim() }),
+    });
+  },
+
+  // Unlock all locked buses in the fleet
+  unlockAllBuses: async () => {
+    return apiRequest('/api/unlock-all-buses', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  },
+
+
   // Get servicing status
   getServicingStatus: async () => {
     return apiRequest('/api/servicing-status');

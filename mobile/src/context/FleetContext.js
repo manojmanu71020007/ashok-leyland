@@ -393,233 +393,7 @@ export function getMatrixStatus(complexity, isPeak) {
 
 export const INITIAL_LOCKED_BUSES = [];
 
-export const INITIAL_ALLOCATED_DUTIES = [
-  {
-    id: 'duty_BM001_500DC_0815',
-    bm: 'BM001',
-    bmNumber: 'BM001',
-    regNo: 'KA51AH4144',
-    routeId: '500DC',
-    routeCode: '500DC',
-    busNumber: '500DC',
-    routeName: 'Attibele ➔ Whitefield (500DC) — 32.5 km',
-    origin: 'Attibele',
-    destination: 'Whitefield (500DC)',
-    departureTime: '08:15 AM',
-    shift: 'General Shift',
-    soc: 95,
-    fullDutyKm: 126,
-    routeDist: 32.5,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Ramesh Kumar (BMTC-4101)',
-    driverId: 'DRV-101',
-    driverName: 'Ramesh Kumar',
-    depot: '1',
-    allocatedAt: '08:15 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM002_356Z_0715',
-    bm: 'BM002',
-    bmNumber: 'BM002',
-    regNo: 'KA51AH4145',
-    routeId: '356Z',
-    routeCode: '356Z',
-    busNumber: '356Z',
-    routeName: 'Chandapura ➔ Anekal (356Z) — 28.7 km',
-    origin: 'Chandapura',
-    destination: 'Anekal',
-    departureTime: '07:15 AM',
-    shift: 'General Shift',
-    soc: 92,
-    fullDutyKm: 116,
-    routeDist: 28.7,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Suresh Gowda (BMTC-4102)',
-    driverId: 'DRV-102',
-    driverName: 'Suresh Gowda',
-    depot: '1',
-    allocatedAt: '07:15 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM003_360K_1000',
-    bm: 'BM003',
-    bmNumber: 'BM003',
-    regNo: 'KA51AH0003',
-    routeId: '360K',
-    routeCode: '360K',
-    busNumber: '360K',
-    routeName: 'Chandapura ⇔ KBS (360K) — 28.7 km',
-    origin: 'Chandapura',
-    destination: 'Majestic KBS',
-    departureTime: '10:00 AM',
-    shift: 'Night Halt',
-    soc: 83,
-    fullDutyKm: 118,
-    routeDist: 28.7,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Manjunath H. (BMTC-4104)',
-    driverId: 'DRV-104',
-    driverName: 'Manjunath H.',
-    depot: '1',
-    allocatedAt: '09:40 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM004_600F_0800',
-    bm: 'BM004',
-    bmNumber: 'BM004',
-    regNo: 'KA51AH2429',
-    routeId: '600F',
-    routeCode: '600F',
-    busNumber: '600F',
-    routeName: 'Bommasandra Depot 32 ➔ Basavanagudi (600F) — 27.8 km',
-    origin: 'Bommasandra Depot 32',
-    destination: 'Basavanagudi',
-    departureTime: '08:00 AM',
-    shift: 'General Shift',
-    soc: 94,
-    fullDutyKm: 120,
-    routeDist: 27.8,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Venkatesh P. (BMTC-4105)',
-    driverId: 'DRV-105',
-    driverName: 'Venkatesh P.',
-    depot: '1',
-    allocatedAt: '08:00 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM010_342F_0630',
-    bm: 'BM010',
-    bmNumber: 'BM010',
-    regNo: 'KA51AH0010',
-    routeId: '342F',
-    routeCode: '342F',
-    busNumber: '342F',
-    routeName: 'Chandapura to Silk Board (342F) — 42.0 km',
-    origin: 'Chandapura',
-    destination: 'Silk Board',
-    departureTime: '06:30 AM',
-    shift: 'Morning Shift',
-    soc: 91,
-    fullDutyKm: 122,
-    routeDist: 42.0,
-    tripCount: 8,
-    busCategory: 'A',
-    driver: 'Anand Murthy (BMTC-4103)',
-    driverId: 'DRV-103',
-    driverName: 'Anand Murthy',
-    depot: '1',
-    allocatedAt: '06:15 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM223_361C_0550',
-    bm: 'BM223',
-    bmNumber: 'BM223',
-    regNo: 'KA51AH8283',
-    routeId: '361C',
-    routeCode: '361C',
-    busNumber: '361C',
-    routeName: 'Chandapura ⇔ Kengeri (361C) — 38 km',
-    origin: 'Chandapura',
-    destination: 'Kengeri (361C)',
-    departureTime: '05:50 AM',
-    shift: 'Night Halt',
-    soc: 95,
-    fullDutyKm: 108,
-    routeDist: 38.0,
-    tripCount: 8,
-    busCategory: 'A',
-    driver: 'Harish Babu (BMTC-4206)',
-    driverId: 'DRV-206',
-    driverName: 'Harish Babu',
-    depot: '2',
-    allocatedAt: '05:38 PM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM238_KBS3F_0545',
-    bm: 'BM238',
-    bmNumber: 'BM238',
-    regNo: 'KA51AH4540',
-    routeId: 'KBS3F',
-    routeCode: 'KBS3F',
-    busNumber: 'KBS3F',
-    routeName: 'Kempegowda Bus Station ⇔ Basavanagudi (KBS3F) — 12.4 km',
-    origin: 'Kempegowda Bus Station',
-    destination: 'Basavanagudi (KBS3F)',
-    departureTime: '05:45 AM',
-    shift: 'General shift',
-    soc: 85,
-    fullDutyKm: 76,
-    routeDist: 12.4,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Prakash Nayak (BMTC-4202)',
-    driverId: 'DRV-202',
-    driverName: 'Prakash Nayak',
-    depot: '2',
-    allocatedAt: '05:36 PM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM201_KBS3F_0945',
-    bm: 'BM201',
-    bmNumber: 'BM201',
-    regNo: 'KA51AH4155',
-    routeId: 'KBS3F',
-    routeCode: 'KBS3F',
-    busNumber: 'KBS3F',
-    routeName: 'Kempegowda Bus Station ⇔ Basavanagudi (KBS3F) — 12.4 km',
-    origin: 'Kempegowda Bus Station',
-    destination: 'Basavanagudi (KBS3F)',
-    departureTime: '09:45 AM',
-    shift: 'General shift',
-    soc: 88,
-    fullDutyKm: 92,
-    routeDist: 12.4,
-    tripCount: 8,
-    busCategory: 'B',
-    driver: 'Basavaraju K. (BMTC-4201)',
-    driverId: 'DRV-201',
-    driverName: 'Basavaraju K.',
-    depot: '2',
-    allocatedAt: '09:30 AM, 21 Oct 2026',
-    status: 'Allocated',
-  },
-  {
-    id: 'duty_BM255_KBS3F_1020',
-    bm: 'BM255',
-    bmNumber: 'BM255',
-    regNo: 'KA51AH5640',
-    routeId: 'KBS3F',
-    routeCode: 'KBS3F',
-    busNumber: 'KBS3F',
-    routeName: 'Kempegowda Bus Station ⇔ Basavanagudi (KBS3F) — 12.4 km',
-    origin: 'Kempegowda Bus Station',
-    destination: 'Basavanagudi (KBS3F)',
-    departureTime: '10:20 AM',
-    shift: 'General shift',
-    soc: 90,
-    fullDutyKm: 122,
-    routeDist: 12.4,
-    tripCount: 8,
-    busCategory: 'A',
-    driver: 'Girish Reddy (BMTC-4203)',
-    driverId: 'DRV-203',
-    driverName: 'Girish Reddy',
-    depot: '2',
-    allocatedAt: '02:47 PM, 23 Oct 2026',
-    status: 'Allocated',
-  },
-];
+export const INITIAL_ALLOCATED_DUTIES = [];
 
 export const INITIAL_COMPLETED_ROUTES = [
   {
@@ -702,29 +476,17 @@ export const INITIAL_COMPLETED_ROUTES = [
   },
 ];
 
-// Helper to seed INITIAL_FLEET with the pre-allocated duties
+// Helper to seed INITIAL_FLEET as fully available with 0ms delay
 const getSeedFleet = () => {
-  const allocMap = new Map();
-  INITIAL_ALLOCATED_DUTIES.forEach((d) => {
-    allocMap.set(d.bm.toUpperCase(), d);
-  });
-
-  return INITIAL_FLEET.map((bus) => {
-    const duty = allocMap.get(bus.bmNumber.toUpperCase());
-    if (duty) {
-      return {
-        ...bus,
-        isAllocated: true,
-        status: 'Allocated',
-        allocatedDuty: duty,
-        assignedRoute: duty.routeCode || duty.routeName,
-        driver: duty.driver,
-        departureTime: duty.departureTime,
-        soc: duty.soc || bus.soc,
-      };
-    }
-    return bus;
-  });
+  return INITIAL_FLEET.map((bus) => ({
+    ...bus,
+    isAllocated: false,
+    isLocked: false,
+    isCharging: false,
+    isCleaning: false,
+    status: 'Available',
+    assignedRoute: null,
+  }));
 };
 
 export const FleetProvider = ({ children }) => {
@@ -796,19 +558,17 @@ export const FleetProvider = ({ children }) => {
       allocatedDutiesList = Object.values(rawState._allocatedDuties).filter(Boolean);
     }
 
-    if (allocatedDutiesList.length > 0) {
-      const normalizedDuties = allocatedDutiesList.map((d) => {
-        const bmClean = String(d.bm || d.bmNumber || '').toUpperCase().trim();
-        const resolvedDepot = d.depot ? String(d.depot) : getBusDepot(bmClean, depotAssignments);
-        return {
-          ...d,
-          bm: bmClean,
-          bmNumber: bmClean,
-          depot: resolvedDepot,
-        };
-      });
-      setAllocatedDuties(normalizedDuties);
-    }
+    const normalizedDuties = (allocatedDutiesList || []).map((d) => {
+      const bmClean = String(d.bm || d.bmNumber || '').toUpperCase().trim();
+      const resolvedDepot = d.depot ? String(d.depot) : getBusDepot(bmClean, depotAssignments);
+      return {
+        ...d,
+        bm: bmClean,
+        bmNumber: bmClean,
+        depot: resolvedDepot,
+      };
+    });
+    setAllocatedDuties(normalizedDuties);
 
     const busList = [];
 
@@ -838,28 +598,22 @@ export const FleetProvider = ({ children }) => {
       const rawServicing = servicingStatus[bm];
       const servicing = (typeof rawServicing === 'object' && rawServicing !== null)
         ? rawServicing
-        : (typeof rawServicing === 'string' ? { status: rawServicing, routeCompleted: true, needsCharging: true, needsCleaning: true } : {});
-      const chargingDone = Boolean(servicing.chargingCompleted || (!servicing.needsCharging && servicing.routeCompleted === false));
-      const cleaningDone = Boolean(servicing.cleaningCompleted || (!servicing.needsCleaning && servicing.routeCompleted === false));
-      const isTurnaroundLocked = Boolean(
-        (servicing.routeCompleted && (!chargingDone || !cleaningDone)) ||
-        servicing.status === 'needs_servicing'
-      );
+        : (typeof rawServicing === 'string' ? { status: rawServicing } : {});
 
       const lockedEntry = fullNormalizedLocked.find(
         (l) => String(l.bm || l.bmNumber || '').toUpperCase() === bm
       );
-      const isLocked = Boolean(lockedEntry) || isTurnaroundLocked;
+      const isLocked = Boolean(lockedEntry);
 
       const chgStatus = String(item.chargingStatus || item.status || '').toLowerCase();
-      const isCharging = (lockedEntry && (lockedEntry.page === 'charging' || lockedEntry.reason?.toLowerCase().includes('charg') || lockedEntry.isCharging) && !lockedEntry.isTurnaround) || servicing.status === 'charging' || chgStatus.includes('in progress') || chgStatus === 'charging';
-      const isCleaning = (lockedEntry && (lockedEntry.page === 'cleaning' || lockedEntry.reason?.toLowerCase().includes('clean') || lockedEntry.isCleaning) && !lockedEntry.isTurnaround) || servicing.status === 'cleaning' || chgStatus.includes('clean');
-      const isNeedsServicing = isTurnaroundLocked;
-      const needsCharging = !chargingDone;
-      const needsCleaning = !cleaningDone;
+      const isCharging = (lockedEntry && (lockedEntry.page === 'charging' || lockedEntry.reason?.toLowerCase().includes('charg') || lockedEntry.isCharging)) || servicing.status === 'charging' || chgStatus.includes('in progress') || chgStatus === 'charging';
+      const isCleaning = (lockedEntry && (lockedEntry.page === 'cleaning' || lockedEntry.reason?.toLowerCase().includes('clean') || lockedEntry.isCleaning)) || servicing.status === 'cleaning' || chgStatus.includes('clean');
+      const isNeedsServicing = Boolean(servicing.status === 'needs_servicing');
+      const needsCharging = Boolean(servicing.needsCharging || isCharging);
+      const needsCleaning = Boolean(servicing.needsCleaning || isCleaning);
 
       // 2. Real Allocation Detection: check against allocatedDutiesList (NOT default routes)
-      const allocatedDuty = (allocatedDutiesList.length > 0 ? allocatedDutiesList : INITIAL_ALLOCATED_DUTIES).find(
+      const allocatedDuty = (allocatedDutiesList || []).find(
         (d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase() === bm
       );
       const isAllocated = Boolean(allocatedDuty);
@@ -870,8 +624,6 @@ export const FleetProvider = ({ children }) => {
         status = 'Charging';
       } else if (isCleaning) {
         status = 'Cleaning';
-      } else if (isTurnaroundLocked) {
-        status = 'Turnaround (Locked)';
       } else if (isAllocated) {
         status = 'Allocated';
       } else if (isLocked) {
@@ -1101,7 +853,10 @@ export const FleetProvider = ({ children }) => {
             isLocked: false,
             isCharging: false,
             isCleaning: false,
-            status: 'Available',
+            isNeedsServicing: false,
+            needsCharging: false,
+            needsCleaning: false,
+            status: b.isAllocated ? 'Allocated' : 'Available',
           };
         }
         return b;
@@ -1109,6 +864,9 @@ export const FleetProvider = ({ children }) => {
     );
 
     try {
+      if (api.unlockBus) {
+        await api.unlockBus(cleanBm);
+      }
       await api.saveLockedBuses(updated);
     } catch (e) {
       console.warn('Failed to save unlocked buses:', e);
@@ -1131,10 +889,9 @@ export const FleetProvider = ({ children }) => {
       }))
     );
     try {
-      await apiRequest('/api/unlock-all-buses', {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
+      if (api.unlockAllBuses) {
+        await api.unlockAllBuses();
+      }
       await api.saveLockedBuses([]);
     } catch (e) {
       console.warn('Failed to unlock all buses:', e);
@@ -1313,60 +1070,14 @@ export const FleetProvider = ({ children }) => {
     });
 
     const cleanBm = String(record.bm || '').toUpperCase().trim();
-    const curServ = servicingStatus[cleanBm] || {};
-    const isCleaningDone = Boolean(curServ.cleaningCompleted || (!curServ.needsCleaning && curServ.routeCompleted === false));
-
-    // 2. Both charging AND cleaning must be complete before bus is unlocked to available
-    if (isCleaningDone) {
-      await unlockBus(cleanBm);
-    } else {
-      // Cleaning is STILL pending: keep bus locked in turnaround
-      const turnaroundRemainingLock = {
-        bm: cleanBm,
-        bmNumber: cleanBm,
-        reg: record.reg || staticBusRegs[cleanBm] || `KA51AH${cleanBm.replace(/\D/g, '').padStart(4, '0')}`,
-        depot: getBusDepot(cleanBm, {}),
-        page: 'cleaning',
-        reason: 'Turnaround (Cleaning & Wash Required Before Scheduling)',
-        isTurnaround: true,
-        needsCharging: false,
-        chargingCompleted: true,
-        needsCleaning: true,
-        cleaningCompleted: false,
-        chargerBay: 'Yard Holding Lane (Turnaround)',
-        startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        startTimestamp: Date.now(),
-      };
-      setLockedBuses((prev) => {
-        const filtered = prev.filter((x) => String(x.bm || x.bmNumber).toUpperCase().trim() !== cleanBm);
-        const updated = [turnaroundRemainingLock, ...filtered];
-        api.saveLockedBuses(updated).catch((e) => console.warn(e));
-        return updated;
-      });
-      setBuses((prev) =>
-        prev.map((b) => {
-          if (b.bmNumber === cleanBm) {
-            return {
-              ...b,
-              isLocked: true,
-              isCharging: false,
-              isCleaning: false,
-              needsCharging: false,
-              needsCleaning: true,
-              isNeedsServicing: true,
-              status: 'Turnaround (Locked)',
-            };
-          }
-          return b;
-        })
-      );
-    }
+    // 2. Unlock bus from charging lock
+    await unlockBus(cleanBm, 'charging');
 
     // 3. Update bus state (SoC, lastChargedTime, fullDutyDistanceKm, remarks)
     try {
       await api.postChargingBusState({
-        unique_id: record.bm,
-        bus: record.bm,
+        unique_id: cleanBm,
+        bus: cleanBm,
         soc: Number(record.socAft),
         manual_soc: Number(record.socAft),
         confirmedSoc: Number(record.socAft),
@@ -1389,21 +1100,13 @@ export const FleetProvider = ({ children }) => {
     // 4. Update servicing status
     try {
       const updatedServ = {
-        ...curServ,
         bm: cleanBm,
         needsCharging: false,
         chargingCompleted: true,
         chargingCompletedAt: record.unlockTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        routeCompleted: false,
+        status: 'available',
       };
-      if (isCleaningDone) {
-        updatedServ.routeCompleted = false;
-        updatedServ.status = 'available';
-      } else {
-        updatedServ.routeCompleted = true;
-        updatedServ.needsCleaning = true;
-        updatedServ.cleaningCompleted = false;
-        updatedServ.status = 'needs_servicing';
-      }
       await api.updateServicingStatus(cleanBm, updatedServ);
     } catch (e) {
       console.warn('Could not post to /api/servicing-status:', e);
@@ -1422,76 +1125,22 @@ export const FleetProvider = ({ children }) => {
     });
 
     const cleanBm = String(record.bm || '').toUpperCase().trim();
-    const curServ = servicingStatus[cleanBm] || {};
-    const isChargingDone = Boolean(curServ.chargingCompleted || (!curServ.needsCharging && curServ.routeCompleted === false));
-
-    // 2. Both charging AND cleaning must be complete before bus is unlocked to available
-    if (isChargingDone) {
-      await unlockBus(cleanBm);
-    } else {
-      // Fast Charging is STILL pending: keep bus locked in turnaround
-      const turnaroundRemainingLock = {
-        bm: cleanBm,
-        bmNumber: cleanBm,
-        reg: record.reg || staticBusRegs[cleanBm] || `KA51AH${cleanBm.replace(/\D/g, '').padStart(4, '0')}`,
-        depot: getBusDepot(cleanBm, {}),
-        page: 'charging',
-        reason: 'Turnaround (Fast Charging Required Before Scheduling)',
-        isTurnaround: true,
-        needsCleaning: false,
-        cleaningCompleted: true,
-        needsCharging: true,
-        chargingCompleted: false,
-        chargerBay: 'Yard Holding Lane (Turnaround)',
-        startTime: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
-        startTimestamp: Date.now(),
-      };
-      setLockedBuses((prev) => {
-        const filtered = prev.filter((x) => String(x.bm || x.bmNumber).toUpperCase().trim() !== cleanBm);
-        const updated = [turnaroundRemainingLock, ...filtered];
-        api.saveLockedBuses(updated).catch((e) => console.warn(e));
-        return updated;
-      });
-      setBuses((prev) =>
-        prev.map((b) => {
-          if (b.bmNumber === cleanBm) {
-            return {
-              ...b,
-              isLocked: true,
-              isCharging: false,
-              isCleaning: false,
-              needsCleaning: false,
-              needsCharging: true,
-              isNeedsServicing: true,
-              status: 'Turnaround (Locked)',
-            };
-          }
-          return b;
-        })
-      );
-    }
+    // 2. Unlock bus from cleaning lock
+    await unlockBus(cleanBm, 'cleaning');
 
     // 3. Update servicing status
     try {
       const updatedServ = {
-        ...curServ,
         bm: cleanBm,
         needsCleaning: false,
         cleaningCompleted: true,
         cleaningCompletedAt: record.unlockTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        routeCompleted: false,
+        status: 'available',
       };
-      if (isChargingDone) {
-        updatedServ.routeCompleted = false;
-        updatedServ.status = 'available';
-      } else {
-        updatedServ.routeCompleted = true;
-        updatedServ.needsCharging = true;
-        updatedServ.chargingCompleted = false;
-        updatedServ.status = 'needs_servicing';
-      }
       await api.updateServicingStatus(cleanBm, updatedServ);
     } catch (e) {
-      console.warn('Could not post cleaning to /api/servicing-status:', e);
+      console.warn('Could not post to /api/servicing-status:', e);
     }
 
     fetchFleet();
@@ -1674,11 +1323,8 @@ export const FleetProvider = ({ children }) => {
   // KPI Calculations
   const stats = {
     total: filteredBuses.length,
-    available: filteredBuses.filter((b) => b.status === 'Available').length,
-    allocated: Math.max(
-      filteredBuses.filter((b) => b.status === 'Allocated' || b.isAllocated).length,
-      currentDepotAllocCount
-    ),
+    available: filteredBuses.filter((b) => b.status === 'Available' && !b.isLocked && !b.isAllocated).length,
+    allocated: filteredBuses.filter((b) => b.status === 'Allocated' || b.isAllocated).length,
     charging: filteredBuses.filter((b) => b.isCharging).length,
     cleaning: filteredBuses.filter((b) => b.isCleaning).length,
   };

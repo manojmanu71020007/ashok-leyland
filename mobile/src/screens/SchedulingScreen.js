@@ -362,18 +362,12 @@ export default function SchedulingScreen() {
   const complexity = getRouteComplexity(selectedRoute.distance);
   const matrixStatus = getMatrixStatus(complexity, isPeak);
 
-  // Available buses in that depot strictly (excluding locked buses for charging, cleaning, allocated, or pending post-route servicing)
+  // Available buses in that depot strictly (excluding locked buses for charging, cleaning, or allocated)
   const isBusAvailableForScheduling = (b) => {
-    return b.status === 'Available' &&
-      !b.isLocked &&
-      !b.isCharging &&
-      !b.isCleaning &&
-      !b.isAllocated &&
-      !b.isNeedsServicing &&
-      !b.needsCharging &&
-      !b.needsCleaning &&
-      b.status !== 'Needs Servicing' &&
-      b.status !== 'Servicing Required';
+    const bm = String(b.bmNumber || b.id || '').toUpperCase().trim();
+    const isAlloc = b.isAllocated || allocatedDuties.some((d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === bm);
+    const isLock = b.isLocked || b.isCharging || b.isCleaning || lockedBuses.some((lb) => String(lb.bm || lb.bmNumber || '').toUpperCase().trim() === bm);
+    return !isAlloc && !isLock && b.status !== 'Blocked' && b.status !== 'Deleted';
   };
 
   const depotBuses = buses.filter((b) => String(b.depot || '1') === depotNum);

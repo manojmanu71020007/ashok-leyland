@@ -851,25 +851,24 @@ export default function AdminWorkspaceScreen() {
   const d2AllocatedDuties = allAllocatedDuties.filter((d) => getDutyDepot(d) === '2');
 
   const isBusAvailableForScheduling = (b) => {
-    return b.status === 'Available' &&
-      !b.isLocked &&
-      !b.isCharging &&
-      !b.isCleaning &&
-      !b.isAllocated &&
-      !b.isNeedsServicing &&
-      !b.needsCharging &&
-      !b.needsCleaning &&
-      b.status !== 'Needs Servicing' &&
-      b.status !== 'Servicing Required';
+    const bm = String(b.bmNumber || b.id || '').toUpperCase().trim();
+    const isAlloc = b.isAllocated || allAllocatedDuties.some((d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === bm);
+    const isLock = b.isLocked || b.isCharging || b.isCleaning || lockedBuses.some((lb) => String(lb.bm || lb.bmNumber || '').toUpperCase().trim() === bm);
+    return !isAlloc && !isLock && b.status !== 'Blocked' && b.status !== 'Deleted';
   };
 
   const allAvailableBuses = buses.filter(isBusAvailableForScheduling);
   const d1AvailableBuses = d1Buses.filter(isBusAvailableForScheduling);
   const d2AvailableBuses = d2Buses.filter(isBusAvailableForScheduling);
 
-  const allNotAllocatedBuses = buses.filter((b) => !allAllocatedDuties.some((d) => d.bm === b.bmNumber));
-  const d1NotAllocatedBuses = d1Buses.filter((b) => !d1AllocatedDuties.some((d) => d.bm === b.bmNumber));
-  const d2NotAllocatedBuses = d2Buses.filter((b) => !d2AllocatedDuties.some((d) => d.bm === b.bmNumber));
+  const isDutyMatch = (d, bm) => {
+    const cleanBm = String(bm || '').toUpperCase().trim();
+    const dutyBm = String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim();
+    return dutyBm === cleanBm;
+  };
+  const allNotAllocatedBuses = buses.filter((b) => !allAllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
+  const d1NotAllocatedBuses = d1Buses.filter((d) => !d1AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
+  const d2NotAllocatedBuses = d2Buses.filter((d) => !d2AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
 
   // Current View based on selected adminDepotFilter ('all' | '1' | '2')
   const viewBuses = adminDepotFilter === 'all' ? buses : adminDepotFilter === '1' ? d1Buses : d2Buses;
