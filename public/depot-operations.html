@@ -5875,50 +5875,51 @@
 
 
 
-    // Set post-route servicing requirement: Must complete Charging & Cleaning before re-allocation!
+    // Set post-route servicing requirement: Must complete 1st Charging, then 2nd Cleaning before re-allocation!
+    const turnaroundLock = {
+      bm: bm.toUpperCase(),
+      bmNumber: bm.toUpperCase(),
+      reg: v?.reg_no || '—',
+      depot: targetDepot,
+      page: 'charging',
+      reason: 'Turnaround (Fast Charging Required First Before Cleaning & Scheduling)',
+      isTurnaround: true,
+      needsCharging: true,
+      chargingCompleted: false,
+      needsCleaning: true,
+      cleaningCompleted: false,
+      startTime: fullTs,
+      time: timeStr,
+      startTimestamp: Date.now()
+    };
 
     const serviceEntry = {
-
       bm: bm.toUpperCase(),
-
-      routeCompleted: false,
-
+      routeCompleted: true,
       routeCompletedAt: fullTs,
-
       routeCompletedTs: Date.now(),
-
       depot: targetDepot,
-
-      needsCharging: false,
-
-      chargingCompleted: true,
-
-      chargingCompletedAt: fullTs,
-
-      needsCleaning: false,
-
-      cleaningCompleted: true,
-
-      cleaningCompletedAt: fullTs,
-
-      status: 'available'
-
+      needsCharging: true,
+      chargingCompleted: false,
+      needsCleaning: true,
+      cleaningCompleted: false,
+      status: 'turnaround_charging'
     };
 
     try {
-
-      const lockedList = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
-
-      const filteredLocked = lockedList.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bm.toUpperCase());
-
-      localStorage.setItem(LOCKED_KEY, JSON.stringify(filteredLocked));
-
+      let lockedList = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
+      lockedList = lockedList.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bm.toUpperCase());
+      lockedList.push(turnaroundLock);
+      localStorage.setItem(LOCKED_KEY, JSON.stringify(lockedList));
       if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
-
-        window.DepotSyncEngine.saveLockedBuses(filteredLocked);
-
+        window.DepotSyncEngine.saveLockedBuses(lockedList);
+      } else {
+        fetch('/api/locked-buses', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lockedBuses: lockedList })
+        }).catch(() => {});
       }
-
     } catch(e) {}
 
     try {

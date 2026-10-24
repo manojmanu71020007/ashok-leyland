@@ -1132,6 +1132,15 @@
       return;
     }
 
+    const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+    const serv = servMap[bm.toUpperCase()] || (window.DepotSyncEngine?.getBusServicing ? window.DepotSyncEngine.getBusServicing(bm) : null);
+    const lockedCurrent = getLockedBuses();
+    const isLockedCharging = lockedCurrent.some(x => isSameBusId(x.bm, bm) && (String(x.page || '').toLowerCase().includes('charg') || (x.isTurnaround && x.needsCharging)));
+    if ((serv && serv.needsCharging && !serv.chargingCompleted) || isLockedCharging) {
+      showToast(`⚠️ Bus ${bm} has completed route and must complete Fast Charging FIRST before Cleaning & Sanitization can begin!`, 'error', 6500);
+      return;
+    }
+
     let locked = getLockedBuses();
     const now = new Date();
     const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
@@ -1315,10 +1324,15 @@
     }
 
     const chargeLocked = isBusInCharging(bm, v?.reg_no);
+    const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+    const serv = servMap[bm.toUpperCase()] || (window.DepotSyncEngine?.getBusServicing ? window.DepotSyncEngine.getBusServicing(bm) : null);
+    const lockedCurrent = getLockedBuses();
+    const isLockedCharging = lockedCurrent.some(x => isSameBusId(x.bm, bm) && (String(x.page || '').toLowerCase().includes('charg') || (x.isTurnaround && x.needsCharging)));
+    const needsChargingFirst = Boolean((serv && serv.needsCharging && !serv.chargingCompleted) || isLockedCharging || (chargeLocked && !cleanLocked));
 
-    if (chargeLocked && !cleanLocked) {
+    if (needsChargingFirst && !cleanLocked) {
       if (otherBanner) {
-        otherBanner.innerHTML = `⚡ <strong>${bm}</strong> is currently locked in <strong>Charging Bay</strong>. Complete charging clearance before assigning to Cleaning.`;
+        otherBanner.innerHTML = `⚡ <strong>${bm}</strong> has completed route and must complete <strong>Fast Charging FIRST</strong> before Cleaning.<br>Please take this vehicle to the Charging Bay first.`;
         otherBanner.style.display = 'flex';
       }
       if (lockBtn) lockBtn.style.display = 'none';
@@ -1789,8 +1803,10 @@
           tag = ' [🔒 In Cleaning Bay]';
         } else if (isBusInCharging(v.bm_no, v.reg_no)) {
           tag = ' [⚡ In Charging Bay]';
+        } else if (serv && serv.routeCompleted && (!serv.chargingCompleted && serv.needsCharging)) {
+          tag = ' [⚡ Fast Charging Required 1st (Post-Route)]';
         } else if (serv && serv.routeCompleted && (!serv.cleaningCompleted || serv.needsCleaning)) {
-          tag = ' [🧹 Needs Cleaning (Post-Route)]';
+          tag = ' [🧹 Ready for Cleaning (Post-Route)]';
         }
         const isNew = window.DepotSyncEngine && typeof window.DepotSyncEngine.isNewlyAddedBus === 'function' && window.DepotSyncEngine.isNewlyAddedBus(v.bm_no);
         const newPrefix = isNew ? '✨ [NEW] ' : '';

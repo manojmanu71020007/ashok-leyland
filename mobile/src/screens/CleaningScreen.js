@@ -89,6 +89,14 @@ export default function CleaningScreen() {
       )
     : false;
 
+  const isNeedsChargingFirst = selectedBus
+    ? Boolean(
+        selectedBus.needsCharging ||
+        (selectedBus.isTurnaround && !selectedBus.chargingCompleted) ||
+        isLockedForCharging
+      )
+    : false;
+
   const ongoingCleaningList = lockedBuses.filter((x) => {
     const isCln = String(x.page || '').toLowerCase().includes('clean');
     const busDepot = String(x.depot || '1');
@@ -111,8 +119,11 @@ export default function CleaningScreen() {
       Alert.alert('Bus On Route', `Bus ${selectedBus.bmNumber} is currently on route. It cannot be cleaned until marked 'Completed Route' in Depot Operations!`);
       return;
     }
-    if (isLockedForCharging) {
-      Alert.alert('Bus In Charging', `Bus ${selectedBus.bmNumber} is currently undergoing charging! Complete charging first.`);
+    if (isNeedsChargingFirst) {
+      Alert.alert(
+        '⚡ Fast Charging Required First',
+        `Bus ${selectedBus.bmNumber} must complete Fast Charging first before cleaning can begin (Sequential Turnaround: 1st Charging ➔ 2nd Cleaning).`
+      );
       return;
     }
 
@@ -289,6 +300,9 @@ export default function CleaningScreen() {
                       <View style={styles.dropdownItemRow}>
                         <Text style={styles.dropdownBm}>{bus.bmNumber}</Text>
                         <Text style={styles.dropdownReg}>{bus.regNo}</Text>
+                        {Boolean(bus.needsCharging || (bus.isTurnaround && !bus.chargingCompleted) || lockedBuses.some(x => String(x.bm || x.bmNumber).toUpperCase() === bus.bmNumber && String(x.page || '').toLowerCase().includes('charg'))) && (
+                          <Text style={{ fontSize: 10, color: '#DC2626', fontWeight: '700' }}>⚡ 1st Chg Req</Text>
+                        )}
                         <Text style={styles.dropdownSoc}>{bus.soc}% SoC</Text>
                       </View>
                     </TouchableOpacity>
@@ -325,9 +339,11 @@ export default function CleaningScreen() {
               </View>
 
               {/* Warnings */}
-              {isLockedForCharging && (
-                <View style={styles.warningBox}>
-                  <Text style={styles.warningText}>⚠️ Bus {selectedBus.bmNumber} is currently undergoing charging! Complete charging first.</Text>
+              {isNeedsChargingFirst && (
+                <View style={[styles.warningBox, { backgroundColor: '#FEF2F2', borderColor: '#EF4444' }]}>
+                  <Text style={[styles.warningText, { color: '#B91C1C', fontWeight: '700' }]}>
+                    ⚡ FAST CHARGING REQUIRED 1ST: Bus {selectedBus.bmNumber} must complete Fast Charging first before cleaning can begin (Turnaround step 1 ➔ 2).
+                  </Text>
                 </View>
               )}
               {selectedBus.isAllocated && (
@@ -349,11 +365,16 @@ export default function CleaningScreen() {
               <View style={styles.lockRow}>
                 {!isLockedForCleaning ? (
                   <TouchableOpacity
-                    style={styles.lockBtn}
+                    style={[
+                      styles.lockBtn,
+                      isNeedsChargingFirst && { backgroundColor: '#9CA3AF', opacity: 0.75 }
+                    ]}
                     onPress={handleLockBus}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.lockBtnText}>🔒 Lock Bus for Cleaning</Text>
+                    <Text style={styles.lockBtnText}>
+                      {isNeedsChargingFirst ? '⚡ Charging Required Before Cleaning' : '🔒 Lock Bus for Cleaning'}
+                    </Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
