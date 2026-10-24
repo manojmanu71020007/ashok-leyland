@@ -2826,7 +2826,11 @@
     "assignedRouteId": "BM080",
     "assignedRouteDisplay": "Route BM080 - 360K (99.1 km)",
     "assignedRouteShortName": "360K",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-22": {
     "uniqueId": "BUS-22",
@@ -20031,13 +20035,13 @@
     },
     "BM080": {
       "bm": "BM080",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "11:45 pm, 24 Oct 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "11:47 pm, 24 Oct 2026"
     },
     "BM081": {
       "bm": "BM081",
@@ -20854,6 +20858,23 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1792865830770",
+      "bm": "BM080",
+      "reg": "KA51AH3336",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "11:46 pm, 24 Oct 2026",
+      "unlockTime": "11:47 pm, 24 Oct 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "11:47 pm",
+      "dateStr": "24 Oct 2026"
+    },
     {
       "id": "clean_1792860554751",
       "bm": "BM193",
