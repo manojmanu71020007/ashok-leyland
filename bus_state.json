@@ -19512,16 +19512,7 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [
-    {
-      "bm": "BM193",
-      "reg": "KA51AH7660",
-      "depot": "2",
-      "page": "cleaning",
-      "startTime": "10:16 pm, 24 Oct 2026",
-      "startTimestamp": 1792860387400
-    }
-  ],
+  "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "1",
     "BM002": "1",
@@ -20210,14 +20201,10 @@
       "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
       "needsCleaning": false,
       "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
       "status": "available",
-      "routeCompletedAt": "10:15 PM",
-      "routeCompletedTs": 1792860335382,
-      "depot": "2"
+      "cleaningCompletedAt": "10:19 pm, 24 Oct 2026"
     },
     "BM197": {
       "bm": "BM197",
@@ -20765,6 +20752,23 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1792860554751",
+      "bm": "BM193",
+      "reg": "KA51AH7660",
+      "depot": "2",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "10:16 pm, 24 Oct 2026",
+      "unlockTime": "10:19 pm, 24 Oct 2026",
+      "duration": "3 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "10:19 pm",
+      "dateStr": "24 Oct 2026"
+    },
     {
       "id": "clean_1792856290657",
       "bm": "BM001",
