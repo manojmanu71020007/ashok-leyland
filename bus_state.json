@@ -2771,7 +2771,7 @@
     "chargingStatus": null
   },
   "BM080": {
-    "status": "Turnaround (Locked)",
+    "status": "Active",
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
@@ -19543,7 +19543,16 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [],
+  "_lockedBuses": [
+    {
+      "bm": "BM080",
+      "reg": "KA51AH3336",
+      "depot": "1",
+      "page": "charging",
+      "startTime": "11:44 pm, 24 Oct 2026",
+      "startTimestamp": 1792865677852
+    }
+  ],
   "_depotAssignments": {
     "BM001": "1",
     "BM002": "1",
