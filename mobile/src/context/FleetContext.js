@@ -560,6 +560,7 @@ export const FleetProvider = ({ children }) => {
     const servicingStatus = rawState._servicingStatus || rawState.servicingStatus || {};
     servicingStatusRef.current = servicingStatus;
     const addedBusesMap = rawState._addedBuses || {};
+    const deletedBusesMap = rawState._deletedBuses || rawState.deletedBuses || {};
     
     // Robust parsing of arrays or objects from backend JSON
     let lockedBusesList = [];
@@ -591,6 +592,12 @@ export const FleetProvider = ({ children }) => {
     // Explicit bay locks from backend + Post-Route Turnaround locked buses (like BM056)
     Object.keys(servicingStatus).forEach((bmKey) => {
       const bmClean = String(bmKey).toUpperCase().trim();
+      const isDeleted = Boolean(
+        deletedBusesMap[bmClean] ||
+        deletedBusesMap[bmKey] ||
+        (localDeletedBusesRef.current && (localDeletedBusesRef.current[bmClean] || localDeletedBusesRef.current[bmKey]))
+      );
+      if (isDeleted) return;
       const serv = servicingStatus[bmKey];
       if (!serv || typeof serv !== 'object') return;
 
@@ -623,7 +630,15 @@ export const FleetProvider = ({ children }) => {
       }
     });
 
-    const fullNormalizedLocked = Array.from(lockedBmMap.values());
+    const fullNormalizedLocked = Array.from(lockedBmMap.values()).filter((lb) => {
+      const bmClean = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+      const isDeleted = Boolean(
+        deletedBusesMap[bmClean] ||
+        deletedBusesMap[lb.bm] ||
+        (localDeletedBusesRef.current && (localDeletedBusesRef.current[bmClean] || localDeletedBusesRef.current[lb.bm]))
+      );
+      return !isDeleted;
+    });
 
     let allocatedDutiesList = [];
     if (Array.isArray(rawState._allocatedDuties)) {

@@ -988,11 +988,14 @@ export default function AdminWorkspaceScreen() {
   // Scoped locked buses for the active depot filter (Updates dynamically when depot changes)
   const viewLockedBuses = useMemo(() => {
     return lockedBuses.filter((b) => {
+      const bmClean = String(b.bm || b.bmNumber || '').toUpperCase().trim();
+      const isDeleted = localDeletedBuses && (localDeletedBuses[bmClean] || Object.keys(localDeletedBuses).some((k) => k.toUpperCase().trim() === bmClean));
+      if (isDeleted) return false;
       if (adminDepotFilter === 'all') return true;
       const bDepot = String(b.depot || (buses.find((x) => x.bmNumber === b.bm)?.depot) || '1');
       return bDepot === adminDepotFilter;
     });
-  }, [lockedBuses, adminDepotFilter, buses]);
+  }, [lockedBuses, adminDepotFilter, buses, localDeletedBuses]);
 
   const viewChargingLockedCount = useMemo(() => {
     return viewLockedBuses.filter((b) => {
@@ -1036,13 +1039,17 @@ export default function AdminWorkspaceScreen() {
   const turnaroundAllList = useMemo(() => {
     return (completedRoutesLog || []).filter((item) => {
       const bm = String(item.bm || item.bmNumber || '').toUpperCase().trim();
+      const isDeleted = localDeletedBuses && (localDeletedBuses[bm] || Object.keys(localDeletedBuses).some((k) => k.toUpperCase().trim() === bm));
+      if (isDeleted) return false;
       return !isBusLockedInService(bm);
     });
-  }, [completedRoutesLog, buses, lockedBuses]);
+  }, [completedRoutesLog, buses, lockedBuses, localDeletedBuses]);
 
   const turnaroundDepot1List = useMemo(() => {
     return turnaroundAllList.filter((item) => {
       const bm = String(item.bm || item.bmNumber || '').toUpperCase().trim();
+      const isDeleted = localDeletedBuses && (localDeletedBuses[bm] || Object.keys(localDeletedBuses).some((k) => k.toUpperCase().trim() === bm));
+      if (isDeleted) return false;
       const bDepot = String(item.depot || (buses.find((x) => x.bmNumber === bm)?.depot) || '1');
       return bDepot === '1';
     });
@@ -1051,6 +1058,8 @@ export default function AdminWorkspaceScreen() {
   const turnaroundDepot2List = useMemo(() => {
     return turnaroundAllList.filter((item) => {
       const bm = String(item.bm || item.bmNumber || '').toUpperCase().trim();
+      const isDeleted = localDeletedBuses && (localDeletedBuses[bm] || Object.keys(localDeletedBuses).some((k) => k.toUpperCase().trim() === bm));
+      if (isDeleted) return false;
       const bDepot = String(item.depot || (buses.find((x) => x.bmNumber === bm)?.depot) || '1');
       return bDepot === '2';
     });
@@ -1066,11 +1075,14 @@ export default function AdminWorkspaceScreen() {
   // Scoped lists for Locked Buses Modal Directory
   const modalDepotLockedList = useMemo(() => {
     return lockedBuses.filter((b) => {
+      const bmClean = String(b.bm || b.bmNumber || '').toUpperCase().trim();
+      const isDeleted = localDeletedBuses && (localDeletedBuses[bmClean] || Object.keys(localDeletedBuses).some((k) => k.toUpperCase().trim() === bmClean));
+      if (isDeleted) return false;
       if (lockedDepotFilter === 'all') return true;
       const bDepot = String(b.depot || (buses.find((x) => x.bmNumber === b.bm)?.depot) || '1');
       return bDepot === lockedDepotFilter;
     });
-  }, [lockedBuses, lockedDepotFilter, buses]);
+  }, [lockedBuses, lockedDepotFilter, buses, localDeletedBuses]);
 
   const modalDepotChargingCount = useMemo(() => {
     return modalDepotLockedList.filter((b) => {

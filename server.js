@@ -3444,6 +3444,21 @@ function deleteFleetBus(params) {
     if (Array.isArray(currentState._allocatedDuties)) {
 
         currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.bm || '').toUpperCase() !== bm);
+    }
+    if (currentState._servicingStatus && currentState._servicingStatus[bm]) {
+        delete currentState._servicingStatus[bm];
+    }
+    if (Array.isArray(currentState._completedRoutesLog)) {
+        currentState._completedRoutesLog = currentState._completedRoutesLog.filter(x => String(x.bm || '').toUpperCase() !== bm);
+    }
+    if (currentState[bm]) {
+        currentState[bm].isLocked = false;
+        currentState[bm].isTurnaround = false;
+        currentState[bm].needsCharging = false;
+        currentState[bm].needsCleaning = false;
+        currentState[bm].chargingCompleted = false;
+        currentState[bm].cleaningCompleted = false;
+        currentState[bm].postRouteServicingPending = false;
 
     }
 

@@ -20559,18 +20559,6 @@
       "cleaningCompleted": true,
       "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
       "status": "available"
-    },
-    "BM600": {
-      "bm": "BM600",
-      "routeCompleted": true,
-      "routeCompletedAt": "11:44 AM",
-      "routeCompletedTs": 1792908849764,
-      "depot": "1",
-      "needsCharging": true,
-      "chargingCompleted": false,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "needs_servicing"
     }
   },
   "BM600": {
@@ -20593,15 +20581,15 @@
     "isDeleted": true,
     "model": "Good",
     "make": "100",
-    "isLocked": true,
+    "isLocked": false,
     "blocked": false,
-    "needsCharging": true,
+    "needsCharging": false,
     "chargingCompleted": false,
-    "needsCleaning": true,
+    "needsCleaning": false,
     "cleaningCompleted": false,
     "postRouteServicingPending": false,
     "chargingStatus": "Completed",
-    "isTurnaround": true,
+    "isTurnaround": false,
     "isAllocated": false,
     "depot": "1",
     "assignedRoute": null,
@@ -21027,21 +21015,6 @@
     }
   ],
   "_completedRoutesLog": [
-    {
-      "id": "comp_1792908849766",
-      "bm": "BM600",
-      "reg": "KA35MS0000",
-      "route": "Chandapura ⇔ Anekal (356Z) (Route 356Z) — 28.7 km",
-      "scheduledTime": "13:45",
-      "completedAt": "11:44 AM, 21 Oct 2026",
-      "dateStr": "2026-10-25",
-      "depot": "1",
-      "prevDepot": "1",
-      "isTransferred": false,
-      "driver": "Manjunath H. (BMTC-4104)",
-      "remarks": "Route completed on schedule and bus returned to depot yard.",
-      "status": "Returned / Completed"
-    },
     {
       "id": "comp_1792865525988",
       "bm": "BM080",

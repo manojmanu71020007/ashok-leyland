@@ -4933,8 +4933,12 @@ let busCategoriesMap = new Map();
                 // Synthesize turnaround locked buses from smartbus_servicing_status (like BM056)
                 try {
                     const servMap = JSON.parse(localStorage.getItem('smartbus_servicing_status') || '{}');
+                    const delMap = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === 'function')
+                        ? window.DepotSyncEngine.getDeletedBuses() : JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}');
                     Object.keys(servMap).forEach(bmKey => {
                         const k = String(bmKey).toUpperCase().trim();
+                        if (delMap && (delMap[k] || delMap[bmKey])) return;
+                        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(k)) return;
                         const s = servMap[bmKey];
                         if (!s || typeof s !== 'object') return;
                         const needsChg = Boolean(s.needsCharging || (s.routeCompleted && !s.chargingCompleted));
@@ -4959,7 +4963,14 @@ let busCategoriesMap = new Map();
                     });
                 } catch(e) {}
 
-                _cachedLockedBuses = Array.from(lockedMap.values());
+                const delMapFinal = (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDeletedBuses === 'function')
+                    ? window.DepotSyncEngine.getDeletedBuses() : JSON.parse(localStorage.getItem('depot_deleted_buses') || '{}');
+                _cachedLockedBuses = Array.from(lockedMap.values()).filter(lb => {
+                    const k = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+                    if (delMapFinal && (delMapFinal[k] || delMapFinal[lb.bm])) return false;
+                    if (window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === 'function' && window.DepotSyncEngine.isDeletedBus(k)) return false;
+                    return true;
+                });
             } catch {
                 _cachedLockedBuses = [];
             }
