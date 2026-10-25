@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { OFFICIAL_DIRECTORY } from '../context/accounts';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 
 export default function LoginScreen() {
   const { loginWithCredentials } = useAuth();
@@ -26,6 +27,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [directoryModalOpen, setDirectoryModalOpen] = useState(false);
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   const usernameRef = useRef(null);
   const passwordRef = useRef(null);
@@ -86,6 +88,7 @@ export default function LoginScreen() {
                 <Text style={styles.eyebrow}>ASHOK LEYLAND EV FLEET</Text>
                 <Text style={styles.topbarTitle}>{t('login_title', 'Portal Sign In')}</Text>
               </View>
+              <LanguagePickerPill onPress={() => setLangModalOpen(true)} />
             </View>
             <Text style={styles.topbarSub}>
               {t('login_sub', 'Enter authorized credentials to access your designated operations portal.')}
@@ -99,9 +102,9 @@ export default function LoginScreen() {
                 <Text style={styles.cardIcon}>🔐</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.cardTitle}>Account Authentication</Text>
+                <Text style={styles.cardTitle}>{t('account_auth', 'Account Authentication')}</Text>
                 <Text style={styles.cardSubtitle}>
-                  Single sign-in routes directly to your allocated division
+                  {t('single_signin_routes', 'Single sign-in routes directly to your allocated division')}
                 </Text>
               </View>
             </View>
@@ -117,7 +120,7 @@ export default function LoginScreen() {
             {/* 1. Username Field */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>
-                Username or Email <Text style={styles.requiredAsterisk}>*</Text>
+                {t('label_username', 'Username or Email')} <Text style={styles.requiredAsterisk}>*</Text>
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
@@ -132,7 +135,7 @@ export default function LoginScreen() {
                 <TextInput
                   ref={usernameRef}
                   style={styles.textInput}
-                  placeholder="Enter your username (e.g. CDM001, IS-DEPOT-1)"
+                  placeholder={t('placeholder_username', 'Enter your username (e.g. CDM001, IS-DEPOT-1)')}
                   placeholderTextColor="#94a3b8"
                   value={username}
                   onChangeText={(val) => {
@@ -163,7 +166,7 @@ export default function LoginScreen() {
             {/* 2. Password Field */}
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>
-                Password <Text style={styles.requiredAsterisk}>*</Text>
+                {t('label_password', 'Password')} <Text style={styles.requiredAsterisk}>*</Text>
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
@@ -178,7 +181,7 @@ export default function LoginScreen() {
                 <TextInput
                   ref={passwordRef}
                   style={styles.textInput}
-                  placeholder="Enter your account password"
+                  placeholder={t('placeholder_password', 'Enter your account password')}
                   placeholderTextColor="#94a3b8"
                   value={password}
                   onChangeText={(val) => {
@@ -217,7 +220,7 @@ export default function LoginScreen() {
                 </View>
               ) : (
                 <View style={styles.btnRow}>
-                  <Text style={styles.signInBtnText}>Sign In ➔</Text>
+                  <Text style={styles.signInBtnText}>{t('btn_login_submit', 'Sign In ➔')}</Text>
                 </View>
               )}
             </TouchableOpacity>

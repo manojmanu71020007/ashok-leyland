@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
 import {
   View,
   Text,
@@ -18,7 +19,7 @@ export default function SettingsScreen({ navigation }) {
   const { user, selectedDepot, switchDepot, logout } = useAuth();
   const [serverInput, setServerInput] = useState(getServerUrl());
   const [testingPing, setTestingPing] = useState(false);
-  const [selectedLang, setSelectedLang] = useState('en');
+  const { currentLang: selectedLang, setLanguage: setSelectedLang, t } = useLanguage();
 
   const testConnection = async () => {
     setTestingPing(true);

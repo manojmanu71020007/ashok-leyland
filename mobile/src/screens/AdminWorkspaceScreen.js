@@ -471,42 +471,45 @@ const UserNavIcon = ({ color = '#94a3b8', size = 20, active = false }) => (
 );
 
 // ── Universal SubScreen Header with Back Button & Count/Badge ──
-const SubScreenHeader = ({ title, subtitle, onBack, count, badge }) => (
-  <View style={styles.subScreenHeader}>
-    <View style={styles.subScreenHeaderBar}>
-      <TouchableOpacity
-        style={styles.subScreenBackPill}
-        onPress={onBack}
-        activeOpacity={0.8}
-        accessibilityLabel="Go back to Home"
-      >
-        <Text style={styles.subScreenBackIcon}>←</Text>
-        <Text style={styles.subScreenBackLabel}>Back</Text>
-      </TouchableOpacity>
+const SubScreenHeader = ({ title, subtitle, onBack, count, badge }) => {
+  const { t } = useLanguage();
+  return (
+    <View style={styles.subScreenHeader}>
+      <View style={styles.subScreenHeaderBar}>
+        <TouchableOpacity
+          style={styles.subScreenBackPill}
+          onPress={onBack}
+          activeOpacity={0.8}
+          accessibilityLabel="Go back to Home"
+        >
+          <Text style={styles.subScreenBackIcon}>←</Text>
+          <Text style={styles.subScreenBackLabel}>{t ? t('Back', 'Back') : 'Back'}</Text>
+        </TouchableOpacity>
 
-      <View style={styles.subScreenHeaderTitles}>
-        <Text style={styles.subScreenHeaderMainTitle} numberOfLines={1}>
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text style={styles.subScreenHeaderSubTitle} numberOfLines={1}>
-            {subtitle}
+        <View style={styles.subScreenHeaderTitles}>
+          <Text style={styles.subScreenHeaderMainTitle} numberOfLines={1}>
+            {typeof title === 'string' && t ? t(title, title) : title}
           </Text>
+          {subtitle ? (
+            <Text style={styles.subScreenHeaderSubTitle} numberOfLines={1}>
+              {typeof subtitle === 'string' && t ? t(subtitle, subtitle) : subtitle}
+            </Text>
+          ) : null}
+        </View>
+
+        {count !== undefined && count !== null ? (
+          <View style={styles.subScreenCountPill}>
+            <Text style={styles.subScreenCountText}>{count}</Text>
+          </View>
+        ) : badge ? (
+          <View style={styles.subScreenBadgePill}>
+            <Text style={styles.subScreenBadgeText}>{typeof badge === 'string' && t ? t(badge, badge) : badge}</Text>
+          </View>
         ) : null}
       </View>
-
-      {count !== undefined && count !== null ? (
-        <View style={styles.subScreenCountPill}>
-          <Text style={styles.subScreenCountText}>{count}</Text>
-        </View>
-      ) : badge ? (
-        <View style={styles.subScreenBadgePill}>
-          <Text style={styles.subScreenBadgeText}>{badge}</Text>
-        </View>
-      ) : null}
     </View>
-  </View>
-);
+  );
+};
 
 
 // ── PHOTO-MATCHING CIRCULAR DONUT CHART (Dynamically updated by Allocated & Not Allocated) ──
@@ -633,8 +636,24 @@ export default function AdminWorkspaceScreen() {
   const [adminDepotFilter, setAdminDepotFilter] = useState('all');
 
   // Current language synced via LanguageContext
-  const { currentLang, setLanguage: setCurrentLang } = useLanguage();
-  const t = I18N[currentLang] || I18N.en;
+  const { currentLang, setLanguage: setCurrentLang, t: tContext, languages = [] } = useLanguage();
+  const t = React.useMemo(() => {
+    const fn = (key, fallback = '') => {
+      const legacy = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]);
+      if (legacy) return legacy;
+      return tContext ? tContext(key, fallback) : (fallback || key);
+    };
+    return new Proxy(fn, {
+      get: (target, prop) => {
+        if (typeof prop === 'string') {
+          const legacy = (I18N[currentLang] && I18N[currentLang][prop]) || (I18N.en && I18N.en[prop]);
+          if (legacy) return legacy;
+          return tContext ? tContext(prop) : prop;
+        }
+        return target[prop];
+      },
+    });
+  }, [currentLang, tContext]);
 
   // Modals state
   const [lockedModalOpen, setLockedModalOpen] = useState(false);
@@ -1460,8 +1479,8 @@ export default function AdminWorkspaceScreen() {
                 <Text style={styles.headerAvatarText}>AD</Text>
               </View>
               <View style={styles.headerTitles}>
-                <Text style={styles.headerEyebrow}>DEPOT OPERATIONS</Text>
-                <Text style={styles.headerMainTitle}>Admin Workspace</Text>
+                <Text style={styles.headerEyebrow}>{t('depot_operations_title', 'DEPOT OPERATIONS')}</Text>
+                <Text style={styles.headerMainTitle}>{t('admin_workspace_title', 'Admin Workspace')}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 <TouchableOpacity
@@ -1490,9 +1509,9 @@ export default function AdminWorkspaceScreen() {
             {/* Depot Filter Pills matching photo */}
             <View style={styles.depotPillBar}>
               {[
-                { id: 'all', label: `All fleet · ${buses.length}` },
-                { id: '1', label: `Depot 1 · ${d1Buses.length}` },
-                { id: '2', label: `Depot 2 · ${d2Buses.length}` },
+                { id: 'all', label: `${t('all_fleet', 'All fleet')} · ${buses.length}` },
+                { id: '1', label: `${t('depot_1', 'Depot 1')} · ${d1Buses.length}` },
+                { id: '2', label: `${t('depot_2', 'Depot 2')} · ${d2Buses.length}` },
               ].map((item) => {
                 const isActive = adminDepotFilter === item.id;
                 return (
@@ -1524,7 +1543,7 @@ export default function AdminWorkspaceScreen() {
                 <View style={styles.fleetSummaryLegend}>
                   <View style={styles.liveSystemBadge}>
                     <View style={styles.liveSystemDot} />
-                    <Text style={styles.liveSystemText}>Live system</Text>
+                    <Text style={styles.liveSystemText}>{t('live_system', 'Live system')}</Text>
                   </View>
 
                   <TouchableOpacity
@@ -1534,7 +1553,7 @@ export default function AdminWorkspaceScreen() {
                   >
                     <View style={styles.legendLabelWrap}>
                       <View style={[styles.legendDot, { backgroundColor: '#10b981' }]} />
-                      <Text style={styles.legendLabel}>Allocated</Text>
+                      <Text style={styles.legendLabel}>{t('allocated', 'Allocated')}</Text>
                     </View>
                     <View style={styles.legendValGroup}>
                       <Text style={styles.legendVal}>{viewAllocatedDuties.length}</Text>
@@ -1551,7 +1570,7 @@ export default function AdminWorkspaceScreen() {
                   >
                     <View style={styles.legendLabelWrap}>
                       <View style={[styles.legendDot, { backgroundColor: '#a5b4fc' }]} />
-                      <Text style={styles.legendLabel}>Not allocated</Text>
+                      <Text style={styles.legendLabel}>{t('not_allocated', 'Not allocated')}</Text>
                     </View>
                     <View style={styles.legendValGroup}>
                       <Text style={styles.legendVal}>{viewNotAllocatedBuses.length}</Text>
@@ -1574,7 +1593,7 @@ export default function AdminWorkspaceScreen() {
               >
                 <View style={styles.availDepartureLeft}>
                   <Text style={styles.availDepartureBolt}>⚡</Text>
-                  <Text style={styles.availDepartureLabel}>Available for scheduling</Text>
+                  <Text style={styles.availDepartureLabel}>{t('available_for_scheduling', 'Available for scheduling')}</Text>
                 </View>
                 <Text style={styles.availDepartureVal}>{viewAvailableBuses.length}</Text>
               </TouchableOpacity>
@@ -1582,7 +1601,7 @@ export default function AdminWorkspaceScreen() {
 
             {/* Fleet Reconciliation Equation Bar (admin.html parity: Total = Available + On Route + Locked) */}
             <View style={styles.accountingBar}>
-              <Text style={styles.accountingTitle}>📊 Fleet Breakdown:</Text>
+              <Text style={styles.accountingTitle}>{t('fleet_breakdown', '📊 Fleet Breakdown:')}</Text>
               <Text style={styles.accountingPill}>Total: {viewBuses.length}</Text>
               <Text style={styles.accountingEqual}>=</Text>
               <TouchableOpacity onPress={() => navigateToAdminTab('AVAILABLE_DEPARTURE')}>
@@ -1602,7 +1621,7 @@ export default function AdminWorkspaceScreen() {
 
             {/* OPERATIONS HUB matching photo */}
             <View style={styles.operationsHubSection}>
-              <Text style={styles.operationsHubTitle}>OPERATIONS HUB</Text>
+              <Text style={styles.operationsHubTitle}>{t('operations_hub', 'OPERATIONS HUB')}</Text>
 
               <View style={styles.hubGrid}>
                 {/* Tile 1: Available for departure */}
@@ -1615,7 +1634,7 @@ export default function AdminWorkspaceScreen() {
                     <CalendarIcon color="#4f46e5" size={22} />
                   </View>
                   <Text style={styles.hubTileTitle}>Available for scheduling</Text>
-                  <Text style={styles.hubTileSub}>{viewAvailableBuses.length} ready to schedule</Text>
+                  <Text style={styles.hubTileSub}>{viewAvailableBuses.length} {t('ready_to_schedule', 'ready to schedule')}</Text>
                 </TouchableOpacity>
 
                 {/* Tile 2: Allocated buses */}
@@ -1628,7 +1647,7 @@ export default function AdminWorkspaceScreen() {
                     <CheckCircleIcon color="#10b981" size={24} />
                   </View>
                   <Text style={styles.hubTileTitle}>Allocated buses</Text>
-                  <Text style={styles.hubTileSub}>{viewAllocatedDuties.length} on active route</Text>
+                  <Text style={styles.hubTileSub}>{viewAllocatedDuties.length} {t('on_active_route', 'on active route')}</Text>
                 </TouchableOpacity>
 
                 {/* Tile 3: Not allocated */}
@@ -1641,7 +1660,7 @@ export default function AdminWorkspaceScreen() {
                     <BusFrontIcon color="#2563eb" size={22} />
                   </View>
                   <Text style={styles.hubTileTitle}>Not allocated</Text>
-                  <Text style={styles.hubTileSub}>{viewNotAllocatedBuses.length} in yard reserve</Text>
+                  <Text style={styles.hubTileSub}>{viewNotAllocatedBuses.length} {t('in_yard_reserve', 'in yard reserve')}</Text>
                 </TouchableOpacity>
 
                 {/* Tile 4: Locked buses */}
@@ -1838,9 +1857,7 @@ export default function AdminWorkspaceScreen() {
             />
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
-                <Text style={[styles.sectionHeadingTitle, { color: '#08755f' }]}>
-                  ✅ Allocated Buses ({viewAllocatedDuties.length})
-                </Text>
+                <Text style={[styles.sectionHeadingTitle, { color: '#08755f' }]}>✅ {t('panel_allocated_buses', 'Allocated Buses')} ({viewAllocatedDuties.length})</Text>
                 <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
 
                   <TouchableOpacity
@@ -1884,7 +1901,7 @@ export default function AdminWorkspaceScreen() {
                   }}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.btnHeaderDownloadText}>📥 Download CSV</Text>
+                  <Text style={styles.btnHeaderDownloadText}>{t('btn_download_csv', '📥 Download CSV')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -2042,9 +2059,7 @@ export default function AdminWorkspaceScreen() {
             />
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
-                <Text style={[styles.sectionHeadingTitle, { color: '#a94b15' }]}>
-                  ⛔ Not-Allocated Buses ({viewNotAllocatedBuses.length})
-                </Text>
+                <Text style={[styles.sectionHeadingTitle, { color: '#a94b15' }]}>⛔ {t('panel_not_allocated_buses', 'Not-Allocated Buses')} ({viewNotAllocatedBuses.length})</Text>
                 <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
@@ -2085,7 +2100,7 @@ export default function AdminWorkspaceScreen() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.btnHeaderDownloadText}>📥 Export CSV</Text>
+                    <Text style={styles.btnHeaderDownloadText}>{t('btn_export_csv', '📥 Export CSV')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2208,9 +2223,7 @@ export default function AdminWorkspaceScreen() {
             />
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
-                <Text style={[styles.sectionHeadingTitle, { color: '#6d28d9' }]}>
-                  ⚡ Available Buses for Scheduling ({viewAvailableBuses.length})
-                </Text>
+                <Text style={[styles.sectionHeadingTitle, { color: '#6d28d9' }]}>⚡ {t('panel_available_buses', 'Available Buses for Scheduling')} ({viewAvailableBuses.length})</Text>
                 <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
@@ -2245,7 +2258,7 @@ export default function AdminWorkspaceScreen() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.btnHeaderDownloadText}>📥 Export CSV</Text>
+                    <Text style={styles.btnHeaderDownloadText}>{t('btn_export_csv', '📥 Export CSV')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2255,7 +2268,7 @@ export default function AdminWorkspaceScreen() {
 
               {/* Fleet Accounting Bar (admin.html parity: Total = Available + On Route + Locked) */}
               <View style={styles.accountingBar}>
-                <Text style={styles.accountingTitle}>📊 Fleet Breakdown:</Text>
+                <Text style={styles.accountingTitle}>{t('fleet_breakdown', '📊 Fleet Breakdown:')}</Text>
                 <Text style={styles.accountingPill}>Total: {viewBuses.length}</Text>
                 <Text style={styles.accountingEqual}>=</Text>
                 <Text style={[styles.accountingPill, { backgroundColor: '#f5f3ff', color: '#5b21b6' }]}>⚡ Avail: {viewAvailableBuses.length}</Text>
@@ -2419,9 +2432,7 @@ export default function AdminWorkspaceScreen() {
 
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
-                <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>
-                  🚌 Total Buses ({viewBuses.length})
-                </Text>
+                <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>🚌 {t('total_buses', 'Total Buses')} ({viewBuses.length})</Text>
                 <View style={styles.sectionActionsRow}>
                   <View style={styles.breakdownBadge}>
                     <Text style={styles.breakdownBadgeText}>D1: {d1Buses.length} | D2: {d2Buses.length}</Text>
@@ -2431,7 +2442,7 @@ export default function AdminWorkspaceScreen() {
                     onPress={() => setAddDeleteModalOpen(true)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.btnAddDelHeaderText}>➕ Add / Delete</Text>
+                    <Text style={styles.btnAddDelHeaderText}>➕ {t('addDeleteBuses', 'Add / Delete')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
@@ -2470,7 +2481,7 @@ export default function AdminWorkspaceScreen() {
                     }}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.btnHeaderDownloadText}>📥 Export CSV</Text>
+                    <Text style={styles.btnHeaderDownloadText}>{t('btn_export_csv', '📥 Export CSV')}</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -2482,32 +2493,32 @@ export default function AdminWorkspaceScreen() {
               <View style={styles.totalFleetStatsBar}>
                 <View style={styles.totalStatBox}>
                   <Text style={styles.totalStatNum}>{viewBuses.length}</Text>
-                  <Text style={styles.totalStatLbl}>Total Fleet</Text>
+                  <Text style={styles.totalStatLbl}>{t('total_fleet', 'Total Fleet')}</Text>
                 </View>
                 <View style={styles.totalStatDivider} />
                 <View style={styles.totalStatBox}>
                   <Text style={[styles.totalStatNum, { color: '#16a34a' }]}>{totalFleetAvailableCount}</Text>
-                  <Text style={styles.totalStatLbl}>Available</Text>
+                  <Text style={styles.totalStatLbl}>{t('avail', 'Available')}</Text>
                 </View>
                 <View style={styles.totalStatDivider} />
                 <View style={styles.totalStatBox}>
                   <Text style={[styles.totalStatNum, { color: '#7c3aed' }]}>{totalFleetOnRouteCount}</Text>
-                  <Text style={styles.totalStatLbl}>On Route</Text>
+                  <Text style={styles.totalStatLbl}>{t('on_route', 'On Route')}</Text>
                 </View>
                 <View style={styles.totalStatDivider} />
                 <View style={styles.totalStatBox}>
                   <Text style={[styles.totalStatNum, { color: '#dc2626' }]}>{totalFleetLockedCount}</Text>
-                  <Text style={styles.totalStatLbl}>Locked</Text>
+                  <Text style={styles.totalStatLbl}>{t('locked', 'Locked')}</Text>
                 </View>
               </View>
 
               {/* Status Filters with Real-Time Counts */}
               <View style={styles.filterPillsRow}>
                 {[
-                  { key: 'all', label: `All (${viewBuses.length})` },
-                  { key: 'available', label: `🟢 Available (${totalFleetAvailableCount})` },
-                  { key: 'allocated', label: `🟣 On Route (${totalFleetOnRouteCount})` },
-                  { key: 'locked', label: `🔒 Locked (${totalFleetLockedCount})` },
+                  { key: 'all', label: `${t('filter_all', 'All')} (${viewBuses.length})` },
+                  { key: 'available', label: `🟢 ${t('avail', 'Available')} (${totalFleetAvailableCount})` },
+                  { key: 'allocated', label: `🟣 ${t('on_route', 'On Route')} (${totalFleetOnRouteCount})` },
+                  { key: 'locked', label: `🔒 ${t('filter_locked', 'Locked')} (${totalFleetLockedCount})` },
                   { key: 'new', label: `✨ Newly Added (${viewBuses.filter((b) => isBusNewlyAdded(b, localAddedBuses)).length})` },
                 ].map((st) => (
                   <TouchableOpacity
@@ -2627,10 +2638,10 @@ export default function AdminWorkspaceScreen() {
         {activeAdminTab === 'PROFILE' && (
           <View style={styles.profileTabContainer}>
             <SubScreenHeader
-              title="Admin Profile"
-              subtitle="Master credentials & system preferences"
+              title={t('admin_profile', 'Admin Profile')}
+              subtitle={t('profile_sub', 'Master credentials & system preferences')}
               onBack={() => navigateToAdminTab('HOME')}
-              badge="Active"
+              badge={t('status_active', 'Active')}
             />
             {/* Profile Header */}
             <View style={styles.profileHeader}>
@@ -2640,48 +2651,93 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.profileName}>{user?.email?.split('@')[0]?.toUpperCase() || 'ADMIN'}</Text>
               <Text style={styles.profileEmail}>{user?.email || 'admin@bmtc.gov.in'}</Text>
               <View style={styles.profileRoleBadge}>
-                <Text style={styles.profileRoleBadgeText}>👑 Fleet Administrator</Text>
+                <Text style={styles.profileRoleBadgeText}>👑 {t('fleet_admin', 'Fleet Administrator')}</Text>
               </View>
             </View>
 
             {/* Login Details Card */}
             <View style={styles.profileCard}>
-              <Text style={styles.profileCardTitle}>🔐 Login Details</Text>
+              <Text style={styles.profileCardTitle}>🔐 {t('login_details', 'Login Details')}</Text>
               <View style={styles.profileDetailRow}>
-                <Text style={styles.profileDetailLabel}>Email</Text>
+                <Text style={styles.profileDetailLabel}>{t('label_email', 'Email')}</Text>
                 <Text style={styles.profileDetailValue}>{user?.email || 'admin@bmtc.gov.in'}</Text>
               </View>
               <View style={styles.profileDetailRow}>
-                <Text style={styles.profileDetailLabel}>Role</Text>
-                <Text style={styles.profileDetailValue}>Master Fleet Administrator</Text>
+                <Text style={styles.profileDetailLabel}>{t('label_role', 'Role')}</Text>
+                <Text style={styles.profileDetailValue}>{t('role_fleet_admin', 'Master Fleet Administrator')}</Text>
               </View>
               <View style={styles.profileDetailRow}>
-                <Text style={styles.profileDetailLabel}>Depot Access</Text>
-                <Text style={styles.profileDetailValue}>Depot 1 & Depot 2 (Enterprise)</Text>
+                <Text style={styles.profileDetailLabel}>{t('label_depot_access', 'Depot Access')}</Text>
+                <Text style={styles.profileDetailValue}>{t('depot_access_val', 'Depot 1 & Depot 2 (Enterprise)')}</Text>
               </View>
               <View style={[styles.profileDetailRow, { borderBottomWidth: 0 }]}>
-                <Text style={styles.profileDetailLabel}>Session</Text>
+                <Text style={styles.profileDetailLabel}>{t('label_session', 'Session')}</Text>
                 <View style={styles.profileSessionBadge}>
                   <View style={styles.profileSessionDot} />
-                  <Text style={styles.profileSessionText}>Active</Text>
+                  <Text style={styles.profileSessionText}>{t('status_active', 'Active')}</Text>
                 </View>
               </View>
             </View>
 
+            {/* 🌐 System Language Card (Admin Profile Section) */}
+            <View style={styles.profileCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={styles.profileCardTitle}>🌐 {t('language_preference', 'Language Preference')}</Text>
+                <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '800', color: '#2563eb' }}>
+                    {languages.find((l) => l.code === currentLang)?.native || 'English'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={{ fontSize: 12.5, color: '#64748b', marginBottom: 14, fontWeight: '500' }}>
+                {t('select_language_subtitle', 'Select system interface language / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ')}
+              </Text>
+              {languages.map((lang) => {
+                const isActive = currentLang === lang.code;
+                return (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[styles.profileLangItem, isActive && styles.profileLangItemActive]}
+                    onPress={() => setCurrentLang(lang.code)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      <Text style={{ fontSize: 22 }}>{lang.flag || '🌐'}</Text>
+                      <View>
+                        <Text style={[styles.profileLangText, isActive && styles.profileLangTextActive]}>
+                          {lang.native}
+                        </Text>
+                        <Text style={{ fontSize: 11.5, color: isActive ? '#4361ee' : '#94a3b8', fontWeight: '600' }}>
+                          {lang.label}
+                        </Text>
+                      </View>
+                    </View>
+                    {isActive ? (
+                      <View style={{ backgroundColor: '#4361ee', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
+                        <Text style={{ color: '#fff', fontSize: 14, fontWeight: '900' }}>✓</Text>
+                      </View>
+                    ) : (
+                      <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#cbd5e1' }} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             {/* Sign Out Card */}
             <View style={styles.profileCard}>
-              <Text style={styles.profileCardTitle}>⚙️ Account Actions</Text>
+              <Text style={styles.profileCardTitle}>⚙️ {t('account_actions', 'Account Actions')}</Text>
               <TouchableOpacity
                 style={styles.profileSignOutBtn}
                 onPress={() => {
-                  Alert.alert('Sign Out', 'Sign out of the Admin Workspace?', [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Sign Out', style: 'destructive', onPress: () => logout() },
+                  Alert.alert(t('btn_sign_out', 'Sign Out'), t('sign_out_alert_msg', 'Sign out of the Admin Workspace?'), [
+                    { text: t('cancel', 'Cancel'), style: 'cancel' },
+                    { text: t('btn_sign_out', 'Sign Out'), style: 'destructive', onPress: () => logout() },
                   ]);
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.profileSignOutBtnText}>🚪  Sign Out</Text>
+                <Text style={styles.profileSignOutBtnText}>🚪  {t('btn_sign_out', 'Sign Out')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -3498,7 +3554,7 @@ export default function AdminWorkspaceScreen() {
                         }}
                         activeOpacity={0.8}
                       >
-                        <Text style={styles.btnHeaderDownloadText}>📥 Download CSV</Text>
+                        <Text style={styles.btnHeaderDownloadText}>{t('btn_download_csv', '📥 Download CSV')}</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -3906,7 +3962,7 @@ export default function AdminWorkspaceScreen() {
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'HOME' && styles.adminNavIconActive]}>
             <HomeNavIcon color={activeAdminTab === 'HOME' ? '#4361ee' : '#94a3b8'} size={21} active={activeAdminTab === 'HOME'} />
           </View>
-          <Text style={[styles.adminNavLabel, activeAdminTab === 'HOME' && styles.adminNavLabelActive]}>Home</Text>
+          <Text style={[styles.adminNavLabel, activeAdminTab === 'HOME' && styles.adminNavLabelActive]}>{t('nav_home', 'Home')}</Text>
         </TouchableOpacity>
 
         {/* 2. Schedule */}
@@ -3914,7 +3970,7 @@ export default function AdminWorkspaceScreen() {
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'SCHEDULE' && styles.adminNavIconActive]}>
             <CalendarIcon color={activeAdminTab === 'SCHEDULE' ? '#4361ee' : '#94a3b8'} size={20} />
           </View>
-          <Text style={[styles.adminNavLabel, activeAdminTab === 'SCHEDULE' && styles.adminNavLabelActive]}>Schedule</Text>
+          <Text style={[styles.adminNavLabel, activeAdminTab === 'SCHEDULE' && styles.adminNavLabelActive]}>{t('nav_schedule', 'Schedule')}</Text>
         </TouchableOpacity>
 
         {/* 3. Center FAB (+) */}
@@ -3927,7 +3983,7 @@ export default function AdminWorkspaceScreen() {
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'TOTAL_FLEET' && styles.adminNavIconActive]}>
             <BusFrontIcon color={activeAdminTab === 'TOTAL_FLEET' ? '#4361ee' : '#94a3b8'} size={20} />
           </View>
-          <Text style={[styles.adminNavLabel, activeAdminTab === 'TOTAL_FLEET' && styles.adminNavLabelActive]}>Total fleet</Text>
+          <Text style={[styles.adminNavLabel, activeAdminTab === 'TOTAL_FLEET' && styles.adminNavLabelActive]}>{t('nav_total_fleet', 'Total fleet')}</Text>
         </TouchableOpacity>
 
         {/* 5. Profile */}
@@ -3935,7 +3991,7 @@ export default function AdminWorkspaceScreen() {
           <View style={[styles.adminNavIconWrap, activeAdminTab === 'PROFILE' && styles.adminNavIconActive]}>
             <UserNavIcon color={activeAdminTab === 'PROFILE' ? '#4361ee' : '#94a3b8'} size={20} active={activeAdminTab === 'PROFILE'} />
           </View>
-          <Text style={[styles.adminNavLabel, activeAdminTab === 'PROFILE' && styles.adminNavLabelActive]}>Profile</Text>
+          <Text style={[styles.adminNavLabel, activeAdminTab === 'PROFILE' && styles.adminNavLabelActive]}>{t('nav_profile', 'Profile')}</Text>
         </TouchableOpacity>
       </View>
 

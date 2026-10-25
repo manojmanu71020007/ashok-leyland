@@ -13,6 +13,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import { useFleet } from '../context/FleetContext';
 import { colors } from '../theme/colors';
 import BusCard from '../components/BusCard';
@@ -38,7 +40,7 @@ export default function PortalScreen({ navigation }) {
   // Modals
   const [depotDrawerVisible, setDepotDrawerVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
-  const [currentLang, setCurrentLang] = useState('en');
+  const { currentLang, setLanguage, t } = useLanguage();
   const [selectedBusForSoc, setSelectedBusForSoc] = useState(null);
   const [scannerVisible, setScannerVisible] = useState(false);
 
@@ -88,6 +90,7 @@ export default function PortalScreen({ navigation }) {
         </View>
 
         <View style={styles.topNavRight}>
+          <LanguagePickerPill onPress={() => setLangModalVisible(true)} style={{ marginRight: 6 }} />
           {/* Quick Sign Out Button - strictly rendered only after login */}
           {isAuthenticated && (
             <TouchableOpacity

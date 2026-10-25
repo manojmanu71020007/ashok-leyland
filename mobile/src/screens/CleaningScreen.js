@@ -14,6 +14,7 @@ import { colors } from '../theme/colors';
 import { useFleet } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import { exportCsvFile } from '../utils/exportCsv';
 
 export default function CleaningScreen() {
@@ -216,6 +217,7 @@ export default function CleaningScreen() {
           <Text style={styles.headerSub}>{depotName}</Text>
         </View>
         <View style={styles.topbarActions}>
+          <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />
           <TouchableOpacity
             style={styles.signOutBtn}
             onPress={() => {

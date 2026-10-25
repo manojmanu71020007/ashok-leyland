@@ -14,6 +14,7 @@ import { colors } from '../theme/colors';
 import { useFleet, getBusDepot } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 
@@ -52,6 +53,7 @@ export default function DepotOpsScreen() {
 
   // Active dispatches search
   const [dispatchSearch, setDispatchSearch] = useState('');
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   // Helper to determine the duty's depot safely
   const getDutyDepot = (d) => {
@@ -235,12 +237,13 @@ export default function DepotOpsScreen() {
       <View style={styles.topbar}>
         <View style={styles.topbarHeaderRow}>
           <View style={styles.topbarCenter}>
-            <Text style={styles.eyebrow}>DEPOT OPERATIONS</Text>
+            <Text style={styles.eyebrow}>{t('depot_operations_title', 'DEPOT OPERATIONS')}</Text>
             <Text style={styles.topbarTitle}>Depot {depotNum} Operations</Text>
             <Text style={styles.topbarSub}>{depotName} • Ashok Leyland EV Fleet</Text>
           </View>
 
           <View style={styles.topbarActions}>
+          <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />
             {/* Prominent Sign Out Button */}
             <TouchableOpacity
               style={styles.signOutBtn}

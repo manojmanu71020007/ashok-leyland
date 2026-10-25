@@ -27,6 +27,7 @@ import {
 } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 
@@ -400,6 +401,7 @@ export default function SchedulingScreen() {
   const [driverNameInput, setDriverNameInput] = useState(availableDrivers[0].name);
   const [driverError, setDriverError] = useState('');
   const [selectedCandidateBm, setSelectedCandidateBm] = useState(null);
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   // Sync route and driver when depot changes
   React.useEffect(() => {
@@ -889,11 +891,12 @@ export default function SchedulingScreen() {
       {/* ── TOPBAR ── */}
       <View style={styles.topbar}>
         <View style={styles.topbarCenter}>
-          <Text style={styles.eyebrow}>AI ENERGY & FLEET SCHEDULING</Text>
-          <Text style={styles.topbarTitle}>Bus Scheduling & Dispatch</Text>
+          <Text style={styles.eyebrow}>{t('smart_allocation_subtitle', 'AI ENERGY & FLEET SCHEDULING')}</Text>
+          <Text style={styles.topbarTitle}>{t('smart_allocation_title', 'Bus Scheduling & Dispatch')}</Text>
           <Text style={styles.topbarSub}>Depot {depotNum} • {depotLabel}</Text>
         </View>
         <View style={styles.topbarActions}>
+          <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />
           <TouchableOpacity
             style={styles.signOutBtn}
             onPress={() => {
@@ -912,13 +915,13 @@ export default function SchedulingScreen() {
       <ScrollView contentContainerStyle={styles.contentWrap} showsVerticalScrollIndicator={false}>
         {/* ── PANEL 1: SCHEDULE REQUIREMENT ── */}
         <View style={styles.panel}>
-          <Text style={styles.panelTitle}>Schedule requirement</Text>
+          <Text style={styles.panelTitle}>{t('panel_schedule_req_title', 'Schedule requirement')}</Text>
           <Text style={styles.panelNote}>
-            Define the next departure and let the allocation rules evaluate fleet readiness.
+            {t('panel_schedule_req_note', 'Define the next departure and let the allocation rules evaluate fleet readiness.')}
           </Text>
 
           {/* 1. Bus Route Selector */}
-          <Text style={styles.fieldLabel}>Select Bus Route</Text>
+          <Text style={styles.fieldLabel}>{t('label_select_bus_route', 'Select Bus Route')}</Text>
           <TouchableOpacity
             style={styles.selectBox}
             onPress={() => setRoutePickerOpen(true)}
@@ -930,7 +933,7 @@ export default function SchedulingScreen() {
             <Text style={styles.caret}>▼</Text>
           </TouchableOpacity>
 
-          {/* 2. Scheduled Departure Time (from dataset) */}
+          {/* 2. {t('label_departure_time', 'Scheduled Departure Time')} */}
           <Text style={styles.fieldLabel}>
             Scheduled Departure Time (from dataset) <Text style={{ color: '#dc2626' }}>*</Text>
           </Text>
@@ -946,7 +949,7 @@ export default function SchedulingScreen() {
           </TouchableOpacity>
 
           {/* 4. Schedule distance */}
-          <Text style={styles.fieldLabel}>Schedule distance (km)</Text>
+          <Text style={styles.fieldLabel}>{t('schedule_distance', 'Schedule distance (km)')}</Text>
           <View style={styles.readonlyInput}>
             <Text style={styles.readonlyInputText}>{selectedRoute.distance} km (Fixed GTFS data)</Text>
           </View>

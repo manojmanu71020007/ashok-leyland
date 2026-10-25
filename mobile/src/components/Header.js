@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from './LanguageModal';
 import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { colors } from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +13,8 @@ export default function Header({
 }) {
   const { selectedDepot, switchDepot, logout, isAuthenticated } = useAuth();
   const { lastUpdated, error } = useFleet();
+  const { t } = useLanguage();
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   const handleSignOut = () => {
     Alert.alert(
@@ -34,7 +38,7 @@ export default function Header({
             activeOpacity={0.8}
           >
             <Text style={styles.backBtnIcon}>←</Text>
-            <Text style={styles.backBtnText}>Back to Portal</Text>
+            <Text style={styles.backBtnText}>{t('nav_back_portal', 'Back to Portal')}</Text>
           </TouchableOpacity>
         ) : (
           <View style={styles.brandBadgeWrap}>
@@ -43,6 +47,7 @@ export default function Header({
         )}
 
         <View style={styles.rightActions}>
+          <LanguagePickerPill onPress={() => setLangModalOpen(true)} />
           {/* Live Sync Pill */}
           <View style={styles.statusPill}>
             <View
@@ -52,7 +57,7 @@ export default function Header({
               ]}
             />
             <Text style={styles.statusText}>
-              {error ? 'Offline' : 'Live Sync'}
+              {error ? t('offline', 'Offline') : t('live_system', 'Live Sync')}
             </Text>
           </View>
 
@@ -63,7 +68,7 @@ export default function Header({
               onPress={handleSignOut}
               activeOpacity={0.8}
             >
-              <Text style={styles.signOutText}>🚪 Sign Out</Text>
+              <Text style={styles.signOutText}>🚪 {t('btn_sign_out', 'Sign Out')}</Text>
             </TouchableOpacity>
           )}
         </View>
