@@ -27,7 +27,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import BatteryBar from '../components/BatteryBar';
-import { exportCsvFile, downloadExcelReport, downloadPdfReport } from '../utils/exportCsv';
+import { exportCsvFile } from '../utils/exportCsv';
 import { getSequentialTasksForDuty } from '../utils/detailedScheduleTrips';
 import { api } from '../api/client';
 import { WebView } from 'react-native-webview';
@@ -1830,20 +1830,7 @@ export default function AdminWorkspaceScreen() {
                   ✅ Allocated Buses ({viewAllocatedDuties.length})
                 </Text>
                 <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
-                  <TouchableOpacity
-                    style={[styles.btnHeaderDownload, { backgroundColor: '#0f766e' }]}
-                    onPress={downloadExcelReport}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.btnHeaderDownloadText}>📊 Excel (.xlsx)</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.btnHeaderDownload, { backgroundColor: '#be123c' }]}
-                    onPress={downloadPdfReport}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.btnHeaderDownloadText}>📄 PDF Report</Text>
-                  </TouchableOpacity>
+
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
                   onPress={async () => {
@@ -2042,10 +2029,53 @@ export default function AdminWorkspaceScreen() {
               count={viewNotAllocatedBuses.length}
             />
             <View style={styles.sectionContent}>
-              <View style={styles.sectionHeaderRow}>
+              <View style={styles.sectionHeaderStack}>
                 <Text style={[styles.sectionHeadingTitle, { color: '#a94b15' }]}>
                   ⛔ Not-Allocated Buses ({viewNotAllocatedBuses.length})
                 </Text>
+                <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
+                  <TouchableOpacity
+                    style={styles.btnHeaderDownload}
+                    onPress={async () => {
+                      if (!viewNotAllocatedBuses || viewNotAllocatedBuses.length === 0) {
+                        Alert.alert('No Records', 'No not-allocated buses to export.');
+                        return;
+                      }
+                      const headers = [
+                        'Depot',
+                        'Bus BM Number',
+                        'Registration Number',
+                        'Model',
+                        'Bus Category',
+                        'Battery SoC (%)',
+                        'Usable Range (km)',
+                        'Status Reason',
+                      ];
+                      const rows = viewNotAllocatedBuses.map((b) => {
+                        let reason = 'Depot Standby / Reserve';
+                        if (b.isCharging) reason = 'Locked: Charging';
+                        else if (b.isCleaning) reason = 'Locked: Cleaning';
+                        else if (b.soc < 25) reason = 'Low Battery SoC (< 25%)';
+                        return [
+                          b.depot ? `Depot ${b.depot}` : 'Depot 1',
+                          b.bmNumber || '',
+                          b.regNo || '',
+                          b.model || 'ELECTRIC BUS AC EiV12',
+                          b.busCategory || 'B',
+                          b.soc !== undefined ? `${b.soc}%` : '',
+                          `${Math.round(Math.max(0, (b.soc || 0) - 10) * 1.42)} km`,
+                          reason,
+                        ];
+                      });
+                      const dateStr = new Date().toISOString().slice(0, 10);
+                      const filterTag = adminDepotFilter === 'all' ? 'all_depots' : `depot_${adminDepotFilter}`;
+                      await exportCsvFile(`not_allocated_buses_${filterTag}_${dateStr}.csv`, [headers, ...rows]);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.btnHeaderDownloadText}>📥 Export CSV</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <Text style={styles.sectionNote}>
                 Ineligible or in reserve ({adminDepotFilter === 'all' ? 'Depot 1 & Depot 2' : 'Depot ' + adminDepotFilter}) — unassigned driver, low SoC, or maintenance.
@@ -2165,10 +2195,47 @@ export default function AdminWorkspaceScreen() {
               count={viewAvailableBuses.length}
             />
             <View style={styles.sectionContent}>
-              <View style={styles.sectionHeaderRow}>
+              <View style={styles.sectionHeaderStack}>
                 <Text style={[styles.sectionHeadingTitle, { color: '#6d28d9' }]}>
                   ⚡ Available Buses for Scheduling ({viewAvailableBuses.length})
                 </Text>
+                <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 6 }]}>
+                  <TouchableOpacity
+                    style={styles.btnHeaderDownload}
+                    onPress={async () => {
+                      if (!viewAvailableBuses || viewAvailableBuses.length === 0) {
+                        Alert.alert('No Records', 'No available buses to export.');
+                        return;
+                      }
+                      const headers = [
+                        'Depot',
+                        'Bus BM Number',
+                        'Registration Number',
+                        'Model',
+                        'Bus Category',
+                        'Battery SoC (%)',
+                        'Usable Range (km)',
+                        'Status',
+                      ];
+                      const rows = viewAvailableBuses.map((b) => [
+                        b.depot ? `Depot ${b.depot}` : 'Depot 1',
+                        b.bmNumber || '',
+                        b.regNo || '',
+                        b.model || 'ELECTRIC BUS AC EiV12',
+                        b.busCategory || 'B',
+                        b.soc !== undefined ? `${b.soc}%` : '',
+                        `${Math.round(Math.max(0, (b.soc || 0) - 10) * 1.42)} km`,
+                        'Available & Compliant for Scheduling',
+                      ]);
+                      const dateStr = new Date().toISOString().slice(0, 10);
+                      const filterTag = adminDepotFilter === 'all' ? 'all_depots' : `depot_${adminDepotFilter}`;
+                      await exportCsvFile(`available_buses_${filterTag}_${dateStr}.csv`, [headers, ...rows]);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.btnHeaderDownloadText}>📥 Export CSV</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
               <Text style={styles.sectionNote}>
                 Ready fleet ({adminDepotFilter === 'all' ? 'Depot 1 & Depot 2' : 'Depot ' + adminDepotFilter}). Cleaning and charging protocols strictly excluded.

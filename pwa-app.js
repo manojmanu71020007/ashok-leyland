@@ -266,7 +266,7 @@
         pill.className = 'pwa-install-pill';
         pill.innerHTML = `
             <span class="pwa-install-icon">📲</span>
-            <span class="pwa-install-text">Install for iOS</span>
+            <span class="pwa-install-text">Install App</span>
             <button type="button" class="pwa-install-close" id="pwa-dismiss-btn" title="Dismiss">✕</button>
         `;
         document.body.appendChild(pill);
@@ -278,7 +278,7 @@
         iosModal.innerHTML = `
             <div class="pwa-ios-modal">
                 <div style="font-size: 2.2rem; margin-bottom: 8px;">🚌⚡</div>
-                <h3>Install for iOS</h3>
+                <h3>Install App</h3>
                 <p>Install this app on your device for fast, full-screen fleet management:</p>
                 <div class="pwa-ios-steps">
                     1. Tap the <strong>Share</strong> button <span style="font-size:1.1rem">⎋</span> at the bottom of Safari.<br>
@@ -286,7 +286,7 @@
                     3. Tap <strong>"Add"</strong> in the top-right corner. The app will be named <strong>"Install"</strong>!
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <a href="/install.html" style="background:#0f172a; color:#fff; text-decoration:none; padding:10px 14px; border-radius:10px; font-weight:700; font-size:0.9rem; text-align:center;">View Full iOS Guide</a>
+                    <a href="/install.html" style="background:#0f172a; color:#fff; text-decoration:none; padding:10px 14px; border-radius:10px; font-weight:700; font-size:0.9rem; text-align:center;">View Installation Guide</a>
                     <button type="button" class="pwa-ios-close-btn" id="pwa-ios-close-btn">Got It!</button>
                 </div>
             </div>

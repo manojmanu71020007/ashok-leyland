@@ -222,17 +222,7 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            {/* Quick Directory Reference Link */}
-            <TouchableOpacity
-              style={styles.directoryLinkBtn}
-              onPress={() => setDirectoryModalOpen(true)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.directoryLinkIcon}>📋</Text>
-              <Text style={styles.directoryLinkText}>
-                View Authorized Master Logins Directory
-              </Text>
-            </TouchableOpacity>
+
           </View>
 
           {/* Footer Branding Note */}
