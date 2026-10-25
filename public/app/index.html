@@ -3,48 +3,27 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no, viewport-fit=cover" />
-    <title>Ashok Leyland Bus Management System</title>
-
-    <!-- Progressive Web App Capabilities & Mobile Optimizations -->
-    <link rel="manifest" href="/manifest.json?v=14" />
-    <meta name="theme-color" content="#082f6d" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Ashok Leyland Bus Management System" />
-
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192.png" />
-    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-192.png" />
-
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png" />
-
-    <!-- The `react-native-web` recommended style reset -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Ashok Leyland Fleet</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
+      /* These styles make the body full-height */
       html,
       body {
         height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #082f6d;
-        -webkit-overflow-scrolling: touch;
-        -webkit-tap-highlight-color: transparent;
       }
+      /* These styles disable body scrolling if you are using <ScrollView> */
       body {
         overflow: hidden;
       }
+      /* These styles make the root element full-height */
       #root {
         display: flex;
         height: 100%;
         flex: 1;
       }
     </style>
-    <link rel="icon" href="/favicon.ico"/>
-  </head>
+  <link rel="icon" href="/favicon.ico"/></head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -53,15 +32,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-
-    <script src="/_expo/static/js/web/index-cb41d4ef317e9484e779ee00a7f9b766.js" defer></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/sw.js', { scope: '/' })
-            .catch(function(err) { console.warn('SW registration failed:', err); });
-        });
-      }
-    </script>
-  </body>
+  <script src="/_expo/static/js/web/index-68f920d581af5b5167b301610bdf03d3.js" defer></script>
+</body>
 </html>
