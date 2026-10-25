@@ -899,6 +899,7 @@ export default function AdminWorkspaceScreen() {
 
   // ── Candidate Bus Evaluation (Exact Match to website Matrix Status & Peak Rules) ──
   const timeCatInfo = getTimeCategory(scheduledTime);
+  const isPeak = Boolean(timeCatInfo && timeCatInfo.isPeak);
   const complexity = getRouteComplexity(selectedRoute);
   const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
 
@@ -970,7 +971,7 @@ export default function AdminWorkspaceScreen() {
     moderate: { NORMAL: ['B', 'A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
     complex: { NORMAL: ['A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
   };
-  const timeKey = timeCatInfo.category || (isPeak ? 'PEAK' : 'NORMAL');
+  const timeKey = (timeCatInfo && (timeCatInfo.key || timeCatInfo.category)) || (isPeak ? 'PEAK' : 'NORMAL');
   const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.standard)[timeKey] || ['A'];
   const requiresCatA = complexity.toLowerCase() === 'complex' || isPeak;
   const isMatrixCompliant = candidateBus

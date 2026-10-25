@@ -23,6 +23,7 @@ import {
   STATIC_BUS_RANGES,
   getBusCategory,
   getBusRegNo,
+  getBusDepot,
 } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -457,14 +458,13 @@ export default function SchedulingScreen() {
   // 1. Master Matched Timetable Duty & Schedule Pair (Exact match with scheduling.html)
   const matchedSched = useMemo(() => {
     const routeCode = String(selectedRoute?.code || selectedRoute?.id || selectedRoute?.routeCode || '356Z').toUpperCase().trim();
-    const depMin = parseTimeToMinutes(scheduledTime);
+    const depTimeClean = (scheduledTime || '13:10').trim();
+    const depShort = depTimeClean.substring(0, 5);
+    const depMin = parseTimeToMinutes(depShort);
     const routeSchedules = DEFAULT_DATASET_SCHEDULES.filter(
       (s) => String(s.route || '').toUpperCase().trim() === routeCode
     );
-    let found = routeSchedules.find((s) => {
-      if (!s.outTime) return false;
-      return Math.abs(parseTimeToMinutes(s.outTime) - depMin) <= 15;
-    });
+    let found = routeSchedules.find((s) => s.outTime && s.outTime.substring(0, 5) === depShort);
     if (!found && routeSchedules.length > 0) {
       found = routeSchedules.slice().sort((a, b) => {
         const diffA = Math.abs(parseTimeToMinutes(a.outTime || '12:00') - depMin);
@@ -485,23 +485,28 @@ export default function SchedulingScreen() {
   const evaluateBusFeasibility = useCallback((busOrBm, candidateRole, routeDist, depTimeShort, targetShift) => {
     if (!busOrBm) return { feasible: false, reason: 'No vehicle assigned in schedule' };
     const key = typeof busOrBm === 'string' ? busOrBm.toUpperCase().trim() : String(busOrBm.bmNumber || busOrBm.id || '').toUpperCase().trim();
-    const busObj = typeof busOrBm === 'object' ? busOrBm : pool.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key);
+    const busObj = typeof busOrBm === 'object' ? busOrBm : (resolvedAll.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key) || pool.find((b) => String(b.bmNumber || b.id || '').toUpperCase().trim() === key));
 
-    // Depot Isolation Check
-    if (busObj && String(busObj.depot || '1') !== depotNum) {
-      return { feasible: false, bm: key, reason: `Bus ${key} belongs to Depot ${busObj.depot} (Active view: Depot ${depotNum}).` };
+    // Depot Isolation Check: Bus must belong to depotNum
+    const busDepot = busObj ? String(busObj.depot || '1') : getBusDepot(key);
+    if (String(busDepot) !== String(depotNum)) {
+      return { feasible: false, bm: key, reason: `Bus ${key} belongs to Depot ${busDepot} (Active view: Depot ${depotNum}).` };
     }
 
-    // Lock / servicing / allocation check
-    if (!busObj || busObj.isLocked || busObj.isCharging || busObj.isCleaning || busObj.status === 'Blocked' || busObj.status === 'Deleted') {
+    // Lock / turnaround / servicing / allocation check
+    const isLocked = Boolean(busObj?.isLocked || lockedBuses.some((lb) => String(lb.bm || lb.bmNumber || '').toUpperCase().trim() === key));
+    if (isLocked || busObj?.isCharging || busObj?.isCleaning || busObj?.isTurnaround) {
       return { feasible: false, bm: key, reason: `Bus ${key} is locked under cleaning/charging.` };
     }
     const alreadyAllocated = allocatedDuties.find((d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === key);
     if (alreadyAllocated) {
       return { feasible: false, bm: key, reason: `Bus ${key} is already allocated to Route ${alreadyAllocated.routeCode || alreadyAllocated.busNumber}.` };
     }
+    if (busObj && busObj.condition === 'Not Good') {
+      return { feasible: false, bm: key, reason: `Bus ${key} flagged for maintenance inspection.` };
+    }
 
-    const liveSoc = Number(busObj.soc ?? 85);
+    const liveSoc = Number(busObj?.soc ?? 80);
     const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort);
     const minAllowedSoc = constantMinReqSoc - 2;
     if (liveSoc < minAllowedSoc) {
@@ -520,7 +525,7 @@ export default function SchedulingScreen() {
       return { feasible: false, bm: key, liveSoc, reason: `Usable range (${usableCoverableKm} km) cannot cover required ${operatingKm.toFixed(1)} km.` };
     }
 
-    const page4Category = busObj.busCategory || STATIC_BUS_CATEGORIES[key] || getBusCategory(key);
+    const page4Category = busObj?.busCategory || STATIC_BUS_CATEGORIES[key] || getBusCategory(key);
     const isExtremePeak = (timeCatInfo.key === 'EXTREME_PEAK');
     const isPeakOnly = (timeCatInfo.key === 'PEAK');
     const isNormalTime = (timeCatInfo.key === 'NORMAL');
@@ -549,7 +554,7 @@ export default function SchedulingScreen() {
     return {
       feasible: true,
       bm: key,
-      busObj,
+      busObj: busObj || { bmNumber: key, id: key, soc: liveSoc, depot: busDepot, busCategory: page4Category },
       liveSoc,
       busCategory: page4Category,
       constantMinReqSoc,
@@ -559,7 +564,7 @@ export default function SchedulingScreen() {
       actualRangeKm: drainDetails.busRangeKm,
       role: candidateRole
     };
-  }, [pool, depotNum, allocatedDuties, matchedSched, timeCatInfo, complexity]);
+  }, [resolvedAll, pool, depotNum, lockedBuses, allocatedDuties, matchedSched, timeCatInfo, complexity]);
 
   // 4. Candidate Buses Generation & Mandatory Assignment (Exact 1:1 match with scheduling.html getRouteCandidateBuses)
   const candidateBuses = useMemo(() => {
@@ -640,12 +645,22 @@ export default function SchedulingScreen() {
       addCand(bm, 'Route Standby Bus');
     });
 
-    // 5. Depot reserve fleet search to guarantee at least 3 candidates
+    // 5. Depot reserve fleet search to guarantee at least 3 candidates (exact match to scheduling.html)
     if (candidates.length < 3) {
-      const allDepotFleet = pool.slice().sort((a, b) => Number(b.soc ?? 0) - Number(a.soc ?? 0));
-      const aKeys = allDepotFleet.filter((b) => b.busCategory === 'A');
-      const bKeys = allDepotFleet.filter((b) => b.busCategory === 'B');
-      const cKeys = allDepotFleet.filter((b) => b.busCategory === 'C');
+      const allFleetKeys = Object.keys(STATIC_BUS_RANGES).filter((k) => {
+        const bDepot = getBusDepot(k);
+        return String(bDepot) === String(depotNum);
+      }).sort((a, b) => {
+        const busA = resolvedAll.find((x) => String(x.bmNumber || x.id || '').toUpperCase().trim() === a);
+        const busB = resolvedAll.find((x) => String(x.bmNumber || x.id || '').toUpperCase().trim() === b);
+        const socA = Number(busA?.soc ?? 80);
+        const socB = Number(busB?.soc ?? 80);
+        return socB - socA;
+      });
+
+      const aKeys = allFleetKeys.filter((k) => (STATIC_BUS_RANGES[k] || 110) >= 120 || STATIC_BUS_CATEGORIES[k] === 'A');
+      const bKeys = allFleetKeys.filter((k) => !aKeys.includes(k) && ((STATIC_BUS_RANGES[k] || 110) >= 100 || STATIC_BUS_CATEGORIES[k] === 'B'));
+      const cKeys = allFleetKeys.filter((k) => !aKeys.includes(k) && !bKeys.includes(k));
 
       let searchPasses = [];
       if (matrixStatus === 'A') {
@@ -657,9 +672,9 @@ export default function SchedulingScreen() {
       }
 
       for (const group of searchPasses) {
-        for (const b of group) {
+        for (const bm of group) {
           if (candidates.length >= 6) break;
-          addCand(b.bmNumber, 'Depot Reserve Fleet Bus');
+          addCand(bm, 'Depot Reserve Fleet Bus');
         }
         if (candidates.length >= 3) break;
       }
@@ -1088,7 +1103,7 @@ export default function SchedulingScreen() {
                     </View>
                   </TouchableOpacity>
                 );
-              }))}}
+              }))}
             </View>
           </View>
 
