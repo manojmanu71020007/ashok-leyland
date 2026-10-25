@@ -2512,7 +2512,10 @@
                 <section class="panel" aria-label="Allocated buses">
                     <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;">
                         <h2 style="color:#08755f; margin:0;" data-i18n="heading_allocated_buses">✅ Allocated Buses (<span id="allocated-count">0</span>)</h2>
-                        <button id="reset-allocations-btn" type="button" class="btn-reset-allocations" style="display:none;" title="Reset all allocations">✕ Reset All</button>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <button id="export-allocated-csv-btn" type="button" class="btn-download-csv" onclick="downloadAllocatedBusesCsv()" title="Export Allocated Buses to CSV" style="padding:6px 14px; background:#08755f; color:#fff; border:none; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📥 Export CSV</button>
+                            <button id="reset-allocations-btn" type="button" class="btn-reset-allocations" style="display:none;" title="Reset all allocations">✕ Reset All</button>
+                        </div>
                     </div>
                     <p class="panel-note" style="margin-bottom:12px;">Ready for departure — Sufficient Range (≥ GTFS distance), condition Good &amp; Driver Assigned.</p>
                     <!-- Sort strip for Allocated -->
@@ -2551,8 +2554,9 @@
             <!-- Panel 2: Not-Allocated Buses -->
             <div id="view-panel-not-allocated" class="section-view-panel" style="display:none;" role="tabpanel" aria-labelledby="btn-tab-not-allocated">
                 <section class="panel" aria-label="Not allocated buses">
-                    <div class="panel-heading-row">
+                    <div class="panel-heading-row" style="display:flex;justify-content:space-between;align-items:center;">
                         <h2 style="color:#a94b15; margin:0;" data-i18n="heading_not_allocated_buses">⛔ Not-Allocated Buses (<span id="not-allocated-count">0</span>)</h2>
+                        <button id="export-not-allocated-csv-btn" type="button" class="btn-download-csv" onclick="downloadNotAllocatedBusesCsv()" title="Export Not-Allocated Buses to CSV" style="padding:6px 14px; background:#a94b15; color:#fff; border:none; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📥 Export CSV</button>
                     </div>
                     <p class="panel-note" style="margin-bottom:12px;">Ineligible — unassigned driver, low SoC, or maintenance required.</p>
                     <!-- Sort strip for Not Allocated -->
@@ -2601,6 +2605,7 @@
                             </p>
                         </div>
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <button id="export-avail-scheduling-csv-btn" type="button" class="btn-download-csv" onclick="downloadAvailableSchedulingBusesCsv()" title="Export Available Buses for Scheduling to CSV" style="padding:6px 14px; background:#6d28d9; color:#fff; border:none; border-radius:8px; font-size:0.82rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">📥 Export CSV</button>
                             <div style="display:flex; align-items:center; gap:6px; font-size:0.8rem; font-weight:700;">
                                 <span style="background:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; padding:5px 12px; border-radius:8px;">
                                     🏢 Depot 1: <strong id="avail-sched-d1-count">0</strong>
@@ -9715,6 +9720,121 @@ let busCategoriesMap = new Map();
                     }
                 }
             } catch (e) {}
+        }
+
+        function exportAdminCsvFile(filename, headers, rows) {
+            const escapeCell = (val) => {
+                if (val === null || val === undefined) return '""';
+                const str = String(val).replace(/"/g, '""');
+                return '"' + str + '"';
+            };
+            const csvContent = '\uFEFF' + [headers, ...rows].map(r => r.map(escapeCell).join(',')).join('\r\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadAllocatedBusesCsv() {
+            const duties = typeof loadAllocatedDuties === 'function' ? loadAllocatedDuties() : [];
+            if (!duties || duties.length === 0) {
+                alert("No allocated bus dispatches available to export.");
+                return;
+            }
+            const headers = ['Depot', 'Bus BM Number', 'Registration Number', 'Model', 'Route Code', 'Route Name', 'Scheduled Departure Time', 'Shift', 'Assigned Driver', 'Driver ID', 'Battery SoC (%)', 'Status'];
+            const rows = duties.map(d => [
+                d.depot ? "Depot " + d.depot : "Depot 1",
+                d.bm || d.bmNumber || "",
+                d.regNo || "",
+                d.model || "ELECTRIC BUS AC EiV12",
+                d.routeCode || d.busNumber || "",
+                d.routeName || "",
+                d.departureTime || "",
+                d.shift || "General Shift",
+                d.driver || "Driver Assigned",
+                d.driverId || "",
+                d.soc !== undefined ? d.soc + "%" : "",
+                "Allocated & Ready for Departure"
+            ]);
+            exportAdminCsvFile("allocated_buses_dispatches_" + new Date().toISOString().slice(0, 10) + ".csv", headers, rows);
+        }
+
+        function downloadNotAllocatedBusesCsv() {
+            const allBuses = typeof getAllDepotBusesMerged === 'function' ? getAllDepotBusesMerged() : (window.DEPOT_BUSES_ALL || []);
+            const duties = typeof loadAllocatedDuties === 'function' ? loadAllocatedDuties() : [];
+            const allocatedBms = new Set(duties.map(d => String(d.bm || d.bmNumber || '').toUpperCase()));
+            const deletedBuses = typeof getDeletedBusesMap === 'function' ? getDeletedBusesMap() : {};
+            
+            const notAlloc = allBuses.filter(b => {
+                const bm = String(b.bmNumber || b.bm || '').toUpperCase();
+                if (allocatedBms.has(bm)) return false;
+                if (deletedBuses[bm]) return false;
+                return true;
+            });
+
+            if (!notAlloc || notAlloc.length === 0) {
+                alert("No not-allocated buses to export.");
+                return;
+            }
+
+            const headers = ['Depot', 'Bus BM Number', 'Registration Number', 'Model', 'Bus Category', 'Battery SoC (%)', 'Usable Range (km)', 'Status Reason'];
+            const rows = notAlloc.map(b => {
+                let reason = 'Depot Standby / Reserve';
+                if (b.isCharging || b.charging) reason = 'Locked: Charging';
+                else if (b.isCleaning || b.cleaning) reason = 'Locked: Cleaning';
+                else if ((b.soc || 0) < 25) reason = 'Low Battery SoC (< 25%)';
+                return [
+                    b.depot ? "Depot " + b.depot : "Depot 1",
+                    b.bmNumber || b.bm || "",
+                    b.regNo || "",
+                    b.model || "ELECTRIC BUS AC EiV12",
+                    b.busCategory || b.category || "B",
+                    b.soc !== undefined ? b.soc + "%" : "",
+                    Math.round(Math.max(0, (b.soc || 0) - 10) * 1.42) + " km",
+                    reason
+                ];
+            });
+            exportAdminCsvFile("not_allocated_buses_" + new Date().toISOString().slice(0, 10) + ".csv", headers, rows);
+        }
+
+        function downloadAvailableSchedulingBusesCsv() {
+            const allBuses = typeof getAllDepotBusesMerged === 'function' ? getAllDepotBusesMerged() : (window.DEPOT_BUSES_ALL || []);
+            const duties = typeof loadAllocatedDuties === 'function' ? loadAllocatedDuties() : [];
+            const allocatedBms = new Set(duties.map(d => String(d.bm || d.bmNumber || '').toUpperCase()));
+            const lockedBuses = typeof getLockedBuses === 'function' ? getLockedBuses() : [];
+            const lockedBms = new Set(lockedBuses.map(b => String(b.bm || b.bmNumber || '').toUpperCase()));
+            const deletedBuses = typeof getDeletedBusesMap === 'function' ? getDeletedBusesMap() : {};
+
+            const avail = allBuses.filter(b => {
+                const bm = String(b.bmNumber || b.bm || '').toUpperCase();
+                if (allocatedBms.has(bm)) return false;
+                if (lockedBms.has(bm) || b.isCharging || b.charging || b.isCleaning || b.cleaning || b.locked) return false;
+                if (deletedBuses[bm]) return false;
+                return true;
+            });
+
+            if (!avail || avail.length === 0) {
+                alert("No available buses to export.");
+                return;
+            }
+
+            const headers = ['Depot', 'Bus BM Number', 'Registration Number', 'Model', 'Bus Category', 'Battery SoC (%)', 'Usable Range (km)', 'Status'];
+            const rows = avail.map(b => [
+                b.depot ? "Depot " + b.depot : "Depot 1",
+                b.bmNumber || b.bm || "",
+                b.regNo || "",
+                b.model || "ELECTRIC BUS AC EiV12",
+                b.busCategory || b.category || "B",
+                b.soc !== undefined ? b.soc + "%" : "",
+                Math.round(Math.max(0, (b.soc || 0) - 10) * 1.42) + " km",
+                "Available & Compliant for Scheduling"
+            ]);
+            exportAdminCsvFile("available_buses_" + new Date().toISOString().slice(0, 10) + ".csv", headers, rows);
         }
 
         function downloadFleetAuditLogCsv() {
