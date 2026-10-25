@@ -283,7 +283,7 @@
                 <div class="pwa-ios-steps">
                     1. Tap the <strong>Share</strong> button <span style="font-size:1.1rem">⎋</span> at the bottom of Safari.<br>
                     2. Scroll down and tap <strong>"Add to Home Screen"</strong> <span style="font-size:1.1rem">⊞</span>.<br>
-                    3. Tap <strong>"Add"</strong> in the top-right corner. The app will be named <strong>"Install"</strong>!
+                    3. Tap <strong>"Add"</strong> in the top-right corner. The app will be named <strong>"Ashok Leyland Bus Management System"</strong>!
                 </div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <a href="/install.html" style="background:#0f172a; color:#fff; text-decoration:none; padding:10px 14px; border-radius:10px; font-weight:700; font-size:0.9rem; text-align:center;">View Installation Guide</a>
