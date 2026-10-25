@@ -9,7 +9,7 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Ashok-Leyland BMS" />
+    <meta name="apple-mobile-web-app-title" content="Install" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=6" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=6" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png?v=6" />
@@ -240,11 +240,15 @@
 
     <!-- ── Top Header: Brand Badge & Language Selector ── -->
     <div style="width:100%;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
             <div style="background:rgba(255,255,255,0.14);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:6px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;backdrop-filter:blur(8px);">
                 <span>🚍</span>
                 <span>Ashok Leyland Fleet Management</span>
             </div>
+            <a href="/install.html" title="Install Progressive Web App on iPhone & iPad" style="background:rgba(56,189,248,0.18);border:1px solid rgba(56,189,248,0.45);color:#38bdf8;padding:6px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;display:inline-flex;align-items:center;gap:6px;text-decoration:none;backdrop-filter:blur(8px);transition:all 0.2s;">
+                <span>📲</span>
+                <span>Install for iOS</span>
+            </a>
         </div>
 
         <div class="lang-selector-wrap" id="lang-selector-wrap">
@@ -300,6 +304,13 @@
 
                 <button type="submit" class="primary-btn" id="btn-login" style="margin-top: 8px;" data-i18n="btn_login_submit">Sign In</button>
             </form>
+
+            <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; text-align: center;">
+                <a href="/install.html" style="display:inline-flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:11px 16px; background:linear-gradient(135deg, #0284c7, #082f6d); color:#ffffff; font-size:0.88rem; font-weight:700; border-radius:12px; text-decoration:none; box-shadow:0 4px 14px rgba(2, 132, 199, 0.35);">
+                    <span>📲</span>
+                    <span>Install PWA for iOS (iPhone / iPad)</span>
+                </a>
+            </div>
 
             <div style="margin-top: 24px; text-align: center; font-size: 0.78rem; color: #94a3b8;">
                 Ashok Leyland Intelligent Transit &amp; Battery Fleet Operations

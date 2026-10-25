@@ -7679,6 +7679,11 @@ const server = http.createServer(async (req, res) => {
 
 
 
+    if (pathname === "/install" || pathname === "/install.html" || pathname === "/ios" || pathname === "/install-ios") {
+        sendFile(res, path.join(BASE_DIR, "install.html"), "text/html");
+        return;
+    }
+
     if (pathname === "/login" || pathname === "/login.html") {
 
         sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");

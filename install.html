@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Install for iOS – Ashok Leyland BMS</title>
+
+    <!-- Progressive Web App Capabilities & iOS Optimizations -->
+    <link rel="manifest" href="/manifest.json?v=9" />
+    <meta name="theme-color" content="#082f6d" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Install" />
+
+    <!-- iOS App Touch Icons (Standard & High-Res Retina) -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=9" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=9" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/icons/icon-192.png?v=9" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192.png?v=9" />
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/icon-192.png?v=9" />
+
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=9" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png?v=9" />
+
+    <script src="/pwa-app.js" defer></script>
+
+    <style>
+        :root {
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --primary-gradient: linear-gradient(135deg, #0284c7 0%, #082f6d 100%);
+            --apple-blue: #007aff;
+            --apple-green: #34c759;
+            --bg-dark: #0a1128;
+            --bg-card: rgba(255, 255, 255, 0.94);
+            --bg-card-subtle: rgba(248, 250, 252, 0.9);
+            --text-main: #0f172a;
+            --text-sub: #475569;
+            --border: #e2e8f0;
+            --shadow-apple: 0 20px 40px -15px rgba(2, 132, 199, 0.25), 0 10px 20px -10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(145deg, #081d3d 0%, #0a2550 40%, #06152d 100%);
+            min-height: 100vh;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding: max(20px, env(safe-area-inset-top)) 16px max(30px, env(safe-area-inset-bottom)) 16px;
+            overflow-x: hidden;
+        }
+
+        /* ── Container ── */
+        .install-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* ── Top Brand Header ── */
+        .brand-header {
+            text-align: center;
+            padding: 12px 0 6px 0;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 999px;
+            color: #93c5fd;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .brand-badge span {
+            color: #38bdf8;
+        }
+
+        /* ── iOS App Icon Preview (Looks like iPhone Home Screen icon) ── */
+        .app-icon-wrapper {
+            margin: 0 auto 10px auto;
+            width: 96px;
+            height: 96px;
+            position: relative;
+        }
+
+        .app-icon-img {
+            width: 96px;
+            height: 96px;
+            border-radius: 22px;
+            box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2);
+            display: block;
+            object-fit: cover;
+            background: #082f6d;
+        }
+
+        .app-icon-badge {
+            position: absolute;
+            bottom: -6px;
+            right: -6px;
+            background: var(--apple-blue);
+            color: #ffffff;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 999px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 2px solid #081d3d;
+            text-transform: uppercase;
+        }
+
+        .app-title {
+            color: #ffffff;
+            font-size: 1.55rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .app-subtitle {
+            color: #94a3b8;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+
+        /* ── Main Glass Card ── */
+        .glass-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 22px 20px;
+            box-shadow: var(--shadow-apple);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            background: #e0f2fe;
+            color: var(--apple-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .section-desc {
+            font-size: 0.82rem;
+            color: var(--text-sub);
+        }
+
+        /* ── Step-by-Step iOS Guide ── */
+        .ios-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: var(--bg-card-subtle);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            position: relative;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .step-item:active {
+            transform: scale(0.99);
+        }
+
+        .step-num {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            color: #ffffff;
+            font-size: 0.9rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-heading {
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .step-text {
+            font-size: 0.84rem;
+            color: var(--text-sub);
+            line-height: 1.45;
+        }
+
+        .ios-icon-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #e2e8f0;
+            color: var(--apple-blue);
+            font-weight: 700;
+            border-radius: 6px;
+            padding: 2px 7px;
+            font-size: 0.88rem;
+            vertical-align: middle;
+            border: 1px solid #cbd5e1;
+        }
+
+        .ios-app-name-pill {
+            display: inline-block;
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            border: 1px solid #bae6fd;
+        }
+
+        /* ── Action Buttons ── */
+        .btn-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--primary-gradient);
+            color: #ffffff;
+            text-decoration: none;
+            padding: 15px 20px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.5);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+            width: 100%;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px -3px rgba(2, 132, 199, 0.5);
+        }
+
+        .btn-secondary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: #f1f5f9;
+            color: #1e293b;
+            text-decoration: none;
+            padding: 13px 20px;
+            border-radius: 14px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+            transition: background 0.2s ease;
+        }
+
+        .btn-secondary:active {
+            background: #e2e8f0;
+        }
+
+        /* ── Standalone Mode Banner ── */
+        #installed-banner {
+            display: none;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #065f46;
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #installed-banner.active {
+            display: flex;
+        }
+
+        .check-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--apple-green);
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* ── Feature Highlights ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .feature-box {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 12px;
+            color: #ffffff;
+        }
+
+        .feature-box .feat-icon {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .feature-box .feat-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 2px;
+        }
+
+        .feature-box .feat-desc {
+            font-size: 0.74rem;
+            color: #94a3b8;
+            line-height: 1.35;
+        }
+
+        /* ── Bottom Safari Pointer Animation ── */
+        .safari-bottom-pointer {
+            position: fixed;
+            bottom: max(16px, env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            color: #ffffff;
+            padding: 10px 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            animation: bounceUpDown 1.8s infinite ease-in-out;
+            cursor: pointer;
+        }
+
+        .safari-bottom-pointer .arrow {
+            font-size: 1.15rem;
+            color: #38bdf8;
+        }
+
+        @keyframes bounceUpDown {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, 8px); }
+        }
+
+        /* ── Footer ── */
+        .footer-note {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.74rem;
+            line-height: 1.4;
+            margin-top: 10px;
+            padding-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="install-container">
+
+        <!-- Top Header & App Icon Preview -->
+        <header class="brand-header">
+            <div class="brand-badge">
+                <span>⚡</span> ASHOK LEYLAND EV FLEET
+            </div>
+
+            <div class="app-icon-wrapper">
+                <img class="app-icon-img" src="/icons/apple-touch-icon.png?v=9" alt="Ashok Leyland BMS App Icon" />
+                <span class="app-icon-badge">PWA</span>
+            </div>
+
+            <h1 class="app-title">Install for iOS</h1>
+            <p class="app-subtitle">Official Progressive Web App for iPhone & iPad Safari</p>
+        </header>
+
+        <!-- Installed Standalone Mode Notification -->
+        <div id="installed-banner">
+            <div class="check-circle">✓</div>
+            <div>
+                <div style="font-weight:700; font-size:0.95rem;">App Already Installed!</div>
+                <div style="font-size:0.8rem; color:#047857;">You are currently running the full-screen standalone PWA.</div>
+            </div>
+        </div>
+
+        <!-- Main Installation Steps Card -->
+        <div class="glass-card" id="guide-card">
+            <div class="section-header">
+                <div class="section-icon">📲</div>
+                <div>
+                    <h2 class="section-title">Add to iOS Home Screen</h2>
+                    <p class="section-desc">Follow 3 quick steps in Apple Safari</p>
+                </div>
+            </div>
+
+            <!-- Step by Step -->
+            <div class="ios-steps">
+                <!-- Step 1 -->
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <div class="step-heading">
+                            Tap the Share Button <span class="ios-icon-badge">⎋</span>
+                        </div>
+                        <div class="step-text">
+                            At the bottom toolbar of Safari (or top right on iPad), tap the Apple <strong>Share</strong> icon.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-content">
+                        <div class="step-heading">
+                            Select "Add to Home Screen" <span class="ios-icon-badge">⊞</span>
+                        </div>
+                        <div class="step-text">
+                            Scroll down through the share actions and tap <strong>Add to Home Screen</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-content">
+                        <div class="step-heading">
+                            Confirm Name: <span class="ios-app-name-pill">Install</span>
+                        </div>
+                        <div class="step-text">
+                            The app name is pre-filled as <strong>"Install"</strong>. Tap <strong>Add</strong> in the top-right corner to finish.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="btn-stack">
+                <a href="/login.html" class="btn-primary" id="launch-app-btn">
+                    <span>🚀 Launch Web Portal Directly</span>
+                </a>
+                <button type="button" class="btn-secondary" id="android-install-btn" style="display:none;">
+                    <span>📲 Install App (Non-iOS)</span>
+                </button>
+                <a href="/admin.html" class="btn-secondary">
+                    <span>🎛️ Admin Fleet Dashboard</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Feature Highlights Grid -->
+        <div class="features-grid">
+            <div class="feature-box">
+                <div class="feat-icon">⚡</div>
+                <div class="feat-title">Zero App Store Wait</div>
+                <div class="feat-desc">Installs directly to your home screen with instantaneous startup.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feat-icon">📱</div>
+                <div class="feat-title">Full-Screen Mode</div>
+                <div class="feat-desc">Native app look and feel without browser address bars or navigation.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feat-icon">🔋</div>
+                <div class="feat-title">Live Battery & SOC</div>
+                <div class="feat-desc">Real-time feasible duty assignments and single-charge operations.</div>
+            </div>
+            <div class="feature-box">
+                <div class="feat-icon">📶</div>
+                <div class="feat-title">Offline Yard Sync</div>
+                <div class="feat-desc">Service worker caches fleet state and schedules for low-signal depot bays.</div>
+            </div>
+        </div>
+
+        <p class="footer-note">
+            Ashok Leyland Intelligent Electric Bus Depot & Fleet Management System<br>
+            Chandapura Depot 1 & Depot 2 Operations • Version 2.0 (PWA)
+        </p>
+
+    </div>
+
+    <!-- Safari Bottom Pointer Floating Bubble (Only shows on mobile Safari when not installed) -->
+    <div class="safari-bottom-pointer" id="safari-pointer">
+        <span class="arrow">↓</span>
+        <span>Tap <strong>Share</strong> below then <strong>"Add to Home Screen"</strong></span>
+    </div>
+
+    <script>
+        (function() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                                 window.navigator.standalone === true ||
+                                 document.referrer.includes('android-app://') ||
+                                 window.location.search.includes('source=pwa');
+
+            const installedBanner = document.getElementById('installed-banner');
+            const safariPointer = document.getElementById('safari-pointer');
+            const androidInstallBtn = document.getElementById('android-install-btn');
+            const guideCard = document.getElementById('guide-card');
+
+            // 1. If running in Standalone PWA mode
+            if (isStandalone) {
+                installedBanner.classList.add('active');
+                if (safariPointer) safariPointer.style.display = 'none';
+                document.getElementById('launch-app-btn').innerHTML = '<span>⚡ Open Portal Now</span>';
+            } else if (isIOS) {
+                // Show floating helper pointer at the bottom of Safari
+                if (safariPointer && isSafari) {
+                    setTimeout(() => {
+                        safariPointer.style.display = 'flex';
+                    }, 1000);
+
+                    // Dismiss pointer if user taps it
+                    safariPointer.addEventListener('click', () => {
+                        safariPointer.style.display = 'none';
+                    });
+                }
+            } else {
+                // Non-iOS device: enable beforeinstallprompt button if available
+                let deferredPrompt = null;
+                window.addEventListener('beforeinstallprompt', (e) => {
+                    e.preventDefault();
+                    deferredPrompt = e;
+                    if (androidInstallBtn) {
+                        androidInstallBtn.style.display = 'flex';
+                        androidInstallBtn.addEventListener('click', () => {
+                            deferredPrompt.prompt();
+                            deferredPrompt.userChoice.then((choice) => {
+                                if (choice.outcome === 'accepted') {
+                                    androidInstallBtn.style.display = 'none';
+                                }
+                                deferredPrompt = null;
+                            });
+                        });
+                    }
+                });
+            }
+
+            // Register Service Worker for offline support
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+                        .catch((err) => console.log('SW registration error:', err));
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
