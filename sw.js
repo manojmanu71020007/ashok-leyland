@@ -1,10 +1,12 @@
 // Ashok-Leyland Bus Management System PWA Service Worker
-const CACHE_NAME = 'ashok-leyland-pwa-v9';
+const CACHE_NAME = 'ashok-leyland-pwa-v10';
 
 const STATIC_ASSETS = [
     '/',
     '/login.html',
     '/install.html',
+    '/app',
+    '/_expo/static/js/web/index-ae86a64d5cf4bb15d01701c563e09e16.js',
     '/login.css',
     '/login.js',
     '/i18n.js',

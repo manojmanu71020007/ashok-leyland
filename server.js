@@ -7679,6 +7679,25 @@ const server = http.createServer(async (req, res) => {
 
 
 
+    if (pathname === "/app" || pathname === "/app/" || pathname === "/app/index.html" || pathname === "/app.html") {
+        sendFile(res, path.join(BASE_DIR, "public", "app", "index.html"), "text/html; charset=utf-8");
+        return;
+    }
+
+    if (pathname.startsWith("/_expo/")) {
+        const filePath = path.join(BASE_DIR, "public", "app", pathname);
+        const ext = path.extname(filePath).toLowerCase();
+        const mime = {
+            ".js": "application/javascript; charset=utf-8",
+            ".map": "application/json",
+            ".css": "text/css; charset=utf-8",
+            ".json": "application/json",
+            ".ico": "image/x-icon"
+        }[ext] || "application/octet-stream";
+        sendFile(res, filePath, mime);
+        return;
+    }
+
     if (pathname === "/install" || pathname === "/install.html" || pathname === "/ios" || pathname === "/install-ios") {
         sendFile(res, path.join(BASE_DIR, "install.html"), "text/html");
         return;
