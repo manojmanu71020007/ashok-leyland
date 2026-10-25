@@ -19730,6 +19730,18 @@
       "reason": "Major Breakdown / Motor Defect",
       "deletedAt": "2026-10-25T06:15:55.696Z",
       "timestamp": 1792908955696
+    },
+    "BM999": {
+      "bm": "BM999",
+      "busNumber": "BM999",
+      "regNo": "KA93MN8016",
+      "regNumber": "KA93MN8016",
+      "model": "ELECTRIC BUS AC EiV12",
+      "make": "Ashok Leyland",
+      "depot": "Chandapura (BMT-32)",
+      "reason": "Major Breakdown / Motor Defect",
+      "deletedAt": "2026-10-25T06:16:43.447Z",
+      "timestamp": 1792909003447
     }
   },
   "_addedBuses": {
@@ -19747,22 +19759,6 @@
       "make": "Ashok Leyland",
       "addedAt": "2026-10-20T13:31:30.628Z",
       "timestamp": 1792503090628,
-      "isNewlyAdded": true
-    },
-    "BM999": {
-      "bm": "BM999",
-      "busNumber": "BM999",
-      "regNo": "KA93MN8016",
-      "regNumber": "KA93MN8016",
-      "reason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-      "depot": "2",
-      "category": "A",
-      "busCategory": "A",
-      "soc": 100,
-      "model": "ELECTRIC BUS AC EiV12",
-      "make": "Ashok Leyland",
-      "addedAt": "2026-10-24T04:01:47.827Z",
-      "timestamp": 1792814507827,
       "isNewlyAdded": true
     },
     "BM001": {
@@ -20646,16 +20642,16 @@
     "bmNumber": "BM999",
     "busNumber": "600F",
     "regNo": "KA93MN8016",
-    "status": "Active",
+    "status": "Deleted",
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
     "busCategory": "A",
-    "isNewlyAdded": true,
+    "isNewlyAdded": false,
     "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
     "addedAt": "2026-10-24T04:01:47.827Z",
-    "deleted": false,
-    "isDeleted": false,
+    "deleted": true,
+    "isDeleted": true,
     "assignedRouteId": "BM999",
     "assignedRouteDisplay": "Route BM999 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
@@ -20665,7 +20661,12 @@
     "chargingCompleted": true,
     "needsCleaning": false,
     "cleaningCompleted": true,
-    "postRouteServicingPending": false
+    "postRouteServicingPending": false,
+    "deletionReason": "Major Breakdown / Motor Defect",
+    "deletedAt": "2026-10-25T06:16:43.447Z",
+    "regNumber": "KA93MN8016",
+    "model": "ELECTRIC BUS AC EiV12",
+    "make": "Ashok Leyland"
   },
   "_chargingHistory": [
     {
