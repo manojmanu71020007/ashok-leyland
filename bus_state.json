@@ -19689,56 +19689,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM206_KBS3A_1415_1793030703072",
-      "bm": "BM206",
-      "bmNumber": "BM206",
-      "uniqueId": "BM206",
-      "vehicleId": "BM206",
-      "busId": "BM206",
-      "regNo": "KA51AH7669",
-      "routeId": "KBS3A",
-      "corridorRouteId": "KBS3A",
-      "busNumber": "KBS3A",
-      "busShortName": "KBS3A",
-      "routeShortName": "KBS3A",
-      "routeCode": "KBS3A",
-      "code": "KBS3A",
-      "busCategory": "A",
-      "isComplexRoute": false,
-      "scheduleId": "KBS3A/8",
-      "routeName": "Kempegowda Bus Station ⇔ Anekal Town Bus Stand (KBS3A) (Route KBS3A) — 41.5 km",
-      "origin": "Kempegowda Bus Station",
-      "destination": "Anekal Town Bus Stand (KBS3A)",
-      "departureTime": "14:15",
-      "isManualOverride": false,
-      "isCandidateOverride": false,
-      "overrideFrom": null,
-      "overrideFromSoc": null,
-      "overrideFromCategory": null,
-      "matrixStatusType": null,
-      "shift": "Night Halt",
-      "soc": 100,
-      "fullDutyKm": 89,
-      "routeDist": 41.5,
-      "tripCount": 8,
-      "isHighestSocLocked": false,
-      "isLocked": true,
-      "allocType": "Committed Duty Allocation",
-      "reason": "• Vehicle & Route: Bus BM206 (Category A) assigned to Route KBS3A for 14:15 departure (Night Halt).\n• Energy & Battery Feasibility: Current battery SoC of 100% satisfies the Single Charge Operation threshold (77% minimum required) with a reserve margin of +23%, providing 89 km usable range for this 41.5 km scheduled trip without mid-route recharging.\n• Category & Dispatch Rule: Departure at 14:15 falls in Peak (10:00–16:00 & 20:00–23:00), prioritizing Category A buses (>120 km range) for heavy duty peak operations. Bus BM206 fulfills this with Category A (120.5 km full duty range).\n• Dispatch Selection: ⭐ Mandatory Allocation: Under Matrix Status A, Bus BM206 (Category A) is recommended as the mandatory dispatch vehicle because it has the highest battery SoC (100%) among prioritized category candidates. Operator can choose an alternate candidate bus to override.",
-      "driver": "Suresh Gowda (BMTC-4102)",
-      "driverId": "DRV-102",
-      "driverName": "Suresh Gowda",
-      "allocatedAt": "09:35:03 pm, 26 Oct 2026",
-      "allocatedTime": "09:35:03 pm",
-      "allocatedDate": "26 Oct 2026",
-      "allocatedTs": 1793030703073,
-      "scheduledAt": "09:35:03 pm, 26 Oct 2026",
-      "scheduledTime": "09:35:03 pm, 26 Oct 2026",
-      "scheduledDepartureTime": "14:15"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [
     {
       "bm": "BM003",
@@ -20743,6 +20694,18 @@
       "needsCleaning": true,
       "cleaningCompleted": false,
       "status": "needs_servicing"
+    },
+    "BM206": {
+      "bm": "BM206",
+      "routeCompleted": true,
+      "routeCompletedAt": "09:38:58 pm, 26 Oct 2026",
+      "routeCompletedTs": 1793030938726,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "needs_servicing"
     }
   },
   "BM600": {
@@ -21134,6 +21097,26 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "rc_1793030938725",
+      "bm": "BM206",
+      "reg": "KA51AH7669",
+      "route": "KBS3A",
+      "schedule": "KBS3A/8",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "dispatchTime": "14:15",
+      "departureTime": "14:15",
+      "scheduledTime": "09:35:03 pm, 26 Oct 2026",
+      "scheduledAt": "09:35:03 pm, 26 Oct 2026",
+      "allocatedAt": "09:35:03 pm, 26 Oct 2026",
+      "shift": "Night Halt",
+      "completedAt": "09:38:58 pm, 26 Oct 2026",
+      "completedTs": 1793030938725,
+      "dateStr": "26 Oct 2026",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false
+    },
     {
       "id": "rc_1793026268750",
       "bm": "BM019",
