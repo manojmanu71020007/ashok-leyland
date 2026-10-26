@@ -3,21 +3,23 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { colors } from '../theme/colors';
 import BatteryBar from './BatteryBar';
 import { isBusNewlyAdded } from '../context/FleetContext';
+import { useLanguage } from '../context/LanguageContext';
 
 export default function BusCard({ bus, onQuickSoc, onPress }) {
+  const { t } = useLanguage();
   const catStyle = colors.getCategoryColor(bus.busCategory);
   const isNew = isBusNewlyAdded(bus);
 
   const getStatusBadge = () => {
     switch (bus.status) {
       case 'Charging':
-        return { bg: '#f5f3ff', text: '#7c3aed', border: '#ddd6fe', label: '⚡ In Charging Bay' };
+        return { bg: '#f5f3ff', text: '#7c3aed', border: '#ddd6fe', label: `⚡ ${t('in_charging_bay', 'In Charging Bay')}` };
       case 'Cleaning':
-        return { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', label: '🧼 Cleaning Protocol' };
+        return { bg: '#eff6ff', text: '#2563eb', border: '#bfdbfe', label: `🧼 ${t('cleaning_protocol', 'Cleaning Protocol')}` };
       case 'Allocated':
-        return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: `🛣️ On Route (${bus.assignedRoute || 'Duty'})` };
+        return { bg: '#fffbeb', text: '#d97706', border: '#fde68a', label: `🛣️ ${t('on_route', 'On Route')} (${bus.assignedRoute || t('duty', 'Duty')})` };
       default:
-        return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: '✓ Ready for Scheduling' };
+        return { bg: '#ecfdf5', text: '#059669', border: '#a7f3d0', label: `✓ ${t('ready_for_scheduling_badge', 'Ready for Scheduling')}` };
     }
   };
 
@@ -39,13 +41,13 @@ export default function BusCard({ bus, onQuickSoc, onPress }) {
         <View style={styles.badgesRow}>
           {isNew && (
             <View style={styles.newlyAddedBadge}>
-              <Text style={styles.newlyAddedBadgeText}>✨ Newly Added</Text>
+              <Text style={styles.newlyAddedBadgeText}>{`✨ ${t('badge_newly_added_bus', 'Newly Added')}`}</Text>
             </View>
           )}
 
           {/* Category Pill */}
           <View style={[styles.catBadge, { backgroundColor: catStyle.bg, borderColor: catStyle.border }]}>
-            <Text style={[styles.catText, { color: catStyle.text }]}>Cat {bus.busCategory}</Text>
+            <Text style={[styles.catText, { color: catStyle.text }]}>{t('col_category', 'Cat')} {bus.busCategory}</Text>
           </View>
 
           {/* Status Badge */}
@@ -57,11 +59,11 @@ export default function BusCard({ bus, onQuickSoc, onPress }) {
 
       {/* Middle Row: Route or Depot Info */}
       <View style={styles.metaRow}>
-        <Text style={styles.depotText}>Depot {bus.depot}</Text>
+        <Text style={styles.depotText}>{t('depot', 'Depot')} {bus.depot}</Text>
         {bus.assignedRoute ? (
-          <Text style={styles.routeText}>Route: {bus.assignedRoute}</Text>
+          <Text style={styles.routeText}>{t('th_route', 'Route')}: {bus.assignedRoute}</Text>
         ) : (
-          <Text style={styles.rangeText}>{bus.fullDutyDistanceKm} km full range</Text>
+          <Text style={styles.rangeText}>{bus.fullDutyDistanceKm} km {t('full_range', 'full range')}</Text>
         )}
       </View>
 
@@ -76,7 +78,7 @@ export default function BusCard({ bus, onQuickSoc, onPress }) {
           style={styles.quickSocBtn}
           onPress={() => onQuickSoc && onQuickSoc(bus)}
         >
-          <Text style={styles.quickSocText}>⚡ Quick Update SoC</Text>
+          <Text style={styles.quickSocText}>{`⚡ ${t('quick_update_soc', 'Quick Update SoC')}`}</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>

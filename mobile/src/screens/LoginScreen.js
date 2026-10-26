@@ -252,9 +252,9 @@ export default function LoginScreen() {
             <View style={styles.modalCard}>
               <View style={styles.modalHeader}>
                 <View>
-                  <Text style={styles.modalHeaderTitle}>📋 Master Webpage Logins</Text>
+                  <Text style={styles.modalHeaderTitle}>{`📋 ${t('master_logins_title', 'Master Webpage Logins')}`}</Text>
                   <Text style={styles.modalHeaderSub}>
-                    Official credentials from Webpage_Credentials.xlsx
+                    {t('master_logins_sub', 'Official credentials from Webpage_Credentials.xlsx')}
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -268,7 +268,7 @@ export default function LoginScreen() {
 
               <ScrollView style={{ maxHeight: 420 }} showsVerticalScrollIndicator={false}>
                 <Text style={styles.modalTip}>
-                  Tap any role below to automatically pre-fill its allocated credentials:
+                  {t('tap_role_tip', 'Tap any role below to automatically pre-fill its allocated credentials:')}
                 </Text>
                 {OFFICIAL_DIRECTORY.map((item, idx) => (
                   <TouchableOpacity
@@ -302,12 +302,14 @@ export default function LoginScreen() {
                 onPress={() => setDirectoryModalOpen(false)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.modalDoneBtnText}>Close Directory</Text>
+                <Text style={styles.modalDoneBtnText}>{t('close_directory', 'Close Directory')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </Modal>
       )}
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

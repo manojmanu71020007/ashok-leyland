@@ -213,7 +213,7 @@ export default function CleaningScreen() {
       {/* ── TOP NAV BAR (With Language Globe and Sign Out Buttons) ── */}
       <View style={styles.topBar}>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>CLEANING {depotNum} LOG</Text>
+          <Text style={styles.headerTitle}>{t('nav_cleaning', 'CLEANING')} {depotNum} {t('history_btn', 'LOG')}</Text>
           <Text style={styles.headerSub}>{depotName}</Text>
         </View>
         <View style={styles.topbarActions}>
@@ -221,7 +221,7 @@ export default function CleaningScreen() {
           <TouchableOpacity
             style={styles.signOutBtn}
             onPress={() => {
-              Alert.alert(t('btn_sign_out', 'Sign Out'), 'Are you sure you want to log out of Cleaning Operations?', [
+              Alert.alert(t('btn_sign_out', 'Sign Out'), t('sign_out_confirm_cleaning', 'Are you sure you want to log out of Cleaning Operations?'), [
                 { text: t('cancel', 'Cancel'), style: 'cancel' },
                 { text: t('btn_sign_out', 'Sign Out'), style: 'destructive', onPress: () => logout() },
               ]);
@@ -236,7 +236,7 @@ export default function CleaningScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <View style={styles.bannerCard}>
-          <Text style={styles.bannerTitle}>🧹 Cleaning {depotNum} Log</Text>
+          <Text style={styles.bannerTitle}>{`🧹 ${t('nav_cleaning', 'Cleaning')} ${depotNum} ${t('history_btn', 'Log')}`}</Text>
           <Text style={styles.bannerSub}>
             Record bus sanitization & cleaning sessions — Depot {depotNum} ({depotBuses.length} Active Buses)
           </Text>
@@ -244,14 +244,14 @@ export default function CleaningScreen() {
 
         {/* ── 1. SELECT BUS (Exact Website Layout: Search Box + Dropdown) ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🚌 Select Bus</Text>
+          <Text style={styles.cardTitle}>{`🚌 ${t('select_bus', 'Select Bus')}`}</Text>
 
           {/* Explicit Search Box */}
           <View style={styles.searchWrap}>
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by BM number or Registration No..."
+              placeholder={t('select_bus_prompt', 'Search by BM number or Registration No...')}
               placeholderTextColor="#94a3b8"
               value={searchInput}
               onChangeText={(text) => {
@@ -286,7 +286,7 @@ export default function CleaningScreen() {
               <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
                 {filteredBuses.length === 0 ? (
                   <View style={styles.noMatch}>
-                    <Text style={styles.noMatchText}>No matching buses in Depot {depotNum}</Text>
+                    <Text style={styles.noMatchText}>{t('no_matching_buses', 'No matching buses in Depot')} {depotNum}</Text>
                   </View>
                 ) : (
                   filteredBuses.map((bus) => (
@@ -302,7 +302,7 @@ export default function CleaningScreen() {
                         <Text style={styles.dropdownBm}>{bus.bmNumber}</Text>
                         <Text style={styles.dropdownReg}>{bus.regNo}</Text>
                         {Boolean(bus.needsCharging || (bus.isTurnaround && !bus.chargingCompleted) || lockedBuses.some(x => String(x.bm || x.bmNumber).toUpperCase() === bus.bmNumber && String(x.page || '').toLowerCase().includes('charg'))) && (
-                          <Text style={{ fontSize: 10, color: '#DC2626', fontWeight: '700' }}>⚡ 1st Chg Req</Text>
+                          <Text style={{ fontSize: 10, color: '#DC2626', fontWeight: '700' }}>{`⚡ ${t('first_chg_req', '1st Chg Req')}`}</Text>
                         )}
                         <Text style={styles.dropdownSoc}>{bus.soc}% SoC</Text>
                       </View>
@@ -318,19 +318,19 @@ export default function CleaningScreen() {
             <View style={styles.busInfoBox}>
               <View style={styles.busInfoGrid}>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>BM Number</Text>
+                  <Text style={styles.infoLabel}>{t('col_bm_number', 'BM Number')}</Text>
                   <Text style={[styles.infoValHighlight, { color: '#0369a1' }]}>{selectedBus.bmNumber}</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Registration No.</Text>
+                  <Text style={styles.infoLabel}>{t('col_reg_no', 'Registration No.')}</Text>
                   <Text style={styles.infoVal}>{selectedBus.regNo}</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Model</Text>
+                  <Text style={styles.infoLabel}>{t('col_model', 'Model')}</Text>
                   <Text style={styles.infoVal}>Switch EiV 12</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Status</Text>
+                  <Text style={styles.infoLabel}>{t('col_status', 'Status')}</Text>
                   <View style={[styles.statusBadge, isLockedForCleaning ? styles.statusBadgeCleaning : styles.statusBadgeAvail]}>
                     <Text style={[styles.statusBadgeText, isLockedForCleaning ? styles.statusTextCleaning : styles.statusTextAvail]}>
                       {isLockedForCleaning ? '🧹 Cleaning' : selectedBus.status}
@@ -384,7 +384,7 @@ export default function CleaningScreen() {
                     onPress={handleUnlockAndSubmit}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.unlockBtnText}>🔓 Unlock & Submit Cleaning Record</Text>
+                    <Text style={styles.unlockBtnText}>{`🔓 ${t('unlock_bus_cleaning', 'Unlock & Submit Cleaning Record')}`}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -398,7 +398,7 @@ export default function CleaningScreen() {
               onPress={() => setOngoingModalOpen(true)}
               activeOpacity={0.85}
             >
-              <Text style={styles.btnOngoingText}>🧹 Ongoing Cleaning</Text>
+              <Text style={styles.btnOngoingText}>{`🧹 ${t('btn_ongoing_cleaning', 'Ongoing Cleaning')}`}</Text>
               <View style={styles.ongoingCountBadge}>
                 <Text style={styles.ongoingCountBadgeText}>{ongoingCleaningList.length}</Text>
               </View>
@@ -408,7 +408,7 @@ export default function CleaningScreen() {
 
         {/* ── 2. CLEANING CHECKLIST CARD ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>✅ Cleaning Checklist</Text>
+          <Text style={styles.cardTitle}>{`✅ ${t('title_cleaning_checklist', 'Cleaning Checklist')}`}</Text>
 
           <TouchableOpacity
             style={styles.checkItemRow}
@@ -419,8 +419,8 @@ export default function CleaningScreen() {
               {interiorClean && <Text style={styles.checkIcon}>✓</Text>}
             </View>
             <View style={styles.checkLabelWrap}>
-              <Text style={styles.checkLabel}>Interior Cleaning</Text>
-              <Text style={styles.checkSub}>Floor mopped, grab rails disinfected, seats sanitized, trash removed</Text>
+              <Text style={styles.checkLabel}>{t('interior_cleaning', 'Interior Cleaning')}</Text>
+              <Text style={styles.checkSub}>{t('interior_cleaning_desc', 'Floor mopped, grab rails disinfected, seats sanitized, trash removed')}</Text>
             </View>
           </TouchableOpacity>
 
@@ -433,8 +433,8 @@ export default function CleaningScreen() {
               {exteriorClean && <Text style={styles.checkIcon}>✓</Text>}
             </View>
             <View style={styles.checkLabelWrap}>
-              <Text style={styles.checkLabel}>Exterior Cleaning</Text>
-              <Text style={styles.checkSub}>High-pressure wash, windshield/windows cleaned, wheel arches rinsed</Text>
+              <Text style={styles.checkLabel}>{t('exterior_cleaning', 'Exterior Cleaning')}</Text>
+              <Text style={styles.checkSub}>{t('exterior_cleaning_desc', 'High-pressure wash, windshield/windows cleaned, wheel arches rinsed')}</Text>
             </View>
           </TouchableOpacity>
 
@@ -448,10 +448,10 @@ export default function CleaningScreen() {
 
           {/* Remarks */}
           <View style={[styles.formGroup, { marginTop: 12 }]}>
-            <Text style={styles.fieldLabel}>Remarks (optional)</Text>
+            <Text style={styles.fieldLabel}>{t('remarks_optional', 'Remarks (optional)')}</Text>
             <TextInput
               style={styles.remarksInput}
-              placeholder="Any special observations or damage noted during cleaning..."
+              placeholder={t('remarks_placeholder_cleaning', 'Any special observations or damage noted during cleaning...')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
@@ -477,7 +477,7 @@ export default function CleaningScreen() {
         <View style={styles.card}>
           <View style={styles.recentHeaderStack}>
             <View style={styles.recentTitleGroup}>
-              <Text style={styles.cardTitle}>📋 Recent Cleaning Records</Text>
+              <Text style={styles.cardTitle}>{`📋 ${t('recent_cleaning_records', 'Recent Cleaning Records')}`}</Text>
               <View style={[styles.badgeRecent, { backgroundColor: '#e0f2fe' }]}>
                 <Text style={[styles.badgeRecentText, { color: '#0369a1' }]}>Recent 5</Text>
               </View>
@@ -518,13 +518,13 @@ export default function CleaningScreen() {
                   );
                 }}
               >
-                <Text style={styles.btnDownloadCsvText}>📥 Download CSV</Text>
+                <Text style={styles.btnDownloadCsvText}>{`📥 ${t('download_csv', 'Download CSV')}`}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.historyBtn}
                 onPress={() => setHistoryModalOpen(true)}
               >
-                <Text style={styles.historyBtnText}>📜 History</Text>
+                <Text style={styles.historyBtnText}>{`📜 ${t('history_btn', 'History')}`}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -592,7 +592,7 @@ export default function CleaningScreen() {
               {ongoingCleaningList.length === 0 ? (
                 <View style={styles.emptyOngoing}>
                   <Text style={styles.emptyOngoingEmoji}>🧹</Text>
-                  <Text style={styles.emptyOngoingTitle}>No Buses Currently in Cleaning</Text>
+                  <Text style={styles.emptyOngoingTitle}>{t('msg_no_buses_ongoing_cleaning', 'No Buses Currently in Cleaning')}</Text>
                   <Text style={styles.emptyOngoingSub}>No buses are currently undergoing cleaning.</Text>
                 </View>
               ) : (
@@ -611,7 +611,7 @@ export default function CleaningScreen() {
                         setOngoingModalOpen(false);
                       }}
                     >
-                      <Text style={styles.ongoingSelectBtnText}>Select Bus</Text>
+                      <Text style={styles.ongoingSelectBtnText}>{t('select_bus', 'Select Bus')}</Text>
                     </TouchableOpacity>
                   </View>
                 ))
@@ -620,7 +620,7 @@ export default function CleaningScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setOngoingModalOpen(false)}>
-                <Text style={styles.modalFooterBtnText}>Close</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close', 'Close')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -638,7 +638,7 @@ export default function CleaningScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalDepotSub}>DEPOT VERIFICATION RECORD</Text>
+                <Text style={styles.modalDepotSub}>{t('view_verification_record', 'DEPOT VERIFICATION RECORD')}</Text>
                 <Text style={styles.modalTitle}>
                   🚌 Bus {detailModalItem?.bm} <Text style={styles.modalSubReg}>({detailModalItem?.reg})</Text>
                 </Text>
@@ -679,7 +679,7 @@ export default function CleaningScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setDetailModalItem(null)}>
-                <Text style={styles.modalFooterBtnText}>Close Record</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close_record', 'Close Record')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -708,7 +708,7 @@ export default function CleaningScreen() {
             <View style={styles.historySearchWrap}>
               <TextInput
                 style={styles.historySearchInput}
-                placeholder="Filter history by BM number or registration..."
+                placeholder={t('filter_history_placeholder', 'Filter history by BM number or registration...')}
                 placeholderTextColor="#94a3b8"
                 value={historyQuery}
                 onChangeText={setHistoryQuery}
@@ -755,12 +755,14 @@ export default function CleaningScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setHistoryModalOpen(false)}>
-                <Text style={styles.modalFooterBtnText}>Close History</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close_history', 'Close History')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

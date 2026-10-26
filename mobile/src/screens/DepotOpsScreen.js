@@ -238,7 +238,7 @@ export default function DepotOpsScreen() {
         <View style={styles.topbarHeaderRow}>
           <View style={styles.topbarCenter}>
             <Text style={styles.eyebrow}>{t('depot_operations_title', 'DEPOT OPERATIONS')}</Text>
-            <Text style={styles.topbarTitle}>Depot {depotNum} Operations</Text>
+            <Text style={styles.topbarTitle}>{t('depot', 'Depot')} {depotNum} {t('title_depot_operations', 'Operations')}</Text>
             <Text style={styles.topbarSub}>{depotName} • Ashok Leyland EV Fleet</Text>
           </View>
 
@@ -295,19 +295,19 @@ export default function DepotOpsScreen() {
           {/* 3. Depot Fleet (Depot 1 shows only Depot 1; Depot 2 shows only Depot 2) */}
           {depotNum === '1' ? (
             <View style={[styles.statCard, styles.statCardFleet]}>
-              <Text style={styles.statLabel}>Depot 1 Fleet</Text>
+              <Text style={styles.statLabel}>{t('depot_1', 'Depot 1')} {t('all_fleet', 'Fleet')}</Text>
               <Text style={[styles.statValue, { color: '#0f766e' }]}>
                 {depot1Count || 62}
               </Text>
-              <Text style={styles.statSub}>assigned buses</Text>
+              <Text style={styles.statSub}>{t('assigned_buses', 'assigned buses')}</Text>
             </View>
           ) : (
             <View style={[styles.statCard, styles.statCardFleet]}>
-              <Text style={styles.statLabel}>Depot 2 Fleet</Text>
+              <Text style={styles.statLabel}>{t('depot_2', 'Depot 2')} {t('all_fleet', 'Fleet')}</Text>
               <Text style={[styles.statValue, { color: '#6d28d9' }]}>
                 {depot2Count || 60}
               </Text>
-              <Text style={styles.statSub}>assigned buses</Text>
+              <Text style={styles.statSub}>{t('assigned_buses', 'assigned buses')}</Text>
             </View>
           )}
         </View>
@@ -328,7 +328,7 @@ export default function DepotOpsScreen() {
           {/* ── EMBEDDED PANEL: SELECT BUS TO MARK ROUTE COMPLETE ── */}
           <View style={styles.busSelectPanel}>
             <View style={styles.panelHeaderRow}>
-              <Text style={styles.panelTitle}>🚌 Select Bus to Mark Route Complete</Text>
+              <Text style={styles.panelTitle}>{`🚌 ${t('card_select_bus_route_complete', 'Select Bus to Mark Route Complete')}`}</Text>
             </View>
 
             {/* 1. SEARCH BOX (Search within Depot fleet by BM number or Registration No) */}
@@ -336,7 +336,7 @@ export default function DepotOpsScreen() {
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.searchInput}
-                placeholder="Search by BM number or Registration No…"
+                placeholder={t('select_bus_prompt', 'Search by BM number or Registration No…')}
                 placeholderTextColor="#94a3b8"
                 value={busSearchInput}
                 onChangeText={(text) => {
@@ -376,25 +376,25 @@ export default function DepotOpsScreen() {
               <View style={styles.busInfoBox}>
                 <View style={styles.infoGrid}>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>BM Number</Text>
+                    <Text style={styles.infoLabel}>{t('col_bm_number', 'BM Number')}</Text>
                     <Text style={styles.infoValue}>{selectedBusObj.bmNumber}</Text>
                   </View>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Registration No.</Text>
+                    <Text style={styles.infoLabel}>{t('col_reg_no', 'Registration No.')}</Text>
                     <Text style={styles.infoValue}>{selectedBusObj.regNo}</Text>
                   </View>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Model</Text>
+                    <Text style={styles.infoLabel}>{t('col_model', 'Model')}</Text>
                     <Text style={styles.infoValue}>Ashok Leyland Switch EiV12</Text>
                   </View>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Assigned Depot</Text>
+                    <Text style={styles.infoLabel}>{t('label_depot_access', 'Assigned Depot')}</Text>
                     <Text style={[styles.infoValue, { color: selectedBusObj.depot === '2' ? '#6d28d9' : '#0f766e', fontWeight: '800' }]}>
                       Depot {selectedBusObj.depot || '1'}
                     </Text>
                   </View>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Current Status</Text>
+                    <Text style={styles.infoLabel}>{t('col_status', 'Current Status')}</Text>
                     <Text
                       style={[
                         styles.infoValue,
@@ -412,7 +412,7 @@ export default function DepotOpsScreen() {
                     </Text>
                   </View>
                   <View style={styles.infoCell}>
-                    <Text style={styles.infoLabel}>Battery SoC</Text>
+                    <Text style={styles.infoLabel}>{t('col_battery_soc', 'Battery SoC')}</Text>
                     <Text style={styles.infoValue}>⚡ {selectedBusObj.soc}%</Text>
                   </View>
                 </View>
@@ -433,7 +433,7 @@ export default function DepotOpsScreen() {
                     <Text style={styles.routeInfoBoxTitle}>🎯 Active Duty Schedule</Text>
                     <View style={styles.infoGrid}>
                       <View style={styles.infoCell}>
-                        <Text style={styles.infoLabel}>Allocated Route</Text>
+                        <Text style={styles.infoLabel}>{t('label_allocated_route', 'Allocated Route')}</Text>
                         <Text style={styles.infoValue}>
                           {selectedBusDuty.routeCode || selectedBusDuty.busNumber || '—'}
                         </Text>
@@ -447,7 +447,7 @@ export default function DepotOpsScreen() {
                         <Text style={styles.infoValue}>{selectedBusDuty.shift || 'General Shift'}</Text>
                       </View>
                       <View style={styles.infoCell}>
-                        <Text style={styles.infoLabel}>Driver</Text>
+                        <Text style={styles.infoLabel}>{t('driver', 'Driver')}</Text>
                         <Text style={styles.infoValue}>{selectedBusDuty.driver || '—'}</Text>
                       </View>
                     </View>
@@ -484,7 +484,7 @@ export default function DepotOpsScreen() {
           {/* ── ACTIVE ROUTE DISPATCHES LIST SECTION ── */}
           <View style={styles.dispatchesHeaderRow}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.dispatchesTitle}>📋 Active Route Dispatches</Text>
+              <Text style={styles.dispatchesTitle}>{`📋 ${t('active_dispatches', 'Active Route Dispatches')}`}</Text>
               <View style={styles.dispatchesCountBadge}>
                 <Text style={styles.dispatchesCountBadgeText}>{filteredAllocatedDuties.length}</Text>
               </View>
@@ -496,7 +496,7 @@ export default function DepotOpsScreen() {
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Filter active dispatches by BM, Route, Driver, or Depot…"
+              placeholder={t('filter_history_placeholder', 'Filter active dispatches by BM, Route, Driver, or Depot…')}
               placeholderTextColor="#94a3b8"
               value={dispatchSearch}
               onChangeText={setDispatchSearch}
@@ -527,8 +527,8 @@ export default function DepotOpsScreen() {
           {filteredAllocatedDuties.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🚌</Text>
-              <Text style={styles.emptyTitle}>No buses currently allocated on routes.</Text>
-              <Text style={styles.emptySub}>Allocate buses from the Scheduling page first.</Text>
+              <Text style={styles.emptyTitle}>{t('no_allocated_buses_msg', 'No buses currently allocated on routes.')}</Text>
+              <Text style={styles.emptySub}>{t('allocate_first_msg', 'Allocate buses from the Scheduling page first.')}</Text>
             </View>
           ) : (
             displayedAllocatedDuties.map((duty) => (
@@ -609,21 +609,21 @@ export default function DepotOpsScreen() {
                 onPress={handleDownloadCompletedLog}
                 activeOpacity={0.7}
               >
-                <Text style={styles.btnDownloadCsvText}>📥 Download CSV</Text>
+                <Text style={styles.btnDownloadCsvText}>{`📥 ${t('download_csv', 'Download CSV')}`}</Text>
               </TouchableOpacity>
 
               {/* Clear Log Button */}
               <TouchableOpacity
                 style={styles.btnClearLog}
                 onPress={() => {
-                  Alert.alert('Clear Completed Routes Log', 'Clear the return log?', [
+                  Alert.alert(t('clear_log', 'Clear Completed Routes Log'), t('clear_log_confirm', 'Clear the return log?'), [
                     { text: 'Cancel', style: 'cancel' },
                     { text: 'Clear Log', style: 'destructive', onPress: () => clearCompletedRoutesLog() },
                   ]);
                 }}
                 activeOpacity={0.7}
               >
-                <Text style={styles.btnClearLogText}>🗑 Clear Log</Text>
+                <Text style={styles.btnClearLogText}>{`🗑 ${t('clear_log', 'Clear Log')}`}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -654,7 +654,7 @@ export default function DepotOpsScreen() {
           {filteredCompletedLog.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>📋</Text>
-              <Text style={styles.emptyTitle}>No completed routes yet today.</Text>
+              <Text style={styles.emptyTitle}>{t('no_completed_routes_today', 'No completed routes yet today.')}</Text>
               <Text style={styles.emptySub}>
                 Completed returned buses will appear here in chronological order.
               </Text>
@@ -709,7 +709,7 @@ export default function DepotOpsScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🚌 Select Bus</Text>
+              <Text style={styles.modalTitle}>{`🚌 ${t('select_bus', 'Select Bus')}`}</Text>
               <TouchableOpacity onPress={() => setBusPickerOpen(false)} style={styles.modalCloseBtn}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -720,7 +720,7 @@ export default function DepotOpsScreen() {
               <Text style={styles.searchIcon}>🔍</Text>
               <TextInput
                 style={styles.modalSearchInput}
-                placeholder="Search by BM Number or Reg No..."
+                placeholder={t('select_bus_prompt', 'Search by BM Number or Reg No...')}
                 placeholderTextColor="#94a3b8"
                 value={busSearchInput}
                 onChangeText={setBusSearchInput}
@@ -759,7 +759,7 @@ export default function DepotOpsScreen() {
                         </Text>
                         <Text style={styles.busOptionReg}>({bus.regNo})</Text>
                         <View style={styles.busOptionCat}>
-                          <Text style={styles.busOptionCatText}>Cat {bus.busCategory || 'B'}</Text>
+                          <Text style={styles.busOptionCatText}>{t('col_category', 'Cat')} {bus.busCategory || 'B'}</Text>
                         </View>
                         <View style={[styles.depotPill, { backgroundColor: bus.depot === '2' ? '#ede9fe' : '#ccfbf1' }]}>
                           <Text style={[styles.depotPillText, { color: bus.depot === '2' ? '#6d28d9' : '#0f766e' }]}>
@@ -779,6 +779,8 @@ export default function DepotOpsScreen() {
           </View>
         </View>
       </Modal>
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

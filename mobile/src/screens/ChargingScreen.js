@@ -234,7 +234,7 @@ export default function ChargingScreen() {
       {/* ── TOP NAV BAR (With Language Globe and Sign Out Buttons) ── */}
       <View style={styles.topBar}>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>CHARGING {depotNum} LOG</Text>
+          <Text style={styles.headerTitle}>{t('nav_charging', 'CHARGING')} {depotNum} {t('history_btn', 'LOG')}</Text>
           <Text style={styles.headerSub}>{depotName}</Text>
         </View>
         <View style={styles.topbarActions}>
@@ -242,7 +242,7 @@ export default function ChargingScreen() {
           <TouchableOpacity
             style={styles.signOutBtn}
             onPress={() => {
-              Alert.alert(t('btn_sign_out', 'Sign Out'), 'Are you sure you want to log out of Charging Operations?', [
+              Alert.alert(t('btn_sign_out', 'Sign Out'), t('sign_out_confirm_charging', 'Are you sure you want to log out of Charging Operations?'), [
                 { text: t('cancel', 'Cancel'), style: 'cancel' },
                 { text: t('btn_sign_out', 'Sign Out'), style: 'destructive', onPress: () => logout() },
               ]);
@@ -257,7 +257,7 @@ export default function ChargingScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Banner */}
         <View style={styles.bannerCard}>
-          <Text style={styles.bannerTitle}>⚡ Charging {depotNum} Log</Text>
+          <Text style={styles.bannerTitle}>{`⚡ ${t('nav_charging', 'Charging')} ${depotNum} ${t('history_btn', 'Log')}`}</Text>
           <Text style={styles.bannerSub}>
             Record bus charging sessions — Depot {depotNum} ({depotBuses.length} Active Buses)
           </Text>
@@ -265,14 +265,14 @@ export default function ChargingScreen() {
 
         {/* ── 1. SELECT BUS (Exact Website Layout: Search Box + Dropdown) ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🚌 Select Bus</Text>
+          <Text style={styles.cardTitle}>{`🚌 ${t('select_bus', 'Select Bus')}`}</Text>
 
           {/* Explicit Search Box */}
           <View style={styles.searchWrap}>
             <Text style={styles.searchIcon}>🔍</Text>
             <TextInput
               style={styles.searchInput}
-              placeholder="Search by BM number or Registration No..."
+              placeholder={t('select_bus_prompt', 'Search by BM number or Registration No...')}
               placeholderTextColor="#94a3b8"
               value={searchInput}
               onChangeText={(text) => {
@@ -307,7 +307,7 @@ export default function ChargingScreen() {
               <ScrollView style={styles.dropdownScroll} nestedScrollEnabled>
                 {filteredBuses.length === 0 ? (
                   <View style={styles.noMatch}>
-                    <Text style={styles.noMatchText}>No matching buses in Depot {depotNum}</Text>
+                    <Text style={styles.noMatchText}>{t('no_matching_buses', 'No matching buses in Depot')} {depotNum}</Text>
                   </View>
                 ) : (
                   filteredBuses.map((bus) => (
@@ -336,19 +336,19 @@ export default function ChargingScreen() {
             <View style={styles.busInfoBox}>
               <View style={styles.busInfoGrid}>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>BM Number</Text>
+                  <Text style={styles.infoLabel}>{t('col_bm_number', 'BM Number')}</Text>
                   <Text style={styles.infoValHighlight}>{selectedBus.bmNumber}</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Registration No.</Text>
+                  <Text style={styles.infoLabel}>{t('col_reg_no', 'Registration No.')}</Text>
                   <Text style={styles.infoVal}>{selectedBus.regNo}</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Model</Text>
+                  <Text style={styles.infoLabel}>{t('col_model', 'Model')}</Text>
                   <Text style={styles.infoVal}>Switch EiV 12</Text>
                 </View>
                 <View style={styles.infoCol}>
-                  <Text style={styles.infoLabel}>Status</Text>
+                  <Text style={styles.infoLabel}>{t('col_status', 'Status')}</Text>
                   <View style={[styles.statusBadge, isLockedForCharging ? styles.statusBadgeCharging : styles.statusBadgeAvail]}>
                     <Text style={[styles.statusBadgeText, isLockedForCharging ? styles.statusTextCharging : styles.statusTextAvail]}>
                       {isLockedForCharging ? '⚡ Charging' : selectedBus.status}
@@ -386,7 +386,7 @@ export default function ChargingScreen() {
                     onPress={handleLockBus}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.lockBtnText}>🔒 Lock Bus for Charging</Text>
+                    <Text style={styles.lockBtnText}>{`🔒 ${t('lock_bus_charging', 'Lock Bus for Charging')}`}</Text>
                   </TouchableOpacity>
                 ) : (
                   <TouchableOpacity
@@ -394,7 +394,7 @@ export default function ChargingScreen() {
                     onPress={handleUnlockAndSubmit}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.unlockBtnText}>🔓 Unlock & Submit Charging Record</Text>
+                    <Text style={styles.unlockBtnText}>{`🔓 ${t('unlock_bus_charging', 'Unlock & Submit Charging Record')}`}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -408,7 +408,7 @@ export default function ChargingScreen() {
               onPress={() => setOngoingModalOpen(true)}
               activeOpacity={0.85}
             >
-              <Text style={styles.btnOngoingText}>⚡ Ongoing Charging</Text>
+              <Text style={styles.btnOngoingText}>{`⚡ ${t('ongoing_bay_title', 'Ongoing Charging')}`}</Text>
               <View style={styles.ongoingCountBadge}>
                 <Text style={styles.ongoingCountBadgeText}>{ongoingChargingList.length}</Text>
               </View>
@@ -418,13 +418,13 @@ export default function ChargingScreen() {
 
         {/* ── 2. BATTERY SOC CARD ── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>⚡ Battery SOC</Text>
+          <Text style={styles.cardTitle}>{`⚡ ${t('col_battery_soc', 'Battery SOC')}`}</Text>
 
           {/* SOC Before */}
           <View style={styles.formGroup}>
             <View style={styles.labelRow}>
               <Text style={styles.fieldLabel}>
-                SOC Before Charging: <Text style={styles.socBeforeHighlight}>{socBefore}%</Text>
+                {t('soc_before', 'SOC Before Charging')}: <Text style={styles.socBeforeHighlight}>{socBefore}%</Text>
               </Text>
               <TextInput
                 style={styles.socInput}
@@ -469,7 +469,7 @@ export default function ChargingScreen() {
           <View style={styles.formGroup}>
             <View style={styles.labelRow}>
               <Text style={styles.fieldLabel}>
-                Confirmed Manual SOC After: <Text style={styles.socAfterHighlight}>{socAfter}%</Text>
+                {t('confirm_manual_soc', 'Confirmed Manual SOC After')}: <Text style={styles.socAfterHighlight}>{socAfter}%</Text>
               </Text>
               <TextInput
                 style={[styles.socInput, styles.socInputAfter]}
@@ -511,7 +511,7 @@ export default function ChargingScreen() {
 
             {/* Presets */}
             <View style={styles.presetsRow}>
-              <Text style={styles.presetLabel}>Quick Presets:</Text>
+              <Text style={styles.presetLabel}>{t('quick_presets', 'Quick Presets')}:</Text>
               {[80, 90, 100].map((val) => (
                 <TouchableOpacity
                   key={val}
@@ -531,7 +531,7 @@ export default function ChargingScreen() {
 
           {/* Status Pills */}
           <View style={styles.formGroup}>
-            <Text style={styles.fieldLabel}>Charging Status</Text>
+            <Text style={styles.fieldLabel}>{t('charging_status', 'Charging Status')}</Text>
             <View style={styles.pillsRow}>
               {[
                 { id: 'Completed', label: '✅ Completed' },
@@ -553,10 +553,10 @@ export default function ChargingScreen() {
 
           {/* Remarks */}
           <View style={styles.formGroup}>
-            <Text style={styles.fieldLabel}>Remarks (optional)</Text>
+            <Text style={styles.fieldLabel}>{t('remarks_optional', 'Remarks (optional)')}</Text>
             <TextInput
               style={styles.remarksInput}
-              placeholder="Charger fault, battery warning, unusual readings..."
+              placeholder={t('remarks_placeholder_charging', 'Charger fault, battery warning, unusual readings...')}
               placeholderTextColor="#94a3b8"
               value={remarks}
               onChangeText={setRemarks}
@@ -582,7 +582,7 @@ export default function ChargingScreen() {
         <View style={styles.card}>
           <View style={styles.recentHeaderStack}>
             <View style={styles.recentTitleGroup}>
-              <Text style={styles.cardTitle}>📋 Recent Charging Records</Text>
+              <Text style={styles.cardTitle}>{`📋 ${t('recent_charging_records', 'Recent Charging Records')}`}</Text>
               <View style={styles.badgeRecent}>
                 <Text style={styles.badgeRecentText}>Recent 5</Text>
               </View>
@@ -625,13 +625,13 @@ export default function ChargingScreen() {
                   );
                 }}
               >
-                <Text style={styles.btnDownloadCsvText}>📥 Download CSV</Text>
+                <Text style={styles.btnDownloadCsvText}>{`📥 ${t('download_csv', 'Download CSV')}`}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.historyBtn}
                 onPress={() => setHistoryModalOpen(true)}
               >
-                <Text style={styles.historyBtnText}>📜 History</Text>
+                <Text style={styles.historyBtnText}>{`📜 ${t('history_btn', 'History')}`}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -699,7 +699,7 @@ export default function ChargingScreen() {
               {ongoingChargingList.length === 0 ? (
                 <View style={styles.emptyOngoing}>
                   <Text style={styles.emptyOngoingEmoji}>⚡</Text>
-                  <Text style={styles.emptyOngoingTitle}>No Buses Currently Charging</Text>
+                  <Text style={styles.emptyOngoingTitle}>{t('no_buses_ongoing_charging', 'No buses currently in ongoing charging')}</Text>
                   <Text style={styles.emptyOngoingSub}>No buses are currently locked for charging.</Text>
                 </View>
               ) : (
@@ -718,7 +718,7 @@ export default function ChargingScreen() {
                         setOngoingModalOpen(false);
                       }}
                     >
-                      <Text style={styles.ongoingSelectBtnText}>Select Bus</Text>
+                      <Text style={styles.ongoingSelectBtnText}>{t('select_bus', 'Select Bus')}</Text>
                     </TouchableOpacity>
                   </View>
                 ))
@@ -727,7 +727,7 @@ export default function ChargingScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setOngoingModalOpen(false)}>
-                <Text style={styles.modalFooterBtnText}>Close</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close', 'Close')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -745,7 +745,7 @@ export default function ChargingScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalDepotSub}>DEPOT VERIFICATION RECORD</Text>
+                <Text style={styles.modalDepotSub}>{t('view_verification_record', 'DEPOT VERIFICATION RECORD')}</Text>
                 <Text style={styles.modalTitle}>
                   🚌 Bus {detailModalItem?.bm} <Text style={styles.modalSubReg}>({detailModalItem?.reg})</Text>
                 </Text>
@@ -792,7 +792,7 @@ export default function ChargingScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setDetailModalItem(null)}>
-                <Text style={styles.modalFooterBtnText}>Close Record</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close_record', 'Close Record')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -868,12 +868,14 @@ export default function ChargingScreen() {
 
             <View style={styles.modalFooter}>
               <TouchableOpacity style={styles.modalFooterBtn} onPress={() => setHistoryModalOpen(false)}>
-                <Text style={styles.modalFooterBtnText}>Close History</Text>
+                <Text style={styles.modalFooterBtnText}>{t('close_history', 'Close History')}</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

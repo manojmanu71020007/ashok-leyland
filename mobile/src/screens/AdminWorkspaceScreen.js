@@ -26,6 +26,7 @@ import {
 } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 import { getSequentialTasksForDuty } from '../utils/detailedScheduleTrips';
@@ -471,7 +472,7 @@ const UserNavIcon = ({ color = '#94a3b8', size = 20, active = false }) => (
 );
 
 // ── Universal SubScreen Header with Back Button & Count/Badge ──
-const SubScreenHeader = ({ title, subtitle, onBack, count, badge }) => {
+const SubScreenHeader = ({ title, subtitle, onBack, count, badge, onLangPress }) => {
   const { t } = useLanguage();
   return (
     <View style={styles.subScreenHeader}>
@@ -496,6 +497,10 @@ const SubScreenHeader = ({ title, subtitle, onBack, count, badge }) => {
             </Text>
           ) : null}
         </View>
+
+        {onLangPress && (
+          <LanguagePickerPill onPress={onLangPress} style={{ paddingVertical: 4, paddingHorizontal: 7, marginRight: 6 }} />
+        )}
 
         {count !== undefined && count !== null ? (
           <View style={styles.subScreenCountPill}>
@@ -634,6 +639,8 @@ export default function AdminWorkspaceScreen() {
 
   // Enterprise Depot Filter: 'all' | '1' | '2' (Allows full enterprise view of both Depot 1 and Depot 2)
   const [adminDepotFilter, setAdminDepotFilter] = useState('all');
+
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   // Current language synced via LanguageContext
   const { currentLang, setLanguage: setCurrentLang, t: tContext, languages = [] } = useLanguage();
@@ -1483,6 +1490,7 @@ export default function AdminWorkspaceScreen() {
                 <Text style={styles.headerMainTitle}>{t('admin_workspace_title', 'Admin Workspace')}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 8 }} />
                 <TouchableOpacity
                   style={{ paddingVertical: 6, paddingHorizontal: 10, backgroundColor: '#fef2f2', borderRadius: 8, borderWidth: 1, borderColor: '#fca5a5' }}
                   onPress={() => {
@@ -1686,7 +1694,7 @@ export default function AdminWorkspaceScreen() {
         {/* ── PANEL 1: SCHEDULE REQUIREMENT & ALLOCATION RESULT ── */}
         {activeAdminTab === 'SCHEDULE' && (
         <View style={styles.panel} onLayout={(e) => setSchedulingLayoutY(e.nativeEvent.layout.y)}>
-          <SubScreenHeader
+          <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
             title="Schedule Overview"
             subtitle="Route candidate evaluation & dispatch readiness"
             onBack={() => navigateToAdminTab('HOME')}
@@ -1849,7 +1857,7 @@ export default function AdminWorkspaceScreen() {
         {/* ═════════════════════════════════════════════════════════════ */}
         {activeAdminTab === 'ALLOCATED' && (
           <View style={styles.panel}>
-            <SubScreenHeader
+            <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title="Allocated Buses"
               subtitle="Active dispatches on scheduled corridors"
               onBack={() => navigateToAdminTab('HOME')}
@@ -2051,7 +2059,7 @@ export default function AdminWorkspaceScreen() {
         {/* ═════════════════════════════════════════════════════════════ */}
         {activeAdminTab === 'NOT_ALLOCATED' && (
           <View style={styles.panel}>
-            <SubScreenHeader
+            <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title="Not-Allocated Buses"
               subtitle="Yard reserve, charging & maintenance isolation"
               onBack={() => navigateToAdminTab('HOME')}
@@ -2215,7 +2223,7 @@ export default function AdminWorkspaceScreen() {
         {/* ═════════════════════════════════════════════════════════════ */}
         {activeAdminTab === 'AVAILABLE_DEPARTURE' && (
           <View style={styles.panel}>
-            <SubScreenHeader
+            <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title="Available for Scheduling"
               subtitle="Ready fleet strictly compliant for duty scheduling"
               onBack={() => navigateToAdminTab('HOME')}
@@ -2380,7 +2388,7 @@ export default function AdminWorkspaceScreen() {
         {/* ═════════════════════════════════════════════════════════════ */}
         {activeAdminTab === 'TOTAL_FLEET' && (
           <View style={styles.panel}>
-            <SubScreenHeader
+            <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title="Total Fleet"
               subtitle="Depot 1 & Depot 2 complete vehicle directory"
               onBack={() => navigateToAdminTab('HOME')}
@@ -2637,7 +2645,7 @@ export default function AdminWorkspaceScreen() {
         {/* ── PROFILE TAB ── */}
         {activeAdminTab === 'PROFILE' && (
           <View style={styles.profileTabContainer}>
-            <SubScreenHeader
+            <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title={t('admin_profile', 'Admin Profile')}
               subtitle={t('profile_sub', 'Master credentials & system preferences')}
               onBack={() => navigateToAdminTab('HOME')}
@@ -3995,6 +4003,8 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

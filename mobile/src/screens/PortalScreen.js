@@ -96,14 +96,14 @@ export default function PortalScreen({ navigation }) {
             <TouchableOpacity
               style={styles.signOutPill}
               onPress={() => {
-                Alert.alert('Sign Out', 'Return to Admin Login Screen?', [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'Sign Out', style: 'destructive', onPress: logout },
+                Alert.alert(t('sign_out', 'Sign Out'), t('sign_out_confirm', 'Return to Admin Login Screen?'), [
+                  { text: t('cancel', 'Cancel'), style: 'cancel' },
+                  { text: t('sign_out', 'Sign Out'), style: 'destructive', onPress: logout },
                 ]);
               }}
               activeOpacity={0.8}
             >
-              <Text style={styles.signOutPillText}>🚪 Sign Out</Text>
+              <Text style={styles.signOutPillText}>{`🚪 ${t('sign_out', 'Sign Out')}`}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -134,10 +134,10 @@ export default function PortalScreen({ navigation }) {
             <View style={styles.quickSection}>
               <View style={styles.quickHeaderRow}>
                 <Text style={styles.quickTitle}>
-                  ⚡ DEPOT {depotNum} QUICK ACTIONS
+                  ⚡ {t('depot', 'DEPOT')} {depotNum} {t('quick_actions', 'QUICK ACTIONS')}
                 </Text>
                 <View style={styles.quickBadge}>
-                  <Text style={styles.quickBadgeText}>{stats.total} Buses</Text>
+                  <Text style={styles.quickBadgeText}>{stats.total} {t('buses', 'Buses')}</Text>
                 </View>
               </View>
 
@@ -150,8 +150,8 @@ export default function PortalScreen({ navigation }) {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.tileEmoji}>⚡</Text>
-                  <Text style={[styles.tileTitle, styles.tileTitleCharging]}>Charging {depotNum}</Text>
-                  <Text style={[styles.tileSub, styles.tileSubCharging]}>Log sessions</Text>
+                  <Text style={[styles.tileTitle, styles.tileTitleCharging]}>{t('nav_charging', 'Charging')} {depotNum}</Text>
+                  <Text style={[styles.tileSub, styles.tileSubCharging]}>{t('log_sessions', 'Log sessions')}</Text>
                 </TouchableOpacity>
 
                 {/* 2. Cleaning Tile */}
@@ -161,8 +161,8 @@ export default function PortalScreen({ navigation }) {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.tileEmoji}>🧹</Text>
-                  <Text style={[styles.tileTitle, styles.tileTitleCleaning]}>Cleaning {depotNum}</Text>
-                  <Text style={[styles.tileSub, styles.tileSubCleaning]}>Status record</Text>
+                  <Text style={[styles.tileTitle, styles.tileTitleCleaning]}>{t('nav_cleaning', 'Cleaning')} {depotNum}</Text>
+                  <Text style={[styles.tileSub, styles.tileSubCleaning]}>{t('status_record', 'Status record')}</Text>
                 </TouchableOpacity>
 
                 {/* 3. Scheduling Tile */}
@@ -172,8 +172,8 @@ export default function PortalScreen({ navigation }) {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.tileEmoji}>🎯</Text>
-                  <Text style={[styles.tileTitle, styles.tileTitleScheduling]}>Scheduling {depotNum}</Text>
-                  <Text style={[styles.tileSub, styles.tileSubScheduling]}>Smart allocation</Text>
+                  <Text style={[styles.tileTitle, styles.tileTitleScheduling]}>{t('nav_scheduling', 'Scheduling')} {depotNum}</Text>
+                  <Text style={[styles.tileSub, styles.tileSubScheduling]}>{t('smart_allocation', 'Smart allocation')}</Text>
                 </TouchableOpacity>
 
                 {/* 4. Depot Ops Tile */}
@@ -183,8 +183,8 @@ export default function PortalScreen({ navigation }) {
                   activeOpacity={0.85}
                 >
                   <Text style={styles.tileEmoji}>🚍</Text>
-                  <Text style={[styles.tileTitle, styles.tileTitleDepotOps]}>Depot Ops {depotNum}</Text>
-                  <Text style={[styles.tileSub, styles.tileSubDepotOps]}>Route complete</Text>
+                  <Text style={[styles.tileTitle, styles.tileTitleDepotOps]}>{t('tile_depot_ops', 'Depot Ops')} {depotNum}</Text>
+                  <Text style={[styles.tileSub, styles.tileSubDepotOps]}>{t('route_complete', 'Route complete')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -193,17 +193,17 @@ export default function PortalScreen({ navigation }) {
             <View style={styles.kpiRow}>
               <View style={[styles.kpiCard, { borderLeftColor: colors.success }]}>
                 <Text style={styles.kpiVal}>{stats.available}</Text>
-                <Text style={styles.kpiLbl}>Ready for Sched</Text>
+                <Text style={styles.kpiLbl}>{t('ready_for_sched', 'Ready for Sched')}</Text>
               </View>
 
               <View style={[styles.kpiCard, { borderLeftColor: colors.warning }]}>
                 <Text style={styles.kpiVal}>{stats.allocated}</Text>
-                <Text style={styles.kpiLbl}>On Route</Text>
+                <Text style={styles.kpiLbl}>{t('on_route', 'On Route')}</Text>
               </View>
 
               <View style={[styles.kpiCard, { borderLeftColor: colors.purple }]}>
                 <Text style={styles.kpiVal}>{stats.charging}</Text>
-                <Text style={styles.kpiLbl}>In Charging Bay</Text>
+                <Text style={styles.kpiLbl}>{t('in_charging_bay', 'In Charging Bay')}</Text>
               </View>
             </View>
 
@@ -214,7 +214,7 @@ export default function PortalScreen({ navigation }) {
                   <Text style={styles.searchIcon}>🔍</Text>
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Search BM or Reg (e.g. BM001, KA51)"
+                    placeholder={t('search_placeholder_bm', 'Search BM or Reg (e.g. BM001, KA51)')}
                     placeholderTextColor="#94a3b8"
                     value={searchQuery}
                     onChangeText={setSearchQuery}
@@ -232,7 +232,7 @@ export default function PortalScreen({ navigation }) {
                   onPress={() => setScannerVisible(true)}
                   activeOpacity={0.85}
                 >
-                  <Text style={styles.scanBtnText}>📷 Scan</Text>
+                  <Text style={styles.scanBtnText}>{`📷 ${t('scan_btn', 'Scan')}`}</Text>
                 </TouchableOpacity>
               </View>
 
@@ -245,7 +245,7 @@ export default function PortalScreen({ navigation }) {
                     onPress={() => setSelectedCategory(cat)}
                   >
                     <Text style={[styles.pillText, selectedCategory === cat && styles.pillTextActive]}>
-                      {cat === 'ALL' ? 'All Classes' : `Cat ${cat}`}
+                      {cat === 'ALL' ? t('all_classes', 'All Classes') : `${t('col_category', 'Cat')} ${cat}`}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -259,7 +259,7 @@ export default function PortalScreen({ navigation }) {
                     onPress={() => setStatusFilter(st)}
                   >
                     <Text style={[styles.pillText, statusFilter === st && styles.pillTextActive]}>
-                      {st === 'ALL' ? 'All' : st === 'AVAILABLE' ? 'Ready' : 'In Bay'}
+                      {st === 'ALL' ? t('all_filter', 'All') : st === 'AVAILABLE' ? t('ready', 'Ready') : t('in_bay', 'In Bay')}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -269,9 +269,9 @@ export default function PortalScreen({ navigation }) {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Buses Found</Text>
+            <Text style={styles.emptyTitle}>{t('no_buses_found', 'No Buses Found')}</Text>
             <Text style={styles.emptySub}>
-              {loading ? 'Synchronizing with live depot server...' : 'No buses match your filter.'}
+              {loading ? t('syncing_depot_server', 'Synchronizing with live depot server...') : t('no_buses_match_filter', 'No buses match your filter.')}
             </Text>
           </View>
         }
@@ -286,15 +286,15 @@ export default function PortalScreen({ navigation }) {
         >
           <View style={styles.drawerCard}>
             <View style={styles.drawerHeader}>
-              <Text style={styles.drawerTitle}>SELECT OPERATING DEPOT</Text>
+              <Text style={styles.drawerTitle}>{t('select_operating_depot', 'SELECT OPERATING DEPOT')}</Text>
               <TouchableOpacity onPress={() => setDepotDrawerVisible(false)}>
                 <Text style={styles.drawerClose}>✕</Text>
               </TouchableOpacity>
             </View>
 
             {[
-              { id: '1', title: 'Depot 1 (Chandapura)', count: '58 Buses', desc: 'Primary Bangalore EV Hub' },
-              { id: '2', title: 'Depot 2', count: '65 Buses', desc: 'Secondary Transit Facility' },
+              { id: '1', title: t('depot_1_chandapura', 'Depot 1 (Chandapura)'), count: `58 ${t('buses', 'Buses')}`, desc: t('depot_1_desc', 'Primary Bangalore EV Hub') },
+              { id: '2', title: t('depot_2', 'Depot 2'), count: `65 ${t('buses', 'Buses')}`, desc: t('depot_2_desc', 'Secondary Transit Facility') },
             ].map((d) => (
               <TouchableOpacity
                 key={d.id}
@@ -334,6 +334,8 @@ export default function PortalScreen({ navigation }) {
         onClose={() => setScannerVisible(false)}
         onScanBus={(scannedBus) => setSelectedBusForSoc(scannedBus)}
       />
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalVisible} onClose={() => setLangModalVisible(false)} />
     </SafeAreaView>
   );
 }

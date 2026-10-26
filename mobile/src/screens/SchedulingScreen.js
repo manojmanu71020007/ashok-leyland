@@ -900,7 +900,7 @@ export default function SchedulingScreen() {
           <TouchableOpacity
             style={styles.signOutBtn}
             onPress={() => {
-              Alert.alert(t('btn_sign_out', 'Sign Out'), 'Are you sure you want to log out of Scheduling?', [
+              Alert.alert(t('btn_sign_out', 'Sign Out'), t('sign_out_confirm_sched', 'Are you sure you want to log out of Scheduling?'), [
                 { text: t('cancel', 'Cancel'), style: 'cancel' },
                 { text: t('btn_sign_out', 'Sign Out'), style: 'destructive', onPress: () => logout() },
               ]);
@@ -935,7 +935,7 @@ export default function SchedulingScreen() {
 
           {/* 2. {t('label_departure_time', 'Scheduled Departure Time')} */}
           <Text style={styles.fieldLabel}>
-            Scheduled Departure Time (from dataset) <Text style={{ color: '#dc2626' }}>*</Text>
+            {t('label_scheduled_departure_time', 'Scheduled Departure Time (from dataset)')} <Text style={{ color: '#dc2626' }}>*</Text>
           </Text>
           <TouchableOpacity
             style={styles.selectBox}
@@ -951,13 +951,13 @@ export default function SchedulingScreen() {
           {/* 4. Schedule distance */}
           <Text style={styles.fieldLabel}>{t('schedule_distance', 'Schedule distance (km)')}</Text>
           <View style={styles.readonlyInput}>
-            <Text style={styles.readonlyInputText}>{selectedRoute.distance} km (Fixed GTFS data)</Text>
+            <Text style={styles.readonlyInputText}>{selectedRoute.distance} km ({t('fixed_gtfs_data', 'Fixed GTFS data')})</Text>
           </View>
 
           {/* 5. Assigned Driver Input & Dropdown */}
           <View style={styles.driverLabelRow}>
             <Text style={styles.fieldLabel}>
-              Assigned Driver <Text style={{ color: '#dc2626' }}>*</Text>
+              {t('assigned_driver', 'Assigned Driver')} <Text style={{ color: '#dc2626' }}>*</Text>
             </Text>
             <View style={styles.driverDepotBadge}>
               <Text style={styles.driverDepotBadgeText}>
@@ -971,7 +971,7 @@ export default function SchedulingScreen() {
               style={styles.driverInputField}
               value={driverNameInput}
               onChangeText={handleDriverTextChange}
-              placeholder="Type driver name or pick from roster..."
+              placeholder={t('placeholder_driver', 'Type driver name or pick from roster...')}
               placeholderTextColor="#94a3b8"
               autoCapitalize="words"
               autoCorrect={false}
@@ -981,7 +981,7 @@ export default function SchedulingScreen() {
               onPress={() => setDriverPickerOpen(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.driverRosterBtnText}>Roster ▼</Text>
+              <Text style={styles.driverRosterBtnText}>{t('roster_btn', 'Roster')} ▼</Text>
             </TouchableOpacity>
           </View>
           {driverError ? (
@@ -994,7 +994,7 @@ export default function SchedulingScreen() {
               <View style={styles.candidateTitleWrap}>
                 <Text style={styles.candidateTitleIcon}>🚌</Text>
                 <View>
-                  <Text style={styles.candidateTitle}>Candidate Buses For This Route & Time</Text>
+                  <Text style={styles.candidateTitle}>{t('candidate_buses_ready', 'Candidate Buses For This Route & Time')}</Text>
                   <Text style={styles.candidateSub}>
                     Select one of the {candidateBuses.length} eligible candidate buses for this departure
                   </Text>
@@ -1044,7 +1044,7 @@ export default function SchedulingScreen() {
                         <Text style={styles.candRegText}>({bus.regNo})</Text>
                       </View>
                       <View style={[styles.catPill, bus.busCategory === 'A' ? styles.catPillA : styles.catPillB]}>
-                        <Text style={styles.catPillText}>Category {bus.busCategory || 'B'}</Text>
+                        <Text style={styles.catPillText}>{t('col_category', 'Category')} {bus.busCategory || 'B'}</Text>
                       </View>
                     </View>
 
@@ -1052,16 +1052,16 @@ export default function SchedulingScreen() {
                     <View style={styles.candLockBannerRow}>
                       {isLocked ? (
                         <View style={styles.mandatoryBanner}>
-                          <Text style={styles.mandatoryBannerText}>⭐ MANDATORY ALLOCATION</Text>
+                          <Text style={styles.mandatoryBannerText}>{`⭐ ${t('mandatory_allocation', 'MANDATORY ALLOCATION')}`}</Text>
                         </View>
                       ) : (
                         isOverrideBus ? (
                           <View style={styles.overrideBanner}>
-                            <Text style={styles.overrideBannerText}>⚠️ OPERATOR OVERRIDE</Text>
+                            <Text style={styles.overrideBannerText}>{`⚠️ ${t('operator_override', 'OPERATOR OVERRIDE')}`}</Text>
                           </View>
                         ) : (
                           <View style={styles.availBanner}>
-                            <Text style={styles.availBannerText}>⚡ Eligible Candidate</Text>
+                            <Text style={styles.availBannerText}>{`⚡ ${t('eligible_candidate', 'Eligible Candidate')}`}</Text>
                           </View>
                         )
                       )}
@@ -1072,7 +1072,7 @@ export default function SchedulingScreen() {
 
                     {/* SoC Row */}
                     <View style={[styles.candSocRow, isLocked && { backgroundColor: '#fffdf7', borderColor: '#fde68a' }]}>
-                      <Text style={styles.candSocLbl}>Current SoC</Text>
+                      <Text style={styles.candSocLbl}>{t('current_soc', 'Current SoC')}</Text>
                       <Text style={[styles.candSocVal, { color: isLocked ? '#b45309' : '#0f766e' }]}>
                         ⚡ {bus.soc}%
                       </Text>
@@ -1129,10 +1129,10 @@ export default function SchedulingScreen() {
               </View>
               <View style={styles.dutyBannerBadges}>
                 <View style={styles.tripBadge}>
-                  <Text style={styles.tripBadgeText}>8 Trips</Text>
+                  <Text style={styles.tripBadgeText}>8 {t('trips_badge', 'Trips')}</Text>
                 </View>
                 <View style={styles.chargeInfoBadge}>
-                  <Text style={styles.chargeInfoBadgeText}>⚡ Est. Charge: ~{selectedRoute.drainSoc}% SoC</Text>
+                  <Text style={styles.chargeInfoBadgeText}>⚡ {t('est_charge_badge', 'Est. Charge')}: ~{selectedRoute.drainSoc}% SoC</Text>
                 </View>
               </View>
             </View>
@@ -1156,14 +1156,14 @@ export default function SchedulingScreen() {
             <View style={styles.panelHeaderWithAction}>
               <View style={{ flex: 1, minWidth: 180 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <Text style={styles.panelTitle}>Allocation result of {activeCandidate.bmNumber}</Text>
+                  <Text style={styles.panelTitle}>{t('allocation_result_of', 'Allocation result of')} {activeCandidate.bmNumber}</Text>
                   {isManualOverride ? (
                     <View style={styles.manualOverridePill}>
-                      <Text style={styles.manualOverridePillText}>⚠️ Operator Override</Text>
+                      <Text style={styles.manualOverridePillText}>{`⚠️ ${t('operator_override', 'Operator Override')}`}</Text>
                     </View>
                   ) : (
                     <View style={styles.mandatoryPill}>
-                      <Text style={styles.mandatoryPillText}>⭐ Mandatory Allocation</Text>
+                      <Text style={styles.mandatoryPillText}>{`⭐ ${t('mandatory_allocation', 'Mandatory Allocation')}`}</Text>
                     </View>
                   )}
                 </View>
@@ -1242,7 +1242,7 @@ export default function SchedulingScreen() {
                 }}
                 activeOpacity={0.8}
               >
-                <Text style={styles.btnDownloadScheduleText}>📥 Download CSV</Text>
+                <Text style={styles.btnDownloadScheduleText}>{`📥 ${t('download_csv', 'Download CSV')}`}</Text>
               </TouchableOpacity>
             </View>
 
@@ -1250,46 +1250,46 @@ export default function SchedulingScreen() {
             <View style={styles.kpiGrid}>
               <View style={styles.kpiBox}>
                 <Text style={styles.kpiVal}>{candidateBuses.length}</Text>
-                <Text style={styles.kpiLbl}>Candidate buses available</Text>
+                <Text style={styles.kpiLbl}>{t('candidate_buses_available', 'Candidate buses available')}</Text>
               </View>
               <View style={styles.kpiBox}>
                 <Text style={[styles.kpiVal, { color: '#0f766e' }]}>{activeCandidate.soc}%</Text>
-                <Text style={styles.kpiLbl}>Selected bus SOC</Text>
+                <Text style={styles.kpiLbl}>{t('selected_bus_soc', 'Selected bus SOC')}</Text>
               </View>
               <View style={styles.kpiBox}>
                 <Text style={[styles.kpiVal, { color: '#0284c7' }]}>{activeCandidate.fullDutyKm} km</Text>
-                <Text style={styles.kpiLbl}>Full Duty Distance (Single Charge)</Text>
+                <Text style={styles.kpiLbl}>{t('full_duty_distance', 'Full Duty Distance')} ({t('single_charge_ready', 'Single Charge Ready')})</Text>
               </View>
               <View style={styles.kpiBox}>
                 <Text style={styles.kpiVal}>{selectedRoute.distance} km</Text>
-                <Text style={styles.kpiLbl}>Route Distance</Text>
+                <Text style={styles.kpiLbl}>{t('route_distance', 'Route Distance')}</Text>
               </View>
             </View>
 
             {/* Transparent Rules Breakdown */}
             <View style={styles.rulesList}>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Full Duty Distance</Text>
+                <Text style={styles.ruleLabel}>{t('full_duty_distance', 'Full Duty Distance')}</Text>
                 <Text style={styles.ruleVal}>{activeCandidate.fullDutyKm} km</Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Operation Mode</Text>
-                <Text style={[styles.ruleVal, { color: '#15803d', fontWeight: '800' }]}>Single Charge Operation</Text>
+                <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>
+                <Text style={[styles.ruleVal, { color: '#15803d', fontWeight: '800' }]}>{t('single_charge_operation', 'Single Charge Operation')}</Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Total distance</Text>
+                <Text style={styles.ruleLabel}>{t('total_distance', 'Total distance')}</Text>
                 <Text style={styles.ruleVal}>{selectedRoute.distance} km</Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Route category</Text>
+                <Text style={styles.ruleLabel}>{t('route_category', 'Route category')}</Text>
                 <Text style={styles.ruleVal}>{complexity.toUpperCase()}</Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Bus category</Text>
+                <Text style={styles.ruleLabel}>{t('bus_category', 'Bus category')}</Text>
                 <Text style={styles.ruleVal}>Category {activeCandidate.busCategory || 'A'}</Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Matrix status</Text>
+                <Text style={styles.ruleLabel}>{t('matrix_status', 'Matrix status')}</Text>
                 <Text style={[styles.ruleVal, { color: isMatrixCompliant ? '#16a34a' : '#dc2626', fontWeight: '800' }]}>
                   {isMatrixCompliant
                     ? `✅ Allowed (Cat ${catDisplay})`
@@ -1297,7 +1297,7 @@ export default function SchedulingScreen() {
                 </Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Allocation Type</Text>
+                <Text style={styles.ruleLabel}>{t('allocation_type', 'Allocation Type')}</Text>
                 <Text style={[styles.ruleVal, isManualOverride ? { color: '#d97706', fontWeight: '900' } : { color: '#0369a1', fontWeight: '800' }]}>
                   {isManualOverride
                     ? `⚠️ Operator Override (Selected ${activeCandidate.bmNumber} instead of mandatory ${mandatoryCandidate?.bmNumber})`
@@ -1305,15 +1305,15 @@ export default function SchedulingScreen() {
                 </Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>Departure Mode</Text>
-                <Text style={styles.ruleVal}>Timetable Scheduled</Text>
+                <Text style={styles.ruleLabel}>{t('departure_mode', 'Departure Mode')}</Text>
+                <Text style={styles.ruleVal}>{t('timetable_scheduled', 'Timetable Scheduled')}</Text>
               </View>
             </View>
           </View>
         ) : (
           <View style={[styles.panel, styles.panelCollapsedNotice]}>
             <Text style={styles.collapsedNoticeIcon}>👆</Text>
-            <Text style={styles.collapsedNoticeTitle}>Bus Details Collapsed</Text>
+            <Text style={styles.collapsedNoticeTitle}>{t('bus_details_collapsed', 'Bus Details Collapsed')}</Text>
             <Text style={styles.collapsedNoticeSub}>
               Click on any candidate bus card above to inspect its live battery SoC, full single-charge range, and transparent matrix status rules.
             </Text>
@@ -1326,7 +1326,7 @@ export default function SchedulingScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalHeaderTitle}>🚌 Select Transit Bus Route</Text>
+              <Text style={styles.modalHeaderTitle}>{`🚌 ${t('select_transit_route_modal', 'Select Transit Bus Route')}`}</Text>
               <TouchableOpacity onPress={() => setRoutePickerOpen(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -1358,7 +1358,7 @@ export default function SchedulingScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalHeaderTitle}>🕒 Scheduled Departure Times</Text>
+              <Text style={styles.modalHeaderTitle}>{`🕒 ${t('scheduled_times_modal', 'Scheduled Departure Times')}`}</Text>
               <TouchableOpacity onPress={() => setTimePickerOpen(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -1388,7 +1388,7 @@ export default function SchedulingScreen() {
         <View style={styles.modalBackdrop}>
           <View style={styles.modalCard}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalHeaderTitle}>👤 Select Assigned Driver (Depot {depotNum})</Text>
+              <Text style={styles.modalHeaderTitle}>{`👤 ${t('select_driver_modal', 'Select Assigned Driver')} (${t('depot', 'Depot')} ${depotNum})`}</Text>
               <TouchableOpacity onPress={() => setDriverPickerOpen(false)}>
                 <Text style={styles.modalCloseText}>✕</Text>
               </TouchableOpacity>
@@ -1417,6 +1417,8 @@ export default function SchedulingScreen() {
           </View>
         </View>
       </Modal>
+          {/* ── LANGUAGE SELECTOR MODAL ── */}
+      <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
   );
 }

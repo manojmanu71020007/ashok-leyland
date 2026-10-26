@@ -1,4 +1,6 @@
-import React, { createContext, useState, useContext, useCallback, useMemo } from 'react';
+import React, { createContext, useState, useContext, useCallback, useMemo, useEffect } from 'react';
+import * as FileSystemLegacy from 'expo-file-system/legacy';
+import * as FileSystemRoot from 'expo-file-system';
 import translationsData from './translations.json';
 
 const LanguageContext = createContext();
@@ -11,12 +13,85 @@ export const LANGUAGES = [
   { code: 'ta', label: 'Tamil', native: 'தமிழ்', flag: '🇮🇳' },
 ];
 
+const PREF_STORAGE_KEY = 'app_language_pref';
+const PREF_FILE_NAME = 'app_language_pref.txt';
+
+/**
+ * Resolves persistent storage path for native FileSystem.
+ */
+function getStorageFileUri() {
+  const dir = FileSystemLegacy?.documentDirectory || FileSystemRoot?.documentDirectory || '';
+  return dir ? `${dir}${PREF_FILE_NAME}` : null;
+}
+
 export const LanguageProvider = ({ children }) => {
   const [currentLang, setCurrentLang] = useState('en');
 
+  // Load persisted language preference on app launch
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPersistedLang = async () => {
+      try {
+        // 1. Check Web localStorage
+        if (typeof localStorage !== 'undefined') {
+          const saved = localStorage.getItem(PREF_STORAGE_KEY);
+          if (saved && LANGUAGES.some((l) => l.code === saved)) {
+            if (isMounted) setCurrentLang(saved);
+            return;
+          }
+        }
+
+        // 2. Check native FileSystem
+        const fileUri = getStorageFileUri();
+        if (fileUri) {
+          const getInfo = FileSystemLegacy?.getInfoAsync || FileSystemRoot?.getInfoAsync;
+          const readAsString = FileSystemLegacy?.readAsStringAsync || FileSystemRoot?.readAsStringAsync;
+
+          if (getInfo && readAsString) {
+            const info = await getInfo(fileUri);
+            if (info && info.exists) {
+              const content = await readAsString(fileUri);
+              const trimmed = (content || '').trim();
+              if (trimmed && LANGUAGES.some((l) => l.code === trimmed)) {
+                if (isMounted) setCurrentLang(trimmed);
+                return;
+              }
+            }
+          }
+        }
+      } catch (err) {
+        // Fallback to default 'en' quietly
+      }
+    };
+
+    loadPersistedLang();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Save selected language and persist across restarts
   const setLanguage = useCallback((langCode) => {
     if (LANGUAGES.some((l) => l.code === langCode)) {
       setCurrentLang(langCode);
+
+      // Persist to Web localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(PREF_STORAGE_KEY, langCode);
+        }
+      } catch (_) {}
+
+      // Persist to native FileSystem
+      try {
+        const fileUri = getStorageFileUri();
+        const writeAsString = FileSystemLegacy?.writeAsStringAsync || FileSystemRoot?.writeAsStringAsync;
+        if (fileUri && writeAsString) {
+          writeAsString(fileUri, langCode).catch(() => {});
+        }
+      } catch (_) {}
     }
   }, []);
 
