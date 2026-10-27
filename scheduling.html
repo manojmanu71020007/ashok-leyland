@@ -2387,7 +2387,23 @@
 
 
 
+        function isCanonicalBm(key) {
+            if (!key || typeof key !== 'string') return false;
+            const clean = key.trim().toUpperCase();
+            return /^BM\d+$/i.test(clean);
+        }
+
         function recalcDepotCounts() {
+            // Prefer live server fleet counts from DepotSyncEngine when available
+            if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === "function") {
+                const sc = window.DepotSyncEngine.getDepotCounts();
+                if (sc && typeof sc.depot1Count === "number" && typeof sc.depot2Count === "number") {
+                    depotCounts.depot1Count = sc.depot1Count;
+                    depotCounts.depot2Count = sc.depot2Count;
+                    updateDepotUI();
+                    return;
+                }
+            }
 
             let d1 = 0, d2 = 0;
 
@@ -2405,7 +2421,7 @@
 
             const uniqueKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
 
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
 
 
@@ -8499,7 +8515,7 @@
 
                 Object.keys(busStates).forEach(k => {
 
-                    if (!k.startsWith('_') && busStates[k]?.isNewlyAdded) {
+                    if (!k.startsWith('_') && isCanonicalBm(k) && busStates[k]?.isNewlyAdded) {
 
                         if (!addedBuses) addedBuses = {};
 
@@ -8527,7 +8543,7 @@
 
             const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
 
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
 
 
@@ -8685,7 +8701,7 @@
 
                 Object.keys(busStates).forEach(k => {
 
-                    if (!k.startsWith('_') && busStates[k]?.isNewlyAdded) {
+                    if (!k.startsWith('_') && isCanonicalBm(k) && busStates[k]?.isNewlyAdded) {
 
                         if (!addedBuses) addedBuses = {};
 
@@ -8713,7 +8729,7 @@
 
             const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
 
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
 
 

@@ -3387,6 +3387,12 @@ let busCategoriesMap = new Map();
                 // ══════════════════════════════════════════════════════════════════════════
         //  TOTAL BUSES FLEET DATA & CATEGORIZATION (Depot 1 & Depot 2)
         // ══════════════════════════════════════════════════════════════════════════
+        function isCanonicalBm(key) {
+            if (!key || typeof key !== 'string') return false;
+            const clean = key.trim().toUpperCase();
+            return /^BM\d+$/i.test(clean);
+        }
+
         const DEFAULT_FLEET_BMS = ["BM001","BM002","BM003","BM004","BM005","BM010","BM012","BM019","BM020","BM024","BM032","BM033","BM038","BM052","BM054","BM056","BM057","BM058","BM062","BM068","BM075","BM080","BM081","BM082","BM086","BM088","BM107","BM116","BM119","BM124","BM151","BM152","BM153","BM157","BM174","BM183","BM185","BM187","BM191","BM193","BM197","BM198","BM199","BM200","BM201","BM202","BM203","BM204","BM205","BM206","BM207","BM208","BM209","BM210","BM212","BM213","BM214","BM215","BM216","BM217","BM218","BM219","BM220","BM221","BM222","BM223","BM224","BM225","BM227","BM238","BM239","BM240","BM245","BM248","BM249","BM250","BM253","BM255","BM256","BM257","BM258","BM259","BM260","BM261","BM263","BM264","BM265","BM267","BM268","BM269","BM271","BM272","BM273","BM274","BM275","BM276","BM277","BM278","BM279","BM280","BM281","BM282","BM283","BM284","BM285","BM286","BM287","BM288","BM289","BM290","BM291","BM292","BM293","BM294","BM295","BM296","BM297","BM298","BM299","BM300","BM303","BM304"];
 
         const DEFAULT_DEPOT_MAP = {"BM001":"1","BM002":"1","BM003":"1","BM004":"1","BM005":"1","BM010":"1","BM012":"1","BM019":"1","BM020":"1","BM024":"1","BM032":"1","BM033":"1","BM038":"1","BM052":"2","BM054":"1","BM056":"1","BM057":"1","BM058":"1","BM062":"1","BM068":"1","BM075":"1","BM080":"1","BM081":"1","BM082":"1","BM086":"1","BM088":"1","BM107":"1","BM116":"1","BM119":"1","BM124":"1","BM151":"1","BM152":"1","BM153":"1","BM157":"1","BM174":"1","BM183":"1","BM185":"1","BM187":"1","BM191":"1","BM193":"1","BM197":"1","BM198":"1","BM199":"1","BM200":"1","BM201":"1","BM202":"1","BM203":"1","BM204":"1","BM205":"1","BM206":"1","BM207":"1","BM208":"1","BM209":"1","BM210":"1","BM212":"1","BM213":"1","BM214":"1","BM215":"1","BM216":"1","BM217":"1","BM218":"1","BM219":"2","BM220":"2","BM221":"2","BM222":"2","BM223":"2","BM224":"2","BM225":"2","BM227":"2","BM238":"2","BM239":"2","BM240":"2","BM245":"2","BM248":"2","BM249":"2","BM250":"2","BM253":"2","BM255":"2","BM256":"2","BM257":"2","BM258":"2","BM259":"2","BM260":"2","BM261":"2","BM263":"2","BM264":"2","BM265":"2","BM267":"2","BM268":"2","BM269":"2","BM271":"2","BM272":"2","BM273":"2","BM274":"2","BM275":"2","BM276":"2","BM277":"2","BM278":"2","BM279":"1","BM280":"2","BM281":"2","BM282":"2","BM283":"2","BM284":"2","BM285":"2","BM286":"2","BM287":"2","BM288":"2","BM289":"2","BM290":"2","BM291":"2","BM292":"2","BM293":"2","BM294":"2","BM295":"2","BM296":"2","BM297":"2","BM298":"2","BM299":"2","BM300":"2","BM303":"1","BM304":"2"};
@@ -3434,7 +3440,7 @@ let busCategoriesMap = new Map();
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
             ];
             const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
             const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
             if (!Array.isArray(allocatedDuties) && typeof loadAllocatedDuties === "function") {
@@ -3504,13 +3510,27 @@ let busCategoriesMap = new Map();
         function updateTotalBusesNavPill() {
             try {
                 const fleet = getTotalBusesFleetList();
+                let totalCount = fleet.length;
+                let d1Count = fleet.filter(b => b.depot === '1').length;
+                let d2Count = fleet.filter(b => b.depot === '2').length;
+
+                // Prefer live server fleet counts from DepotSyncEngine when available and consistent
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getDepotCounts === "function") {
+                    const sc = window.DepotSyncEngine.getDepotCounts();
+                    if (sc && typeof sc.depot1Count === "number" && typeof sc.depot2Count === "number") {
+                        const scTotal = (typeof sc.total === "number" && sc.total > 0) ? sc.total : (sc.depot1Count + sc.depot2Count);
+                        if (scTotal > 0) {
+                            d1Count = sc.depot1Count;
+                            d2Count = sc.depot2Count;
+                            totalCount = scTotal;
+                        }
+                    }
+                }
+
                 const navPill = document.getElementById("nav-count-total-buses");
                 const topbarCount = document.getElementById("topbar-total-buses-count");
-                if (navPill) navPill.textContent = String(fleet.length);
-                if (topbarCount) topbarCount.textContent = String(fleet.length);
-
-                const d1Count = fleet.filter(b => b.depot === '1').length;
-                const d2Count = fleet.filter(b => b.depot === '2').length;
+                if (navPill) navPill.textContent = String(totalCount);
+                if (topbarCount) topbarCount.textContent = String(totalCount);
 
                 const d1El = document.getElementById("total-buses-d1-count");
                 const d2El = document.getElementById("total-buses-d2-count");
@@ -3520,12 +3540,12 @@ let busCategoriesMap = new Map();
                 const tabAll = document.getElementById("total-tab-count-all");
                 const tabD1 = document.getElementById("total-tab-count-d1");
                 const tabD2 = document.getElementById("total-tab-count-d2");
-                if (tabAll) tabAll.textContent = String(fleet.length);
+                if (tabAll) tabAll.textContent = String(totalCount);
                 if (tabD1) tabD1.textContent = String(d1Count);
                 if (tabD2) tabD2.textContent = String(d2Count);
 
                 const overallBadge = document.getElementById("total-buses-overall-badge");
-                if (overallBadge) overallBadge.textContent = `${fleet.length} Buses`;
+                if (overallBadge) overallBadge.textContent = `${totalCount} Buses`;
             } catch(e) {
                 console.warn("Could not update total buses nav pill:", e);
             }
@@ -3901,7 +3921,7 @@ let busCategoriesMap = new Map();
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
             ];
             const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
             const lockedList = typeof _getLockedBuses === "function" ? _getLockedBuses() : [];
             if (!Array.isArray(allocatedDuties) && typeof loadAllocatedDuties === "function") {
@@ -4010,7 +4030,7 @@ let busCategoriesMap = new Map();
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
             ];
             const allFleetKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)));
 
             let servicingMap = {};
             try {
@@ -9379,7 +9399,7 @@ let busCategoriesMap = new Map();
                 ...((typeof routes !== "undefined" && Array.isArray(routes)) ? routes.map(r => r.bmNumber || r.uniqueId).filter(Boolean) : [])
             ];
             const allKeys = Array.from(new Set(rawKeys.map(k => String(k).toUpperCase().trim())))
-                .filter(bm => !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)))
+                .filter(bm => isCanonicalBm(bm) && !(window.DepotSyncEngine && typeof window.DepotSyncEngine.isDeletedBus === "function" && window.DepotSyncEngine.isDeletedBus(bm)))
                 .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
             selectEl.innerHTML = '<option value="">— Select an active bus from available fleet (' + allKeys.length + ' buses) —</option>' +
@@ -10178,6 +10198,13 @@ let busCategoriesMap = new Map();
             if (typeof updateAvailableSchedulingNavPill === "function") {
                 updateAvailableSchedulingNavPill();
             }
+            if (typeof updateTotalBusesNavPill === "function") {
+                updateTotalBusesNavPill();
+            }
+            const totalBusesPanel = document.getElementById("view-panel-total-buses");
+            if (totalBusesPanel && totalBusesPanel.style.display !== "none" && typeof renderTotalBusesSection === "function") {
+                renderTotalBusesSection();
+            }
 
             // Sync Add/Delete buses modal state
             updateAddDeleteBadgeCount();
@@ -10209,7 +10236,7 @@ let busCategoriesMap = new Map();
                     updateAvailableSchedulingNavPill();
                 }
             }
-            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated') {
+            if (e.key === 'depot_charging_event' || (e.key && e.key.startsWith('depot_bus_soc_')) || e.key === 'smartbus_allocated_duties' || e.key === 'depot_added_buses' || e.key === 'depot_deleted_buses' || e.key === 'depot_fleet_updated' || e.key === 'depot_bus_assignments') {
                 handleSyncStateUpdate();
             }
         });
@@ -10223,6 +10250,7 @@ let busCategoriesMap = new Map();
             window.DepotSyncEngine.on('fleet-bus-added', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('depot-updated', handleSyncStateUpdate);
         }
 
         // Initialize badge count on startup

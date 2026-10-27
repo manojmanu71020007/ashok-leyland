@@ -2690,6 +2690,11 @@ function getDepotCounts(assignments, state) {
 
         const cleanBm = String(bm).toUpperCase().trim();
 
+        // Canonical BM filter: only physical buses matching BM followed by digits
+        if (!/^BM\d+$/i.test(cleanBm)) {
+            continue;
+        }
+
         // Skip deleted buses
 
         if (deletedBuses[cleanBm] || (busState && busState[cleanBm] && (busState[cleanBm].deleted || busState[cleanBm].status === "Deleted" || busState[cleanBm].isDeleted))) {
