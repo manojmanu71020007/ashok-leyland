@@ -230,7 +230,19 @@ export default function LoginScreen() {
 
           {/* Web fallback link to classic desktop portal */}
           {Platform.OS === 'web' && (
-            <View style={{ marginTop: 14, alignItems: 'center', marginBottom: 8 }}>
+            <View style={{ marginTop: 14, alignItems: 'center', marginBottom: 8, gap: 8 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (typeof window !== 'undefined') window.location.href = '/install';
+                }}
+                activeOpacity={0.7}
+                style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#e0f2fe', borderRadius: 10, borderWidth: 1, borderColor: '#7dd3fc', flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Text style={{ fontSize: 13 }}>📲</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0369a1' }}>
+                  {t('install_pwa', 'Install PWA App')}
+                </Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   if (typeof window !== 'undefined') window.location.href = '/legacy-login';
