@@ -1398,7 +1398,11 @@
     "assignedRouteId": "BM010",
     "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-06": {
     "uniqueId": "BUS-06",
@@ -19926,14 +19930,6 @@
       "cleaningCompleted": false,
       "startTime": "10:18:53 pm, 26 Oct 2026",
       "startTimestamp": 1793033333329
-    },
-    {
-      "bm": "BM010",
-      "reg": "KA51AH2424",
-      "depot": "1",
-      "page": "cleaning",
-      "startTime": "01:58 am, 28 Oct 2026",
-      "startTimestamp": 1793132937545
     }
   ],
   "_depotAssignments": {
@@ -20241,7 +20237,7 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "status": "available",
-      "chargingCompletedAt": "01:56 am, 28 Oct 2026"
+      "cleaningCompletedAt": "02:00 am, 28 Oct 2026"
     },
     "BM012": {
       "bm": "BM012",
@@ -21362,6 +21358,83 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1793133002529",
+      "bm": "BM010",
+      "reg": "KA51AH2424",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "01:58 am, 28 Oct 2026",
+      "unlockTime": "02:00 am, 28 Oct 2026",
+      "duration": "1 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "02:00 am",
+      "dateStr": "28 Oct 2026"
+    },
+    {
+      "id": "clean_init_2",
+      "bm": "BM240",
+      "reg": "KA51AH2413",
+      "depot": "2",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "03:15 PM, 21 Oct 2026",
+      "unlockTime": "03:45 PM, 21 Oct 2026",
+      "duration": "30 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Routine floor wash and windshield cleaning.",
+      "bay": "Cleaning Lane #2"
+    },
+    {
+      "id": "clean_init_3",
+      "bm": "BM002",
+      "reg": "KA51AH0002",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "02:10 PM, 21 Oct 2026",
+      "unlockTime": "02:40 PM, 21 Oct 2026",
+      "duration": "30 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Post-route cleaning and disinfection.",
+      "bay": "Cleaning Lane #1"
+    },
+    {
+      "id": "clean_init_4",
+      "bm": "BM255",
+      "reg": "KA51AH2432",
+      "depot": "2",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "01:00 PM, 21 Oct 2026",
+      "unlockTime": "01:35 PM, 21 Oct 2026",
+      "duration": "35 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Seats wiped and exterior cleaned.",
+      "bay": "Cleaning Lane #1"
+    },
+    {
+      "id": "clean_init_5",
+      "bm": "BM068",
+      "reg": "KA51AH0068",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "11:45 AM, 21 Oct 2026",
+      "unlockTime": "12:15 PM, 21 Oct 2026",
+      "duration": "30 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Complete sanitization routine passed.",
+      "bay": "Cleaning Lane #2"
+    },
     {
       "id": "clean_1793032998608",
       "bm": "BM005",
