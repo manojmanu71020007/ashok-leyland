@@ -660,18 +660,19 @@ export const FleetProvider = ({ children }) => {
     setAllocatedDuties(normalizedDuties);
 
     const busList = [];
+    const seenBms = new Set();
 
     // Filter valid bus keys (e.g., BM001 ... BM100+)
     Object.keys(rawState).forEach((key) => {
-      if (key.startsWith('_')) return;
+      if (key.startsWith('_') || !/^BM\d+$/i.test(key.trim())) return;
 
       const item = rawState[key];
       if (!item || typeof item !== 'object') return;
       if (item.isDeleted || item.deleted) return; // Skip deleted buses
 
-      const rawBm = item.bmNumber || item.uniqueId || (key.startsWith('BM') ? key : '');
-      if (!rawBm) return;
-      const bm = String(rawBm).toUpperCase();
+      const bm = key.trim().toUpperCase();
+      if (seenBms.has(bm)) return;
+      seenBms.add(bm);
       const depot = getBusDepot(bm, depotAssignments);
 
       const addedMeta = addedBusesMap[bm] || addedBusesMap[key];

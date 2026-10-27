@@ -3,50 +3,35 @@
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover" />
-    <title>Ashok Leyland EV Fleet Management</title>
-
-    <!-- Progressive Web App Capabilities & Linking -->
-    <link rel="manifest" href="/manifest.json?v=13" />
-    <meta name="theme-color" content="#082f6d" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Ashok Leyland Fleet" />
-
-    <!-- App Icons -->
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png?v=9" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png?v=9" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png?v=9" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icons/icon-512.png?v=9" />
-    <link rel="icon" href="/favicon.ico"/>
-
-    <!-- PWA Service Worker Engine -->
-    <script src="/pwa-app.js" defer></script>
-
-    <!-- React Native Web Recommended Layout -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Ashok Leyland Fleet</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
-      html, body {
+      /* These styles make the body full-height */
+      html,
+      body {
         height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #0b1528;
       }
+      /* These styles disable body scrolling if you are using <ScrollView> */
       body {
         overflow: hidden;
       }
+      /* These styles make the root element full-height */
       #root {
         display: flex;
         height: 100%;
         flex: 1;
       }
     </style>
-  </head>
+  <link rel="icon" href="/favicon.ico"/></head>
+
   <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>
+    <!-- The root element for your Expo app. -->
     <div id="root"></div>
-    <script src="/_expo/static/js/web/index-cd8cdc85da3b59dc40f85970af94054c.js" defer></script>
-  </body>
+  <script src="/_expo/static/js/web/index-e3428e8940ec14fed8ecf99dc75eed8b.js" defer></script>
+</body>
 </html>
