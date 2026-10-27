@@ -663,13 +663,15 @@ export const FleetProvider = ({ children }) => {
 
     // Filter valid bus keys (e.g., BM001 ... BM100+)
     Object.keys(rawState).forEach((key) => {
-      if (key.startsWith('_') || !key.startsWith('BM')) return;
+      if (key.startsWith('_')) return;
 
       const item = rawState[key];
       if (!item || typeof item !== 'object') return;
       if (item.isDeleted || item.deleted) return; // Skip deleted buses
 
-      const bm = String(item.bmNumber || item.uniqueId || key).toUpperCase();
+      const rawBm = item.bmNumber || item.uniqueId || (key.startsWith('BM') ? key : '');
+      if (!rawBm) return;
+      const bm = String(rawBm).toUpperCase();
       const depot = getBusDepot(bm, depotAssignments);
 
       const addedMeta = addedBusesMap[bm] || addedBusesMap[key];

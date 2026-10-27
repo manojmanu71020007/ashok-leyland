@@ -31,7 +31,15 @@ import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 import { getSequentialTasksForDuty } from '../utils/detailedScheduleTrips';
 import { api } from '../api/client';
-import { WebView } from 'react-native-webview';
+
+let NativeWebView = null;
+if (Platform.OS !== 'web') {
+  try {
+    NativeWebView = require('react-native-webview').WebView;
+  } catch (e) {
+    NativeWebView = null;
+  }
+}
 
 // ── Multi-Language Dictionary ──
 const I18N = {
@@ -576,7 +584,8 @@ const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
   }
 
   // 2. Native Mobile Platform (Android & iOS): Hardware-accelerated SVG via WebView
-  const svgHtml = `
+  if (Platform.OS !== 'web' && NativeWebView) {
+    const svgHtml = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -599,17 +608,28 @@ const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
 </html>
 `;
 
+    return (
+      <View style={styles.donutWrapper}>
+        <NativeWebView
+          originWhitelist={['*']}
+          source={{ html: svgHtml }}
+          style={{ width: size, height: size, backgroundColor: 'transparent' }}
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          scalesPageToFit={false}
+        />
+      </View>
+    );
+  }
+
+  // Fallback if WebView not present
   return (
     <View style={styles.donutWrapper}>
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: svgHtml }}
-        style={{ width: size, height: size, backgroundColor: 'transparent' }}
-        scrollEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        scalesPageToFit={false}
-      />
+      <View style={styles.donutCenterContent}>
+        <Text style={styles.donutTotalNum}>{safeTotal}</Text>
+        <Text style={styles.donutTotalLabel}>Total fleet</Text>
+      </View>
     </View>
   );
 };
@@ -646,18 +666,24 @@ export default function AdminWorkspaceScreen() {
   const { currentLang, setLanguage: setCurrentLang, t: tContext, languages = [] } = useLanguage();
   const t = React.useMemo(() => {
     const fn = (key, fallback = '') => {
+      if (!key) return fallback || '';
       const legacy = (I18N[currentLang] && I18N[currentLang][key]) || (I18N.en && I18N.en[key]);
       if (legacy) return legacy;
       return tContext ? tContext(key, fallback) : (fallback || key);
     };
     return new Proxy(fn, {
       get: (target, prop) => {
-        if (typeof prop === 'string') {
-          const legacy = (I18N[currentLang] && I18N[currentLang][prop]) || (I18N.en && I18N.en[prop]);
-          if (legacy) return legacy;
-          return tContext ? tContext(prop) : prop;
+        if (
+          typeof prop !== 'string' ||
+          prop in target ||
+          prop.startsWith('$') ||
+          ['bind', 'call', 'apply', 'name', 'length', 'toString', 'valueOf', 'prototype', 'toJSON'].includes(prop)
+        ) {
+          return target[prop];
         }
-        return target[prop];
+        const legacy = (I18N[currentLang] && I18N[currentLang][prop]) || (I18N.en && I18N.en[prop]);
+        if (legacy) return legacy;
+        return tContext ? tContext(prop) : prop;
       },
     });
   }, [currentLang, tContext]);

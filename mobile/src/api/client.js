@@ -1,6 +1,8 @@
 // API Client for Ashok Leyland Fleet & Depot Tracking Backend
 
-export const DEFAULT_SERVER_URL = 'https://ashok-leyland-bus-tracking.onrender.com';
+export const DEFAULT_SERVER_URL = typeof window !== 'undefined' && window.location && window.location.origin && !window.location.origin.includes('file://')
+  ? window.location.origin
+  : 'https://ashok-leyland-bus-tracking.onrender.com';
 
 let currentServerUrl = DEFAULT_SERVER_URL;
 

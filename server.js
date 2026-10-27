@@ -7675,15 +7675,15 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
-    // ── Mobile App Entry (React Native Web & PWA) ──
-    if (pathname === "/app" || pathname === "/app/" || pathname === "/app/index.html" || pathname === "/app.html") {
+    // ── Primary Website Entry: App Login & Mobile App Screens ──
+    if (pathname === "/" || pathname === "/index.html" || pathname === "/login" || pathname === "/login.html" || pathname === "/app" || pathname === "/app/" || pathname === "/app/index.html" || pathname === "/app.html") {
         sendFile(res, path.join(BASE_DIR, "public", "app", "index.html"), "text/html; charset=utf-8");
         return;
     }
 
-    // ── Primary Website Entry: Desktop Web Portal Login ──
-    if (pathname === "/" || pathname === "/index.html" || pathname === "/login" || pathname === "/login.html") {
-        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html; charset=utf-8");
+    // ── Legacy Desktop Web Login (Classic Fallback) ──
+    if (pathname === "/legacy-login" || pathname === "/legacy-login.html" || pathname === "/classic-login" || pathname === "/classic" || pathname === "/desktop-login") {
+        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
         return;
     }
 
@@ -7903,7 +7903,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/public/index.html" || pathname === "/public/") {
 
-        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "public", "app", "index.html"), "text/html; charset=utf-8");
 
         return;
 
