@@ -230,19 +230,7 @@ export default function LoginScreen() {
 
           {/* Web fallback link to classic desktop portal */}
           {Platform.OS === 'web' && (
-            <View style={{ marginTop: 14, alignItems: 'center', marginBottom: 8, gap: 8 }}>
-              <TouchableOpacity
-                onPress={() => {
-                  if (typeof window !== 'undefined') window.location.href = '/install';
-                }}
-                activeOpacity={0.7}
-                style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#e0f2fe', borderRadius: 10, borderWidth: 1, borderColor: '#7dd3fc', flexDirection: 'row', alignItems: 'center', gap: 6 }}
-              >
-                <Text style={{ fontSize: 13 }}>📲</Text>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0369a1' }}>
-                  {t('install_pwa', 'Install PWA App')}
-                </Text>
-              </TouchableOpacity>
+            <View style={{ marginTop: 14, alignItems: 'center', marginBottom: 8 }}>
               <TouchableOpacity
                 onPress={() => {
                   if (typeof window !== 'undefined') window.location.href = '/legacy-login';
@@ -269,6 +257,21 @@ export default function LoginScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {Platform.OS === 'web' && (
+        <TouchableOpacity
+          onPress={() => {
+            if (typeof window !== 'undefined') window.location.href = '/install';
+          }}
+          activeOpacity={0.85}
+          style={styles.pwaInstallPill}
+          accessibilityRole="button"
+          accessibilityLabel={t('install_pwa', 'Install PWA App')}
+        >
+          <Text style={styles.pwaInstallIcon}>📲</Text>
+          <Text style={styles.pwaInstallText}>{t('install_pwa', 'Install App')}</Text>
+        </TouchableOpacity>
+      )}
 
       {/* ── MODAL: AUTHORIZED LOGINS DIRECTORY ── */}
       {directoryModalOpen && (
@@ -352,6 +355,35 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingBottom: 24,
+  },
+  pwaInstallPill: {
+    position: 'absolute',
+    right: 16,
+    bottom: 20,
+    zIndex: 9999,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 999,
+    backgroundColor: '#0284c7',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.35)',
+    shadowColor: '#0284c7',
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 8,
+  },
+  pwaInstallIcon: {
+    fontSize: 17,
+    lineHeight: 20,
+  },
+  pwaInstallText: {
+    color: '#ffffff',
+    fontSize: 13,
+    fontWeight: '800',
   },
 
   // ── Top Bar Header (Matches Admin Workspace exactly) ──
