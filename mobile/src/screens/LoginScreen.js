@@ -228,6 +228,24 @@ export default function LoginScreen() {
 
           </View>
 
+          {/* Web fallback link to classic desktop portal */}
+          {Platform.OS === 'web' && (
+            <View style={{ marginTop: 14, alignItems: 'center', marginBottom: 8 }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (typeof window !== 'undefined') window.location.href = '/legacy-login';
+                }}
+                activeOpacity={0.7}
+                style={{ paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#f1f5f9', borderRadius: 10, borderWidth: 1, borderColor: '#e2e8f0', flexDirection: 'row', alignItems: 'center', gap: 6 }}
+              >
+                <Text style={{ fontSize: 13 }}>🖥️</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>
+                  {t('switch_to_classic_web', 'Switch to Classic Web Portal')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {/* Footer Branding Note */}
           <View style={styles.footerWrap}>
             <Text style={styles.footerText}>

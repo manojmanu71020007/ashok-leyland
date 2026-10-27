@@ -7654,22 +7654,24 @@ const server = http.createServer(async (req, res) => {
 
 
 
-    if (pathname === "/") {
-
-        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
-
+    // ── Primary Entry: App Login & Mobile App Screens ──
+    if (pathname === "/" || pathname === "/index.html" || pathname === "/login" || pathname === "/login.html" || pathname === "/app" || pathname === "/app/" || pathname === "/app/index.html" || pathname === "/app.html") {
+        sendFile(res, path.join(BASE_DIR, "public", "app", "index.html"), "text/html; charset=utf-8");
         return;
-
     }
 
-
-
-    if (pathname === "/index.html") {
-
+    // ── Legacy Desktop Web Login (Fallback) ──
+    if (pathname === "/legacy-login" || pathname === "/legacy-login.html" || pathname === "/classic-login" || pathname === "/classic") {
         sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
-
         return;
+    }
 
+    if (pathname === "/favicon.ico") {
+        const favPath = path.join(BASE_DIR, "public", "app", "favicon.ico");
+        if (fs.existsSync(favPath)) {
+            sendFile(res, favPath, "image/x-icon");
+            return;
+        }
     }
 
 
@@ -7718,13 +7720,7 @@ const server = http.createServer(async (req, res) => {
         return;
     }
 
-    if (pathname === "/login" || pathname === "/login.html") {
-
-        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
-
-        return;
-
-    }
+// (Handled by Primary Entry above)
 
 
 
@@ -7886,7 +7882,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/public/index.html" || pathname === "/public/") {
 
-        sendFile(res, path.join(BASE_DIR, "login.html"), "text/html");
+        sendFile(res, path.join(BASE_DIR, "public", "app", "index.html"), "text/html; charset=utf-8");
 
         return;
 
