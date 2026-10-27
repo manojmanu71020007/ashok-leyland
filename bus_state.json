@@ -842,7 +842,7 @@
     "soc": 85,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-27T20:18:03.247Z",
+    "updatedAt": "2026-10-27T20:22:04.397Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -859,11 +859,11 @@
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
-    "chargerBay": "Charging Bay",
-    "socBefore": 84,
+    "chargerBay": "Bay #1",
+    "socBefore": 85,
     "socAfter": 85,
     "fullDutyDistanceKm": 107,
-    "lastChargedTime": "01:47 am",
+    "lastChargedTime": "01:51 am",
     "history": [
       {
         "timestamp": "2026-10-02T12:28:05.748Z",
@@ -921,6 +921,12 @@
       },
       {
         "timestamp": "2026-10-27T20:18:03.247Z",
+        "soc": 85,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-27T20:22:04.397Z",
         "soc": 85,
         "condition": "Good",
         "status": "On Time"
@@ -9866,7 +9872,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-27T20:18:03.247Z",
+    "updatedAt": "2026-10-27T20:22:04.397Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -9883,11 +9889,11 @@
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
-    "chargerBay": "Charging Bay",
-    "socBefore": 84,
+    "chargerBay": "Bay #1",
+    "socBefore": 85,
     "socAfter": 85,
     "fullDutyDistanceKm": 107,
-    "lastChargedTime": "01:47 am",
+    "lastChargedTime": "01:51 am",
     "history": [
       {
         "timestamp": "2026-10-02T12:28:05.748Z",
@@ -9945,6 +9951,12 @@
       },
       {
         "timestamp": "2026-10-27T20:18:03.247Z",
+        "soc": 85,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-27T20:22:04.397Z",
         "soc": 85,
         "condition": "Good",
         "status": "On Time"
@@ -19963,14 +19975,6 @@
       "cleaningCompleted": false,
       "startTime": "10:18:53 pm, 26 Oct 2026",
       "startTimestamp": 1793033333329
-    },
-    {
-      "bm": "BM003",
-      "reg": "KA51AH2423",
-      "depot": "1",
-      "page": "charging",
-      "startTime": "01:49 am, 28 Oct 2026",
-      "startTimestamp": 1793132340916
     }
   ],
   "_depotAssignments": {
@@ -20246,7 +20250,7 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "status": "available",
-      "chargingCompletedAt": "01:47 am, 28 Oct 2026"
+      "chargingCompletedAt": "01:51 am, 28 Oct 2026"
     },
     "BM004": {
       "bm": "BM004",
@@ -21063,6 +21067,29 @@
     "make": "Ashok Leyland"
   },
   "_chargingHistory": [
+    {
+      "id": "charg_1793132515246",
+      "bm": "BM003",
+      "reg": "KA51AH2423",
+      "depot": "1",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "01:49 am, 28 Oct 2026",
+      "unlockTime": "01:51 am, 28 Oct 2026",
+      "duration": "3 mins",
+      "startSoc": "85%",
+      "finalSoc": "85%",
+      "socBef": 85,
+      "socAft": 85,
+      "delta": 0,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ Feasible for Dispatch",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "01:51 am",
+      "dateStr": "28 Oct 2026",
+      "fullDutyKm": 107
+    },
     {
       "id": "charg_1793132270589",
       "bm": "BM003",
