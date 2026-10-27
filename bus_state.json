@@ -4989,11 +4989,11 @@
     "soc": 100,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "assignedRouteId": "BM214",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM214 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
+    "depot": "1",
     "blocked": false,
     "updatedAt": "2026-10-04T13:47:42.773Z",
     "bmNumber": "BM214",
@@ -5004,13 +5004,17 @@
     "socBefore": 0,
     "socAfter": 0,
     "chargingStatus": "Completed",
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
+    "isLocked": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
     "postRouteServicingPending": false,
-    "liveSoc": 100
+    "liveSoc": 100,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BUS-57": {
     "uniqueId": "BUS-57",
@@ -19873,33 +19877,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM214_600F_1793133331976",
-      "bm": "BM214",
-      "bmNumber": "BM214",
-      "regNo": "KA51AH8348",
-      "routeId": "600F",
-      "routeCode": "600F",
-      "busNumber": "600F",
-      "routeName": "Bommasandra Depot 32 ➔ Basavanagudi (600F) — 27.8 km",
-      "origin": "Bommasandra Depot 32",
-      "destination": "Basavanagudi",
-      "departureTime": "01:00 PM",
-      "isManualOverride": true,
-      "allocType": "Committed Duty (Operator Override from Bus BM203)",
-      "shift": "General Shift",
-      "soc": 100,
-      "fullDutyKm": 128,
-      "routeDist": 27.8,
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Anand Murthy",
-      "depot": "1",
-      "allocatedAt": "02:05 am, 21 Oct 2026",
-      "status": "Allocated"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [
     {
       "bm": "BM004",
@@ -20773,14 +20751,15 @@
     },
     "BM214": {
       "bm": "BM214",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "routeCompleted": true,
+      "routeCompletedAt": "08:37 pm, 27 Oct 2026",
+      "routeCompletedTs": 1793133421867,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "turnaround_charging"
     },
     "BM215": {
       "bm": "BM215",
@@ -21586,6 +21565,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1793133421578",
+      "bm": "BM214",
+      "reg": "KA51AH8348",
+      "route": "Bommasandra Depot 32 ➔ Basavanagudi (600F) — 27.8 km",
+      "scheduledTime": "01:00 PM",
+      "completedAt": "02:07 am, 21 Oct 2026",
+      "dateStr": "2026-10-27",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
+      "driver": "Anand Murthy",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "rc_1793033333328",
       "bm": "BM197",
