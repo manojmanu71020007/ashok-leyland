@@ -1345,10 +1345,10 @@
   "BM010": {
     "status": "Active",
     "rawStatus": "On Time",
-    "soc": 80,
+    "soc": 86,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-04T15:19:47.796Z",
+    "updatedAt": "2026-10-27T20:26:58.803Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -1365,11 +1365,11 @@
     },
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
-    "chargerBay": "Bay 02",
-    "socBefore": 20,
-    "socAfter": 80,
-    "fullDutyDistanceKm": 114,
-    "lastChargedTime": "08:49:47 pm",
+    "chargerBay": "Bay #1",
+    "socBefore": 17,
+    "socAfter": 86,
+    "fullDutyDistanceKm": 108,
+    "lastChargedTime": "01:56 am",
     "history": [
       {
         "timestamp": "2026-10-03T14:17:42.639Z",
@@ -1382,24 +1382,23 @@
         "soc": 80,
         "condition": "Good",
         "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-27T20:26:58.803Z",
+        "soc": 86,
+        "condition": "Good",
+        "status": "On Time"
       }
     ],
+    "needsCharging": false,
+    "chargingCompleted": true,
     "uniqueId": "BM010",
     "busNumber": "600F",
     "bmNumber": "BM010",
     "assignedRouteId": "BM010",
     "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": true,
-    "busCategory": "B",
-    "testedRangeKm": 107.6771,
-    "actualRangeFinal": 107.6771,
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
-    "postRouteServicingPending": false
+    "blocked": true
   },
   "BUS-06": {
     "uniqueId": "BUS-06",
@@ -9872,7 +9871,7 @@
     "soc": 0,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-10-27T20:22:04.397Z",
+    "updatedAt": "2026-10-27T20:26:58.803Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -9890,74 +9889,26 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Bay #1",
-    "socBefore": 85,
-    "socAfter": 85,
-    "fullDutyDistanceKm": 107,
-    "lastChargedTime": "01:51 am",
+    "socBefore": 17,
+    "socAfter": 86,
+    "fullDutyDistanceKm": 108,
+    "lastChargedTime": "01:56 am",
     "history": [
       {
-        "timestamp": "2026-10-02T12:28:05.748Z",
-        "soc": 97,
+        "timestamp": "2026-10-03T14:17:42.639Z",
+        "soc": 90,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-02T14:09:22.928Z",
-        "soc": 96,
+        "timestamp": "2026-10-04T15:19:47.796Z",
+        "soc": 80,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-10-03T04:45:42.167Z",
-        "soc": 0,
-        "condition": "Good",
-        "status": "Blocked"
-      },
-      {
-        "timestamp": "2026-10-06T11:34:54.866Z",
-        "soc": 95,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-06T12:16:50.789Z",
-        "soc": 47,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-07T14:19:25.355Z",
-        "soc": 83,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-07T14:26:24.390Z",
-        "soc": 83,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-24T01:53:14.107Z",
-        "soc": 84,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-26T13:53:40.124Z",
-        "soc": 84,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-27T20:18:03.247Z",
-        "soc": 85,
-        "condition": "Good",
-        "status": "On Time"
-      },
-      {
-        "timestamp": "2026-10-27T20:22:04.397Z",
-        "soc": 85,
+        "timestamp": "2026-10-27T20:26:58.803Z",
+        "soc": 86,
         "condition": "Good",
         "status": "On Time"
       }
@@ -10571,16 +10522,16 @@
       "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 80,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -14073,16 +14024,16 @@
       "assignedRouteDisplay": "Route BM010 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 80,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -17679,16 +17630,16 @@
       "bmNumber": "BM010",
       "routeCategory": "COMPLEX",
       "timeSlot": "PEAK",
-      "busCategory": "C",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
       "matrixCompliant": false,
-      "soc": 80,
+      "soc": 86,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 99,
-      "fullDutyDistanceKm": 99,
+      "estimatedRangeKm": 108,
+      "fullDutyDistanceKm": 108,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
@@ -19975,14 +19926,6 @@
       "cleaningCompleted": false,
       "startTime": "10:18:53 pm, 26 Oct 2026",
       "startTimestamp": 1793033333329
-    },
-    {
-      "bm": "BM010",
-      "reg": "KA51AH2424",
-      "depot": "1",
-      "page": "charging",
-      "startTime": "01:55 am, 28 Oct 2026",
-      "startTimestamp": 1793132720395
     }
   ],
   "_depotAssignments": {
@@ -20287,11 +20230,10 @@
       "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
       "needsCleaning": false,
       "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "status": "available",
+      "chargingCompletedAt": "01:56 am, 28 Oct 2026"
     },
     "BM012": {
       "bm": "BM012",
@@ -21075,6 +21017,29 @@
     "make": "Ashok Leyland"
   },
   "_chargingHistory": [
+    {
+      "id": "charg_1793132803111",
+      "bm": "BM010",
+      "reg": "KA51AH2424",
+      "depot": "1",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "01:55 am, 28 Oct 2026",
+      "unlockTime": "01:56 am, 28 Oct 2026",
+      "duration": "1 mins",
+      "startSoc": "17%",
+      "finalSoc": "86%",
+      "socBef": 17,
+      "socAft": 86,
+      "delta": 69,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ Feasible for Dispatch",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "01:56 am",
+      "dateStr": "28 Oct 2026",
+      "fullDutyKm": 108
+    },
     {
       "id": "charg_1793132515246",
       "bm": "BM003",
