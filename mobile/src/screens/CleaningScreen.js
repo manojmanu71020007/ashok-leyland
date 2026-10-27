@@ -35,6 +35,7 @@ export default function CleaningScreen() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedBus, setSelectedBus] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   // ── Cleaning Checklist ──
   const [interiorClean, setInteriorClean] = useState(false);

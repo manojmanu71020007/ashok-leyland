@@ -35,6 +35,7 @@ export default function ChargingScreen() {
   const [searchInput, setSearchInput] = useState('');
   const [selectedBus, setSelectedBus] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [langModalOpen, setLangModalOpen] = useState(false);
 
   // ── Charging Parameters ──
   const [socBefore, setSocBefore] = useState(20);
