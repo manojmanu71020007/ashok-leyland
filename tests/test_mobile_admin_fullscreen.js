@@ -20,16 +20,50 @@ try {
 // 2. Feature Checks
 const checks = [
   {
+    name: 'State plusOptionsModalOpen defined',
+    pass: code.includes('const [plusOptionsModalOpen, setPlusOptionsModalOpen] = useState(false);')
+  },
+  {
     name: 'State addDeleteFullscreen defined',
     pass: code.includes('const [addDeleteFullscreen, setAddDeleteFullscreen] = useState(true);')
   },
   {
-    name: 'Header Add/Delete button opens in fullscreen and add tab',
-    pass: code.includes("setAddDeleteTab('add')") && code.includes('setAddDeleteFullscreen(true)') && code.includes('setAddDeleteModalOpen(true)')
+    name: 'State addDeleteDepotsModalOpen & addDeleteDepotsFullscreen defined',
+    pass: code.includes('const [addDeleteDepotsModalOpen, setAddDeleteDepotsModalOpen] = useState(false);') &&
+          code.includes('const [addDeleteDepotsFullscreen, setAddDeleteDepotsFullscreen] = useState(true);')
   },
   {
-    name: 'Center FAB (+) button triggers fullscreen add mode',
-    pass: code.includes('adminNavFab') && code.includes("setAddDeleteTab('add')") && code.includes('setAddDeleteFullscreen(true)')
+    name: 'Center FAB (+) and Header Add/Delete button trigger plusOptionsModalOpen',
+    pass: code.includes('adminNavFab') &&
+          code.includes('btnAddDelHeader') &&
+          code.includes('setPlusOptionsModalOpen(true)')
+  },
+  {
+    name: 'Modal 0 Options Chooser renders 2 options (1: Add/Delete Depots, 2: Add/Delete Buses)',
+    pass: code.includes('1. Add / Delete Depots') &&
+          code.includes('2. Add / Delete Buses') &&
+          code.includes('plusOptionCardDepot') &&
+          code.includes('plusOptionCardBus')
+  },
+  {
+    name: 'Option 2 (Add / Delete Buses) opens Add/Delete Buses modal in fullscreen add mode',
+    pass: code.includes("setAddDeleteTab('add')") &&
+          code.includes('setAddDeleteFullscreen(true)') &&
+          code.includes('setAddDeleteModalOpen(true)')
+  },
+  {
+    name: 'Option 1 (Add / Delete Depots) opens Add/Delete Depots modal in fullscreen mode',
+    pass: code.includes("setDepotsTab('add')") &&
+          code.includes('setAddDeleteDepotsFullscreen(true)') &&
+          code.includes('setAddDeleteDepotsModalOpen(true)')
+  },
+  {
+    name: 'Modal 3B takes Route [full name], route[short name], starting point, destination & distance',
+    pass: code.includes('depotRouteFullName') &&
+          code.includes('depotRouteShortName') &&
+          code.includes('depotRouteOrigin') &&
+          code.includes('depotRouteDestination') &&
+          code.includes('depotRouteDistance')
   },
   {
     name: 'Modal 3 uses fullscreen presentationStyle & safe area',
@@ -38,7 +72,11 @@ const checks = [
           code.includes('styles.modalCardFullScreen')
   },
   {
-    name: 'Fullscreen toggle button included in modal header',
+    name: 'Modal 3B uses fullscreen presentationStyle & safe area',
+    pass: code.includes("presentationStyle={addDeleteDepotsFullscreen ? 'fullScreen' : 'overFullScreen'}")
+  },
+  {
+    name: 'Fullscreen toggle button included in modal headers',
     pass: code.includes('modalFullscreenToggleBtn') && code.includes('modalFullscreenToggleText')
   },
   {
