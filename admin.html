@@ -2024,6 +2024,123 @@
         .add-delete-buses-topbar-btn:active {
             transform: translateY(0);
         }
+        .topbar-plus-symbol {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            background: #4f46e5;
+            color: #ffffff;
+            font-weight: 900;
+            font-size: 14px;
+            line-height: 1;
+            box-shadow: 0 1px 3px rgba(79, 70, 229, 0.35);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .add-delete-buses-topbar-btn:hover .topbar-plus-symbol {
+            transform: scale(1.12);
+            background: #4338ca;
+        }
+        .modal-fullscreen-btn {
+            background: none;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            font-size: 1.05rem;
+            cursor: pointer;
+            color: var(--muted);
+            transition: all 0.15s ease;
+        }
+        .modal-fullscreen-btn:hover {
+            background: #e2e8f0;
+            color: #4f46e5;
+            border-color: #c7d2fe;
+        }
+        /* ── Add / Delete Buses Fullscreen Mode ── */
+        #add-delete-buses-modal-backdrop.is-fullscreen {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            background: rgba(15, 23, 42, 0.96) !important;
+            display: flex !important;
+            align-items: stretch !important;
+            justify-content: stretch !important;
+            z-index: 99999 !important;
+        }
+        #add-delete-buses-modal-backdrop:fullscreen,
+        #add-delete-buses-modal-backdrop:-webkit-full-screen {
+            width: 100vw !important;
+            height: 100vh !important;
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            display: flex !important;
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen .modal-dialog,
+        #add-delete-buses-modal-backdrop:fullscreen .modal-dialog,
+        #add-delete-buses-modal-backdrop:-webkit-full-screen .modal-dialog {
+            width: 100vw !important;
+            max-width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+            display: flex !important;
+            flex-direction: column !important;
+            animation: none !important;
+            background: #ffffff !important;
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen .modal-header,
+        #add-delete-buses-modal-backdrop:fullscreen .modal-header,
+        #add-delete-buses-modal-backdrop:-webkit-full-screen .modal-header {
+            padding: 16px 32px !important;
+            flex-shrink: 0 !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+            background: #f8fafc !important;
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen .modal-tabs-header,
+        #add-delete-buses-modal-backdrop:fullscreen .modal-tabs-header,
+        #add-delete-buses-modal-backdrop:-webkit-full-screen .modal-tabs-header {
+            padding: 0 32px !important;
+            flex-shrink: 0 !important;
+            background: #ffffff !important;
+            border-bottom: 1px solid #e2e8f0 !important;
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen .modal-body,
+        #add-delete-buses-modal-backdrop:fullscreen .modal-body,
+        #add-delete-buses-modal-backdrop:-webkit-full-screen .modal-body {
+            flex: 1 1 auto !important;
+            height: calc(100vh - 145px) !important;
+            max-height: none !important;
+            overflow-y: auto !important;
+            padding: 28px 40px !important;
+            background: #f8fafc !important;
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen #tab-content-del-bus,
+        #add-delete-buses-modal-backdrop.is-fullscreen #tab-content-add-bus {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 26px 32px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+        }
+        #add-delete-buses-modal-backdrop.is-fullscreen #tab-content-hist-bus {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
         .newly-added-badge-count {
             background: #4f46e5;
             color: #ffffff;
@@ -2303,8 +2420,8 @@
                         <span style="pointer-events:none;" data-i18n="admin_locked_buses">Locked Buses</span>
                         <span id="topbar-locked-count" class="locked-badge-count" style="pointer-events:none;">0</span>
                     </button>
-                    <button id="add-delete-buses-topbar-btn" class="add-delete-buses-topbar-btn" type="button" title="Add new buses or delete buses from available fleet" onclick="openAddDeleteBusesModal()">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M8 6v6m-3-3h6m3 3h6m-18 8h20a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2z"/></svg>
+                    <button id="add-delete-buses-topbar-btn" class="add-delete-buses-topbar-btn" type="button" title="Add / Delete Buses (+) — Open full screen fleet management" onclick="openAddDeleteBusesModal('add', true)">
+                        <span class="topbar-plus-symbol" style="pointer-events:none;">+</span>
                         <span style="pointer-events:none;" data-i18n="admin_btn_add_delete_buses">Add / Delete Buses</span>
                         <span id="topbar-newly-added-count" class="newly-added-badge-count" style="pointer-events:none; display:none;">0</span>
                     </button>
@@ -2917,7 +3034,7 @@
 
         <!-- Add / Delete Buses Modal Dialog -->
         <div id="add-delete-buses-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeAddDeleteBusesModal()">
-            <div class="modal-dialog" style="max-width:840px;" role="dialog" aria-modal="true" aria-labelledby="add-del-modal-title">
+            <div class="modal-dialog add-delete-modal-dialog" style="max-width:840px;" role="dialog" aria-modal="true" aria-labelledby="add-del-modal-title">
                 <div class="modal-header">
                     <div>
                         <div class="eyebrow" style="margin-bottom:4px; color:#4f46e5;">Fleet Management</div>
@@ -2929,11 +3046,17 @@
                             Add new electric buses to the fleet or withdraw/delete buses from available service with mandatory reason tracking.
                         </p>
                     </div>
-                    <button type="button" class="modal-close-btn" aria-label="Close dialog" onclick="closeAddDeleteBusesModal()">✕</button>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <button type="button" id="btn-fullscreen-add-delete" class="modal-fullscreen-btn" aria-label="Toggle Fullscreen" title="Toggle Fullscreen Mode (⛶)" onclick="toggleAddDeleteFullscreen()">
+                            <svg class="icon-expand" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                            <svg class="icon-compress" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M4 14h6v6M20 10h-6V4M10 14l-7 7M14 10l7-7"/></svg>
+                        </button>
+                        <button type="button" class="modal-close-btn" aria-label="Close dialog" onclick="closeAddDeleteBusesModal()">✕</button>
+                    </div>
                 </div>
 
                 <!-- Tabs: Delete Bus | Add Bus | Change History -->
-                <div style="display:flex; border-bottom:1px solid var(--line); background:#f8fafc; padding:0 24px; gap:8px;">
+                <div class="modal-tabs-header" style="display:flex; border-bottom:1px solid var(--line); background:#f8fafc; padding:0 24px; gap:8px;">
                     <button type="button" id="tab-btn-del-bus" class="modal-tab-btn active" onclick="switchAddDeleteTab('del')">
                         🗑️ Delete Bus (Remove from Fleet)
                     </button>
@@ -9107,6 +9230,10 @@ let busCategoriesMap = new Map();
                     if (routeAllocModal && routeAllocModal.style.display === "flex") {
                         closeRouteAllocatedBusesModal();
                     }
+                    const addDelModal = document.getElementById("add-delete-buses-modal-backdrop");
+                    if (addDelModal && addDelModal.style.display === "flex") {
+                        closeAddDeleteBusesModal();
+                    }
                 }
             });
 
@@ -9332,14 +9459,19 @@ let busCategoriesMap = new Map();
 
 
         // ══════════════════════════════════════════════════════════════════════════
-        //  ADD / DELETE BUSES FLEET MANAGEMENT MODAL
+        //  ADD / DELETE BUSES FLEET MANAGEMENT MODAL (WITH FULLSCREEN SUPPORT)
         // ══════════════════════════════════════════════════════════════════════════
-        function openAddDeleteBusesModal(tab = 'delete') {
+        function openAddDeleteBusesModal(tab = 'add', enterFullscreen = true) {
             const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
             if (!backdrop) return;
             backdrop.style.display = "flex";
             backdrop.setAttribute("aria-hidden", "false");
             document.body.style.overflow = "hidden";
+
+            if (enterFullscreen !== false) {
+                setAddDeleteFullscreen(true);
+            }
+
             populateDeleteBusSelectors();
             switchAddDeleteTab(tab);
             updateAddDeleteBadgeCount();
@@ -9349,14 +9481,104 @@ let busCategoriesMap = new Map();
         function closeAddDeleteBusesModal() {
             const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
             if (!backdrop) return;
+
+            // Exit native browser fullscreen if currently active
+            try {
+                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen().catch(() => {});
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    }
+                }
+            } catch (e) {}
+
+            backdrop.classList.remove("is-fullscreen");
+            updateFullscreenToggleIcon(false);
             backdrop.style.display = "none";
             backdrop.setAttribute("aria-hidden", "true");
             document.body.style.overflow = "";
         }
 
+        function setAddDeleteFullscreen(enable = true) {
+            const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (!backdrop) return;
+
+            if (enable) {
+                backdrop.classList.add("is-fullscreen");
+                try {
+                    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                        if (backdrop.requestFullscreen) {
+                            backdrop.requestFullscreen().catch(() => {});
+                        } else if (backdrop.webkitRequestFullscreen) {
+                            backdrop.webkitRequestFullscreen();
+                        } else if (document.documentElement.requestFullscreen) {
+                            document.documentElement.requestFullscreen().catch(() => {});
+                        }
+                    }
+                } catch (e) {}
+            } else {
+                backdrop.classList.remove("is-fullscreen");
+                try {
+                    if (document.fullscreenElement || document.webkitFullscreenElement) {
+                        if (document.exitFullscreen) {
+                            document.exitFullscreen().catch(() => {});
+                        } else if (document.webkitExitFullscreen) {
+                            document.webkitExitFullscreen();
+                        }
+                    }
+                } catch (e) {}
+            }
+            updateFullscreenToggleIcon(enable);
+        }
+
+        function toggleAddDeleteFullscreen() {
+            const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (!backdrop) return;
+            const isCurrentlyFs = backdrop.classList.contains("is-fullscreen") || !!document.fullscreenElement || !!document.webkitFullscreenElement;
+            setAddDeleteFullscreen(!isCurrentlyFs);
+        }
+
+        function updateFullscreenToggleIcon(isFullscreen) {
+            const btn = document.getElementById("btn-fullscreen-add-delete");
+            if (!btn) return;
+            const iconExpand = btn.querySelector(".icon-expand");
+            const iconCompress = btn.querySelector(".icon-compress");
+            if (isFullscreen) {
+                if (iconExpand) iconExpand.style.display = "none";
+                if (iconCompress) iconCompress.style.display = "block";
+                btn.setAttribute("title", "Exit Fullscreen (Restore Windowed Dialog)");
+                btn.setAttribute("aria-label", "Exit Fullscreen");
+            } else {
+                if (iconExpand) iconExpand.style.display = "block";
+                if (iconCompress) iconCompress.style.display = "none";
+                btn.setAttribute("title", "Enter Fullscreen Mode (⛶)");
+                btn.setAttribute("aria-label", "Enter Fullscreen");
+            }
+        }
+
+        // Keep fullscreen icon and classes in sync if browser fullscreen changes
+        try {
+            document.addEventListener("fullscreenchange", handleAddDeleteFullscreenChange);
+            document.addEventListener("webkitfullscreenchange", handleAddDeleteFullscreenChange);
+        } catch (e) {}
+
+        function handleAddDeleteFullscreenChange() {
+            const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+            if (!backdrop) return;
+            const isNativeFs = (document.fullscreenElement === backdrop || document.fullscreenElement === document.documentElement || !!document.webkitFullscreenElement);
+            if (isNativeFs) {
+                backdrop.classList.add("is-fullscreen");
+                updateFullscreenToggleIcon(true);
+            } else if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                // If user pressed browser Esc to exit native fullscreen, keep icon synced
+                updateFullscreenToggleIcon(backdrop.classList.contains("is-fullscreen"));
+            }
+        }
+
         function switchAddDeleteTab(tabName) {
-            const isDel = (tabName === "del" || tabName === "delete" || !tabName);
-            const isAdd = (tabName === "add");
+            const isDel = (tabName === "del" || tabName === "delete");
+            const isAdd = (tabName === "add" || !tabName);
             const isHist = (tabName === "hist" || tabName === "history");
 
             const btnDel = document.getElementById("tab-btn-del-bus") || document.getElementById("tab-btn-delete-bus");
@@ -9376,8 +9598,12 @@ let busCategoriesMap = new Map();
             if (contentHist) contentHist.style.display = isHist ? "block" : "none";
 
             if (isAdd) {
+                const backdrop = document.getElementById("add-delete-buses-modal-backdrop");
+                if (backdrop && !backdrop.classList.contains("is-fullscreen")) {
+                    setAddDeleteFullscreen(true);
+                }
                 const bmInput = document.getElementById("add-bus-bm");
-                if (bmInput) setTimeout(() => bmInput.focus(), 50);
+                if (bmInput) setTimeout(() => bmInput.focus(), 60);
             } else if (isHist) {
                 renderFleetHistoryTab();
                 refreshFleetHistoryData();
