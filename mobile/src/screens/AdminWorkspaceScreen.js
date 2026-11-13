@@ -691,6 +691,7 @@ export default function AdminWorkspaceScreen() {
   // Modals state
   const [lockedModalOpen, setLockedModalOpen] = useState(false);
   const [addDeleteModalOpen, setAddDeleteModalOpen] = useState(false);
+  const [addDeleteFullscreen, setAddDeleteFullscreen] = useState(true);
   const [routeAllocatedModalOpen, setRouteAllocatedModalOpen] = useState(false);
   const [routeAllocatedModalRoute, setRouteAllocatedModalRoute] = useState(ALL_ROUTES_DATA[0].code);
   const [routeAllocatedSearch, setRouteAllocatedSearch] = useState('');
@@ -2473,7 +2474,11 @@ export default function AdminWorkspaceScreen() {
                   </View>
                   <TouchableOpacity
                     style={styles.btnAddDelHeader}
-                    onPress={() => setAddDeleteModalOpen(true)}
+                    onPress={() => {
+                      setAddDeleteTab('add');
+                      setAddDeleteFullscreen(true);
+                      setAddDeleteModalOpen(true);
+                    }}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.btnAddDelHeaderText}>➕ {t('addDeleteBuses', 'Add / Delete')}</Text>
@@ -3218,12 +3223,19 @@ export default function AdminWorkspaceScreen() {
         </View>
       </Modal>
 
-      {/* ── MODAL 3: ADD / DELETE BUSES MODAL (Exact 3-Tab Match with admin.html lines 2700-2870) ── */}
-      <Modal visible={addDeleteModalOpen} transparent animationType="slide" onRequestClose={() => setAddDeleteModalOpen(false)}>
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { maxHeight: '90%' }]}>
+      {/* ── MODAL 3: ADD / DELETE BUSES MODAL (FULL SCREEN FLEET MANAGEMENT) ── */}
+      <Modal
+        visible={addDeleteModalOpen}
+        transparent={!addDeleteFullscreen}
+        animationType="slide"
+        onRequestClose={() => setAddDeleteModalOpen(false)}
+        presentationStyle={addDeleteFullscreen ? 'fullScreen' : 'overFullScreen'}
+        statusBarTranslucent={true}
+      >
+        <SafeAreaView style={addDeleteFullscreen ? styles.modalBackdropFullScreen : styles.modalBackdrop}>
+          <View style={addDeleteFullscreen ? styles.modalCardFullScreen : [styles.modalCard, { maxHeight: '90%' }]}>
             <View style={styles.modalHeader}>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={[styles.modalEyebrow, { color: '#4f46e5' }]}>FLEET MANAGEMENT</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                   <Text style={styles.modalTitle}>🚌 Add / Delete Buses</Text>
@@ -3237,9 +3249,21 @@ export default function AdminWorkspaceScreen() {
                   Add new electric buses to the fleet or withdraw/delete buses from available service with mandatory reason tracking.
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setAddDeleteModalOpen(false)} style={styles.modalCloseBtn}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setAddDeleteFullscreen((prev) => !prev)}
+                  style={styles.modalFullscreenToggleBtn}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Toggle Fullscreen Mode"
+                >
+                  <Text style={styles.modalFullscreenToggleText}>
+                    {addDeleteFullscreen ? '🗗' : '⛶'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setAddDeleteModalOpen(false)} style={styles.modalCloseBtn}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Exact 3 Tabs from admin.html */}
@@ -3254,7 +3278,10 @@ export default function AdminWorkspaceScreen() {
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.addDelTab, addDeleteTab === 'add' && styles.addDelTabActive]}
-                onPress={() => setAddDeleteTab('add')}
+                onPress={() => {
+                  setAddDeleteTab('add');
+                  setAddDeleteFullscreen(true);
+                }}
               >
                 <Text style={[styles.addDelTabText, addDeleteTab === 'add' && styles.addDelTabTextActive]}>
                   ➕ Add Bus
@@ -3270,7 +3297,11 @@ export default function AdminWorkspaceScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={addDeleteFullscreen ? { flex: 1 } : { maxHeight: 460 }}
+              contentContainerStyle={{ paddingBottom: 28 }}
+              showsVerticalScrollIndicator={true}
+            >
               {/* ── TAB 1: DELETE BUS (Remove from Fleet) ── */}
               {addDeleteTab === 'delete' && (
                 <View style={styles.tabContentBox}>
@@ -3663,7 +3694,7 @@ export default function AdminWorkspaceScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
 
       {/* ── MODAL 4: ROUTE ALLOCATED BUSES DIRECTORY MODAL (Exact Match with admin.html lines 2800-2845) ── */}
@@ -4008,7 +4039,15 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
 
         {/* 3. Center FAB (+) */}
-        <TouchableOpacity style={styles.adminNavFab} onPress={() => setAddDeleteModalOpen(true)} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.adminNavFab}
+          onPress={() => {
+            setAddDeleteTab('add');
+            setAddDeleteFullscreen(true);
+            setAddDeleteModalOpen(true);
+          }}
+          activeOpacity={0.85}
+        >
           <Text style={styles.adminNavFabIcon}>+</Text>
         </TouchableOpacity>
 
@@ -5413,6 +5452,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
+  modalBackdropFullScreen: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
+    padding: 0,
+    margin: 0,
+  },
   modalCard: {
     width: '100%',
     backgroundColor: '#ffffff',
@@ -5425,6 +5472,34 @@ const styles = StyleSheet.create({
     elevation: 12,
     borderWidth: 1,
     borderColor: '#e2e8f0',
+  },
+  modalCardFullScreen: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#ffffff',
+    borderRadius: 0,
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 8 : 14,
+    paddingBottom: Platform.OS === 'ios' ? 24 : 16,
+    borderWidth: 0,
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  modalFullscreenToggleBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  modalFullscreenToggleText: {
+    fontSize: 15,
+    color: '#475569',
+    fontWeight: '700',
   },
   modalHeader: {
     flexDirection: 'row',
@@ -6480,7 +6555,10 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   adminNavFabIcon: {
-    fontSize: 22,
+    fontSize: 26,
+    color: '#ffffff',
+    fontWeight: '900',
+    lineHeight: 28,
   },
 
   // ── PROFILE TAB STYLES ──
