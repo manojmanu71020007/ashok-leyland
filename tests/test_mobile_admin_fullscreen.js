@@ -48,6 +48,23 @@ const checks = [
   {
     name: 'Modal styles for fullscreen backdrop & card defined',
     pass: code.includes('modalBackdropFullScreen:') && code.includes('modalCardFullScreen:')
+  },
+  {
+    name: 'BellIcon red badge removed',
+    pass: !code.includes('backgroundColor: \'#ef4444\', borderWidth: 1.5, borderColor: \'#ffffff\'')
+  },
+  {
+    name: 'LanguagePickerPill removed from HOME dashboard header',
+    pass: !code.includes('<View style={styles.homeContainer}') || !code.slice(code.indexOf('styles.homeContainer'), code.indexOf('depotPillBar')).includes('LanguagePickerPill')
+  },
+  {
+    name: 'Bell button triggers recentCompletedFullscreen and opens modal',
+    pass: code.includes('setRecentCompletedFullscreen(true)') && code.includes('setRecentCompletedModalOpen(true)')
+  },
+  {
+    name: 'Modal 2B uses fullscreen presentationStyle & safe area',
+    pass: code.includes("presentationStyle={recentCompletedFullscreen ? 'fullScreen' : 'overFullScreen'}") &&
+          code.includes('style={recentCompletedFullscreen ? { flex: 1 } : { maxHeight: 360 }}')
   }
 ];
 

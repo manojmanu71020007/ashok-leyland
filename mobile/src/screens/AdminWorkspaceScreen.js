@@ -454,14 +454,11 @@ const LockIcon = ({ color = '#ef4444', size = 22 }) => (
   </View>
 );
 
-const BellIcon = ({ color = '#1e293b', size = 20, hasBadge = true }) => (
+const BellIcon = ({ color = '#1e293b', size = 20 }) => (
   <View style={{ width: size + 4, height: size + 4, alignItems: 'center', justifyContent: 'center' }}>
     <View style={{ width: size * 0.72, height: size * 0.7, borderTopLeftRadius: size * 0.36, borderTopRightRadius: size * 0.36, borderWidth: 1.8, borderColor: color }} />
     <View style={{ width: size * 0.95, height: 2, borderRadius: 1, backgroundColor: color, marginTop: -0.5 }} />
     <View style={{ width: 3, height: 2, borderBottomLeftRadius: 1.5, borderBottomRightRadius: 1.5, backgroundColor: color, marginTop: 1 }} />
-    {hasBadge && (
-      <View style={{ position: 'absolute', top: 0, right: 0, width: 8, height: 8, borderRadius: 4, backgroundColor: '#ef4444', borderWidth: 1.5, borderColor: '#ffffff' }} />
-    )}
   </View>
 );
 
@@ -698,6 +695,7 @@ export default function AdminWorkspaceScreen() {
 
   // Notifications Modal State: Recently Route Completed Buses
   const [recentCompletedModalOpen, setRecentCompletedModalOpen] = useState(false);
+  const [recentCompletedFullscreen, setRecentCompletedFullscreen] = useState(true);
   const [recentCompletedSearch, setRecentCompletedSearch] = useState('');
   const [recentCompletedSortBy, setRecentCompletedSortBy] = useState('time-desc');
   const [recentCompletedDepot, setRecentCompletedDepot] = useState('all');
@@ -1517,7 +1515,6 @@ export default function AdminWorkspaceScreen() {
                 <Text style={styles.headerMainTitle}>{t('admin_workspace_title', 'Admin Workspace')}</Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ paddingVertical: 4, paddingHorizontal: 8 }} />
                 <TouchableOpacity
                   style={{ paddingVertical: 6, paddingHorizontal: 10, backgroundColor: '#fef2f2', borderRadius: 8, borderWidth: 1, borderColor: '#fca5a5' }}
                   onPress={() => {
@@ -1533,10 +1530,14 @@ export default function AdminWorkspaceScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.headerBellBtn}
-                  onPress={() => setRecentCompletedModalOpen(true)}
+                  onPress={() => {
+                    setRecentCompletedFullscreen(true);
+                    setRecentCompletedModalOpen(true);
+                  }}
                   activeOpacity={0.8}
+                  accessibilityLabel="Recently Completed Routes"
                 >
-                  <BellIcon color="#1e293b" size={20} hasBadge={turnaroundAllList.length > 0} />
+                  <BellIcon color="#1e293b" size={20} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -3020,17 +3021,19 @@ export default function AdminWorkspaceScreen() {
         </View>
       </Modal>
 
-      {/* ── MODAL 2B: RECENTLY COMPLETED BUSES NOTIFICATIONS MODAL ── */}
+      {/* ── MODAL 2B: RECENTLY COMPLETED BUSES NOTIFICATIONS MODAL (FULL SCREEN MODE) ── */}
       <Modal
         visible={recentCompletedModalOpen}
-        transparent
+        transparent={!recentCompletedFullscreen}
         animationType="slide"
         onRequestClose={() => setRecentCompletedModalOpen(false)}
+        presentationStyle={recentCompletedFullscreen ? 'fullScreen' : 'overFullScreen'}
+        statusBarTranslucent={true}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { maxHeight: '90%' }]}>
+        <SafeAreaView style={recentCompletedFullscreen ? styles.modalBackdropFullScreen : styles.modalBackdrop}>
+          <View style={recentCompletedFullscreen ? styles.modalCardFullScreen : [styles.modalCard, { maxHeight: '90%' }]}>
             <View style={styles.modalHeader}>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={[styles.modalEyebrow, { color: '#4361ee' }]}>ROUTE ARRIVAL & DISPATCH LOG</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
                   <Text style={styles.modalTitle}>🔔 Recently Completed Buses</Text>
@@ -3044,9 +3047,21 @@ export default function AdminWorkspaceScreen() {
                   Real-time arrival telemetry of buses that finished assigned routes and safely returned to depot yard.
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setRecentCompletedModalOpen(false)} style={styles.modalCloseBtn}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setRecentCompletedFullscreen((prev) => !prev)}
+                  style={styles.modalFullscreenToggleBtn}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Toggle Fullscreen Mode"
+                >
+                  <Text style={styles.modalFullscreenToggleText}>
+                    {recentCompletedFullscreen ? '🗗' : '⛶'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setRecentCompletedModalOpen(false)} style={styles.modalCloseBtn}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Summary Breakdown Bar */}
@@ -3138,7 +3153,11 @@ export default function AdminWorkspaceScreen() {
             </View>
 
             {/* List */}
-            <ScrollView style={{ maxHeight: 360 }} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={recentCompletedFullscreen ? { flex: 1 } : { maxHeight: 360 }}
+              contentContainerStyle={{ paddingBottom: 28 }}
+              showsVerticalScrollIndicator={true}
+            >
               {filteredRecentCompleted.length === 0 ? (
                 <View style={styles.emptyLockedBox}>
                   <Text style={{ fontSize: 28, marginBottom: 8 }}>🏁</Text>
@@ -3220,7 +3239,7 @@ export default function AdminWorkspaceScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
 
       {/* ── MODAL 3: ADD / DELETE BUSES MODAL (FULL SCREEN FLEET MANAGEMENT) ── */}
