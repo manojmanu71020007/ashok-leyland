@@ -28,6 +28,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
+import { getDepotDisplayName, getRoutesForDepot } from '../context/accounts';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 
@@ -388,10 +389,13 @@ export default function SchedulingScreen() {
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
-  const depotNum = selectedDepot === '2' ? '2' : '1';
-  const depotLabel = selectedDepot === '2' ? 'Depot 2' : 'Depot 1 (Chandapura)';
+  const depotNum = String(selectedDepot || '1');
+  const depotLabel = getDepotDisplayName(depotNum);
 
-  const availableRoutes = depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES;
+  const assignedRouteCodes = getRoutesForDepot(depotNum);
+  const ALL_BASE_ROUTES = [...DEPOT_1_ROUTES, ...DEPOT_2_ROUTES];
+  const matchedRoutes = ALL_BASE_ROUTES.filter((r) => assignedRouteCodes.includes(r.code) || assignedRouteCodes.includes(r.id));
+  const availableRoutes = matchedRoutes.length > 0 ? matchedRoutes : (depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES);
   const availableDrivers = DEPOT_DRIVERS[depotNum] || DEPOT_DRIVERS['1'];
 
   // Scheduling states
@@ -405,9 +409,11 @@ export default function SchedulingScreen() {
 
   // Sync route and driver when depot changes
   React.useEffect(() => {
-    const routesForDepot = depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES;
-    const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute.id);
-    if (!isCurrentInDepot) {
+    const codes = getRoutesForDepot(depotNum);
+    const matched = ALL_BASE_ROUTES.filter((r) => codes.includes(r.code) || codes.includes(r.id));
+    const routesForDepot = matched.length > 0 ? matched : (depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES);
+    const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute?.id);
+    if (!isCurrentInDepot && routesForDepot[0]) {
       setSelectedRoute(routesForDepot[0]);
       setScheduledTime(routesForDepot[0].timetables[0]);
       setSelectedCandidateBm(null);

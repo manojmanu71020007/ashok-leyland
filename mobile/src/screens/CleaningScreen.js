@@ -16,6 +16,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import { exportCsvFile } from '../utils/exportCsv';
+import { getDepotDisplayName } from '../context/accounts';
 
 export default function CleaningScreen() {
   const {
@@ -28,8 +29,8 @@ export default function CleaningScreen() {
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
-  const depotNum = selectedDepot === '2' ? '2' : '1';
-  const depotName = selectedDepot === '2' ? 'Depot 2' : 'Depot 1 (Chandapura)';
+  const depotNum = String(selectedDepot || '1');
+  const depotName = getDepotDisplayName(depotNum);
 
   // ── Search & Bus Selection State ──
   const [searchInput, setSearchInput] = useState('');

@@ -20,7 +20,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     const account = authResult.account;
-    const targetDepot = String(account.depot || '1') === '2' ? '2' : '1';
+    const targetDepot = String(account.depot || '1');
 
     setUser({
       username: account.username,
@@ -65,10 +65,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
-   * Switch active depot ('1' or '2')
+   * Open a designated operational screen for a specific depot
+   */
+  const openDepotScreen = (screenName, depotId) => {
+    setSelectedDepot(String(depotId || '1'));
+    setCurrentScreen(screenName);
+  };
+
+  /**
+   * Switch active depot ('1', '2', or custom depot id)
    */
   const switchDepot = (depotId) => {
-    const sanitizedDepot = String(depotId) === '2' ? '2' : '1';
+    const sanitizedDepot = String(depotId || '1');
     setSelectedDepot(sanitizedDepot);
   };
 
@@ -85,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         logout,
         returnToLogin,
         openStandaloneScreen,
+        openDepotScreen,
       }}
     >
       {children}

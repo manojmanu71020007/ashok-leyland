@@ -31,6 +31,14 @@ import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 import { getSequentialTasksForDuty } from '../utils/detailedScheduleTrips';
 import { api } from '../api/client';
+import {
+  getAllDepots,
+  registerNewDepot,
+  deleteDepot,
+  getDepotCredentialsList,
+  getDepotDisplayName,
+  subscribeDepotChanges,
+} from '../context/accounts';
 
 let NativeWebView = null;
 if (Platform.OS !== 'web') {
@@ -649,7 +657,7 @@ export default function AdminWorkspaceScreen() {
     unlockBus,
     unlockAllBuses,
   } = useFleet();
-  const { user, selectedDepot, logout } = useAuth();
+  const { user, selectedDepot, logout, openDepotScreen } = useAuth();
 
   // Admin Workspace is the enterprise view of the ENTIRE fleet (both Depot 1 and Depot 2)
   const buses = (allBuses && allBuses.length > 0) ? allBuses : contextBuses;
@@ -699,6 +707,32 @@ export default function AdminWorkspaceScreen() {
   const [addDeleteDepotsModalOpen, setAddDeleteDepotsModalOpen] = useState(false);
   const [addDeleteDepotsFullscreen, setAddDeleteDepotsFullscreen] = useState(true);
   const [depotsTab, setDepotsTab] = useState('add'); // 'add' | 'delete' | 'directory'
+
+  // Dynamic Depot Management States (Auto-creation of Charging, Cleaning, Scheduling, Ops & Credentials)
+  const [depotsList, setDepotsList] = useState(getAllDepots());
+  const [depotCredentialsList, setDepotCredentialsList] = useState(getDepotCredentialsList());
+  const [depotAddMode, setDepotAddMode] = useState('depot'); // 'depot' (Add Depot with Route Dropdown) | 'route' (Add Corridor)
+  const [newDepotId, setNewDepotId] = useState('');
+  const [newDepotName, setNewDepotName] = useState('');
+  const [newDepotLocation, setNewDepotLocation] = useState('');
+  const [selectedDepotRoutes, setSelectedDepotRoutes] = useState([]);
+  const [routeDropdownOpen, setRouteDropdownOpen] = useState(false);
+  const [routeDropdownSearch, setRouteDropdownSearch] = useState('');
+
+  // Delete Depot states
+  const [depotDelMode, setDepotDelMode] = useState('depot'); // 'depot' (Delete Depot) | 'route' (Decommission Route)
+  const [selectedDepotToDelete, setSelectedDepotToDelete] = useState('');
+  const [delDepotReason, setDelDepotReason] = useState('Depot Consolidation');
+  const [delDepotCustomReason, setDelDepotCustomReason] = useState('');
+
+  // Subscribe to dynamic depot changes across the app
+  React.useEffect(() => {
+    const unsub = subscribeDepotChanges(() => {
+      setDepotsList(getAllDepots());
+      setDepotCredentialsList(getDepotCredentialsList());
+    });
+    return unsub;
+  }, []);
 
   // Dynamic Route & Corridor Management State
   const [customRoutes, setCustomRoutes] = useState([]);
@@ -822,6 +856,120 @@ export default function AdminWorkspaceScreen() {
     const drivers = DEPOT_DRIVERS[selectedRouteDepot] || DEPOT_DRIVERS['1'];
     setSelectedDriver(drivers[0]);
   }, [selectedRouteDepot]);
+
+  // ── Handler: Create New Depot (Auto-Generates Charging, Cleaning, Scheduling, Ops & Credentials) ──
+  const handleCreateNewDepot = () => {
+    const cleanId = String(newDepotId || '').trim().replace(/^DEPOT\s*/i, '');
+    if (!cleanId) {
+      Alert.alert('Missing Field', 'Please enter a Depot Number / ID (e.g. 3, 4, or EC-3).');
+      return;
+    }
+    if (!newDepotName.trim()) {
+      Alert.alert('Missing Field', 'Please enter Depot Name (e.g. Depot 3 — Electronic City).');
+      return;
+    }
+
+    if (cleanId === '1' || cleanId === '2') {
+      Alert.alert('Protected Master Facility', `Depot ${cleanId} is a core operational depot and already exists.`);
+      return;
+    }
+
+    try {
+      const res = registerNewDepot({
+        id: cleanId,
+        name: newDepotName.trim(),
+        location: newDepotLocation.trim() || newDepotName.trim(),
+        routes: selectedDepotRoutes,
+        password: 'Test@123',
+      });
+
+      setDepotAuditLogs((prev) => [
+        {
+          id: Date.now().toString(),
+          action: 'DEPOT_CREATED',
+          code: `DEPOT-${cleanId}`,
+          fullName: newDepotName.trim(),
+          origin: newDepotLocation.trim() || 'Central',
+          destination: '4 Operations Active',
+          distance: selectedDepotRoutes.length,
+          depot: newDepotName.trim(),
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+        ...prev,
+      ]);
+
+      setNewDepotId('');
+      setNewDepotName('');
+      setNewDepotLocation('');
+      setSelectedDepotRoutes([]);
+      setRouteDropdownOpen(false);
+
+      Alert.alert(
+        '🏢 Depot Created Successfully!',
+        `Depot: ${res.depot.name} (ID: ${cleanId})\nRoutes Attached: ${res.depot.routes?.length || 0} Corridors\n\n⚡ Dedicated Pages & Login Credentials Created:\n• Charging: ES-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Cleaning: INSP-DEPOT-${cleanId.toUpperCase()}-01 (Test@123)\n• Scheduling: IS-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Depot Ops: DM-DEPOT-${cleanId.toUpperCase()} (Test@123)\n\nThese credentials are now active for login and viewable in Admin Profile.`,
+        [{ text: 'View Directory', onPress: () => setDepotsTab('directory') }]
+      );
+    } catch (err) {
+      Alert.alert('Creation Error', err.message || 'Failed to create depot.');
+    }
+  };
+
+  // ── Handler: Delete Depot (Removes Charging, Cleaning, Scheduling, Depot Ops & All Credentials) ──
+  const handleDeleteDepot = () => {
+    if (!selectedDepotToDelete) {
+      Alert.alert('Selection Required', 'Please select a custom depot to delete.');
+      return;
+    }
+
+    if (selectedDepotToDelete === '1' || selectedDepotToDelete === '2') {
+      Alert.alert('Protected Infrastructure', 'Depot 1 and Depot 2 are core infrastructure depots and cannot be deleted.');
+      return;
+    }
+
+    const depotObj = depotsList.find((d) => String(d.id) === selectedDepotToDelete);
+    const depotName = depotObj ? depotObj.name : `Depot ${selectedDepotToDelete}`;
+    const finalReason = delDepotReason === 'Other' ? (delDepotCustomReason.trim() || 'Decommissioned by Admin') : delDepotReason;
+
+    Alert.alert(
+      '⚠️ Confirm Permanent Depot Deletion',
+      `Are you sure you want to delete ${depotName} (ID: ${selectedDepotToDelete})?\n\nThis will permanently delete:\n• Charging Operations for this depot\n• Cleaning Operations for this depot\n• Scheduling Operations for this depot\n• Depot Operations for this depot\n• Unassign all associated corridors\n• Delete all generated credentials (ES-DEPOT-${selectedDepotToDelete.toUpperCase()}, INSP-DEPOT-${selectedDepotToDelete.toUpperCase()}-01, IS-DEPOT-${selectedDepotToDelete.toUpperCase()}, DM-DEPOT-${selectedDepotToDelete.toUpperCase()})\n\nReason: ${finalReason}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Depot & All Operations',
+          style: 'destructive',
+          onPress: () => {
+            deleteDepot(selectedDepotToDelete);
+
+            // Unassign custom routes
+            setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== selectedDepotToDelete));
+
+            setDepotAuditLogs((prev) => [
+              {
+                id: Date.now().toString(),
+                action: 'DEPOT_DELETED',
+                code: `DEPOT-${selectedDepotToDelete}`,
+                fullName: depotName,
+                origin: 'Decommissioned',
+                destination: 'Decommissioned',
+                distance: 0,
+                depot: depotName,
+                reason: finalReason,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              },
+              ...prev,
+            ]);
+
+            setSelectedDepotToDelete('');
+            Alert.alert(
+              'Depot Deleted',
+              `${depotName} and all its dedicated operations (Charging, Cleaning, Scheduling, Depot Ops) and login credentials have been deleted.`
+            );
+          },
+        },
+      ]
+    );
+  };
 
   // ── Handler: Add Route to Depot ──
   const handleAddRouteToDepot = () => {
@@ -2931,7 +3079,9 @@ export default function AdminWorkspaceScreen() {
               </View>
               <View style={styles.profileDetailRow}>
                 <Text style={styles.profileDetailLabel}>{t('label_depot_access', 'Depot Access')}</Text>
-                <Text style={styles.profileDetailValue}>{t('depot_access_val', 'Depot 1 & Depot 2 (Enterprise)')}</Text>
+                <Text style={styles.profileDetailValue}>
+                  {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(' • ')} (Enterprise Fleet)
+                </Text>
               </View>
               <View style={[styles.profileDetailRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.profileDetailLabel}>{t('label_session', 'Session')}</Text>
@@ -2940,6 +3090,129 @@ export default function AdminWorkspaceScreen() {
                   <Text style={styles.profileSessionText}>{t('status_active', 'Active')}</Text>
                 </View>
               </View>
+            </View>
+
+            {/* ── 🔑 DEPOT CREDENTIALS DIRECTORY (ALL DEPOTS) ── */}
+            <View style={styles.profileCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
+                <View style={{ flex: 1, minWidth: 200 }}>
+                  <Text style={styles.profileCardTitle}>🔑 Depot Login Credentials (All Depots)</Text>
+                  <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                    Dedicated system-generated credentials for all operating depots
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.btnAddDepotProfilePill}
+                  onPress={() => {
+                    setDepotsTab('add');
+                    setDepotAddMode('depot');
+                    setAddDeleteDepotsFullscreen(true);
+                    setAddDeleteDepotsModalOpen(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.btnAddDepotProfilePillText}>➕ Add Depot</Text>
+                </TouchableOpacity>
+              </View>
+
+              {depotCredentialsList.map((depot) => (
+                <View key={depot.depotId} style={styles.profileDepotBox}>
+                  {/* Depot Header Row */}
+                  <View style={styles.profileDepotHeaderRow}>
+                    <View style={{ flex: 1, paddingRight: 8 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                        <Text style={styles.profileDepotNameText}>🏢 {depot.depotName}</Text>
+                        {depot.isDefault ? (
+                          <View style={styles.profileDepotDefaultBadge}>
+                            <Text style={styles.profileDepotDefaultBadgeText}>Core Facility</Text>
+                          </View>
+                        ) : (
+                          <View style={styles.profileDepotCustomBadge}>
+                            <Text style={styles.profileDepotCustomBadgeText}>Custom Depot</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.profileDepotLocText}>📍 {depot.location}</Text>
+                      {depot.routes && depot.routes.length > 0 && (
+                        <Text style={styles.profileDepotRoutesText}>
+                          🛣️ {depot.routes.length} Corridors: <Text style={{ fontWeight: '700', color: '#0f172a' }}>{depot.routes.join(', ')}</Text>
+                        </Text>
+                      )}
+                    </View>
+
+                    {!depot.isDefault && (
+                      <TouchableOpacity
+                        style={styles.btnDeleteDepotProfile}
+                        onPress={() => {
+                          setSelectedDepotToDelete(depot.depotId);
+                          setDepotsTab('delete');
+                          setDepotDelMode('depot');
+                          setAddDeleteDepotsFullscreen(true);
+                          setAddDeleteDepotsModalOpen(true);
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={styles.btnDeleteDepotProfileText}>🗑️ Delete</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* 4 Operations Credentials Grid */}
+                  <View style={styles.profileCredsGrid}>
+                    {depot.credentials.map((cred, cIdx) => (
+                      <View key={cIdx} style={styles.profileCredCard}>
+                        <View style={styles.profileCredTopRow}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                            <Text style={{ fontSize: 16 }}>{cred.icon || '🔐'}</Text>
+                            <Text style={styles.profileCredOpTitle}>{cred.operation}</Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.profileCredQuickOpenBtn}
+                            onPress={() => {
+                              if (typeof openDepotScreen === 'function') {
+                                openDepotScreen(cred.targetScreen, depot.depotId);
+                              }
+                            }}
+                            activeOpacity={0.75}
+                          >
+                            <Text style={styles.profileCredQuickOpenText}>Open ➔</Text>
+                          </TouchableOpacity>
+                        </View>
+
+                        <Text style={styles.profileCredRoleText}>{cred.role}</Text>
+                        <Text style={styles.profileCredPageText}>📄 {cred.pageName}</Text>
+
+                        <View style={styles.profileCredDetailsBox}>
+                          <View style={styles.profileCredRow}>
+                            <Text style={styles.profileCredKey}>Username:</Text>
+                            <Text style={styles.profileCredVal} selectable>{cred.username}</Text>
+                          </View>
+                          <View style={styles.profileCredRow}>
+                            <Text style={styles.profileCredKey}>Password:</Text>
+                            <Text style={styles.profileCredVal} selectable>{cred.password}</Text>
+                          </View>
+                        </View>
+
+                        <TouchableOpacity
+                          style={styles.profileCredCopyBtn}
+                          onPress={() => {
+                            const credString = `Depot: ${depot.depotName}\nOperation: ${cred.operation}\nUsername: ${cred.username}\nPassword: ${cred.password}\nRole: ${cred.role}\nPage: ${cred.pageName}`;
+                            if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
+                              navigator.clipboard.writeText(credString);
+                              Alert.alert('Copied to Clipboard', `Credentials for ${cred.operation} (${depot.depotName}) copied!`);
+                            } else {
+                              Alert.alert('Depot Credentials', credString);
+                            }
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.profileCredCopyBtnText}>📋 Copy Credentials</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              ))}
             </View>
 
             {/* 🌐 System Language Card (Admin Profile Section) */}
@@ -4118,276 +4391,649 @@ export default function AdminWorkspaceScreen() {
               contentContainerStyle={{ paddingBottom: 24 }}
               keyboardShouldPersistTaps="handled"
             >
-              {/* ── TAB 1: ADD ROUTE TO DEPOT ── */}
+              {/* ── TAB 1: ADD ROUTE TO DEPOT / CREATE DEPOT ── */}
               {depotsTab === 'add' && (
                 <View style={styles.tabContentBox}>
-                  <View style={styles.depotInfoBanner}>
-                    <Text style={styles.depotInfoText}>
-                      <Text style={{ fontWeight: '800' }}>🛣️ Corridor Registration: </Text>
-                      Enter the route full name, short name / code, starting point, destination, and distance. The registered corridor will automatically become available for duty scheduling and bus allocation.
-                    </Text>
+                  {/* Sub-mode selector */}
+                  <View style={styles.depotSubModeRow}>
+                    <TouchableOpacity
+                      style={[styles.depotSubModeBtn, depotAddMode === 'depot' && styles.depotSubModeBtnActive]}
+                      onPress={() => setDepotAddMode('depot')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.depotSubModeBtnText, depotAddMode === 'depot' && styles.depotSubModeBtnTextActive]}>
+                        🏢 Create New Depot
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.depotSubModeBtn, depotAddMode === 'route' && styles.depotSubModeBtnActive]}
+                      onPress={() => setDepotAddMode('route')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.depotSubModeBtnText, depotAddMode === 'route' && styles.depotSubModeBtnTextActive]}>
+                        🛣️ Add Corridor Route
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
-                  {/* 1. Operating Depot */}
-                  <Text style={styles.modalFieldLabel}>
-                    Operating Depot <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                    {[
-                      { id: '1', label: 'Depot 1 — Chandapura (BMT-32)' },
-                      { id: '2', label: 'Depot 2 — Attibele / Hoskote' },
-                      { id: 'custom', label: '➕ New Custom Depot' },
-                    ].map((d) => (
-                      <TouchableOpacity
-                        key={d.id}
-                        style={[styles.depotSelectBtn, depotTargetDepot === d.id && styles.depotSelectBtnActive]}
-                        onPress={() => setDepotTargetDepot(d.id)}
-                      >
-                        <Text style={[styles.depotSelectBtnText, depotTargetDepot === d.id && styles.depotSelectBtnTextActive]}>
-                          {d.label}
+                  {/* ── SUB-MODE A: CREATE NEW DEPOT WITH ROUTE DROPDOWN ── */}
+                  {depotAddMode === 'depot' && (
+                    <View>
+                      <View style={styles.depotInfoBanner}>
+                        <Text style={styles.depotInfoText}>
+                          <Text style={{ fontWeight: '800' }}>🏢 Depot Induction & Auto-Setup: </Text>
+                          Enter the depot details and use the dropdown menu below to select and add routes. The system will automatically configure dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials.
                         </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                      </View>
 
-                  {/* Custom Depot Name (if selected) */}
-                  {depotTargetDepot === 'custom' && (
-                    <View style={{ marginBottom: 12 }}>
+                      {/* 1. Depot Number / ID */}
                       <Text style={styles.modalFieldLabel}>
-                        Custom Depot Name <Text style={{ color: '#ef4444' }}>*</Text>
+                        Depot Number / ID <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. 3, 4, or EC-3"
+                        placeholderTextColor="#94a3b8"
+                        value={newDepotId}
+                        onChangeText={setNewDepotId}
+                        autoCapitalize="characters"
+                      />
+
+                      {/* 2. Depot Name */}
+                      <Text style={styles.modalFieldLabel}>
+                        Depot Name <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
                         placeholder="e.g. Depot 3 — Electronic City"
                         placeholderTextColor="#94a3b8"
-                        value={depotCustomName}
-                        onChangeText={setDepotCustomName}
+                        value={newDepotName}
+                        onChangeText={setNewDepotName}
                       />
+
+                      {/* 3. Depot Location */}
+                      <Text style={styles.modalFieldLabel}>Depot Location / Zone</Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. Electronic City Phase 1, Bangalore"
+                        placeholderTextColor="#94a3b8"
+                        value={newDepotLocation}
+                        onChangeText={setNewDepotLocation}
+                      />
+
+                      {/* 4. Dropdown Menu for Selecting and Adding Routes for Depot */}
+                      <Text style={styles.modalFieldLabel}>
+                        Select & Add Routes for Depot (Dropdown Menu) <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.routeDropdownBtn}
+                        onPress={() => setRouteDropdownOpen((prev) => !prev)}
+                        activeOpacity={0.7}
+                      >
+                        <View style={{ flex: 1 }}>
+                          <Text style={styles.routeDropdownBtnText}>
+                            {selectedDepotRoutes.length > 0
+                              ? `🛣️ ${selectedDepotRoutes.length} Corridors Selected (${selectedDepotRoutes.join(', ')})`
+                              : '🛣️ Tap to Select & Add Routes from Network Menu...'}
+                          </Text>
+                        </View>
+                        <Text style={styles.routeDropdownChevron}>{routeDropdownOpen ? '▲ Close' : '▼ Open Menu'}</Text>
+                      </TouchableOpacity>
+
+                      {/* Dropdown Menu Box */}
+                      {routeDropdownOpen && (
+                        <View style={styles.routeDropdownMenu}>
+                          <TextInput
+                            style={styles.routeDropdownSearch}
+                            placeholder="Filter routes by code or destination..."
+                            placeholderTextColor="#94a3b8"
+                            value={routeDropdownSearch}
+                            onChangeText={setRouteDropdownSearch}
+                          />
+                          <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled>
+                            {allAvailableRoutes
+                              .filter((r) => {
+                                if (!routeDropdownSearch.trim()) return true;
+                                const q = routeDropdownSearch.trim().toLowerCase();
+                                return (
+                                  (r.code && r.code.toLowerCase().includes(q)) ||
+                                  (r.name && r.name.toLowerCase().includes(q)) ||
+                                  (r.origin && r.origin.toLowerCase().includes(q)) ||
+                                  (r.destination && r.destination.toLowerCase().includes(q))
+                                );
+                              })
+                              .map((r) => {
+                                const isSel = selectedDepotRoutes.includes(r.code) || selectedDepotRoutes.includes(r.id);
+                                return (
+                                  <TouchableOpacity
+                                    key={r.code || r.id}
+                                    style={[styles.routeDropdownItem, isSel && styles.routeDropdownItemActive]}
+                                    onPress={() => {
+                                      setSelectedDepotRoutes((prev) =>
+                                        isSel ? prev.filter((c) => c !== r.code && c !== r.id) : [...prev, r.code]
+                                      );
+                                    }}
+                                  >
+                                    <View style={{ flex: 1, paddingRight: 8 }}>
+                                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                        <View style={[styles.routeCodePill, isSel && styles.routeCodePillActive]}>
+                                          <Text style={[styles.routeCodePillText, isSel && styles.routeCodePillTextActive]}>
+                                            {r.code}
+                                          </Text>
+                                        </View>
+                                        <Text style={[styles.routeDropdownItemTitle, isSel && { color: '#0d9488', fontWeight: '800' }]}>
+                                          {r.origin || 'Origin'} ➔ {r.destination || 'Dest'}
+                                        </Text>
+                                      </View>
+                                      <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                        {r.distance} km • {r.shift || 'General Shift'} • Cat {r.requiredCat || 'B'}
+                                      </Text>
+                                    </View>
+                                    <View style={[styles.routeDropdownCheckBadge, isSel && styles.routeDropdownCheckBadgeActive]}>
+                                      <Text style={[styles.routeDropdownCheckBadgeText, isSel && styles.routeDropdownCheckBadgeTextActive]}>
+                                        {isSel ? '✓ Added' : '+ Add'}
+                                      </Text>
+                                    </View>
+                                  </TouchableOpacity>
+                                );
+                              })}
+                          </ScrollView>
+                          <TouchableOpacity
+                            style={{ backgroundColor: '#0d9488', paddingVertical: 8, borderRadius: 8, alignItems: 'center', marginTop: 8 }}
+                            onPress={() => setRouteDropdownOpen(false)}
+                          >
+                            <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 12 }}>✓ Done Selecting Routes</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+
+                      {/* Selected Route Chips */}
+                      {selectedDepotRoutes.length > 0 && (
+                        <View style={{ marginTop: 4, marginBottom: 12 }}>
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 }}>
+                            Attached Corridors ({selectedDepotRoutes.length}):
+                          </Text>
+                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+                            {selectedDepotRoutes.map((code) => {
+                              const routeObj = allAvailableRoutes.find((r) => r.code === code || r.id === code);
+                              return (
+                                <View key={code} style={styles.selectedRouteChip}>
+                                  <Text style={styles.selectedRouteChipText}>
+                                    🛣️ {code} ({routeObj?.distance || '28'} km)
+                                  </Text>
+                                  <TouchableOpacity
+                                    onPress={() => setSelectedDepotRoutes((prev) => prev.filter((c) => c !== code))}
+                                    style={styles.selectedRouteChipRemove}
+                                  >
+                                    <Text style={styles.selectedRouteChipRemoveText}>✕</Text>
+                                  </TouchableOpacity>
+                                </View>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      )}
+
+                      {/* Auto-Generation Guarantee Banner */}
+                      <View style={styles.autoGenBanner}>
+                        <Text style={styles.autoGenBannerTitle}>⚡ Auto-Generated Operations & Credentials:</Text>
+                        <Text style={styles.autoGenBannerDesc}>
+                          Creating this depot will automatically configure its 4 dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials.
+                        </Text>
+                        <View style={styles.autoGenBadgesRow}>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>⚡ Charging</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🧹 Cleaning</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>📅 Scheduling</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🏢 Depot Ops</Text></View>
+                        </View>
+                      </View>
+
+                      {/* Action Buttons */}
+                      <View style={styles.modalActionButtonsRow}>
+                        <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
+                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleCreateNewDepot}>
+                          <Text style={styles.btnSubmitAddDepotText}>🏢 Create Depot & Generate Operations</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   )}
 
-                  {/* 2. Route [Full Name] */}
-                  <Text style={styles.modalFieldLabel}>
-                    Route [Full Name] <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="e.g. Kempegowda Bus Station ➔ Electronic City Wipro Gate"
-                    placeholderTextColor="#94a3b8"
-                    value={depotRouteFullName}
-                    onChangeText={setDepotRouteFullName}
-                  />
-
-                  {/* 3. Route [Short Name] */}
-                  <Text style={styles.modalFieldLabel}>
-                    Route [Short Name] / Code <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="e.g. 356CW or KBS-3A"
-                    placeholderTextColor="#94a3b8"
-                    value={depotRouteShortName}
-                    onChangeText={setDepotRouteShortName}
-                    autoCapitalize="characters"
-                  />
-
-                  {/* 4. Route Starting Point (Origin) */}
-                  <Text style={styles.modalFieldLabel}>
-                    Route Starting Point (Origin) <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="e.g. Kempegowda Bus Station (Majestic)"
-                    placeholderTextColor="#94a3b8"
-                    value={depotRouteOrigin}
-                    onChangeText={setDepotRouteOrigin}
-                  />
-
-                  {/* 5. Route Destination Name */}
-                  <Text style={styles.modalFieldLabel}>
-                    Route Destination Name <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="e.g. Electronic City Wipro Gate"
-                    placeholderTextColor="#94a3b8"
-                    value={depotRouteDestination}
-                    onChangeText={setDepotRouteDestination}
-                  />
-
-                  {/* 6. Total Distance of the Route */}
-                  <Text style={styles.modalFieldLabel}>
-                    Total Distance of the Route (km) <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    placeholder="e.g. 28.5"
-                    placeholderTextColor="#94a3b8"
-                    value={depotRouteDistance}
-                    onChangeText={setDepotRouteDistance}
-                    keyboardType="numeric"
-                  />
-
-                  {/* Shift Selection */}
-                  <Text style={styles.modalFieldLabel}>Corridor Shift Type</Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-                    {['General Shift', 'Morning Shift', 'Night Halt'].map((sh) => (
-                      <TouchableOpacity
-                        key={sh}
-                        style={[styles.modalShiftBtn, depotRouteShift === sh && styles.modalShiftBtnActive]}
-                        onPress={() => setDepotRouteShift(sh)}
-                      >
-                        <Text style={[styles.modalShiftBtnText, depotRouteShift === sh && styles.modalShiftBtnTextActive]}>
-                          {sh}
+                  {/* ── SUB-MODE B: REGISTER ROUTE CORRIDOR TO DEPOT ── */}
+                  {depotAddMode === 'route' && (
+                    <View>
+                      <View style={styles.depotInfoBanner}>
+                        <Text style={styles.depotInfoText}>
+                          <Text style={{ fontWeight: '800' }}>🛣️ Corridor Registration: </Text>
+                          Enter the route full name, short name / code, starting point, destination, and distance. The registered corridor will automatically become available for duty scheduling and bus allocation.
                         </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                      </View>
 
-                  {/* Category Selection */}
-                  <Text style={styles.modalFieldLabel}>Corridor Route Complexity</Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
-                    {[
-                      { cat: 'Standard', label: 'Standard (Cat C/B)' },
-                      { cat: 'Moderate', label: 'Moderate (Cat B)' },
-                      { cat: 'Complex', label: 'Complex (Cat A)' },
-                    ].map((item) => (
-                      <TouchableOpacity
-                        key={item.cat}
-                        style={[styles.modalCatBtn, depotRouteCategory === item.cat && styles.modalCatBtnActive]}
-                        onPress={() => setDepotRouteCategory(item.cat)}
-                      >
-                        <Text style={[styles.modalCatBtnText, depotRouteCategory === item.cat && styles.modalCatBtnTextActive]}>
-                          {item.cat}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                      {/* 1. Operating Depot */}
+                      <Text style={styles.modalFieldLabel}>
+                        Operating Depot <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                        {depotsList.map((d) => (
+                          <TouchableOpacity
+                            key={d.id}
+                            style={[styles.depotSelectBtn, depotTargetDepot === d.id && styles.depotSelectBtnActive]}
+                            onPress={() => setDepotTargetDepot(d.id)}
+                          >
+                            <Text style={[styles.depotSelectBtnText, depotTargetDepot === d.id && styles.depotSelectBtnTextActive]}>
+                              {d.name || `Depot ${d.id}`}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
 
-                  {/* Action Buttons */}
-                  <View style={styles.modalActionButtonsRow}>
-                    <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                      <Text style={styles.btnModalCancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleAddRouteToDepot}>
-                      <Text style={styles.btnSubmitAddDepotText}>➕ Register Route to Depot</Text>
-                    </TouchableOpacity>
-                  </View>
+                      {/* Custom Depot Name (if selected) */}
+                      {depotTargetDepot === 'custom' && (
+                        <View style={{ marginBottom: 12 }}>
+                          <Text style={styles.modalFieldLabel}>
+                            Custom Depot Name <Text style={{ color: '#ef4444' }}>*</Text>
+                          </Text>
+                          <TextInput
+                            style={styles.modalInput}
+                            placeholder="e.g. Depot 3 — Electronic City"
+                            placeholderTextColor="#94a3b8"
+                            value={depotCustomName}
+                            onChangeText={setDepotCustomName}
+                          />
+                        </View>
+                      )}
+
+                      {/* 2. Route [Full Name] */}
+                      <Text style={styles.modalFieldLabel}>
+                        Route [Full Name] <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. Kempegowda Bus Station ➔ Electronic City Wipro Gate"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteFullName}
+                        onChangeText={setDepotRouteFullName}
+                      />
+
+                      {/* 3. Route [Short Name] */}
+                      <Text style={styles.modalFieldLabel}>
+                        Route [Short Name] / Code <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. 356CW or KBS-3A"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteShortName}
+                        onChangeText={setDepotRouteShortName}
+                        autoCapitalize="characters"
+                      />
+
+                      {/* 4. Route Starting Point (Origin) */}
+                      <Text style={styles.modalFieldLabel}>
+                        Route Starting Point (Origin) <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. Kempegowda Bus Station (Majestic)"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteOrigin}
+                        onChangeText={setDepotRouteOrigin}
+                      />
+
+                      {/* 5. Route Destination Name */}
+                      <Text style={styles.modalFieldLabel}>
+                        Route Destination Name <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. Electronic City Wipro Gate"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteDestination}
+                        onChangeText={setDepotRouteDestination}
+                      />
+
+                      {/* 6. Total Distance of the Route */}
+                      <Text style={styles.modalFieldLabel}>
+                        Total Distance of the Route (km) <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <TextInput
+                        style={styles.modalInput}
+                        placeholder="e.g. 28.5"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteDistance}
+                        onChangeText={setDepotRouteDistance}
+                        keyboardType="numeric"
+                      />
+
+                      {/* Shift Selection */}
+                      <Text style={styles.modalFieldLabel}>Corridor Shift Type</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                        {['General Shift', 'Morning Shift', 'Night Halt'].map((sh) => (
+                          <TouchableOpacity
+                            key={sh}
+                            style={[styles.modalShiftBtn, depotRouteShift === sh && styles.modalShiftBtnActive]}
+                            onPress={() => setDepotRouteShift(sh)}
+                          >
+                            <Text style={[styles.modalShiftBtnText, depotRouteShift === sh && styles.modalShiftBtnTextActive]}>
+                              {sh}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {/* Category Selection */}
+                      <Text style={styles.modalFieldLabel}>Corridor Route Complexity</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                        {[
+                          { cat: 'Standard', label: 'Standard (Cat C/B)' },
+                          { cat: 'Moderate', label: 'Moderate (Cat B)' },
+                          { cat: 'Complex', label: 'Complex (Cat A)' },
+                        ].map((item) => (
+                          <TouchableOpacity
+                            key={item.cat}
+                            style={[styles.modalCatBtn, depotRouteCategory === item.cat && styles.modalCatBtnActive]}
+                            onPress={() => setDepotRouteCategory(item.cat)}
+                          >
+                            <Text style={[styles.modalCatBtnText, depotRouteCategory === item.cat && styles.modalCatBtnTextActive]}>
+                              {item.cat}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {/* Action Buttons */}
+                      <View style={styles.modalActionButtonsRow}>
+                        <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
+                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleAddRouteToDepot}>
+                          <Text style={styles.btnSubmitAddDepotText}>➕ Register Route to Depot</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
               )}
 
               {/* ── TAB 2: DELETE ROUTE / DEPOT ── */}
               {depotsTab === 'delete' && (
                 <View style={styles.tabContentBox}>
-                  <View style={styles.delWarnBanner}>
-                    <Text style={styles.delWarnText}>
-                      <Text style={{ fontWeight: '800' }}>⚠️ Warning: </Text>
-                      Decommissioning a corridor will withdraw it from active schedules and prevent further bus allocations on this route.
-                    </Text>
+                  {/* Sub-mode selector */}
+                  <View style={styles.depotSubModeRow}>
+                    <TouchableOpacity
+                      style={[styles.depotSubModeBtn, depotDelMode === 'depot' && styles.depotSubModeBtnActive]}
+                      onPress={() => setDepotDelMode('depot')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.depotSubModeBtnText, depotDelMode === 'depot' && styles.depotSubModeBtnTextActive]}>
+                        🏢 Delete Operating Depot
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.depotSubModeBtn, depotDelMode === 'route' && styles.depotSubModeBtnActive]}
+                      onPress={() => setDepotDelMode('route')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.depotSubModeBtnText, depotDelMode === 'route' && styles.depotSubModeBtnTextActive]}>
+                        🛣️ Decommission Corridor
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.modalFieldLabel}>Search & Filter Corridors</Text>
-                  <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
-                    <TextInput
-                      style={styles.modalSearchInput}
-                      placeholder="Filter by route code or location..."
-                      placeholderTextColor="#94a3b8"
-                      value={delRouteSearchQuery}
-                      onChangeText={setDelRouteSearchQuery}
-                      autoCapitalize="characters"
-                    />
-                    {delRouteSearchQuery.length > 0 && (
-                      <TouchableOpacity onPress={() => setDelRouteSearchQuery('')} style={styles.modalClearSearch}>
-                        <Text style={styles.modalClearSearchText}>✕</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  <Text style={styles.modalFieldLabel}>
-                    Select Route to Decommission <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <ScrollView style={styles.busSelectorBox} nestedScrollEnabled>
-                    {allAvailableRoutes
-                      .filter((r) => {
-                        if (!delRouteSearchQuery.trim()) return true;
-                        const q = delRouteSearchQuery.trim().toLowerCase();
-                        return (
-                          (r.code && r.code.toLowerCase().includes(q)) ||
-                          (r.name && r.name.toLowerCase().includes(q)) ||
-                          (r.origin && r.origin.toLowerCase().includes(q)) ||
-                          (r.destination && r.destination.toLowerCase().includes(q))
-                        );
-                      })
-                      .map((r) => {
-                        const isSelected = delRouteSelectedCode === r.code;
-                        return (
-                          <TouchableOpacity
-                            key={r.code}
-                            style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
-                            onPress={() => setDelRouteSelectedCode(r.code)}
-                          >
-                            <View style={{ flex: 1 }}>
-                              <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
-                                🛣️ [{r.code}] {r.fullName || r.name}
-                              </Text>
-                              <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                {r.origin && r.destination ? `${r.origin} ➔ ${r.destination}` : r.name} • {r.distance} km • {r.depotName || (r.depotId === '2' ? 'Depot 2' : 'Depot 1')}
-                              </Text>
-                            </View>
-                            {isSelected && (
-                              <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
-                            )}
-                          </TouchableOpacity>
-                        );
-                      })}
-                  </ScrollView>
-
-                  <Text style={styles.modalFieldLabel}>
-                    Decommission Reason <Text style={{ color: '#ef4444' }}>*</Text>
-                  </Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                    {[
-                      'Corridor Realignment',
-                      'Route Cancelled by BMTC',
-                      'Merged into Adjacent Depot',
-                      'Other',
-                    ].map((reason) => (
-                      <TouchableOpacity
-                        key={reason}
-                        style={[styles.modalCatBtn, delRouteReason === reason && styles.modalCatBtnActive]}
-                        onPress={() => setDelRouteReason(reason)}
-                      >
-                        <Text style={[styles.modalCatBtnText, delRouteReason === reason && styles.modalCatBtnTextActive]}>
-                          {reason}
+                  {/* ── SUB-MODE A: DELETE OPERATING DEPOT ── */}
+                  {depotDelMode === 'depot' && (
+                    <View>
+                      <View style={styles.delWarnBanner}>
+                        <Text style={styles.delWarnText}>
+                          <Text style={{ fontWeight: '800' }}>⚠️ Depot Decommissioning Warning: </Text>
+                          Deleting a depot will permanently remove its Charging, Cleaning, Scheduling, and Depot Operations, unassign all associated corridors, and delete all generated login credentials for that depot.
                         </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                      </View>
 
-                  {delRouteReason === 'Other' && (
-                    <TextInput
-                      style={[styles.modalInput, { marginBottom: 12 }]}
-                      placeholder="Specify custom deletion reason..."
-                      placeholderTextColor="#94a3b8"
-                      value={delRouteCustomReason}
-                      onChangeText={setDelRouteCustomReason}
-                    />
+                      <Text style={styles.modalFieldLabel}>
+                        Select Depot to Delete <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      {depotsList.filter((d) => !d.isDefault).length === 0 ? (
+                        <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
+                          <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                            ℹ️ Only newly created custom depots can be deleted (Depot 1 and Depot 2 are protected infrastructure depots). Create a new depot in the Add tab to manage here.
+                          </Text>
+                        </View>
+                      ) : (
+                        <ScrollView style={[styles.busSelectorBox, { maxHeight: 180 }]} nestedScrollEnabled>
+                          {depotsList
+                            .filter((d) => !d.isDefault)
+                            .map((d) => {
+                              const isSelected = selectedDepotToDelete === String(d.id);
+                              return (
+                                <TouchableOpacity
+                                  key={d.id}
+                                  style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
+                                  onPress={() => setSelectedDepotToDelete(String(d.id))}
+                                >
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                      🏢 {d.name} (ID: {d.id})
+                                    </Text>
+                                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                      📍 {d.location} • {d.routes?.length || 0} Routes Attached • 4 Dedicated Operations
+                                    </Text>
+                                  </View>
+                                  {isSelected && (
+                                    <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
+                                  )}
+                                </TouchableOpacity>
+                              );
+                            })}
+                        </ScrollView>
+                      )}
+
+                      <Text style={styles.modalFieldLabel}>
+                        Decommission Reason <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                        {[
+                          'Depot Consolidation',
+                          'Temporary Facility Closed',
+                          'Merged with Central Yard',
+                          'Other',
+                        ].map((reason) => (
+                          <TouchableOpacity
+                            key={reason}
+                            style={[styles.modalCatBtn, delDepotReason === reason && styles.modalCatBtnActive]}
+                            onPress={() => setDelDepotReason(reason)}
+                          >
+                            <Text style={[styles.modalCatBtnText, delDepotReason === reason && styles.modalCatBtnTextActive]}>
+                              {reason}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {delDepotReason === 'Other' && (
+                        <TextInput
+                          style={[styles.modalInput, { marginBottom: 12 }]}
+                          placeholder="Specify custom deletion reason..."
+                          placeholderTextColor="#94a3b8"
+                          value={delDepotCustomReason}
+                          onChangeText={setDelDepotCustomReason}
+                        />
+                      )}
+
+                      <View style={styles.modalActionButtonsRow}>
+                        <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
+                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteDepot}>
+                          <Text style={styles.btnSubmitDelText}>🗑️ Delete Depot & All Operations</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
                   )}
 
-                  <View style={styles.modalActionButtonsRow}>
-                    <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                      <Text style={styles.btnModalCancelText}>Cancel</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteRouteFromDepot}>
-                      <Text style={styles.btnSubmitDelText}>🗑️ Decommission Route Corridor</Text>
-                    </TouchableOpacity>
-                  </View>
+                  {/* ── SUB-MODE B: DECOMMISSION CORRIDOR ROUTE ── */}
+                  {depotDelMode === 'route' && (
+                    <View>
+                      <View style={styles.delWarnBanner}>
+                        <Text style={styles.delWarnText}>
+                          <Text style={{ fontWeight: '800' }}>⚠️ Warning: </Text>
+                          Decommissioning a corridor will withdraw it from active schedules and prevent further bus allocations on this route.
+                        </Text>
+                      </View>
+
+                      <Text style={styles.modalFieldLabel}>Search & Filter Corridors</Text>
+                      <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
+                        <TextInput
+                          style={styles.modalSearchInput}
+                          placeholder="Filter by route code or location..."
+                          placeholderTextColor="#94a3b8"
+                          value={delRouteSearchQuery}
+                          onChangeText={setDelRouteSearchQuery}
+                          autoCapitalize="characters"
+                        />
+                        {delRouteSearchQuery.length > 0 && (
+                          <TouchableOpacity onPress={() => setDelRouteSearchQuery('')} style={styles.modalClearSearch}>
+                            <Text style={styles.modalClearSearchText}>✕</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+
+                      <Text style={styles.modalFieldLabel}>
+                        Select Route to Decommission <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <ScrollView style={styles.busSelectorBox} nestedScrollEnabled>
+                        {allAvailableRoutes
+                          .filter((r) => {
+                            if (!delRouteSearchQuery.trim()) return true;
+                            const q = delRouteSearchQuery.trim().toLowerCase();
+                            return (
+                              (r.code && r.code.toLowerCase().includes(q)) ||
+                              (r.name && r.name.toLowerCase().includes(q)) ||
+                              (r.origin && r.origin.toLowerCase().includes(q)) ||
+                              (r.destination && r.destination.toLowerCase().includes(q))
+                            );
+                          })
+                          .map((r) => {
+                            const isSelected = delRouteSelectedCode === r.code;
+                            return (
+                              <TouchableOpacity
+                                key={r.code}
+                                style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
+                                onPress={() => setDelRouteSelectedCode(r.code)}
+                              >
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                    🛣️ [{r.code}] {r.fullName || r.name}
+                                  </Text>
+                                  <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                    {r.origin && r.destination ? `${r.origin} ➔ ${r.destination}` : r.name} • {r.distance} km • {r.depotName || (r.depotId === '2' ? 'Depot 2' : 'Depot 1')}
+                                  </Text>
+                                </View>
+                                {isSelected && (
+                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
+                      </ScrollView>
+
+                      <Text style={styles.modalFieldLabel}>
+                        Decommission Reason <Text style={{ color: '#ef4444' }}>*</Text>
+                      </Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                        {[
+                          'Corridor Realignment',
+                          'Route Cancelled by BMTC',
+                          'Merged into Adjacent Depot',
+                          'Other',
+                        ].map((reason) => (
+                          <TouchableOpacity
+                            key={reason}
+                            style={[styles.modalCatBtn, delRouteReason === reason && styles.modalCatBtnActive]}
+                            onPress={() => setDelRouteReason(reason)}
+                          >
+                            <Text style={[styles.modalCatBtnText, delRouteReason === reason && styles.modalCatBtnTextActive]}>
+                              {reason}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {delRouteReason === 'Other' && (
+                        <TextInput
+                          style={[styles.modalInput, { marginBottom: 12 }]}
+                          placeholder="Specify custom deletion reason..."
+                          placeholderTextColor="#94a3b8"
+                          value={delRouteCustomReason}
+                          onChangeText={setDelRouteCustomReason}
+                        />
+                      )}
+
+                      <View style={styles.modalActionButtonsRow}>
+                        <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
+                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteRouteFromDepot}>
+                          <Text style={styles.btnSubmitDelText}>🗑️ Decommission Route Corridor</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                 </View>
               )}
 
-              {/* ── TAB 3: ACTIVE CORRIDORS DIRECTORY ── */}
+              {/* ── TAB 3: ACTIVE DEPOTS & CORRIDORS DIRECTORY ── */}
               {depotsTab === 'directory' && (
                 <View style={styles.tabContentBox}>
+                  {/* Depots Summary Section */}
+                  <View style={{ marginBottom: 16 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>
+                      🏢 Active Operating Depots ({depotsList.length})
+                    </Text>
+                    {depotsList.map((d) => (
+                      <View key={d.id} style={[styles.corridorCard, { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                            <Text style={{ fontSize: 14, fontWeight: '900', color: '#0f172a' }}>🏢 {d.name}</Text>
+                            <View style={d.isDefault ? styles.profileDepotDefaultBadge : styles.profileDepotCustomBadge}>
+                              <Text style={d.isDefault ? styles.profileDepotDefaultBadgeText : styles.profileDepotCustomBadgeText}>
+                                {d.isDefault ? 'Core Depot' : 'Custom'}
+                              </Text>
+                            </View>
+                          </View>
+                          {!d.isDefault && (
+                            <TouchableOpacity
+                              style={styles.btnDeleteDepotProfile}
+                              onPress={() => {
+                                setSelectedDepotToDelete(String(d.id));
+                                setDepotsTab('delete');
+                                setDepotDelMode('depot');
+                              }}
+                            >
+                              <Text style={styles.btnDeleteDepotProfileText}>🗑️ Delete</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                        <Text style={{ fontSize: 12, color: '#64748b' }}>📍 Location: {d.location}</Text>
+                        {d.routes && d.routes.length > 0 && (
+                          <Text style={{ fontSize: 11.5, color: '#0f766e', fontWeight: '700', marginTop: 2 }}>
+                            🛣️ {d.routes.length} Corridors: {d.routes.join(', ')}
+                          </Text>
+                        )}
+                        <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>⚡ Charging</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🧹 Cleaning</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>📅 Scheduling</Text></View>
+                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🏢 Depot Ops</Text></View>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
+
+                  <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>
+                    🛣️ Corridor Route Network ({allAvailableRoutes.length})
+                  </Text>
                   <View style={[styles.modalSearchRow, { marginBottom: 12 }]}>
                     <TextInput
                       style={styles.modalSearchInput}
@@ -8539,6 +9185,387 @@ const styles = StyleSheet.create({
     fontSize: 10.5,
     fontWeight: '600',
     color: '#64748b',
+  },
+
+  // ── Modal 3B Mode Switchers & Depot Creation ──
+  depotSubModeRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+    backgroundColor: '#f1f5f9',
+    padding: 4,
+    borderRadius: 10,
+  },
+  depotSubModeBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  depotSubModeBtnActive: {
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  depotSubModeBtnText: {
+    fontSize: 12.5,
+    fontWeight: '700',
+    color: '#64748b',
+  },
+  depotSubModeBtnTextActive: {
+    color: '#0d9488',
+    fontWeight: '800',
+  },
+
+  // ── Route Selection Dropdown Menu ──
+  routeDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  routeDropdownBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  routeDropdownChevron: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0d9488',
+    marginLeft: 8,
+  },
+  routeDropdownMenu: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#94a3b8',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  routeDropdownSearch: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    fontSize: 12,
+    color: '#0f172a',
+    marginBottom: 8,
+  },
+  routeDropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  routeDropdownItemActive: {
+    backgroundColor: '#f0fdfa',
+  },
+  routeDropdownItemTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  routeCodePill: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  routeCodePillActive: {
+    backgroundColor: '#ccfbf1',
+    borderColor: '#5eead4',
+  },
+  routeCodePillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  routeCodePillTextActive: {
+    color: '#0f766e',
+  },
+  routeDropdownCheckBadge: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  routeDropdownCheckBadgeActive: {
+    backgroundColor: '#0d9488',
+  },
+  routeDropdownCheckBadgeText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#64748b',
+  },
+  routeDropdownCheckBadgeTextActive: {
+    color: '#ffffff',
+  },
+
+  // ── Selected Route Chips ──
+  selectedRouteChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ccfbf1',
+    borderWidth: 1,
+    borderColor: '#5eead4',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    gap: 6,
+  },
+  selectedRouteChipText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#0f766e',
+  },
+  selectedRouteChipRemove: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#14b8a6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedRouteChipRemoveText: {
+    fontSize: 9,
+    fontWeight: '900',
+    color: '#ffffff',
+  },
+
+  // ── Auto-gen Banner ──
+  autoGenBanner: {
+    backgroundColor: '#f0fdfa',
+    borderWidth: 1.5,
+    borderColor: '#99f6e4',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 6,
+    marginBottom: 16,
+  },
+  autoGenBannerTitle: {
+    fontSize: 12.5,
+    fontWeight: '800',
+    color: '#0f766e',
+    marginBottom: 4,
+  },
+  autoGenBannerDesc: {
+    fontSize: 11.5,
+    color: '#334155',
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  autoGenBadgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  autoGenBadge: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#5eead4',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  autoGenBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#0f766e',
+  },
+
+  // ── Profile Tab Depot Credentials Directory ──
+  btnAddDepotProfilePill: {
+    backgroundColor: '#0d9488',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  btnAddDepotProfilePillText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
+  profileDepotBox: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14,
+  },
+  profileDepotHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e2e8f0',
+    marginBottom: 10,
+  },
+  profileDepotNameText: {
+    fontSize: 14.5,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  profileDepotDefaultBadge: {
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  profileDepotDefaultBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#1d4ed8',
+  },
+  profileDepotCustomBadge: {
+    backgroundColor: '#f0fdfa',
+    borderWidth: 1,
+    borderColor: '#99f6e4',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  profileDepotCustomBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0f766e',
+  },
+  profileDepotLocText: {
+    fontSize: 11.5,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  profileDepotRoutesText: {
+    fontSize: 11,
+    color: '#475569',
+    marginTop: 3,
+  },
+  btnDeleteDepotProfile: {
+    backgroundColor: '#fee2e2',
+    borderWidth: 1,
+    borderColor: '#fca5a5',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  btnDeleteDepotProfileText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#dc2626',
+  },
+  profileCredsGrid: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  profileCredCard: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 10,
+    padding: 10,
+  },
+  profileCredTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  profileCredOpTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  profileCredQuickOpenBtn: {
+    backgroundColor: '#e0f2fe',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#bae6fd',
+  },
+  profileCredQuickOpenText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#0284c7',
+  },
+  profileCredRoleText: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  profileCredPageText: {
+    fontSize: 11,
+    color: '#475569',
+    marginTop: 2,
+    fontFamily: Platform.OS === 'web' ? 'monospace' : undefined,
+  },
+  profileCredDetailsBox: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#f1f5f9',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    marginTop: 6,
+    marginBottom: 8,
+    gap: 2,
+  },
+  profileCredRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  profileCredKey: {
+    fontSize: 11,
+    color: '#64748b',
+    fontWeight: '700',
+  },
+  profileCredVal: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0f172a',
+    fontFamily: Platform.OS === 'web' ? 'monospace' : undefined,
+  },
+  profileCredCopyBtn: {
+    backgroundColor: '#f1f5f9',
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  profileCredCopyBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#475569',
   },
 
 

@@ -1465,11 +1465,11 @@ export const FleetProvider = ({ children }) => {
     api.saveCompletedRoutes([]).catch((err) => console.warn('Could not clear completed routes log:', err));
   };
 
-  // Filtered buses by currently selected depot tab (Depot 1 or Depot 2 only)
-  const currentDepot = selectedDepot === '2' ? '2' : '1';
-  let filteredBuses = (buses || []).filter((bus) => bus.depot === currentDepot);
-  if (filteredBuses.length === 0) {
-    filteredBuses = INITIAL_FLEET.filter((bus) => bus.depot === currentDepot);
+  // Filtered buses by currently selected depot tab
+  const currentDepot = String(selectedDepot || '1');
+  let filteredBuses = (buses || []).filter((bus) => String(bus.depot || '1') === currentDepot);
+  if (filteredBuses.length === 0 && (currentDepot === '1' || currentDepot === '2')) {
+    filteredBuses = INITIAL_FLEET.filter((bus) => String(bus.depot || '1') === currentDepot);
   }
   const resolvedAllBuses = (buses && buses.length > 0) ? buses : INITIAL_FLEET;
 

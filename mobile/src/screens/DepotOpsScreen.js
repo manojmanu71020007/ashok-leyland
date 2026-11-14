@@ -17,6 +17,7 @@ import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
+import { getDepotDisplayName } from '../context/accounts';
 
 export default function DepotOpsScreen() {
   const {
@@ -31,8 +32,8 @@ export default function DepotOpsScreen() {
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
-  const depotNum = selectedDepot === '2' ? '2' : '1';
-  const depotName = selectedDepot === '2' ? 'Depot 2 (Whitefield)' : 'Depot 1 (Chandapura)';
+  const depotNum = String(selectedDepot || '1');
+  const depotName = getDepotDisplayName(depotNum);
 
   // Complete fleet list (all buses across Depot 1 and Depot 2)
   const fullFleetList = (allBuses && allBuses.length > 0) ? allBuses : buses;

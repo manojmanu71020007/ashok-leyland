@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
-import { OFFICIAL_DIRECTORY } from '../context/accounts';
+import { OFFICIAL_DIRECTORY, getOfficialDirectory } from '../context/accounts';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 
 export default function LoginScreen() {
@@ -303,7 +303,7 @@ export default function LoginScreen() {
                 <Text style={styles.modalTip}>
                   {t('tap_role_tip', 'Tap any role below to automatically pre-fill its allocated credentials:')}
                 </Text>
-                {OFFICIAL_DIRECTORY.map((item, idx) => (
+                {(typeof getOfficialDirectory === 'function' ? getOfficialDirectory() : OFFICIAL_DIRECTORY).map((item, idx) => (
                   <TouchableOpacity
                     key={idx}
                     style={styles.dirItemCard}

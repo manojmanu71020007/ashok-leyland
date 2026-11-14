@@ -474,9 +474,426 @@ export const WEBPAGE_ACCOUNTS = {
   },
 };
 
+// ── Default System Depots ──
+export const DEFAULT_DEPOTS = [
+  {
+    id: '1',
+    number: '1',
+    name: 'Depot 1 (Chandapura)',
+    shortName: 'Depot 1',
+    location: 'Chandapura (BMT-32)',
+    routes: ['356Z', '360K', '600F', '361C', '399C'],
+    isDefault: true,
+  },
+  {
+    id: '2',
+    number: '2',
+    name: 'Depot 2 (Attibele / Hoskote)',
+    shortName: 'Depot 2',
+    location: 'Attibele / Hoskote',
+    routes: ['KBS3A', 'KBS3F', '328H', '500DC'],
+    isDefault: true,
+  },
+];
+
+const CUSTOM_DEPOTS_KEY = 'depot_app_custom_depots';
+const CUSTOM_ACCOUNTS_KEY = 'depot_app_custom_accounts';
+
+let dynamicDepots = [];
+let dynamicAccounts = {};
+
+// Load persisted dynamic depots & accounts (supports Web localStorage)
+try {
+  if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
+    const savedDepots = localStorage.getItem(CUSTOM_DEPOTS_KEY);
+    if (savedDepots) {
+      dynamicDepots = JSON.parse(savedDepots);
+    }
+    const savedAccounts = localStorage.getItem(CUSTOM_ACCOUNTS_KEY);
+    if (savedAccounts) {
+      dynamicAccounts = JSON.parse(savedAccounts);
+    }
+  }
+} catch (e) {
+  console.warn('Failed to load saved dynamic depots:', e);
+}
+
+const depotListeners = new Set();
+
+export function subscribeDepotChanges(callback) {
+  if (typeof callback === 'function') {
+    depotListeners.add(callback);
+    return () => depotListeners.delete(callback);
+  }
+  return () => {};
+}
+
+function notifyDepotListeners() {
+  depotListeners.forEach((cb) => {
+    try {
+      cb();
+    } catch (e) {
+      console.warn('Error in depot listener:', e);
+    }
+  });
+}
+
+/**
+ * Returns all active depots in the system (Default + Dynamic Custom Depots)
+ */
+export function getAllDepots() {
+  return [...DEFAULT_DEPOTS, ...dynamicDepots];
+}
+
+/**
+ * Returns display name for a depot id
+ */
+export function getDepotDisplayName(depotId) {
+  const cleanId = String(depotId || '1').trim();
+  const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
+  if (found) return found.name;
+  return `Depot ${cleanId}`;
+}
+
+/**
+ * Returns route codes assigned to a specific depot
+ */
+export function getRoutesForDepot(depotId) {
+  const cleanId = String(depotId || '1').trim();
+  const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
+  if (found && Array.isArray(found.routes)) {
+    return found.routes;
+  }
+  return cleanId === '2' ? ['KBS3A', 'KBS3F', '328H', '500DC'] : ['356Z', '360K', '600F', '361C', '399C'];
+}
+
+/**
+ * Registers a new depot in the system and automatically generates
+ * the 4 dedicated operational accounts (Charging, Cleaning, Scheduling, Depot Ops).
+ */
+export function registerNewDepot({ id, name, location, routes = [], password = 'Test@123' }) {
+  const cleanId = String(id || '').trim().replace(/^DEPOT\s*/i, '');
+  if (!cleanId) {
+    throw new Error('Depot ID or Number is required.');
+  }
+  const cleanName = String(name || `Depot ${cleanId}`).trim();
+  const cleanLocation = String(location || cleanName).trim();
+  const cleanRoutes = Array.isArray(routes) ? routes : [];
+  const cleanPass = String(password || 'Test@123').trim();
+
+  const newDepot = {
+    id: cleanId,
+    number: cleanId,
+    name: cleanName,
+    shortName: `Depot ${cleanId}`,
+    location: cleanLocation,
+    routes: cleanRoutes,
+    isDefault: false,
+    createdAt: new Date().toISOString(),
+  };
+
+  const existingIdx = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
+  if (existingIdx >= 0) {
+    dynamicDepots[existingIdx] = newDepot;
+  } else {
+    dynamicDepots.push(newDepot);
+  }
+
+  const idSanitized = cleanId.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const idUpper = cleanId.toUpperCase();
+
+  // 1. Charging Operations Account
+  const chgKey = `es-depot-${cleanId.toLowerCase()}`;
+  const chgAlias = `for_charging_depot_${idSanitized}`;
+  const chgAccount = {
+    username: `ES-DEPOT-${idUpper}`,
+    password: cleanPass,
+    role: `Electrical Supervisor (Depot ${cleanId})`,
+    name: `Charging Lead - Depot ${cleanId}`,
+    depot: cleanId,
+    targetScreen: 'CHARGING',
+    pageName: `Charging Operations (${cleanName})`,
+    email: `es_depot${idSanitized}@ashokleyland.com`,
+    operation: 'Charging',
+    icon: '⚡',
+  };
+  dynamicAccounts[chgKey] = chgAccount;
+  dynamicAccounts[chgAlias] = chgAccount;
+
+  // 2. Cleaning & Sanitization Account
+  const clnKey = `insp-depot-${cleanId.toLowerCase()}-01`;
+  const clnAlias = `for_cleaning_depot_${idSanitized}`;
+  const clnAccount = {
+    username: `INSP-DEPOT-${idUpper}-01`,
+    password: cleanPass,
+    role: `Sanitization Inspector (Depot ${cleanId})`,
+    name: `Inspector - Depot ${cleanId}`,
+    depot: cleanId,
+    targetScreen: 'CLEANING',
+    pageName: `Cleaning & Sanitization (${cleanName})`,
+    email: `insp_depot${idSanitized}_01@ashokleyland.com`,
+    operation: 'Cleaning',
+    icon: '🧹',
+  };
+  dynamicAccounts[clnKey] = clnAccount;
+  dynamicAccounts[clnAlias] = clnAccount;
+
+  // 3. Smart Bus Scheduling Account
+  const schKey = `is-depot-${cleanId.toLowerCase()}`;
+  const schAlias = `for_scheduling_depot_${idSanitized}`;
+  const schAccount = {
+    username: `IS-DEPOT-${idUpper}`,
+    password: cleanPass,
+    role: `Scheduling In-Charge (Depot ${cleanId})`,
+    name: `Scheduling Planner - Depot ${cleanId}`,
+    depot: cleanId,
+    targetScreen: 'SCHEDULING',
+    pageName: `Smart Bus Scheduling - ${cleanName}`,
+    email: `is_depot${idSanitized}@ashokleyland.com`,
+    operation: 'Scheduling',
+    icon: '📅',
+  };
+  dynamicAccounts[schKey] = schAccount;
+  dynamicAccounts[schAlias] = schAccount;
+
+  // 4. Depot Operations & Dispatch Account
+  const opsKey = `dm-depot-${cleanId.toLowerCase()}`;
+  const opsAlias = `for_depot_operations_depot_${idSanitized}`;
+  const opsAccount = {
+    username: `DM-DEPOT-${idUpper}`,
+    password: cleanPass,
+    role: `Depot ${cleanId} Manager`,
+    name: `Depot ${cleanId} Manager`,
+    depot: cleanId,
+    targetScreen: 'DEPOT_OPS',
+    pageName: `${cleanName} Operations Wing`,
+    email: `dm_depot${idSanitized}@ashokleyland.com`,
+    operation: 'Depot Operations',
+    icon: '🏢',
+  };
+  dynamicAccounts[opsKey] = opsAccount;
+  dynamicAccounts[opsAlias] = opsAccount;
+
+  // Persist to localStorage
+  try {
+    if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+      localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
+      localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
+    }
+  } catch (e) {
+    console.warn('Failed to persist custom depot:', e);
+  }
+
+  notifyDepotListeners();
+
+  return {
+    ok: true,
+    depot: newDepot,
+    generatedCredentials: [schAccount, chgAccount, clnAccount, opsAccount],
+  };
+}
+
+/**
+ * Deletes a depot and removes its charging, cleaning, scheduling, and depot operations
+ * along with all generated login credentials.
+ */
+export function deleteDepot(depotId) {
+  const cleanId = String(depotId || '').trim().replace(/^DEPOT\s*/i, '');
+  dynamicDepots = dynamicDepots.filter((d) => String(d.id) !== cleanId);
+
+  // Remove all dynamic accounts associated with this depot
+  Object.keys(dynamicAccounts).forEach((k) => {
+    if (dynamicAccounts[k] && String(dynamicAccounts[k].depot) === cleanId) {
+      delete dynamicAccounts[k];
+    }
+  });
+
+  try {
+    if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+      localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
+      localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
+    }
+  } catch (e) {
+    console.warn('Failed to persist depot deletion:', e);
+  }
+
+  notifyDepotListeners();
+  return { ok: true, deletedDepotId: cleanId };
+}
+
+/**
+ * Returns structured credentials list for ALL depots (Depot 1, Depot 2, and custom depots).
+ * Used directly by the Profile part in AdminWorkspaceScreen.
+ */
+export function getDepotCredentialsList() {
+  const all = getAllDepots();
+  return all.map((depot) => {
+    const id = String(depot.id);
+    const idUpper = id.toUpperCase();
+    const idLower = id.toLowerCase();
+
+    // Default credentials for Depot 1 & 2
+    if (id === '1') {
+      return {
+        depotId: '1',
+        depotName: depot.name,
+        location: depot.location,
+        isDefault: true,
+        routes: depot.routes || [],
+        credentials: [
+          {
+            operation: 'Charging Operations',
+            icon: '⚡',
+            username: 'ES-DEPOT-1',
+            password: 'Test@123',
+            role: 'Electrical Supervisor (Depot 1)',
+            pageName: 'Charging Operations (Depot 1)',
+            targetScreen: 'CHARGING',
+            email: 'es_depot1@ashokleyland.com',
+          },
+          {
+            operation: 'Cleaning & Sanitization',
+            icon: '🧹',
+            username: 'INSP-DEPOT-1-01',
+            password: 'Test@123',
+            role: 'Sanitization Inspector (Depot 1)',
+            pageName: 'Cleaning & Sanitization (Depot 1)',
+            targetScreen: 'CLEANING',
+            email: 'insp_depot1_01@ashokleyland.com',
+          },
+          {
+            operation: 'Smart Bus Scheduling',
+            icon: '📅',
+            username: 'IS-DEPOT-1',
+            password: 'Test@123',
+            role: 'Scheduling In-Charge (Depot 1)',
+            pageName: 'Smart Bus Scheduling - Depot 1',
+            targetScreen: 'SCHEDULING',
+            email: 'is_depot1@ashokleyland.com',
+          },
+          {
+            operation: 'Depot Operations & Dispatch',
+            icon: '🏢',
+            username: 'DM-DEPOT-1',
+            password: 'Test@123',
+            role: 'Depot 1 Manager',
+            pageName: 'Depot 1 Operations Wing',
+            targetScreen: 'DEPOT_OPS',
+            email: 'dm_depot1@ashokleyland.com',
+          },
+        ],
+      };
+    }
+
+    if (id === '2') {
+      return {
+        depotId: '2',
+        depotName: depot.name,
+        location: depot.location,
+        isDefault: true,
+        routes: depot.routes || [],
+        credentials: [
+          {
+            operation: 'Charging Operations',
+            icon: '⚡',
+            username: 'ES-DEPOT-2',
+            password: 'Test@123',
+            role: 'Electrical Supervisor (Depot 2)',
+            pageName: 'Charging Operations (Depot 2)',
+            targetScreen: 'CHARGING',
+            email: 'es_depot2@ashokleyland.com',
+          },
+          {
+            operation: 'Cleaning & Sanitization',
+            icon: '🧹',
+            username: 'INSP-DEPOT-2-01',
+            password: 'Test@123',
+            role: 'Sanitization Inspector (Depot 2)',
+            pageName: 'Cleaning & Sanitization (Depot 2)',
+            targetScreen: 'CLEANING',
+            email: 'insp_depot2_01@ashokleyland.com',
+          },
+          {
+            operation: 'Smart Bus Scheduling',
+            icon: '📅',
+            username: 'IS-DEPOT-2',
+            password: 'Test@123',
+            role: 'Scheduling In-Charge (Depot 2)',
+            pageName: 'Smart Bus Scheduling - Depot 2',
+            targetScreen: 'SCHEDULING',
+            email: 'is_depot2@ashokleyland.com',
+          },
+          {
+            operation: 'Depot Operations & Dispatch',
+            icon: '🏢',
+            username: 'DM-DEPOT-2',
+            password: 'Test@123',
+            role: 'Depot 2 Manager',
+            pageName: 'Depot 2 Operations Wing',
+            targetScreen: 'DEPOT_OPS',
+            email: 'dm_depot2@ashokleyland.com',
+          },
+        ],
+      };
+    }
+
+    // Dynamic Depot Credentials
+    const chg = dynamicAccounts[`es-depot-${idLower}`] || {
+      operation: 'Charging Operations',
+      icon: '⚡',
+      username: `ES-DEPOT-${idUpper}`,
+      password: 'Test@123',
+      role: `Electrical Supervisor (Depot ${id})`,
+      pageName: `Charging Operations (${depot.name})`,
+      targetScreen: 'CHARGING',
+      email: `es_depot${idLower}@ashokleyland.com`,
+    };
+    const cln = dynamicAccounts[`insp-depot-${idLower}-01`] || {
+      operation: 'Cleaning & Sanitization',
+      icon: '🧹',
+      username: `INSP-DEPOT-${idUpper}-01`,
+      password: 'Test@123',
+      role: `Sanitization Inspector (Depot ${id})`,
+      pageName: `Cleaning & Sanitization (${depot.name})`,
+      targetScreen: 'CLEANING',
+      email: `insp_depot${idLower}_01@ashokleyland.com`,
+    };
+    const sch = dynamicAccounts[`is-depot-${idLower}`] || {
+      operation: 'Smart Bus Scheduling',
+      icon: '📅',
+      username: `IS-DEPOT-${idUpper}`,
+      password: 'Test@123',
+      role: `Scheduling In-Charge (Depot ${id})`,
+      pageName: `Smart Bus Scheduling - ${depot.name}`,
+      targetScreen: 'SCHEDULING',
+      email: `is_depot${idLower}@ashokleyland.com`,
+    };
+    const ops = dynamicAccounts[`dm-depot-${idLower}`] || {
+      operation: 'Depot Operations & Dispatch',
+      icon: '🏢',
+      username: `DM-DEPOT-${idUpper}`,
+      password: 'Test@123',
+      role: `Depot ${id} Manager`,
+      pageName: `${depot.name} Operations Wing`,
+      targetScreen: 'DEPOT_OPS',
+      email: `dm_depot${idLower}@ashokleyland.com`,
+    };
+
+    return {
+      depotId: id,
+      depotName: depot.name,
+      location: depot.location,
+      isDefault: false,
+      routes: depot.routes || [],
+      credentials: [chg, cln, sch, ops],
+    };
+  });
+}
+
 /**
  * Validates credentials against authorized account directory.
  * Matching is case-insensitive for username, exact match for password.
+ * Checks both official directory accounts and newly generated depot accounts.
  */
 export function authenticateUser(username, password) {
   const cleanUser = String(username || '').trim();
@@ -490,7 +907,7 @@ export function authenticateUser(username, password) {
   }
 
   const lookupKey = cleanUser.toLowerCase();
-  const account = WEBPAGE_ACCOUNTS[lookupKey];
+  const account = dynamicAccounts[lookupKey] || WEBPAGE_ACCOUNTS[lookupKey];
 
   if (!account || account.password !== cleanPass) {
     return {
@@ -568,3 +985,45 @@ export const OFFICIAL_DIRECTORY = [
     destination: 'Depot 2 Operations Wing',
   },
 ];
+
+/**
+ * Returns dynamic master directory combining official logins with all newly generated depot logins
+ */
+export function getOfficialDirectory() {
+  const customEntries = [];
+  dynamicDepots.forEach((d) => {
+    const id = d.id;
+    const idUpper = id.toUpperCase();
+    customEntries.push(
+      {
+        category: `Depot ${id} Scheduling`,
+        username: `IS-DEPOT-${idUpper}`,
+        password: 'Test@123',
+        role: `Scheduling In-Charge (Depot ${id})`,
+        destination: `Smart Bus Scheduling - ${d.name}`,
+      },
+      {
+        category: `Depot ${id} Charging`,
+        username: `ES-DEPOT-${idUpper}`,
+        password: 'Test@123',
+        role: `Electrical Supervisor (Depot ${id})`,
+        destination: `Charging Operations (${d.name})`,
+      },
+      {
+        category: `Depot ${id} Cleaning`,
+        username: `INSP-DEPOT-${idUpper}-01`,
+        password: 'Test@123',
+        role: `Sanitization Inspector (Depot ${id})`,
+        destination: `Cleaning & Sanitization (${d.name})`,
+      },
+      {
+        category: `Depot ${id} Operations`,
+        username: `DM-DEPOT-${idUpper}`,
+        password: 'Test@123',
+        role: `Depot ${id} Manager`,
+        destination: `${d.name} Operations Wing`,
+      }
+    );
+  });
+  return [...OFFICIAL_DIRECTORY, ...customEntries];
+}
