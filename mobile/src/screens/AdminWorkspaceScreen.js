@@ -1086,12 +1086,7 @@ export default function AdminWorkspaceScreen() {
   // ── Handler: Delete Depot (Removes Charging, Cleaning, Scheduling, Depot Ops & All Credentials) ──
   const handleDeleteDepot = () => {
     if (!selectedDepotToDelete) {
-      Alert.alert('Selection Required', 'Please select a custom depot to delete.');
-      return;
-    }
-
-    if (selectedDepotToDelete === '1' || selectedDepotToDelete === '2') {
-      Alert.alert('Protected Infrastructure', 'Depot 1 and Depot 2 are core infrastructure depots and cannot be deleted.');
+      Alert.alert('Selection Required', 'Please select a depot to delete.');
       return;
     }
 
@@ -1117,7 +1112,9 @@ export default function AdminWorkspaceScreen() {
               setAdminDepotFilter('all');
             }
             if (selectedDepot === selectedDepotToDelete && typeof switchDepot === 'function') {
-              switchDepot('1');
+              const remaining = getAllDepots();
+              const nextDepot = remaining.length > 0 ? String(remaining[0].id) : '1';
+              switchDepot(nextDepot);
             }
 
             setDepotAuditLogs((prev) => [
@@ -1525,11 +1522,34 @@ export default function AdminWorkspaceScreen() {
   const d1NotAllocatedBuses = d1Buses.filter((b) => !d1AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
   const d2NotAllocatedBuses = d2Buses.filter((b) => !d2AllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
 
-  // Current View based on selected adminDepotFilter ('all' | '1' | '2')
-  const viewBuses = adminDepotFilter === 'all' ? buses : adminDepotFilter === '1' ? d1Buses : d2Buses;
-  const viewAllocatedDuties = adminDepotFilter === 'all' ? allAllocatedDuties : adminDepotFilter === '1' ? d1AllocatedDuties : d2AllocatedDuties;
-  const viewAvailableBuses = adminDepotFilter === 'all' ? allAvailableBuses : adminDepotFilter === '1' ? d1AvailableBuses : d2AvailableBuses;
-  const viewNotAllocatedBuses = adminDepotFilter === 'all' ? allNotAllocatedBuses : adminDepotFilter === '1' ? d1NotAllocatedBuses : d2NotAllocatedBuses;
+  // Current View based on selected adminDepotFilter ('all' or any specific depot like '1', '2', '3'...)
+  const viewBuses = useMemo(() => {
+    if (adminDepotFilter === 'all') return buses;
+    return buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === String(adminDepotFilter));
+  }, [buses, adminDepotFilter]);
+
+  const viewAllocatedDuties = useMemo(() => {
+    if (adminDepotFilter === 'all') return allAllocatedDuties;
+    return allAllocatedDuties.filter((d) => {
+      const dDepot = String(d.depot || (buses.find((b) => b.bmNumber === d.bm)?.depot) || '1').replace(/^DEPOT\s*/i, '').trim();
+      return dDepot === String(adminDepotFilter);
+    });
+  }, [allAllocatedDuties, buses, adminDepotFilter]);
+
+  const viewAvailableBuses = useMemo(() => {
+    return viewBuses.filter(
+      (b) =>
+        b.status === 'Available' &&
+        !viewAllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)) &&
+        !b.isLocked &&
+        !b.isCharging &&
+        !b.isCleaning
+    );
+  }, [viewBuses, viewAllocatedDuties]);
+
+  const viewNotAllocatedBuses = useMemo(() => {
+    return viewBuses.filter((b) => !viewAllocatedDuties.some((d) => isDutyMatch(d, b.bmNumber)));
+  }, [viewBuses, viewAllocatedDuties]);
 
   // ── Candidate Bus Evaluation (Exact Match to website Matrix Status & Peak Rules) ──
   const timeCatInfo = getTimeCategory(scheduledTime);
@@ -1962,7 +1982,7 @@ export default function AdminWorkspaceScreen() {
     const bus = buses.find((b) => String(b.bmNumber).trim().toUpperCase() === clean);
     if (bus) {
       setDelReg(bus.regNo || `KA51AH${clean.replace(/\D/g, '').padStart(4, '0')}`);
-      const resolvedDepot = String(bus.depot || '').includes('2') ? '2' : '1';
+      const resolvedDepot = String(bus.depot || '1').replace(/^DEPOT\s*/i, '').trim();
       setDelDepot(resolvedDepot);
     }
   };
@@ -2125,18 +2145,29 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* Depot Filter Pills matching photo */}
-            <View style={styles.depotPillBar}>
+            {/* Depot Filter Pills matching photo with dynamic support for ALL depots */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}
+              style={{ marginBottom: 14 }}
+            >
               {[
                 { id: 'all', label: `${t('all_fleet', 'All fleet')} · ${buses.length}` },
-                { id: '1', label: `${t('depot_1', 'Depot 1')} · ${d1Buses.length}` },
-                { id: '2', label: `${t('depot_2', 'Depot 2')} · ${d2Buses.length}` },
+                ...depotsList.map((d) => {
+                  const dId = String(d.id);
+                  const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                  return {
+                    id: dId,
+                    label: `${d.shortName || d.name || ('Depot ' + dId)} · ${count}`,
+                  };
+                }),
               ].map((item) => {
                 const isActive = adminDepotFilter === item.id;
                 return (
                   <TouchableOpacity
                     key={item.id}
-                    style={[styles.depotPill, isActive && styles.depotPillActive]}
+                    style={[styles.depotPill, isActive && styles.depotPillActive, { flex: undefined, minWidth: 92, paddingHorizontal: 12 }]}
                     onPress={() => {
                       setAdminDepotFilter(item.id);
                       setLockedDepotFilter(item.id);
@@ -2150,7 +2181,7 @@ export default function AdminWorkspaceScreen() {
                   </TouchableOpacity>
                 );
               })}
-            </View>
+            </ScrollView>
 
             {/* Donut Chart Summary Card matching photo */}
             <View style={styles.fleetSummaryCard}>
@@ -2297,6 +2328,116 @@ export default function AdminWorkspaceScreen() {
                   <Text style={styles.hubTileTitle}>Locked buses</Text>
                   <Text style={styles.hubTileSub}>{viewLockedBuses.length} locked ({viewChargingLockedCount} chg · {viewCleaningLockedCount} cln · {viewTurnaroundLockedCount} turnaround)</Text>
                 </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* ── OPERATING DEPOTS NETWORK (Prominently displaying all default & newly added depots) ── */}
+            <View style={styles.depotNetworkSection}>
+              <View style={styles.depotNetworkHeaderRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.operationsHubTitle}>🏢 OPERATING DEPOTS NETWORK ({depotsList.length} Facilities)</Text>
+                  <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
+                    Active depot facilities, fleet allocations, corridors, and operations
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.btnAddDepotShortcut}
+                  onPress={() => {
+                    setDepotsTab('add');
+                    setDepotsModalOpen(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.btnAddDepotShortcutText}>➕ Manage Depots</Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={{ gap: 10, marginTop: 10 }}>
+                {depotsList.map((depot) => {
+                  const dId = String(depot.id);
+                  const depotBuses = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId);
+                  const depotRoutes = depot.routes || getRoutesForDepot(dId) || [];
+                  const isSelected = adminDepotFilter === dId;
+
+                  return (
+                    <TouchableOpacity
+                      key={dId}
+                      style={[styles.depotNetworkCard, isSelected && styles.depotNetworkCardActive]}
+                      onPress={() => {
+                        setAdminDepotFilter(dId);
+                        setLockedDepotFilter(dId);
+                        setRecentCompletedDepot(dId);
+                      }}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.depotNetworkCardTop}>
+                        <View style={{ flex: 1 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            <Text style={styles.depotNetworkCardTitle}>
+                              🏢 {depot.name || `Depot ${dId}`}
+                            </Text>
+                            <View style={[styles.depotNetworkBadge, { backgroundColor: isSelected ? '#e0e7ff' : '#f1f5f9' }]}>
+                              <Text style={[styles.depotNetworkBadgeText, { color: isSelected ? '#3730a3' : '#475569' }]}>
+                                ID: {dId}
+                              </Text>
+                            </View>
+                            {isSelected && (
+                              <View style={[styles.depotNetworkBadge, { backgroundColor: '#dcfce7' }]}>
+                                <Text style={[styles.depotNetworkBadgeText, { color: '#166534', fontWeight: '800' }]}>
+                                  ✓ Active Filter
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                          <Text style={styles.depotNetworkCardSub}>
+                            📍 {depot.location || 'Bengaluru'} • {depotRoutes.length} Corridors
+                          </Text>
+                        </View>
+                        <View style={styles.depotNetworkFleetCountBox}>
+                          <Text style={styles.depotNetworkFleetNum}>{depotBuses.length}</Text>
+                          <Text style={styles.depotNetworkFleetLbl}>Fleet</Text>
+                        </View>
+                      </View>
+
+                      {/* Corridors Preview */}
+                      {depotRoutes.length > 0 ? (
+                        <View style={styles.depotRoutesPillsRow}>
+                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b' }}>Routes: </Text>
+                          {depotRoutes.slice(0, 6).map((rCode) => (
+                            <View key={rCode} style={styles.depotRoutePillMini}>
+                              <Text style={styles.depotRoutePillMiniText}>{rCode}</Text>
+                            </View>
+                          ))}
+                          {depotRoutes.length > 6 && (
+                            <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
+                              +{depotRoutes.length - 6} more
+                            </Text>
+                          )}
+                        </View>
+                      ) : (
+                        <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', marginTop: 4 }}>
+                          No corridors assigned yet. Add routes in Add / Delete Depots.
+                        </Text>
+                      )}
+
+                      {/* 4 Dedicated Operational Services Indicator */}
+                      <View style={styles.depotOpsStatusRow}>
+                        <View style={styles.depotOpsBadge}>
+                          <Text style={styles.depotOpsBadgeText}>⚡ Charging (ES-DEPOT-{dId.toUpperCase()})</Text>
+                        </View>
+                        <View style={styles.depotOpsBadge}>
+                          <Text style={styles.depotOpsBadgeText}>🧹 Cleaning (INSP-DEPOT-{dId.toUpperCase()}-01)</Text>
+                        </View>
+                        <View style={styles.depotOpsBadge}>
+                          <Text style={styles.depotOpsBadgeText}>📅 Scheduling (IS-DEPOT-{dId.toUpperCase()})</Text>
+                        </View>
+                        <View style={styles.depotOpsBadge}>
+                          <Text style={styles.depotOpsBadgeText}>🏢 Depot Ops (DM-DEPOT-{dId.toUpperCase()})</Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
           </View>
@@ -3183,9 +3324,9 @@ export default function AdminWorkspaceScreen() {
             />
 
             {/* Depot filter switcher tabs for Total Fleet */}
-            <View style={styles.depotFilterTabBar}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.depotFilterTabBar}>
               <TouchableOpacity
-                style={[styles.depotTabBtn, adminDepotFilter === 'all' && styles.depotTabBtnActive]}
+                style={[styles.depotTabBtn, adminDepotFilter === 'all' && styles.depotTabBtnActive, { flex: undefined, minWidth: 100 }]}
                 onPress={() => {
                   setAdminDepotFilter('all');
                   setLockedDepotFilter('all');
@@ -3197,40 +3338,37 @@ export default function AdminWorkspaceScreen() {
                   🌐 All Fleet ({buses.length})
                 </Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.depotTabBtn, adminDepotFilter === '1' && styles.depotTabBtnActive]}
-                onPress={() => {
-                  setAdminDepotFilter('1');
-                  setLockedDepotFilter('1');
-                  setRecentCompletedDepot('1');
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.depotTabBtnText, adminDepotFilter === '1' && styles.depotTabBtnTextActive]}>
-                  🏢 Depot 1 ({d1Buses.length})
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.depotTabBtn, adminDepotFilter === '2' && styles.depotTabBtnActive]}
-                onPress={() => {
-                  setAdminDepotFilter('2');
-                  setLockedDepotFilter('2');
-                  setRecentCompletedDepot('2');
-                }}
-                activeOpacity={0.8}
-              >
-                <Text style={[styles.depotTabBtnText, adminDepotFilter === '2' && styles.depotTabBtnTextActive]}>
-                  🏢 Depot 2 ({d2Buses.length})
-                </Text>
-              </TouchableOpacity>
-            </View>
+              {depotsList.map((d) => {
+                const dId = String(d.id);
+                const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                const isActive = adminDepotFilter === dId;
+                return (
+                  <TouchableOpacity
+                    key={dId}
+                    style={[styles.depotTabBtn, isActive && styles.depotTabBtnActive, { flex: undefined, minWidth: 100 }]}
+                    onPress={() => {
+                      setAdminDepotFilter(dId);
+                      setLockedDepotFilter(dId);
+                      setRecentCompletedDepot(dId);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.depotTabBtnText, isActive && styles.depotTabBtnTextActive]}>
+                      🏢 {d.shortName || `Depot ${dId}`} ({count})
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
 
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
                 <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>🚌 {t('total_buses', 'Total Buses')} ({viewBuses.length})</Text>
                 <View style={styles.sectionActionsRow}>
                   <View style={styles.breakdownBadge}>
-                    <Text style={styles.breakdownBadgeText}>D1: {d1Buses.length} | D2: {d2Buses.length}</Text>
+                    <Text style={styles.breakdownBadgeText}>
+                      {depotsList.map((d) => `D${d.id}: ${buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === String(d.id)).length}`).join(' | ')}
+                    </Text>
                   </View>
                   <TouchableOpacity
                     style={styles.btnAddDelHeader}
@@ -4302,7 +4440,7 @@ export default function AdminWorkspaceScreen() {
                       const matched = buses.find((b) => String(b.bmNumber).trim().toUpperCase() === clean);
                       if (matched) {
                         setDelReg(matched.regNo || `KA51AH${clean.replace(/\D/g, '').padStart(4, '0')}`);
-                        const resolvedDepot = String(matched.depot || '').includes('2') ? '2' : '1';
+                        const resolvedDepot = String(matched.depot || '1').replace(/^DEPOT\s*/i, '').trim();
                         setDelDepot(resolvedDepot);
                       }
                     }}
@@ -4320,21 +4458,22 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>Operating Depot <Text style={{ color: '#ef4444' }}>*</Text></Text>
-                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-                    {[
-                      { num: '1', label: 'Depot 1 — Chandapura (BMT-32)' },
-                      { num: '2', label: 'Depot 2 — Central Depot' },
-                    ].map((d) => (
-                      <TouchableOpacity
-                        key={d.num}
-                        style={[styles.depotSelectBtn, delDepot === d.num && styles.depotSelectBtnActive]}
-                        onPress={() => setDelDepot(d.num)}
-                      >
-                        <Text style={[styles.depotSelectBtnText, delDepot === d.num && styles.depotSelectBtnTextActive]}>
-                          {d.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                    {depotsList.map((d) => {
+                      const dNum = String(d.id);
+                      const isSelected = delDepot === dNum;
+                      return (
+                        <TouchableOpacity
+                          key={dNum}
+                          style={[styles.depotSelectBtn, isSelected && styles.depotSelectBtnActive, { flex: undefined, minWidth: '45%' }]}
+                          onPress={() => setDelDepot(dNum)}
+                        >
+                          <Text style={[styles.depotSelectBtnText, isSelected && styles.depotSelectBtnTextActive]}>
+                            🏢 {d.shortName || d.name || `Depot ${dNum}`}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
 
                   <Text style={styles.modalFieldLabel}>Reason Category <Text style={{ color: '#ef4444' }}>*</Text></Text>
@@ -4413,21 +4552,22 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>Operating Depot <Text style={{ color: '#ef4444' }}>*</Text></Text>
-                  <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
-                    {[
-                      { num: '1', label: 'Depot 1 — Chandapura' },
-                      { num: '2', label: 'Depot 2 — Central Depot' },
-                    ].map((d) => (
-                      <TouchableOpacity
-                        key={d.num}
-                        style={[styles.depotSelectBtn, addDepot === d.num && styles.depotSelectBtnActive]}
-                        onPress={() => setAddDepot(d.num)}
-                      >
-                        <Text style={[styles.depotSelectBtnText, addDepot === d.num && styles.depotSelectBtnTextActive]}>
-                          {d.label}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                    {depotsList.map((d) => {
+                      const dNum = String(d.id);
+                      const isSelected = addDepot === dNum;
+                      return (
+                        <TouchableOpacity
+                          key={dNum}
+                          style={[styles.depotSelectBtn, isSelected && styles.depotSelectBtnActive, { flex: undefined, minWidth: '45%' }]}
+                          onPress={() => setAddDepot(dNum)}
+                        >
+                          <Text style={[styles.depotSelectBtnText, isSelected && styles.depotSelectBtnTextActive]}>
+                            🏢 {d.shortName || d.name || `Depot ${dNum}`}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
 
                   <Text style={styles.modalFieldLabel}>Fleet Range Category</Text>
@@ -5102,38 +5242,36 @@ export default function AdminWorkspaceScreen() {
                       <Text style={styles.modalFieldLabel}>
                         Select Depot to Delete <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
-                      {depotsList.filter((d) => !d.isDefault).length === 0 ? (
+                      {depotsList.length === 0 ? (
                         <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
                           <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
-                            ℹ️ Only newly created custom depots can be deleted (Depot 1 and Depot 2 are protected infrastructure depots). Create a new depot in the Add tab to manage here.
+                            ℹ️ No operating depots available in the system. Create a new depot in the Add tab.
                           </Text>
                         </View>
                       ) : (
                         <ScrollView style={[styles.busSelectorBox, { maxHeight: 180 }]} nestedScrollEnabled>
-                          {depotsList
-                            .filter((d) => !d.isDefault)
-                            .map((d) => {
-                              const isSelected = selectedDepotToDelete === String(d.id);
-                              return (
-                                <TouchableOpacity
-                                  key={d.id}
-                                  style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
-                                  onPress={() => setSelectedDepotToDelete(String(d.id))}
-                                >
-                                  <View style={{ flex: 1 }}>
-                                    <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
-                                      🏢 {d.name} (ID: {d.id})
-                                    </Text>
-                                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                      📍 {d.location} • {d.routes?.length || 0} Routes Attached • 4 Dedicated Operations
-                                    </Text>
-                                  </View>
-                                  {isSelected && (
-                                    <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
-                                  )}
-                                </TouchableOpacity>
-                              );
-                            })}
+                          {depotsList.map((d) => {
+                            const isSelected = selectedDepotToDelete === String(d.id);
+                            return (
+                              <TouchableOpacity
+                                key={d.id}
+                                style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
+                                onPress={() => setSelectedDepotToDelete(String(d.id))}
+                              >
+                                <View style={{ flex: 1 }}>
+                                  <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                    🏢 {d.name} (ID: {d.id})
+                                  </Text>
+                                  <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                    📍 {d.location} • {d.routes?.length || 0} Routes Attached • 4 Dedicated Operations
+                                  </Text>
+                                </View>
+                                {isSelected && (
+                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
                         </ScrollView>
                       )}
 
@@ -10237,5 +10375,144 @@ const styles = StyleSheet.create({
     color: '#9f1239',
     marginBottom: 3,
     fontWeight: '600',
+  },
+  depotNetworkSection: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  depotNetworkHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  btnAddDepotShortcut: {
+    backgroundColor: '#eff6ff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  btnAddDepotShortcutText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563eb',
+  },
+  depotNetworkCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  depotNetworkCardActive: {
+    backgroundColor: '#f5f3ff',
+    borderColor: '#4361ee',
+    shadowColor: '#4361ee',
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  depotNetworkCardTop: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  depotNetworkCardTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#0f172a',
+  },
+  depotNetworkBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  depotNetworkBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '700',
+  },
+  depotNetworkCardSub: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 3,
+    fontWeight: '500',
+  },
+  depotNetworkFleetCountBox: {
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    minWidth: 54,
+  },
+  depotNetworkFleetNum: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#1e293b',
+  },
+  depotNetworkFleetLbl: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748b',
+    textTransform: 'uppercase',
+  },
+  depotRoutesPillsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 5,
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+  },
+  depotRoutePillMini: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+  },
+  depotRoutePillMiniText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#334155',
+  },
+  depotOpsStatusRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 8,
+  },
+  depotOpsBadge: {
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+  },
+  depotOpsBadgeText: {
+    fontSize: 10.5,
+    fontWeight: '600',
+    color: '#475569',
   },
 });

@@ -682,7 +682,7 @@ try {
  * Returns all active depots in the system (Default + Dynamic Custom Depots)
  */
 export function getAllDepots() {
-  return [...DEFAULT_DEPOTS, ...dynamicDepots];
+  return [...DEFAULT_DEPOTS, ...dynamicDepots].filter((d) => !deletedDepotIds.has(String(d.id)));
 }
 
 /**
@@ -700,6 +700,7 @@ export function getDepotDisplayName(depotId) {
  */
 export function getRoutesForDepot(depotId) {
   const cleanId = String(depotId || '').trim();
+  if (deletedDepotIds.has(cleanId)) return [];
   const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
   if (found && Array.isArray(found.routes)) {
     return found.routes;
@@ -1175,6 +1176,14 @@ export function authenticateUser(username, password) {
     };
   }
 
+  // If this account is dedicated to a depot that has been deleted, deny access
+  if (account.targetScreen !== 'ADMIN_WORKSPACE' && deletedDepotIds.has(String(account.depot))) {
+    return {
+      ok: false,
+      error: 'This depot facility has been deleted and its login credentials have been permanently revoked.',
+    };
+  }
+
   return { ok: true, account };
 }
 
@@ -1249,9 +1258,16 @@ export const OFFICIAL_DIRECTORY = [
  * Returns dynamic master directory combining official logins with all newly generated depot logins
  */
 export function getOfficialDirectory() {
+  const filteredOfficial = OFFICIAL_DIRECTORY.filter((entry) => {
+    if (entry.category.startsWith('Depot 1') && deletedDepotIds.has('1')) return false;
+    if (entry.category.startsWith('Depot 2') && deletedDepotIds.has('2')) return false;
+    return true;
+  });
+
   const customEntries = [];
   dynamicDepots.forEach((d) => {
     const id = d.id;
+    if (deletedDepotIds.has(String(id))) return;
     const idUpper = id.toUpperCase();
     customEntries.push(
       {
@@ -1284,5 +1300,5 @@ export function getOfficialDirectory() {
       }
     );
   });
-  return [...OFFICIAL_DIRECTORY, ...customEntries];
+  return [...filteredOfficial, ...customEntries];
 }
