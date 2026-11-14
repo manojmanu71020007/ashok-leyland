@@ -8,9 +8,10 @@ import {
   getDepotCredentialsList,
   authenticateUser,
   syncDepotsWithServer,
+  getRoutesForDepot,
 } from '../mobile/src/context/accounts.js';
 
-console.log('Testing Cross-Device Depot Synchronization and CSV Export...');
+console.log('Testing Cross-Device Depot Synchronization, Persistence & Deletion Lifecycle...');
 
 // ── 1. Check Profile Screen Source Code for Exact Row ──
 const adminWorkspacePath = path.resolve('mobile/src/screens/AdminWorkspaceScreen.js');
@@ -28,25 +29,19 @@ assert(
   adminSrc.includes('exportCsvFile'),
   'AdminWorkspaceScreen must call exportCsvFile'
 );
-console.log('PASS: Profile section contains row "🔑 Depot Login Credentials (All Depots)" and triggers CSV export.');
+assert(
+  adminSrc.includes('Select Depot to Delete'),
+  'AdminWorkspaceScreen must render "Select Depot to Delete *"'
+);
+assert(
+  adminSrc.includes('delDepotPreviewCard'),
+  'AdminWorkspaceScreen must show preview of operations & corridors being removed'
+);
+console.log('PASS: Profile section contains row "🔑 Depot Login Credentials (All Depots)" and Delete screen has selection & preview.');
 
 // ── 2. Test CSV Generation for All Depots ──
 const credsList = getDepotCredentialsList();
 assert(credsList.length >= 2, 'Should include at least Depot 1 and Depot 2');
-
-const headers = [
-  'Depot ID',
-  'Depot Name',
-  'Depot Facility Type',
-  'Location / Address',
-  'Assigned Corridors / Routes',
-  'Operation Name',
-  'Designated Role',
-  'Login Username',
-  'Password',
-  'Target Webpage / Screen',
-  'Official Email',
-];
 
 const csvRows = [];
 credsList.forEach((depot) => {
@@ -76,90 +71,85 @@ credsList.forEach((depot) => {
 assert(csvRows.length >= 8, 'Default 2 depots must produce at least 8 credential rows (4 per depot)');
 console.log(`PASS: CSV row generator produced ${csvRows.length} operation rows across ${credsList.length} depots.`);
 
-// ── 3. Test Cross-Device Sync Mechanics ──
-// Simulate Device 1 creating Depot 5 (Whitefield)
-const regRes = registerNewDepot({
-  id: '5',
-  name: 'Depot 5 (Whitefield)',
-  location: 'ITPB Road, Whitefield',
-  routes: ['500DC', '360K'],
+// ── 3. Test: Newly Created Depots Are NEVER Deleted On App Updates / Empty Sync ──
+// Create Depot 4 (Electronic City)
+const createRes = registerNewDepot({
+  id: '4',
+  name: 'Depot 4 (Electronic City)',
+  location: 'Hosur Road, Phase 1',
+  routes: ['356Z', '600F', 'KBS3A'],
   password: 'Test@123',
 });
-assert(regRes.ok, 'Depot 5 created successfully on Device 1');
+assert(createRes.ok, 'Depot 4 created successfully');
+assert(getAllDepots().some((d) => String(d.id) === '4'), 'Depot 4 exists locally');
 
-// Verify Device 1 state
-const d1Depots = getAllDepots();
-assert(d1Depots.some((d) => String(d.id) === '5'), 'Depot 5 exists in Device 1 depots');
+// Simulate App Update / Server Restart where server returns empty customDepots []
+// With previous flawed sync, this would have destroyed Depot 4!
+syncDepotsWithServer([], {});
 
-// Simulate Server payload containing customDepots and customAccounts
-const serverDepotsPayload = d1Depots.filter((d) => !d.isDefault);
-const serverAccountsPayload = {};
-['es-depot-5', 'insp-depot-5-01', 'is-depot-5', 'dm-depot-5'].forEach((k) => {
-  serverAccountsPayload[k] = {
-    username: k.toUpperCase(),
-    password: 'Test@123',
-    role: `Officer Depot 5`,
-    depot: '5',
-    targetScreen: 'CHARGING',
-  };
-});
+// Assert that Depot 4 is NOT deleted!
+const depotsAfterEmptySync = getAllDepots();
+assert(
+  depotsAfterEmptySync.some((d) => String(d.id) === '4'),
+  'CRITICAL PASS: Newly created Depot 4 was NOT deleted after app update / empty server sync!'
+);
+console.log('PASS: Newly created depots persist and are NOT wiped out on app code updates or empty server syncs.');
 
-// Simulate Device 2 receiving the payload via syncDepotsWithServer
-const syncRes = syncDepotsWithServer(serverDepotsPayload, serverAccountsPayload);
-assert(syncRes.ok, 'syncDepotsWithServer returned ok');
-const d2Depots = getAllDepots();
-assert(d2Depots.some((d) => String(d.id) === '5'), 'Device 2 now contains Depot 5');
+// ── 4. Test: Explicit Deletion Permanently Removes All 4 Operations, Corridors & Credentials ──
+// Verify Depot 4 operations and credentials exist before deletion
+const authChgBefore = authenticateUser('es-depot-4', 'Test@123');
+assert(authChgBefore.ok, 'Charging credentials active before deletion');
+const authClnBefore = authenticateUser('insp-depot-4-01', 'Test@123');
+assert(authClnBefore.ok, 'Cleaning credentials active before deletion');
+const authSchBefore = authenticateUser('is-depot-4', 'Test@123');
+assert(authSchBefore.ok, 'Scheduling credentials active before deletion');
+const authOpsBefore = authenticateUser('dm-depot-4', 'Test@123');
+assert(authOpsBefore.ok, 'Depot Ops credentials active before deletion');
+assert(getRoutesForDepot('4').length === 3, 'Corridors assigned before deletion');
 
-// Test Authentication on Device 2 using dynamic credentials
-const authChg = authenticateUser('es-depot-5', 'Test@123');
-assert(authChg.ok && authChg.account.depot === '5', 'Device 2 authenticates dynamic account for Depot 5');
+// Administrator explicitly selects and deletes Depot 4 in "Select Depot to Delete *"
+deleteDepot('4');
 
-// Simulate Deletion on Device 1
-deleteDepot('5');
-const d1DepotsAfterDelete = getAllDepots().filter((d) => !d.isDefault);
-assert(!d1DepotsAfterDelete.some((d) => String(d.id) === '5'), 'Depot 5 deleted from Device 1');
+// 1. Depot removed from all active depots
+const depotsAfterDelete = getAllDepots();
+assert(!depotsAfterDelete.some((d) => String(d.id) === '4'), 'Depot 4 removed from active depots');
 
-// Simulate Device 2 syncing deletion from server
-syncDepotsWithServer(d1DepotsAfterDelete, {});
-const d2DepotsAfterDelete = getAllDepots();
-assert(!d2DepotsAfterDelete.some((d) => String(d.id) === '5'), 'Depot 5 removed from Device 2');
+// 2. Corridors unassigned
+const routesAfterDelete = getRoutesForDepot('4');
+assert(routesAfterDelete.length !== 3 || !routesAfterDelete.includes('KBS3A'), 'Corridors unassigned for Depot 4');
 
-const authAfterDelete = authenticateUser('es-depot-5', 'Test@123');
-assert(!authAfterDelete.ok, 'Credentials revoked on Device 2 after deletion sync');
-console.log('PASS: Cross-device synchronization of addition and deletion verified successfully.');
+// 3. All 4 operations and login credentials deleted
+assert(!authenticateUser('es-depot-4', 'Test@123').ok, 'Charging operation and credentials permanently deleted');
+assert(!authenticateUser('insp-depot-4-01', 'Test@123').ok, 'Cleaning operation and credentials permanently deleted');
+assert(!authenticateUser('is-depot-4', 'Test@123').ok, 'Scheduling operation and credentials permanently deleted');
+assert(!authenticateUser('dm-depot-4', 'Test@123').ok, 'Depot Ops operation and credentials permanently deleted');
 
-// ── 4. Verify Server.js Endpoints and Polling Payload ──
+// 4. Stale cache / sync cannot resurrect deleted depot (tombstone protection)
+syncDepotsWithServer([createRes.depot], {});
+assert(
+  !getAllDepots().some((d) => String(d.id) === '4'),
+  'PASS: Tombstone protection prevents stale caches from resurrecting deleted depot'
+);
+console.log('PASS: Deleting a depot permanently removes all 4 operations, unassigns corridors, and deletes all credentials.');
+
+// ── 5. Verify Server.js Endpoints and Polling Payload ──
 const serverPath = path.resolve('server.js');
 const serverSrc = fs.readFileSync(serverPath, 'utf8');
 
-assert(
-  serverSrc.includes('/api/custom-depots'),
-  'server.js must expose /api/custom-depots for cross-device reflection'
-);
-assert(
-  serverSrc.includes('customDepots: currentState._customDepots || []'),
-  'server.js /api/sync-state must include customDepots in sync-state response'
-);
-assert(
-  serverSrc.includes('customAccounts: currentState._customAccounts || {}'),
-  'server.js /api/sync-state must include customAccounts in sync-state response'
-);
-console.log('PASS: server.js correctly supports cross-device customDepots & customAccounts.');
+assert(serverSrc.includes('/api/custom-depots'), 'server.js must expose /api/custom-depots');
+assert(serverSrc.includes('customDepots: currentState._customDepots || []'), 'server.js /api/sync-state must include customDepots');
+assert(serverSrc.includes('customAccounts: currentState._customAccounts || {}'), 'server.js /api/sync-state must include customAccounts');
+assert(serverSrc.includes('deletedDepotIds: currentState._deletedDepotIds || []'), 'server.js /api/sync-state must include deletedDepotIds');
+console.log('PASS: server.js correctly supports customDepots, customAccounts, and deletedDepotIds.');
 
-// ── 5. Verify FleetContext Poll Sync Integration ──
+// ── 6. Verify FleetContext Poll Sync Integration ──
 const fleetContextPath = path.resolve('mobile/src/context/FleetContext.js');
 const fleetContextSrc = fs.readFileSync(fleetContextPath, 'utf8');
 
-assert(
-  fleetContextSrc.includes('syncDepotsWithServer'),
-  'FleetContext.js must import and call syncDepotsWithServer'
-);
-assert(
-  fleetContextSrc.includes('resSync.data.customDepots'),
-  'FleetContext.js must inspect resSync.data.customDepots on each polling tick'
-);
-console.log('PASS: FleetContext.js automatically syncs custom depots across all devices every 5 seconds.');
+assert(fleetContextSrc.includes('syncDepotsWithServer'), 'FleetContext.js must call syncDepotsWithServer');
+assert(fleetContextSrc.includes('resSync.data.deletedDepotIds'), 'FleetContext.js must pass deletedDepotIds');
+console.log('PASS: FleetContext.js passes remote custom depots, accounts, and deletedDepotIds every 5 seconds.');
 
 console.log('\n======================================================');
-console.log('ALL CROSS-DEVICE SYNC & CSV ROW CHECKS PASSED PERFECTLY!');
+console.log('ALL DEPOT PERSISTENCE, DELETION & SYNC CHECKS PASSED!');
 console.log('======================================================\n');

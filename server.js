@@ -2968,6 +2968,9 @@ function loadBusState() {
         if (!masterBusState._customAccounts || typeof masterBusState._customAccounts !== "object") {
             masterBusState._customAccounts = {};
         }
+        if (!Array.isArray(masterBusState._deletedDepotIds)) {
+            masterBusState._deletedDepotIds = [];
+        }
         if (historyMissing) {
             saveBusState(masterBusState);
         }
@@ -4943,6 +4946,8 @@ const server = http.createServer(async (req, res) => {
 
                 customAccounts: currentState._customAccounts || {},
 
+                deletedDepotIds: currentState._deletedDepotIds || [],
+
                 timestamp: Date.now()
 
             });
@@ -4966,6 +4971,7 @@ const server = http.createServer(async (req, res) => {
                     ok: true,
                     customDepots: currentState._customDepots || [],
                     customAccounts: currentState._customAccounts || {},
+                    deletedDepotIds: currentState._deletedDepotIds || [],
                     version: stateVersion
                 });
             } catch (err) {
@@ -4985,11 +4991,26 @@ const server = http.createServer(async (req, res) => {
                     if (!currentState._customAccounts || typeof currentState._customAccounts !== "object") {
                         currentState._customAccounts = {};
                     }
+                    if (!Array.isArray(currentState._deletedDepotIds)) {
+                        currentState._deletedDepotIds = [];
+                    }
 
-                    const { action, depot, depotId, accounts, customDepots, customAccounts } = payload;
+                    const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds } = payload;
+
+                    // Ingest any incoming deleted depot IDs
+                    if (Array.isArray(deletedDepotIds)) {
+                        deletedDepotIds.forEach(id => {
+                            const cId = String(id || "").trim();
+                            if (cId && !currentState._deletedDepotIds.includes(cId)) {
+                                currentState._deletedDepotIds.push(cId);
+                            }
+                        });
+                    }
 
                     if (action === "add" && depot) {
                         const cleanId = String(depot.id || "").trim();
+                        // Un-tombstone if re-created
+                        currentState._deletedDepotIds = currentState._deletedDepotIds.filter(id => id !== cleanId);
                         const existingIdx = currentState._customDepots.findIndex(d => String(d.id) === cleanId);
                         if (existingIdx >= 0) {
                             currentState._customDepots[existingIdx] = depot;
@@ -5001,21 +5022,54 @@ const server = http.createServer(async (req, res) => {
                         }
                     } else if (action === "delete") {
                         const cleanId = String(depotId || depot?.id || "").trim();
+                        if (cleanId && !currentState._deletedDepotIds.includes(cleanId)) {
+                            currentState._deletedDepotIds.push(cleanId);
+                        }
                         currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
                         for (const k of Object.keys(currentState._customAccounts)) {
                             if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
                                 delete currentState._customAccounts[k];
                             }
                         }
+                        // Unassign any bus duties allocated to this deleted depot
+                        if (Array.isArray(currentState._allocatedDuties)) {
+                            currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
+                        }
                     } else if (action === "sync" || Array.isArray(customDepots)) {
-                        if (Array.isArray(customDepots)) currentState._customDepots = customDepots;
-                        if (customAccounts && typeof customAccounts === "object") currentState._customAccounts = customAccounts;
+                        // Purge any depots or accounts that are in _deletedDepotIds
+                        currentState._customDepots = (currentState._customDepots || []).filter(d => !currentState._deletedDepotIds.includes(String(d.id)));
+                        for (const k of Object.keys(currentState._customAccounts || {})) {
+                            if (currentState._customAccounts[k] && currentState._deletedDepotIds.includes(String(currentState._customAccounts[k].depot))) {
+                                delete currentState._customAccounts[k];
+                            }
+                        }
+                        if (Array.isArray(customDepots)) {
+                            customDepots.forEach(d => {
+                                if (!d || !d.id) return;
+                                const id = String(d.id).trim();
+                                if (currentState._deletedDepotIds.includes(id)) return;
+                                const idx = currentState._customDepots.findIndex(ex => String(ex.id) === id);
+                                if (idx >= 0) {
+                                    currentState._customDepots[idx] = d;
+                                } else {
+                                    currentState._customDepots.push(d);
+                                }
+                            });
+                        }
+                        if (customAccounts && typeof customAccounts === "object") {
+                            for (const [k, acc] of Object.entries(customAccounts)) {
+                                if (acc && acc.depot && !currentState._deletedDepotIds.includes(String(acc.depot))) {
+                                    currentState._customAccounts[k] = acc;
+                                }
+                            }
+                        }
                     }
 
                     saveBusState(currentState);
                     broadcastSyncEvent("custom-depots-updated", {
                         customDepots: currentState._customDepots,
-                        customAccounts: currentState._customAccounts
+                        customAccounts: currentState._customAccounts,
+                        deletedDepotIds: currentState._deletedDepotIds
                     });
 
                     sendJson(res, {
@@ -5023,6 +5077,7 @@ const server = http.createServer(async (req, res) => {
                         message: "Custom depots synchronized successfully",
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
+                        deletedDepotIds: currentState._deletedDepotIds,
                         version: stateVersion
                     });
                 } catch (err) {

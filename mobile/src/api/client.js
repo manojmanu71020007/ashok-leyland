@@ -281,10 +281,14 @@ export const api = {
   },
 
   // Delete custom depot from server
-  deleteCustomDepot: async (depotId) => {
+  deleteCustomDepot: async (depotId, deletedDepotIds = []) => {
     return apiRequest('/api/custom-depots', {
       method: 'POST',
-      body: JSON.stringify({ action: 'delete', depotId: String(depotId) }),
+      body: JSON.stringify({
+        action: 'delete',
+        depotId: String(depotId),
+        deletedDepotIds: Array.isArray(deletedDepotIds) ? deletedDepotIds : [String(depotId)],
+      }),
     });
   },
 };

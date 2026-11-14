@@ -500,20 +500,52 @@ export const DEFAULT_DEPOTS = [
 
 const CUSTOM_DEPOTS_KEY = 'depot_app_custom_depots';
 const CUSTOM_ACCOUNTS_KEY = 'depot_app_custom_accounts';
+const CUSTOM_DELETED_DEPOTS_KEY = 'depot_app_custom_deleted_depots';
 
 let dynamicDepots = [];
 let dynamicAccounts = {};
+let deletedDepotIds = new Set();
+
+function persistLocalDepotState() {
+  try {
+    if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+      localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
+      localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
+      localStorage.setItem(CUSTOM_DELETED_DEPOTS_KEY, JSON.stringify(Array.from(deletedDepotIds)));
+    }
+  } catch (e) {
+    console.warn('Failed to persist dynamic depot state:', e);
+  }
+}
 
 // Load persisted dynamic depots & accounts (supports Web localStorage)
 try {
   if (typeof localStorage !== 'undefined' && typeof localStorage.getItem === 'function') {
+    const savedDeleted = localStorage.getItem(CUSTOM_DELETED_DEPOTS_KEY);
+    if (savedDeleted) {
+      const arr = JSON.parse(savedDeleted);
+      if (Array.isArray(arr)) {
+        deletedDepotIds = new Set(arr.map(String));
+      }
+    }
     const savedDepots = localStorage.getItem(CUSTOM_DEPOTS_KEY);
     if (savedDepots) {
-      dynamicDepots = JSON.parse(savedDepots);
+      const loaded = JSON.parse(savedDepots);
+      if (Array.isArray(loaded)) {
+        dynamicDepots = loaded.filter((d) => d && d.id && !deletedDepotIds.has(String(d.id)));
+      }
     }
     const savedAccounts = localStorage.getItem(CUSTOM_ACCOUNTS_KEY);
     if (savedAccounts) {
-      dynamicAccounts = JSON.parse(savedAccounts);
+      const loadedAcc = JSON.parse(savedAccounts);
+      if (loadedAcc && typeof loadedAcc === 'object') {
+        dynamicAccounts = loadedAcc;
+        for (const k of Object.keys(dynamicAccounts)) {
+          if (dynamicAccounts[k] && deletedDepotIds.has(String(dynamicAccounts[k].depot))) {
+            delete dynamicAccounts[k];
+          }
+        }
+      }
     }
   }
 } catch (e) {
@@ -542,39 +574,89 @@ function notifyDepotListeners() {
 
 /**
  * Synchronizes in-memory and local dynamic depots with data received from backend server.
- * Enables automatic cross-device reflection: when any device adds or deletes a depot,
- * all devices polling /api/sync-state update their local dynamic depots & accounts automatically.
+ * Ensures that newly created depots are NEVER prematurely deleted when updating app code or on server restarts,
+ * while respecting tombstones when an administrator explicitly deletes a depot.
  */
-export function syncDepotsWithServer(remoteDepots, remoteAccounts) {
+export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds) {
   let changed = false;
 
-  if (Array.isArray(remoteDepots)) {
-    const remoteSerialized = JSON.stringify(remoteDepots);
-    const localSerialized = JSON.stringify(dynamicDepots);
-    if (remoteSerialized !== localSerialized) {
-      dynamicDepots = [...remoteDepots];
+  // 1. Ingest any remote tombstones (permanently deleted depot IDs)
+  if (Array.isArray(remoteDeletedIds)) {
+    remoteDeletedIds.forEach((id) => {
+      const cleanId = String(id || '').trim();
+      if (cleanId && !deletedDepotIds.has(cleanId)) {
+        deletedDepotIds.add(cleanId);
+        changed = true;
+      }
+    });
+  }
+
+  // 2. Remove any local depots or accounts that are marked deleted
+  const initialDepotCount = dynamicDepots.length;
+  dynamicDepots = dynamicDepots.filter((d) => !deletedDepotIds.has(String(d.id)));
+  if (dynamicDepots.length !== initialDepotCount) {
+    changed = true;
+  }
+  for (const k of Object.keys(dynamicAccounts)) {
+    if (dynamicAccounts[k] && deletedDepotIds.has(String(dynamicAccounts[k].depot))) {
+      delete dynamicAccounts[k];
       changed = true;
     }
   }
 
+  // 3. Merge incoming remote depots - DO NOT blindly overwrite local custom depots!
+  if (Array.isArray(remoteDepots)) {
+    remoteDepots.forEach((rDepot) => {
+      if (!rDepot || !rDepot.id) return;
+      const cleanId = String(rDepot.id).trim();
+      if (deletedDepotIds.has(cleanId)) return; // Permanently deleted, ignore
+
+      const existingIdx = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
+      if (existingIdx >= 0) {
+        if (JSON.stringify(dynamicDepots[existingIdx]) !== JSON.stringify(rDepot)) {
+          dynamicDepots[existingIdx] = rDepot;
+          changed = true;
+        }
+      } else {
+        dynamicDepots.push(rDepot);
+        changed = true;
+      }
+    });
+  }
+
+  // 4. Merge incoming remote accounts
   if (remoteAccounts && typeof remoteAccounts === 'object') {
-    const remoteAccSerialized = JSON.stringify(remoteAccounts);
-    const localAccSerialized = JSON.stringify(dynamicAccounts);
-    if (remoteAccSerialized !== localAccSerialized) {
-      dynamicAccounts = { ...remoteAccounts };
-      changed = true;
+    for (const [k, acc] of Object.entries(remoteAccounts)) {
+      if (acc && acc.depot && !deletedDepotIds.has(String(acc.depot))) {
+        if (!dynamicAccounts[k] || JSON.stringify(dynamicAccounts[k]) !== JSON.stringify(acc)) {
+          dynamicAccounts[k] = acc;
+          changed = true;
+        }
+      }
     }
+  }
+
+  // 5. CRITICAL: If local device has dynamic depots that the server does NOT know about yet,
+  // push them up to the server so the server NEVER wipes them out!
+  const serverMissingLocalDepots = dynamicDepots.some((localD) => {
+    return !Array.isArray(remoteDepots) || !remoteDepots.some((rD) => String(rD.id) === String(localD.id));
+  });
+
+  if (serverMissingLocalDepots && dynamicDepots.length > 0) {
+    try {
+      if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
+        api.saveCustomDepot({
+          action: 'sync',
+          customDepots: dynamicDepots,
+          customAccounts: dynamicAccounts,
+          deletedDepotIds: Array.from(deletedDepotIds),
+        }).catch(() => {});
+      }
+    } catch (_) {}
   }
 
   if (changed) {
-    try {
-      if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
-        localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
-        localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
-      }
-    } catch (e) {
-      console.warn('Failed to cache synced dynamic depots in localStorage:', e);
-    }
+    persistLocalDepotState();
     notifyDepotListeners();
   }
 
@@ -586,7 +668,11 @@ try {
   if (typeof api !== 'undefined' && api && typeof api.getCustomDepots === 'function') {
     api.getCustomDepots().then((res) => {
       if (res && res.ok && res.data) {
-        syncDepotsWithServer(res.data.customDepots || [], res.data.customAccounts || {});
+        syncDepotsWithServer(
+          res.data.customDepots || [],
+          res.data.customAccounts || {},
+          res.data.deletedDepotIds || []
+        );
       }
     }).catch(() => {});
   }
@@ -634,6 +720,11 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
   const cleanLocation = String(location || cleanName).trim();
   const cleanRoutes = Array.isArray(routes) ? routes : [];
   const cleanPass = String(password || 'Test@123').trim();
+
+  // If this depot ID was previously tombstoned, remove it from deletedDepotIds
+  if (deletedDepotIds.has(cleanId)) {
+    deletedDepotIds.delete(cleanId);
+  }
 
   const newDepot = {
     id: cleanId,
@@ -728,16 +819,8 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
   dynamicAccounts[opsKey] = opsAccount;
   dynamicAccounts[opsAlias] = opsAccount;
 
-  // Persist to localStorage
-  try {
-    if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
-      localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
-      localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
-    }
-  } catch (e) {
-    console.warn('Failed to persist custom depot:', e);
-  }
-
+  // Persist state to localStorage
+  persistLocalDepotState();
   notifyDepotListeners();
 
   // Cross-device sync: dispatch addition to server so all devices reflect it
@@ -756,6 +839,7 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
           [opsKey]: opsAccount,
           [opsAlias]: opsAccount,
         },
+        deletedDepotIds: Array.from(deletedDepotIds),
       }).catch((err) => {
         console.warn('[registerNewDepot] Server sync failed (offline or unreachable):', err?.message || err);
       });
@@ -777,6 +861,7 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
  */
 export function deleteDepot(depotId) {
   const cleanId = String(depotId || '').trim().replace(/^DEPOT\s*/i, '');
+  deletedDepotIds.add(cleanId);
   dynamicDepots = dynamicDepots.filter((d) => String(d.id) !== cleanId);
 
   // Remove all dynamic accounts associated with this depot
@@ -786,21 +871,13 @@ export function deleteDepot(depotId) {
     }
   });
 
-  try {
-    if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
-      localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
-      localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
-    }
-  } catch (e) {
-    console.warn('Failed to persist depot deletion:', e);
-  }
-
+  persistLocalDepotState();
   notifyDepotListeners();
 
   // Cross-device sync: dispatch deletion to server so all devices reflect it
   try {
     if (typeof api !== 'undefined' && api && typeof api.deleteCustomDepot === 'function') {
-      api.deleteCustomDepot(cleanId).catch((err) => {
+      api.deleteCustomDepot(cleanId, Array.from(deletedDepotIds)).catch((err) => {
         console.warn('[deleteDepot] Server sync failed (offline or unreachable):', err?.message || err);
       });
     }

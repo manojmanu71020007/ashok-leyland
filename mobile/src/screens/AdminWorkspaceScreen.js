@@ -944,6 +944,13 @@ export default function AdminWorkspaceScreen() {
             // Unassign custom routes
             setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== selectedDepotToDelete));
 
+            if (adminDepotFilter === selectedDepotToDelete) {
+              setAdminDepotFilter('all');
+            }
+            if (selectedDepot === selectedDepotToDelete && typeof switchDepot === 'function') {
+              switchDepot('1');
+            }
+
             setDepotAuditLogs((prev) => [
               {
                 id: Date.now().toString(),
@@ -4808,6 +4815,27 @@ export default function AdminWorkspaceScreen() {
                               );
                             })}
                         </ScrollView>
+                      )}
+
+                      {selectedDepotToDelete && (
+                        <View style={styles.delDepotPreviewCard}>
+                          <Text style={styles.delDepotPreviewTitle}>
+                            📋 Operations & Corridors to be permanently removed:
+                          </Text>
+                          <Text style={styles.delDepotPreviewItem}>⚡ Charging Operations: ES-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
+                          <Text style={styles.delDepotPreviewItem}>🧹 Cleaning & Sanitization: INSP-DEPOT-{selectedDepotToDelete.toUpperCase()}-01</Text>
+                          <Text style={styles.delDepotPreviewItem}>📅 Smart Bus Scheduling: IS-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
+                          <Text style={styles.delDepotPreviewItem}>🏢 Depot Operations: DM-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
+                          {(() => {
+                            const dObj = depotsList.find((d) => String(d.id) === selectedDepotToDelete);
+                            const rCount = dObj?.routes?.length || 0;
+                            return (
+                              <Text style={styles.delDepotPreviewItem}>
+                                🛣️ Corridors unassigned: {rCount > 0 ? dObj.routes.join(', ') : 'None'}
+                              </Text>
+                            );
+                          })()}
+                        </View>
                       )}
 
                       <Text style={styles.modalFieldLabel}>
@@ -9632,5 +9660,26 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     fontWeight: '700',
     color: '#3b82f6',
+  },
+  delDepotPreviewCard: {
+    backgroundColor: '#fff1f2',
+    borderWidth: 1,
+    borderColor: '#fecdd3',
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 6,
+    marginBottom: 12,
+  },
+  delDepotPreviewTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#be123c',
+    marginBottom: 6,
+  },
+  delDepotPreviewItem: {
+    fontSize: 11.5,
+    color: '#9f1239',
+    marginBottom: 3,
+    fontWeight: '600',
   },
 });
