@@ -397,32 +397,40 @@ export default function SchedulingScreen() {
 
   const resolveDepotRoute = useCallback((code) => {
     const clean = String(code || '').toUpperCase().trim();
-    const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
-    if (found) return found;
 
-    const dyn = getRouteDefinition(clean);
+    // 1. Check dynamic route definition first (by code and depot ID)
+    const dyn = getRouteDefinition(clean, depotNum);
     if (dyn) {
+      const orig = String(dyn.origin || `${depotLabel} Terminal`).trim();
+      const dest = String(dyn.destination || 'Central Terminal').trim();
+      const fName = String(dyn.fullName || dyn.name || `${orig} ➔ ${dest}`).trim();
+      const dist = Number(dyn.distance) || 25.0;
       return {
         id: clean,
         code: clean,
-        name: dyn.fullName || dyn.name || `Route ${clean}`,
-        fullName: dyn.fullName || dyn.name || `Route ${clean}`,
+        name: `${orig} ➔ ${dest} (${clean})`,
+        fullName: fName,
         shortName: dyn.shortName || clean,
-        origin: dyn.origin || `${depotLabel} Terminal`,
-        destination: dyn.destination || 'Central Terminal',
+        origin: orig,
+        destination: dest,
         via: dyn.via || 'Direct Express',
         timetables: Array.isArray(dyn.timetables) ? dyn.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
-        distance: Number(dyn.distance) || 25.0,
-        fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
+        distance: dist,
+        fullDutyKm: dyn.fullDutyKm || parseFloat((dist * 2).toFixed(1)),
         duration: dyn.duration || '50 mins',
-        energyEst: dyn.energyEst || `${Math.round((Number(dyn.distance) || 25.0) * 1.25)} kWh`,
+        energyEst: dyn.energyEst || `${Math.round(dist * 1.25)} kWh`,
         shift: dyn.shift || 'General Shift',
         category: dyn.category || 'Standard',
         requiredCat: dyn.requiredCat || 'B',
-        drainSoc: dyn.drainSoc || Math.min(95, Math.max(10, Math.round((Number(dyn.distance) || 25.0) * 0.85))),
+        drainSoc: dyn.drainSoc || Math.min(95, Math.max(10, Math.round(dist * 0.85))),
       };
     }
 
+    // 2. Base routes check for Depot 1 and Depot 2 standard routes
+    const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
+    if (found) return found;
+
+    // 3. Fallback
     return {
       id: clean,
       code: clean,
@@ -442,7 +450,7 @@ export default function SchedulingScreen() {
       requiredCat: 'B',
       drainSoc: 24,
     };
-  }, [depotLabel, ALL_BASE_ROUTES]);
+  }, [depotLabel, depotNum, ALL_BASE_ROUTES]);
 
   const matchedRoutes = assignedRouteCodes.map(resolveDepotRoute);
   const availableRoutes = (depotNum === '1' && matchedRoutes.length === 0)
@@ -472,17 +480,25 @@ export default function SchedulingScreen() {
         : matched;
 
     if (routesForDepot.length > 0) {
-      const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute?.id);
+      const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute?.id || r.code === selectedRoute?.code);
       if (!isCurrentInDepot || !selectedRoute) {
         setSelectedRoute(routesForDepot[0]);
         setScheduledTime(routesForDepot[0].timetables?.[0] || '08:00 AM');
         setSelectedCandidateBm(null);
+      } else {
+        const refreshed = routesForDepot.find((r) => r.id === selectedRoute?.id || r.code === selectedRoute?.code);
+        if (refreshed && (refreshed.distance !== selectedRoute.distance || refreshed.origin !== selectedRoute.origin || refreshed.destination !== selectedRoute.destination || refreshed.fullName !== selectedRoute.fullName)) {
+          setSelectedRoute(refreshed);
+        }
       }
     } else {
       setSelectedRoute(null);
       setScheduledTime('');
       setSelectedCandidateBm(null);
     }
+  }, [depotNum, assignedRouteCodes, resolveDepotRoute]);
+
+  React.useEffect(() => {
     const driversForDepot = DEPOT_DRIVERS[depotNum] || DEPOT_DRIVERS['1'];
     setSelectedDriver(driversForDepot[0]);
     setDriverNameInput(driversForDepot[0].name);
@@ -951,6 +967,10 @@ export default function SchedulingScreen() {
     Alert.alert(
       'Confirm Bus Allocation',
       `Are you sure you want to allocate Bus ${activeCandidate.bmNumber} (${activeCandidate.regNo}) to Route ${selectedRoute.code}?\n\n` +
+        `• Full Route: ${selectedRoute.fullName || selectedRoute.name}\n` +
+        `• Starting Point (Origin): ${selectedRoute.origin || 'N/A'}\n` +
+        `• Destination: ${selectedRoute.destination || 'N/A'}\n` +
+        `• Scheduled Distance: ${selectedRoute.distance} km\n` +
         `• Departure Time: ${scheduledTime}\n` +
         `• Driver: ${finalDriverName}\n` +
         `• Battery SoC: ${activeCandidate.soc}%\n` +
@@ -975,7 +995,7 @@ export default function SchedulingScreen() {
               routeId: selectedRoute.id,
               routeCode: selectedRoute.code,
               busNumber: selectedRoute.code,
-              routeName: `${selectedRoute.name} — ${selectedRoute.distance} km`,
+              routeName: `${selectedRoute.fullName || selectedRoute.name} (${selectedRoute.distance} km)`,
               origin: selectedRoute.origin,
               destination: selectedRoute.destination,
               departureTime: scheduledTime,
@@ -999,7 +1019,7 @@ export default function SchedulingScreen() {
 
             Alert.alert(
               isManualOverride ? '⚠️ Committed Duty Allocation (Manual Over-ride)' : '⚡ Committed Duty Allocation',
-              `Bus ${activeCandidate.bmNumber} (${activeCandidate.regNo}) assigned to Route ${selectedRoute.code} departing at ${scheduledTime} with Driver ${finalDriverName}${isManualOverride ? ` [MANUAL OVER-RIDE: Mandatory was ${mandatoryCandidate?.bmNumber}]` : ''}!\n\nThis allocation is now live in Admin Workspace and Depot Operations.`,
+              `Bus ${activeCandidate.bmNumber} (${activeCandidate.regNo}) assigned to Route ${selectedRoute.code} (${selectedRoute.origin || 'Origin'} ➔ ${selectedRoute.destination || 'Destination'}, ${selectedRoute.distance} km) departing at ${scheduledTime} with Driver ${finalDriverName}${isManualOverride ? ` [MANUAL OVER-RIDE: Mandatory was ${mandatoryCandidate?.bmNumber}]` : ''}!\n\nThis allocation is now live in Admin Workspace and Depot Operations.`,
               [{ text: 'OK', style: 'default' }]
             );
           },
@@ -1081,15 +1101,65 @@ export default function SchedulingScreen() {
           {/* 1. Bus Route Selector */}
           <Text style={styles.fieldLabel}>{t('label_select_bus_route', 'Select Bus Route')}</Text>
           <TouchableOpacity
-            style={styles.selectBox}
+            style={[styles.selectBox, { paddingVertical: 12, minHeight: 64 }]}
             onPress={() => setRoutePickerOpen(true)}
             activeOpacity={0.8}
           >
-            <Text style={styles.selectBoxText}>
-              🚌 {selectedRoute.code} — {selectedRoute.fullName || selectedRoute.name} ({selectedRoute.distance} km)
-            </Text>
+            <View style={{ flex: 1, paddingRight: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4, flexWrap: 'wrap', gap: 6 }}>
+                <View style={styles.routeCodeTag}>
+                  <Text style={styles.routeCodeTagText}>{selectedRoute.code}</Text>
+                </View>
+                <Text style={styles.selectBoxRouteTitle} numberOfLines={2}>
+                  {selectedRoute.fullName || selectedRoute.name}
+                </Text>
+              </View>
+              {(selectedRoute.origin || selectedRoute.destination) && (
+                <Text style={styles.selectBoxRoutePath} numberOfLines={2}>
+                  📍 {selectedRoute.origin || 'Origin'} ➔ 🏁 {selectedRoute.destination || 'Destination'}
+                </Text>
+              )}
+            </View>
             <Text style={styles.caret}>▼</Text>
           </TouchableOpacity>
+
+          {/* Dedicated Route Waypoints & Distance Profile Card */}
+          <View style={styles.routeWaypointsCard}>
+            <View style={styles.routeWaypointItem}>
+              <Text style={styles.routeWaypointLabel}>📍 STARTING POINT (ORIGIN)</Text>
+              <Text style={styles.routeWaypointVal} numberOfLines={2}>
+                {selectedRoute.origin || 'Not specified'}
+              </Text>
+            </View>
+            <View style={styles.routeWaypointDivider} />
+            <View style={styles.routeWaypointItem}>
+              <Text style={styles.routeWaypointLabel}>🏁 DESTINATION</Text>
+              <Text style={styles.routeWaypointVal} numberOfLines={2}>
+                {selectedRoute.destination || 'Not specified'}
+              </Text>
+            </View>
+            <View style={styles.routeWaypointDivider} />
+            <View style={styles.routeWaypointMetaRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.routeWaypointLabel}>📏 SCHEDULED DISTANCE</Text>
+                <Text style={[styles.routeWaypointVal, { color: '#0284c7', fontWeight: '800' }]}>
+                  {selectedRoute.distance} km
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.routeWaypointLabel}>🔄 FULL DUTY</Text>
+                <Text style={styles.routeWaypointVal}>
+                  {selectedRoute.fullDutyKm || (Math.round(selectedRoute.distance * 2 * 10) / 10)} km
+                </Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.routeWaypointLabel}>⚡ SHIFT & CLASS</Text>
+                <Text style={styles.routeWaypointVal}>
+                  {selectedRoute.shift || 'General'} (Cat {selectedRoute.requiredCat || 'B'})
+                </Text>
+              </View>
+            </View>
+          </View>
 
           {/* 2. {t('label_departure_time', 'Scheduled Departure Time')} */}
           <Text style={styles.fieldLabel}>
@@ -1109,7 +1179,9 @@ export default function SchedulingScreen() {
           {/* 4. Schedule distance */}
           <Text style={styles.fieldLabel}>{t('schedule_distance', 'Schedule distance (km)')}</Text>
           <View style={styles.readonlyInput}>
-            <Text style={styles.readonlyInputText}>{selectedRoute.distance} km ({t('fixed_gtfs_data', 'Fixed GTFS data')})</Text>
+            <Text style={styles.readonlyInputText}>
+              {selectedRoute.distance} km ({t('fixed_gtfs_data', 'Fixed GTFS data')}) • {selectedRoute.origin || 'Origin'} ➔ {selectedRoute.destination || 'Destination'}
+            </Text>
           </View>
 
           {/* 5. Assigned Driver Input & Dropdown */}
@@ -1500,9 +1572,21 @@ export default function SchedulingScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.pickerItemTitle}>{r.code} — {r.fullName || r.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4, flexWrap: 'wrap' }}>
+                      <View style={styles.routeCodeTag}>
+                        <Text style={styles.routeCodeTagText}>{r.code}</Text>
+                      </View>
+                      <Text style={styles.pickerItemTitle}>
+                        {r.fullName || r.name}
+                      </Text>
+                    </View>
+                    {(r.origin || r.destination) && (
+                      <Text style={{ fontSize: 13, fontWeight: '600', color: '#0369a1', marginBottom: 3 }}>
+                        📍 {r.origin || 'Origin'} ➔ 🏁 {r.destination || 'Destination'}
+                      </Text>
+                    )}
                     <Text style={styles.pickerItemSub}>
-                      GTFS Distance: {r.distance} km • Category {r.requiredCat} ({r.category})
+                      📏 Scheduled Distance: {r.distance} km • Category {r.requiredCat || 'B'} • Shift: {r.shift || 'General'}
                     </Text>
                   </View>
                   {r.id === selectedRoute?.id && <Text style={styles.pickerCheck}>✓</Text>}
@@ -2573,5 +2657,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     color: '#4361ee',
+  },
+
+  /* Route Badges & Profile Card */
+  routeCodeTag: {
+    backgroundColor: '#0284c7',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginRight: 4,
+  },
+  routeCodeTagText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  selectBoxRouteTitle: {
+    fontSize: 15,
+    fontWeight: '750',
+    color: '#0f172a',
+    flexShrink: 1,
+  },
+  selectBoxRoutePath: {
+    fontSize: 12.5,
+    color: '#0369a1',
+    fontWeight: '600',
+    marginTop: 2,
+  },
+  routeWaypointsCard: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    padding: 12,
+    marginTop: -4,
+    marginBottom: 16,
+  },
+  routeWaypointItem: {
+    paddingVertical: 3,
+  },
+  routeWaypointLabel: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#64748b',
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  routeWaypointVal: {
+    fontSize: 13.5,
+    fontWeight: '700',
+    color: '#1e293b',
+  },
+  routeWaypointDivider: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginVertical: 7,
+  },
+  routeWaypointMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingTop: 2,
+    gap: 8,
   },
 });

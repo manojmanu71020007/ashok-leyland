@@ -160,6 +160,30 @@ assert(adminContent.includes('addDepotDropdownOpen'), 'Operating depot selector 
 
 console.log('PASS: All previous turn requirements verified intact.\n');
 
+// ── Test 7: Verify Smart Bus Allocation Shows Origin, Destination & Exact Distance ──
+console.log('--- Test 7: Verify Smart Bus Allocation Shows Origin, Destination & Exact Distance ---');
+// Verify Route Waypoints & Profile Card
+assert(schedContent.includes('routeWaypointsCard'), 'SchedulingScreen must contain routeWaypointsCard');
+assert(schedContent.includes('STARTING POINT (ORIGIN)'), 'SchedulingScreen must show STARTING POINT (ORIGIN)');
+assert(schedContent.includes('🏁 DESTINATION'), 'SchedulingScreen must show DESTINATION');
+assert(schedContent.includes('📏 SCHEDULED DISTANCE'), 'SchedulingScreen must show SCHEDULED DISTANCE');
+assert(schedContent.includes('selectedRoute.distance'), 'SchedulingScreen must render selectedRoute.distance');
+
+// Verify Route Selector Button shows full path and origin/destination
+assert(schedContent.includes('selectBoxRoutePath'), 'SchedulingScreen selectBox must display route path');
+assert(schedContent.includes('selectedRoute.origin') && schedContent.includes('selectedRoute.destination'), 'SchedulingScreen must render selectedRoute.origin and destination');
+
+// Verify Route Picker Modal
+assert(schedContent.includes('📏 Scheduled Distance: {r.distance} km'), 'Route picker modal must display exact distance');
+
+// Verify server.js syncs customRouteDefinitions
+const serverPath = path.resolve(__dirname, '../server.js');
+const serverContent = fs.readFileSync(serverPath, 'utf8');
+assert(serverContent.includes('_customRouteDefinitions'), 'server.js must track and persist _customRouteDefinitions');
+assert(serverContent.includes('customRouteDefinitions: currentState._customRouteDefinitions'), 'server.js sync-state must return customRouteDefinitions');
+
+console.log('PASS: Smart bus allocation origin, destination, and exact scheduled distance verified in all components.\n');
+
 console.log('======================================================');
 console.log('ALL TESTS PASSED SUCCESSFULLY!');
 console.log('======================================================');

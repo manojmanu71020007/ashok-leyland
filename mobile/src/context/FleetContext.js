@@ -778,11 +778,12 @@ export const FleetProvider = ({ children }) => {
       let deletedBusesObj = {};
 
       if (resSync.ok && resSync.data) {
-        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined) {
+        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined || resSync.data.customRouteDefinitions !== undefined) {
           syncDepotsWithServer(
             resSync.data.customDepots || [],
             resSync.data.customAccounts || {},
-            resSync.data.deletedDepotIds || []
+            resSync.data.deletedDepotIds || [],
+            resSync.data.customRouteDefinitions || {}
           );
         }
 
