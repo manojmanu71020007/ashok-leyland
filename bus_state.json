@@ -20994,7 +20994,7 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "status": "available",
-      "chargingCompletedAt": "12:23 pm, 14 Nov 2026"
+      "cleaningCompletedAt": "12:28 pm, 14 Nov 2026"
     }
   },
   "BM600": {
@@ -21545,6 +21545,23 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1794639501844",
+      "bm": "BM1570",
+      "reg": "KA30MS4013",
+      "depot": "3",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "12:28 pm, 14 Nov 2026",
+      "unlockTime": "12:28 pm, 14 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "12:28 pm",
+      "dateStr": "14 Nov 2026"
+    },
     {
       "id": "clean_1794631105863",
       "bm": "BM214",
@@ -22239,6 +22256,10 @@
     "assignedRouteId": "BM1570",
     "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   }
 }
