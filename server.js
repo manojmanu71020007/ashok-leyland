@@ -2971,9 +2971,6 @@ function loadBusState() {
         if (!Array.isArray(masterBusState._deletedDepotIds)) {
             masterBusState._deletedDepotIds = [];
         }
-        if (!masterBusState._customRouteDefinitions || typeof masterBusState._customRouteDefinitions !== "object") {
-            masterBusState._customRouteDefinitions = {};
-        }
         if (historyMissing) {
             saveBusState(masterBusState);
         }
@@ -4949,8 +4946,6 @@ const server = http.createServer(async (req, res) => {
 
                 customAccounts: currentState._customAccounts || {},
 
-                customRouteDefinitions: currentState._customRouteDefinitions || {},
-
                 deletedDepotIds: currentState._deletedDepotIds || [],
 
                 timestamp: Date.now()
@@ -4976,7 +4971,6 @@ const server = http.createServer(async (req, res) => {
                     ok: true,
                     customDepots: currentState._customDepots || [],
                     customAccounts: currentState._customAccounts || {},
-                    customRouteDefinitions: currentState._customRouteDefinitions || {},
                     deletedDepotIds: currentState._deletedDepotIds || [],
                     version: stateVersion
                 });
@@ -5000,21 +4994,8 @@ const server = http.createServer(async (req, res) => {
                     if (!Array.isArray(currentState._deletedDepotIds)) {
                         currentState._deletedDepotIds = [];
                     }
-                    if (!currentState._customRouteDefinitions || typeof currentState._customRouteDefinitions !== "object") {
-                        currentState._customRouteDefinitions = {};
-                    }
 
-                    const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds, customRouteDefinitions, routeDefinitions, deletedRouteCode } = payload;
-
-                    if (customRouteDefinitions && typeof customRouteDefinitions === "object") {
-                        Object.assign(currentState._customRouteDefinitions, customRouteDefinitions);
-                    }
-                    if (routeDefinitions && typeof routeDefinitions === "object") {
-                        Object.assign(currentState._customRouteDefinitions, routeDefinitions);
-                    }
-                    if (deletedRouteCode) {
-                        delete currentState._customRouteDefinitions[String(deletedRouteCode).toUpperCase().trim()];
-                    }
+                    const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds } = payload;
 
                     // Ingest any incoming deleted depot IDs
                     if (Array.isArray(deletedDepotIds)) {
@@ -5054,12 +5035,6 @@ const server = http.createServer(async (req, res) => {
                         if (Array.isArray(currentState._allocatedDuties)) {
                             currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
                         }
-                        // Delete route definitions for this deleted depot
-                        for (const rk of Object.keys(currentState._customRouteDefinitions || {})) {
-                            if (currentState._customRouteDefinitions[rk] && String(currentState._customRouteDefinitions[rk].depotId) === cleanId) {
-                                delete currentState._customRouteDefinitions[rk];
-                            }
-                        }
                     } else if (action === "sync" || Array.isArray(customDepots)) {
                         // Purge any depots or accounts that are in _deletedDepotIds
                         currentState._customDepots = (currentState._customDepots || []).filter(d => !currentState._deletedDepotIds.includes(String(d.id)));
@@ -5073,13 +5048,6 @@ const server = http.createServer(async (req, res) => {
                                 if (!d || !d.id) return;
                                 const id = String(d.id).trim();
                                 if (currentState._deletedDepotIds.includes(id)) return;
-                                if (Array.isArray(d.routeObjects)) {
-                                    d.routeObjects.forEach(ro => {
-                                        if (ro && (ro.code || ro.id)) {
-                                            currentState._customRouteDefinitions[String(ro.code || ro.id).toUpperCase().trim()] = ro;
-                                        }
-                                    });
-                                }
                                 const idx = currentState._customDepots.findIndex(ex => String(ex.id) === id);
                                 if (idx >= 0) {
                                     currentState._customDepots[idx] = d;
@@ -5101,7 +5069,6 @@ const server = http.createServer(async (req, res) => {
                     broadcastSyncEvent("custom-depots-updated", {
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
-                        customRouteDefinitions: currentState._customRouteDefinitions,
                         deletedDepotIds: currentState._deletedDepotIds
                     });
 
@@ -5110,7 +5077,6 @@ const server = http.createServer(async (req, res) => {
                         message: "Custom depots synchronized successfully",
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
-                        customRouteDefinitions: currentState._customRouteDefinitions,
                         deletedDepotIds: currentState._deletedDepotIds,
                         version: stateVersion
                     });

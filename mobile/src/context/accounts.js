@@ -577,17 +577,8 @@ function notifyDepotListeners() {
  * Ensures that newly created depots are NEVER prematurely deleted when updating app code or on server restarts,
  * while respecting tombstones when an administrator explicitly deletes a depot.
  */
-export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds, remoteRouteDefinitions) {
+export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds) {
   let changed = false;
-
-  // 0. Ingest any remote route definitions
-  if (remoteRouteDefinitions && typeof remoteRouteDefinitions === 'object') {
-    Object.values(remoteRouteDefinitions).forEach((rObj) => {
-      if (rObj && (rObj.code || rObj.id)) {
-        registerRouteDefinition(rObj);
-      }
-    });
-  }
 
   // 1. Ingest any remote tombstones (permanently deleted depot IDs)
   if (Array.isArray(remoteDeletedIds)) {
@@ -620,33 +611,10 @@ export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeleted
       const cleanId = String(rDepot.id).trim();
       if (deletedDepotIds.has(cleanId)) return; // Permanently deleted, ignore
 
-      // Ingest any routeObjects attached to remote depot
-      if (Array.isArray(rDepot.routeObjects)) {
-        rDepot.routeObjects.forEach((ro) => {
-          if (ro && (ro.code || ro.id)) {
-            registerRouteDefinition({ ...ro, depotId: cleanId });
-          }
-        });
-      }
-
       const existingIdx = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
       if (existingIdx >= 0) {
-        const mergedRouteObjects = Array.isArray(rDepot.routeObjects) && rDepot.routeObjects.length > 0
-          ? rDepot.routeObjects
-          : (dynamicDepots[existingIdx].routeObjects || []);
-        const mergedRoutes = Array.isArray(rDepot.routes) && rDepot.routes.length > 0
-          ? rDepot.routes
-          : (dynamicDepots[existingIdx].routes || []);
-
-        const mergedDepot = {
-          ...dynamicDepots[existingIdx],
-          ...rDepot,
-          routes: mergedRoutes,
-          routeObjects: mergedRouteObjects,
-        };
-
-        if (JSON.stringify(dynamicDepots[existingIdx]) !== JSON.stringify(mergedDepot)) {
-          dynamicDepots[existingIdx] = mergedDepot;
+        if (JSON.stringify(dynamicDepots[existingIdx]) !== JSON.stringify(rDepot)) {
+          dynamicDepots[existingIdx] = rDepot;
           changed = true;
         }
       } else {
@@ -681,7 +649,6 @@ export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeleted
           action: 'sync',
           customDepots: dynamicDepots,
           customAccounts: dynamicAccounts,
-          customRouteDefinitions: dynamicRouteDefinitions,
           deletedDepotIds: Array.from(deletedDepotIds),
         }).catch(() => {});
       }
@@ -704,8 +671,7 @@ try {
         syncDepotsWithServer(
           res.data.customDepots || [],
           res.data.customAccounts || {},
-          res.data.deletedDepotIds || [],
-          res.data.customRouteDefinitions || {}
+          res.data.deletedDepotIds || []
         );
       }
     }).catch(() => {});
@@ -771,9 +737,9 @@ export function registerRouteDefinition(routeObj) {
   if (!routeObj) return;
   const cleanCode = String(routeObj.code || routeObj.shortName || routeObj.id || '').trim().toUpperCase();
   if (!cleanCode) return;
+  const fullName = String(routeObj.fullName || routeObj.name || `Route ${cleanCode}`).trim();
   const origin = String(routeObj.origin || 'Depot Terminal').trim();
   const destination = String(routeObj.destination || 'City Terminal').trim();
-  const fullName = String(routeObj.fullName || routeObj.name || `${origin} ➔ ${destination}`).trim();
   const dist = Number(routeObj.distance) || 25.0;
 
   dynamicRouteDefinitions[cleanCode] = {
@@ -781,7 +747,7 @@ export function registerRouteDefinition(routeObj) {
     code: cleanCode,
     shortName: routeObj.shortName ? String(routeObj.shortName).trim() : cleanCode,
     fullName: fullName,
-    name: `${origin} ➔ ${destination} (${cleanCode})`,
+    name: fullName,
     origin: origin,
     destination: destination,
     distance: dist,
@@ -790,42 +756,16 @@ export function registerRouteDefinition(routeObj) {
     timetables: Array.isArray(routeObj.timetables) ? routeObj.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
     category: routeObj.category || 'Standard',
     requiredCat: routeObj.requiredCat || 'B',
-    drainSoc: routeObj.drainSoc || Math.min(95, Math.max(10, Math.round(dist * 0.85))),
     depotId: String(routeObj.depotId || '1'),
     custom: true,
   };
   persistRouteDefinitions();
 }
 
-export function getRouteDefinition(code, depotId) {
+export function getRouteDefinition(code) {
   if (!code) return null;
   const clean = String(code).trim().toUpperCase();
-  if (dynamicRouteDefinitions[clean]) {
-    return dynamicRouteDefinitions[clean];
-  }
-  // Check dynamicDepots routeObjects
-  for (const d of dynamicDepots) {
-    if (depotId && String(d.id) !== String(depotId)) continue;
-    if (Array.isArray(d.routeObjects)) {
-      const match = d.routeObjects.find((ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() === clean);
-      if (match) {
-        registerRouteDefinition({ ...match, depotId: String(d.id) });
-        return dynamicRouteDefinitions[clean];
-      }
-    }
-  }
-  // Check DEFAULT_DEPOTS if any
-  for (const d of DEFAULT_DEPOTS) {
-    if (depotId && String(d.id) !== String(depotId)) continue;
-    if (Array.isArray(d.routeObjects)) {
-      const match = d.routeObjects.find((ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() === clean);
-      if (match) {
-        registerRouteDefinition({ ...match, depotId: String(d.id) });
-        return dynamicRouteDefinitions[clean];
-      }
-    }
-  }
-  return null;
+  return dynamicRouteDefinitions[clean] || null;
 }
 
 export function getAllRouteDefinitions() {
@@ -845,18 +785,9 @@ export function addRouteToDepot(depotId, routeData) {
     return { ok: false, error: 'Depot ID and Route code are required.' };
   }
 
-  const routeObjToStore = isObj ? { ...routeData, depotId: cleanId, code: cleanRoute } : {
-    id: cleanRoute,
-    code: cleanRoute,
-    shortName: cleanRoute,
-    fullName: `Route ${cleanRoute}`,
-    origin: 'Depot Terminal',
-    destination: 'City Terminal',
-    distance: 25.0,
-    depotId: cleanId,
-  };
-
-  registerRouteDefinition(routeObjToStore);
+  if (isObj) {
+    registerRouteDefinition({ ...routeData, depotId: cleanId });
+  }
 
   let updatedRoutes = [];
   const dIndex = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
@@ -867,15 +798,6 @@ export function addRouteToDepot(depotId, routeData) {
     if (!dynamicDepots[dIndex].routes.includes(cleanRoute)) {
       dynamicDepots[dIndex].routes = [...dynamicDepots[dIndex].routes, cleanRoute];
     }
-    if (!Array.isArray(dynamicDepots[dIndex].routeObjects)) {
-      dynamicDepots[dIndex].routeObjects = [];
-    }
-    const roIdx = dynamicDepots[dIndex].routeObjects.findIndex((ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() === cleanRoute);
-    if (roIdx >= 0) {
-      dynamicDepots[dIndex].routeObjects[roIdx] = routeObjToStore;
-    } else {
-      dynamicDepots[dIndex].routeObjects.push(routeObjToStore);
-    }
     updatedRoutes = dynamicDepots[dIndex].routes;
   } else {
     const defDepot = DEFAULT_DEPOTS.find((d) => String(d.id) === cleanId);
@@ -883,15 +805,6 @@ export function addRouteToDepot(depotId, routeData) {
       if (!Array.isArray(defDepot.routes)) defDepot.routes = [];
       if (!defDepot.routes.includes(cleanRoute)) {
         defDepot.routes = [...defDepot.routes, cleanRoute];
-      }
-      if (!Array.isArray(defDepot.routeObjects)) {
-        defDepot.routeObjects = [];
-      }
-      const roIdx = defDepot.routeObjects.findIndex((ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() === cleanRoute);
-      if (roIdx >= 0) {
-        defDepot.routeObjects[roIdx] = routeObjToStore;
-      } else {
-        defDepot.routeObjects.push(routeObjToStore);
       }
       updatedRoutes = defDepot.routes;
     }
@@ -906,7 +819,6 @@ export function addRouteToDepot(depotId, routeData) {
         action: 'sync',
         customDepots: dynamicDepots,
         customAccounts: dynamicAccounts,
-        customRouteDefinitions: dynamicRouteDefinitions,
         deletedDepotIds: Array.from(deletedDepotIds),
       }).catch(() => {});
     }
@@ -936,21 +848,11 @@ export function removeRouteFromDepot(depotId, routeCode) {
     if (Array.isArray(dynamicDepots[dIndex].routes)) {
       dynamicDepots[dIndex].routes = dynamicDepots[dIndex].routes.filter((r) => r.toUpperCase() !== cleanRoute);
     }
-    if (Array.isArray(dynamicDepots[dIndex].routeObjects)) {
-      dynamicDepots[dIndex].routeObjects = dynamicDepots[dIndex].routeObjects.filter(
-        (ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() !== cleanRoute
-      );
-    }
     updatedRoutes = dynamicDepots[dIndex].routes;
   } else {
     const defDepot = DEFAULT_DEPOTS.find((d) => String(d.id) === cleanId);
     if (defDepot && Array.isArray(defDepot.routes)) {
       defDepot.routes = defDepot.routes.filter((r) => r.toUpperCase() !== cleanRoute);
-      if (Array.isArray(defDepot.routeObjects)) {
-        defDepot.routeObjects = defDepot.routeObjects.filter(
-          (ro) => String(ro.code || ro.id || ro.shortName || '').toUpperCase().trim() !== cleanRoute
-        );
-      }
       updatedRoutes = defDepot.routes;
     }
   }
@@ -964,9 +866,7 @@ export function removeRouteFromDepot(depotId, routeCode) {
         action: 'sync',
         customDepots: dynamicDepots,
         customAccounts: dynamicAccounts,
-        customRouteDefinitions: dynamicRouteDefinitions,
         deletedDepotIds: Array.from(deletedDepotIds),
-        deletedRouteCode: cleanRoute,
       }).catch(() => {});
     }
   } catch (_) {}
