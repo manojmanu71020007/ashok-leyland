@@ -9289,7 +9289,7 @@
   },
   "_assignments": {
     "BM001": "BM001",
-    "600F": "KA35MS0000",
+    "600F": "BM1570",
     "BM002": "BM002",
     "BM003": "BM003",
     "BM004": "BM004",
@@ -9418,7 +9418,8 @@
     "BM300": "BM300",
     "BM303": "BM303",
     "BM304": "BM304",
-    "KA35MS0000": "KA35MS0000"
+    "KA35MS0000": "KA35MS0000",
+    "BM1570": "BM1570"
   },
   "_blockedBuses": [
     "BM001",
@@ -9916,12 +9917,12 @@
     "blocked": false
   },
   "600F": {
-    "status": "Blocked",
+    "status": "Active",
     "rawStatus": "On Time",
-    "soc": 0,
+    "soc": 96,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-11-14T04:35:23.277Z",
+    "updatedAt": "2026-11-14T06:53:40.934Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "15:10",
@@ -9939,13 +9940,13 @@
     "operation": "Single Charge Operation",
     "chargingStatus": "Completed",
     "chargerBay": "Bay #1",
-    "socBefore": 7,
+    "socBefore": 12,
     "socAfter": 96,
     "fullDutyDistanceKm": 122,
-    "lastChargedTime": "10:05 am",
+    "lastChargedTime": "12:23 pm",
     "history": [
       {
-        "timestamp": "2026-11-14T04:35:23.277Z",
+        "timestamp": "2026-11-14T06:53:40.934Z",
         "soc": 96,
         "condition": "Good",
         "status": "On Time"
@@ -9953,9 +9954,9 @@
     ],
     "needsCharging": false,
     "chargingCompleted": true,
-    "uniqueId": "KA35MS0000",
-    "bmNumber": "KA35MS0000",
-    "blocked": true
+    "uniqueId": "BM1570",
+    "bmNumber": "BM1570",
+    "blocked": false
   },
   "KBS3A": {
     "status": "Active",
@@ -10616,16 +10617,16 @@
       "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 123.88,
-      "fullDutyDistanceKm": 123.88,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -11540,16 +11541,16 @@
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 125.37,
-      "fullDutyDistanceKm": 125.37,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -11792,16 +11793,16 @@
       "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122.39,
-      "fullDutyDistanceKm": 122.39,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -13848,6 +13849,34 @@
       "fullDutyDistanceKm": 0,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM1570": {
+      "uniqueId": "BM1570",
+      "unique_id": "BM1570",
+      "vehicleId": "BM1570",
+      "bmNumber": "BM1570",
+      "busName": "BM1570",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM1570",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 96,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
+      "operationMode": "Single Charge Operation",
+      "blocked": false
     }
   },
   "_busAssignments": {
@@ -13880,32 +13909,32 @@
       "blocked": true
     },
     "600F": {
-      "uniqueId": "KA35MS0000",
-      "unique_id": "KA35MS0000",
-      "vehicleId": "KA35MS0000",
-      "bmNumber": "KA35MS0000",
-      "busName": "KA35MS0000",
+      "uniqueId": "BM1570",
+      "unique_id": "BM1570",
+      "vehicleId": "BM1570",
+      "bmNumber": "BM1570",
+      "busName": "BM1570",
       "defaultBusShortName": "600F",
-      "assignedRouteId": "KA35MS0000",
+      "assignedRouteId": "BM1570",
       "assignedRouteShortName": "600F",
       "origin": "Bommasandra Depot 32",
       "destination": "Basavanagudi (600F)",
       "assignedRouteDistanceKm": 114.75,
-      "assignedRouteDisplay": "Route KA35MS0000 - 600F (114.8 km)",
+      "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "C",
+      "busCategory": "A",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": false,
-      "soc": 0,
+      "matrixCompliant": true,
+      "soc": 96,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 0,
-      "fullDutyDistanceKm": 0,
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
       "operationMode": "Single Charge Operation",
-      "blocked": true
+      "blocked": false
     },
     "BM002": {
       "uniqueId": "BM002",
@@ -14146,16 +14175,16 @@
       "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 123.88,
-      "fullDutyDistanceKm": 123.88,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -15154,16 +15183,16 @@
       "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 125.37,
-      "fullDutyDistanceKm": 125.37,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -15406,16 +15435,16 @@
       "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122.39,
-      "fullDutyDistanceKm": 122.39,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -17518,6 +17547,34 @@
       "fullDutyDistanceKm": 0,
       "operationMode": "Single Charge Operation",
       "blocked": true
+    },
+    "BM1570": {
+      "uniqueId": "BM1570",
+      "unique_id": "BM1570",
+      "vehicleId": "BM1570",
+      "bmNumber": "BM1570",
+      "busName": "BM1570",
+      "defaultBusShortName": "600F",
+      "assignedRouteId": "BM1570",
+      "assignedRouteShortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi (600F)",
+      "assignedRouteDistanceKm": 114.75,
+      "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 96,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
+      "operationMode": "Single Charge Operation",
+      "blocked": false
     }
   },
   "_blockedRouteIds": [
@@ -17706,16 +17763,16 @@
       "bmNumber": "BM019",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 93,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 123.88,
-      "fullDutyDistanceKm": 123.88,
+      "estimatedRangeKm": 118,
+      "fullDutyDistanceKm": 118,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -18333,16 +18390,16 @@
       "bmNumber": "BM197",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 94,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 125.37,
-      "fullDutyDistanceKm": 125.37,
+      "estimatedRangeKm": 119,
+      "fullDutyDistanceKm": 119,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -18504,16 +18561,16 @@
       "bmNumber": "BM206",
       "routeCategory": "COMPLEX",
       "timeSlot": "NORMAL",
-      "busCategory": "A",
+      "busCategory": "B",
       "allowedCategories": [
         "A"
       ],
-      "matrixCompliant": true,
+      "matrixCompliant": false,
       "soc": 92,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 122.39,
-      "fullDutyDistanceKm": 122.39,
+      "estimatedRangeKm": 116,
+      "fullDutyDistanceKm": 116,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -19904,6 +19961,25 @@
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": true
+    },
+    "BM1570": {
+      "assignedVehicle": "BM1570",
+      "bmNumber": "BM1570",
+      "routeCategory": "COMPLEX",
+      "timeSlot": "NORMAL",
+      "busCategory": "A",
+      "allowedCategories": [
+        "A"
+      ],
+      "matrixCompliant": true,
+      "soc": 96,
+      "condition": "Good",
+      "driver": "Driver Assigned",
+      "estimatedRangeKm": 122,
+      "fullDutyDistanceKm": 122,
+      "operationMode": "Single Charge Operation",
+      "gtfsDistanceKm": 114.75,
+      "blocked": false
     }
   },
   "_swapLog": [],
@@ -20909,6 +20985,16 @@
       "cleaningCompleted": true,
       "status": "available",
       "cleaningCompletedAt": "10:08 am, 14 Nov 2026"
+    },
+    "BM1570": {
+      "bm": "BM1570",
+      "routeCompleted": false,
+      "needsCharging": false,
+      "chargingCompleted": true,
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "chargingCompletedAt": "12:23 pm, 14 Nov 2026"
     }
   },
   "BM600": {
@@ -21007,6 +21093,29 @@
     "make": "Ashok Leyland"
   },
   "_chargingHistory": [
+    {
+      "id": "charg_1794639217499",
+      "bm": "BM1570",
+      "reg": "KA30MS4013",
+      "depot": "3",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "12:23 pm, 14 Nov 2026",
+      "unlockTime": "12:23 pm, 14 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "startSoc": "12%",
+      "finalSoc": "96%",
+      "socBef": 12,
+      "socAft": 96,
+      "delta": 84,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ High Range Fleet Category A (Single Charge Ready)",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "12:23 pm",
+      "dateStr": "14 Nov 2026",
+      "fullDutyKm": 122
+    },
     {
       "id": "charg_1794630920692",
       "bm": "BM214",
@@ -22087,19 +22196,49 @@
   },
   "_deletedDepotIds": [],
   "BM1570": {
-    "uniqueId": "BM1570",
-    "bmNumber": "BM1570",
-    "busNumber": "600F",
-    "regNo": "KA30MS4013",
-    "status": "On Time",
-    "soc": 97,
+    "status": "Active",
+    "rawStatus": "On Time",
+    "soc": 96,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "busCategory": "A",
-    "isNewlyAdded": true,
-    "additionReason": "New Electric Bus Induction (Ashok Leyland EiV12)",
-    "addedAt": "2026-11-14T06:48:29.969Z",
-    "deleted": false,
-    "isDeleted": false
+    "updatedAt": "2026-11-14T06:53:40.934Z",
+    "statusTimings": {
+      "Delayed": {
+        "arrival": "15:10",
+        "departure": "15:15"
+      },
+      "On Time": {
+        "arrival": "15:00",
+        "departure": "15:05"
+      },
+      "Ahead": {
+        "arrival": "14:50",
+        "departure": "14:55"
+      }
+    },
+    "operation": "Single Charge Operation",
+    "chargingStatus": "Completed",
+    "chargerBay": "Bay #1",
+    "socBefore": 12,
+    "socAfter": 96,
+    "fullDutyDistanceKm": 122,
+    "lastChargedTime": "12:23 pm",
+    "history": [
+      {
+        "timestamp": "2026-11-14T06:53:40.934Z",
+        "soc": 96,
+        "condition": "Good",
+        "status": "On Time"
+      }
+    ],
+    "needsCharging": false,
+    "chargingCompleted": true,
+    "uniqueId": "BM1570",
+    "busNumber": "600F",
+    "bmNumber": "BM1570",
+    "assignedRouteId": "BM1570",
+    "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
+    "assignedRouteShortName": "600F",
+    "blocked": false
   }
 }
