@@ -1661,7 +1661,11 @@
     "assignedRouteId": "BM019",
     "assignedRouteDisplay": "Route BM019 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-08": {
     "status": "Blocked",
@@ -4095,7 +4099,11 @@
     "assignedRouteId": "BM197",
     "assignedRouteDisplay": "Route BM197 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-41": {
     "uniqueId": "BUS-41",
@@ -4635,7 +4643,11 @@
     "assignedRouteId": "BM206",
     "assignedRouteDisplay": "Route BM206 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-50": {
     "uniqueId": "BUS-50",
@@ -5040,7 +5052,11 @@
     "assignedRouteId": "BM214",
     "assignedRouteDisplay": "Route BM214 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isLocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "BUS-57": {
     "uniqueId": "BUS-57",
@@ -19892,61 +19908,7 @@
   },
   "_swapLog": [],
   "_allocatedDuties": [],
-  "_lockedBuses": [
-    {
-      "bm": "BM197",
-      "bmNumber": "BM197",
-      "reg": "KA51AH7661",
-      "depot": "1",
-      "page": "turnaround",
-      "reason": "Turnaround (Cleaning & Wash Required Before Scheduling)",
-      "isTurnaround": true,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "startTime": "10:05 AM",
-      "startTimestamp": 1794630903180
-    },
-    {
-      "bm": "BM206",
-      "bmNumber": "BM206",
-      "reg": "KA51AH7669",
-      "depot": "1",
-      "page": "turnaround",
-      "reason": "Turnaround (Cleaning & Wash Required Before Scheduling)",
-      "isTurnaround": true,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "startTime": "10:05 AM",
-      "startTimestamp": 1794630918042
-    },
-    {
-      "bm": "BM214",
-      "bmNumber": "BM214",
-      "reg": "KA51AH8348",
-      "depot": "1",
-      "page": "turnaround",
-      "reason": "Turnaround (Cleaning & Wash Required Before Scheduling)",
-      "isTurnaround": true,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "startTime": "10:06 AM",
-      "startTimestamp": 1794630992971
-    },
-    {
-      "bm": "BM019",
-      "reg": "KA51AH2552",
-      "depot": "1",
-      "page": "cleaning",
-      "startTime": "10:06 am, 14 Nov 2026",
-      "startTimestamp": 1794630994812
-    }
-  ],
+  "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "Chandapura (BMT-32)",
     "BM002": "1",
@@ -20761,13 +20723,13 @@
     },
     "BM214": {
       "bm": "BM214",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "10:05 am, 14 Nov 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "10:08 am, 14 Nov 2026"
     },
     "BM215": {
       "bm": "BM215",
@@ -20903,33 +20865,33 @@
     },
     "BM019": {
       "bm": "BM019",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "10:04 am, 14 Nov 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "10:08 am, 14 Nov 2026"
     },
     "BM206": {
       "bm": "BM206",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "10:05 am, 14 Nov 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "10:08 am, 14 Nov 2026"
     },
     "BM197": {
       "bm": "BM197",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "10:04 am, 14 Nov 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "10:08 am, 14 Nov 2026"
     }
   },
   "BM600": {
@@ -21457,6 +21419,74 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1794631105863",
+      "bm": "BM214",
+      "reg": "KA51AH8348",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "10:08 am, 14 Nov 2026",
+      "unlockTime": "10:08 am, 14 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "10:08 am",
+      "dateStr": "14 Nov 2026"
+    },
+    {
+      "id": "clean_1794631100966",
+      "bm": "BM206",
+      "reg": "KA51AH7669",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "10:07 am, 14 Nov 2026",
+      "unlockTime": "10:08 am, 14 Nov 2026",
+      "duration": "1 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "10:08 am",
+      "dateStr": "14 Nov 2026"
+    },
+    {
+      "id": "clean_1794631095182",
+      "bm": "BM197",
+      "reg": "KA51AH7661",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "10:07 am, 14 Nov 2026",
+      "unlockTime": "10:08 am, 14 Nov 2026",
+      "duration": "1 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "10:08 am",
+      "dateStr": "14 Nov 2026"
+    },
+    {
+      "id": "clean_1794631088995",
+      "bm": "BM019",
+      "reg": "KA51AH2552",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "10:06 am, 14 Nov 2026",
+      "unlockTime": "10:08 am, 14 Nov 2026",
+      "duration": "2 mins",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "10:08 am",
+      "dateStr": "14 Nov 2026"
+    },
     {
       "id": "clean_1794630756336",
       "bm": "BM004",
