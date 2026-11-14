@@ -23,6 +23,7 @@ import React, { createContext, useState, useEffect, useContext, useCallback, use
 import { api } from '../api/client';
 import { useAuth } from './AuthContext';
 import { syncDepotsWithServer } from './accounts';
+import { getRouteFromDataset } from './routeDataset.js';
 import { INITIAL_FLEET } from './initialFleet';
 import staticCats from './staticBusCategories.json';
 import staticRanges from './staticBusRanges.json';
@@ -299,7 +300,31 @@ export function getBusActualRangeKm(bm) {
   return 110.0;
 }
 
-export function getTimeCategory(timeStr) {
+export function getTimeCategory(timeStr, routeObj = null) {
+  if (routeObj && typeof routeObj === 'object') {
+    if (routeObj.timeComplexitySlots && timeStr && routeObj.timeComplexitySlots[timeStr]) {
+      const slot = String(routeObj.timeComplexitySlots[timeStr]).toUpperCase();
+      if (slot.includes('EXTREME')) {
+        return { key: 'EXTREME_PEAK', label: `Extreme Peak (${timeStr})`, isPeak: true };
+      }
+      if (slot.includes('PEAK')) {
+        return { key: 'PEAK', label: `Peak (${timeStr})`, isPeak: true };
+      }
+      if (slot.includes('NORM')) {
+        return { key: 'NORMAL', label: `Normal (${timeStr})`, isPeak: false };
+      }
+    }
+    if (routeObj.timeComplexity) {
+      const tc = String(routeObj.timeComplexity).toUpperCase();
+      if (tc.includes('EXTREME')) {
+        return { key: 'EXTREME_PEAK', label: 'Extreme Peak (Route Override)', isPeak: true };
+      }
+      if (tc.includes('PEAK')) {
+        return { key: 'PEAK', label: 'Peak (Route Override)', isPeak: true };
+      }
+    }
+  }
+
   const depMin = timeToMinutes(timeStr || '12:00');
   const departHours = depMin / 60;
   if (departHours >= 5 && departHours < 7) {
@@ -371,6 +396,25 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
 }
 
 export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
+  let routeCode = null;
+  let depotId = null;
+  if (distOrRoute && typeof distOrRoute === 'object') {
+    routeCode = distOrRoute.code || distOrRoute.id || distOrRoute.shortName;
+    depotId = distOrRoute.depot || distOrRoute.depotId;
+  } else if (matchedSched && matchedSched.route) {
+    routeCode = matchedSched.route;
+  }
+  if (routeCode) {
+    const dsRoute = getRouteFromDataset(routeCode, depotId);
+    if (dsRoute && (dsRoute.routeComplexity || dsRoute.category)) {
+      const sc = String(dsRoute.routeComplexity || dsRoute.category).toLowerCase();
+      if (sc.includes('comp')) return 'complex';
+      if (sc.includes('mod')) return 'moderate';
+      if (sc.includes('stand')) return 'standard';
+      if (sc.includes('simp')) return 'simple';
+    }
+  }
+
   if (matchedSched && matchedSched.category) {
     const sc = String(matchedSched.category).toLowerCase();
     if (sc.includes('comp')) return 'complex';
@@ -380,8 +424,8 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   }
   let routeObj = (distOrRoute && typeof distOrRoute === 'object') ? distOrRoute : null;
   let dist = (typeof distOrRoute === 'number') ? distOrRoute : (routeObj ? (routeObj.distance || routeObj.distKm) : 0);
-  if (routeObj && routeObj.category) {
-    const sc = String(routeObj.category).toLowerCase();
+  if (routeObj && (routeObj.routeComplexity || routeObj.category)) {
+    const sc = String(routeObj.routeComplexity || routeObj.category).toLowerCase();
     if (sc.includes('comp')) return 'complex';
     if (sc.includes('mod')) return 'moderate';
     if (sc.includes('stand')) return 'standard';
@@ -778,11 +822,12 @@ export const FleetProvider = ({ children }) => {
       let deletedBusesObj = {};
 
       if (resSync.ok && resSync.data) {
-        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined) {
+        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined || resSync.data.routesDatabase !== undefined) {
           syncDepotsWithServer(
             resSync.data.customDepots || [],
             resSync.data.customAccounts || {},
-            resSync.data.deletedDepotIds || []
+            resSync.data.deletedDepotIds || [],
+            resSync.data.routesDatabase || null
           );
         }
 

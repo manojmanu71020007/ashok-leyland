@@ -1,0 +1,458 @@
+{
+  "version": "1.0",
+  "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
+  "lastUpdated": "2026-11-14T15:18:00.000Z",
+  "depots": [
+    {
+      "id": "1",
+      "number": "1",
+      "name": "Depot 1 (Chandapura)",
+      "shortName": "Depot 1",
+      "location": "Chandapura (BMT-32)",
+      "isDefault": true,
+      "routes": ["356Z", "360K", "600F", "KBS3A"]
+    },
+    {
+      "id": "2",
+      "number": "2",
+      "name": "Depot 2 (Attibele / Hoskote)",
+      "shortName": "Depot 2",
+      "location": "Attibele / Hoskote",
+      "isDefault": true,
+      "routes": ["361C", "399C", "328H", "500DC", "KBS3F"]
+    }
+  ],
+  "routes": [
+    {
+      "code": "356Z",
+      "depotId": "1",
+      "name": "Chandapura ➔ Anekal (356Z)",
+      "fullName": "Chandapura ➔ Anekal (356Z)",
+      "shortName": "356Z",
+      "origin": "Chandapura",
+      "destination": "Anekal",
+      "distance": 28.7,
+      "fullDutyKm": 55.0,
+      "routeComplexity": "Standard",
+      "category": "Standard",
+      "requiredCat": "C",
+      "drainSoc": 24,
+      "timeComplexity": "Normal",
+      "timetables": [
+        "07:15 AM",
+        "08:30 AM",
+        "01:10 PM",
+        "01:45 PM",
+        "02:00 PM",
+        "02:25 PM",
+        "02:35 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:15 AM": "Extreme Peak",
+        "08:30 AM": "Extreme Peak",
+        "01:10 PM": "Peak",
+        "01:45 PM": "Peak",
+        "02:00 PM": "Peak",
+        "02:25 PM": "Peak",
+        "02:35 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "356Z/1", "shift": "General Shift", "outTime": "07:15:00", "inTime": "15:15:00", "fixBm": "BM238", "swapBm": "BM278", "category": "Standard", "singleChargeReqKm": 45 },
+        { "scheduleId": "356Z/2", "shift": "General Shift", "outTime": "08:30:00", "inTime": "16:30:00", "fixBm": "BM217", "swapBm": "BM256", "category": "Standard", "singleChargeReqKm": 45 },
+        { "scheduleId": "356Z/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM256", "swapBm": "BM205", "category": "Standard", "singleChargeReqKm": 45 },
+        { "scheduleId": "356Z/4", "shift": "Shift B", "outTime": "14:20:00", "inTime": "22:20:00", "fixBm": "BM217", "swapBm": "BM238", "category": "Standard", "singleChargeReqKm": 45 },
+        { "scheduleId": "356Z/5", "shift": "Night Halt", "outTime": "19:40:00", "inTime": "06:00:00", "fixBm": "BM218", "swapBm": "BM303", "category": "Standard", "singleChargeReqKm": 45 }
+      ]
+    },
+    {
+      "code": "360K",
+      "depotId": "1",
+      "name": "Chandapura ➔ Kempegowda Bus Station (360K)",
+      "fullName": "Chandapura ➔ Kempegowda Bus Station (360K)",
+      "shortName": "360K",
+      "origin": "Chandapura",
+      "destination": "Kempegowda Bus Station",
+      "distance": 36.2,
+      "fullDutyKm": 78.4,
+      "routeComplexity": "Complex",
+      "category": "Standard",
+      "requiredCat": "B",
+      "drainSoc": 28,
+      "timeComplexity": "Peak",
+      "timetables": [
+        "07:00 AM",
+        "08:15 AM",
+        "09:55 AM",
+        "10:00 AM",
+        "12:05 PM",
+        "01:10 PM",
+        "02:05 PM",
+        "02:15 PM",
+        "02:25 PM",
+        "02:35 PM",
+        "02:45 PM",
+        "06:30 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:00 AM": "Extreme Peak",
+        "08:15 AM": "Extreme Peak",
+        "09:55 AM": "Extreme Peak",
+        "10:00 AM": "Peak",
+        "12:05 PM": "Peak",
+        "01:10 PM": "Peak",
+        "02:05 PM": "Peak",
+        "02:15 PM": "Peak",
+        "02:25 PM": "Peak",
+        "02:35 PM": "Peak",
+        "02:45 PM": "Peak",
+        "06:30 PM": "Extreme Peak"
+      },
+      "schedules": [
+        { "scheduleId": "360K/1", "shift": "General Shift", "outTime": "07:00:00", "inTime": "15:00:00", "fixBm": "BM291", "swapBm": "BM264", "category": "Standard", "singleChargeReqKm": 55 },
+        { "scheduleId": "360K/2", "shift": "General Shift", "outTime": "08:15:00", "inTime": "16:15:00", "fixBm": "BM205", "swapBm": "BM056", "category": "Standard", "singleChargeReqKm": 55 },
+        { "scheduleId": "360K/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM292", "swapBm": "BM198", "category": "Standard", "singleChargeReqKm": 55 },
+        { "scheduleId": "360K/4", "shift": "Shift B", "outTime": "14:00:00", "inTime": "22:00:00", "fixBm": "BM199", "swapBm": "BM005", "category": "Standard", "singleChargeReqKm": 55 },
+        { "scheduleId": "360K/5", "shift": "Night Halt", "outTime": "18:30:00", "inTime": "06:30:00", "fixBm": "BM282", "swapBm": "BM080", "category": "Standard", "singleChargeReqKm": 55 }
+      ]
+    },
+    {
+      "code": "600F",
+      "depotId": "1",
+      "name": "Bommasandra Depot 32 ➔ Basavanagudi (600F)",
+      "fullName": "Bommasandra Depot 32 ➔ Basavanagudi (600F)",
+      "shortName": "600F",
+      "origin": "Bommasandra Depot 32",
+      "destination": "Basavanagudi",
+      "distance": 27.8,
+      "fullDutyKm": 62.0,
+      "routeComplexity": "Standard",
+      "category": "Standard",
+      "requiredCat": "B",
+      "drainSoc": 25,
+      "timeComplexity": "Normal",
+      "timetables": [
+        "06:45 AM",
+        "08:00 AM",
+        "12:30 PM",
+        "12:40 PM",
+        "12:50 PM",
+        "01:00 PM",
+        "01:10 PM",
+        "01:15 PM",
+        "01:25 PM",
+        "01:35 PM",
+        "01:45 PM",
+        "01:55 PM",
+        "02:05 PM",
+        "02:15 PM",
+        "02:25 PM",
+        "02:30 PM",
+        "02:35 PM",
+        "02:40 PM",
+        "02:45 PM",
+        "02:55 PM",
+        "03:35 PM",
+        "03:45 PM",
+        "03:55 PM",
+        "04:05 PM",
+        "04:15 PM",
+        "04:25 PM",
+        "07:15 PM"
+      ],
+      "timeComplexitySlots": {
+        "06:45 AM": "Normal",
+        "08:00 AM": "Extreme Peak",
+        "12:30 PM": "Peak",
+        "01:10 PM": "Peak",
+        "04:25 PM": "Extreme Peak",
+        "07:15 PM": "Extreme Peak"
+      },
+      "schedules": [
+        { "scheduleId": "600F/1", "shift": "General Shift", "outTime": "06:45:00", "inTime": "14:45:00", "fixBm": "BM003", "swapBm": "BM277", "category": "Standard", "singleChargeReqKm": 42 },
+        { "scheduleId": "600F/2", "shift": "General Shift", "outTime": "08:00:00", "inTime": "16:00:00", "fixBm": "BM258", "swapBm": "BM273", "category": "Standard", "singleChargeReqKm": 42 },
+        { "scheduleId": "600F/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM249", "swapBm": "BM203", "category": "Standard", "singleChargeReqKm": 42 },
+        { "scheduleId": "600F/4", "shift": "Shift B", "outTime": "14:30:00", "inTime": "22:30:00", "fixBm": "BM265", "swapBm": "BM264", "category": "Standard", "singleChargeReqKm": 42 },
+        { "scheduleId": "600F/5", "shift": "Night Halt", "outTime": "19:15:00", "inTime": "06:15:00", "fixBm": "BM255", "swapBm": "BM274", "category": "Standard", "singleChargeReqKm": 42 }
+      ]
+    },
+    {
+      "code": "KBS3A",
+      "depotId": "1",
+      "name": "Chandapura ➔ Kempegowda Bus Station (KBS3A)",
+      "fullName": "Chandapura ➔ Kempegowda Bus Station (KBS3A)",
+      "shortName": "KBS3A",
+      "origin": "Chandapura",
+      "destination": "Kempegowda Bus Station",
+      "distance": 35.8,
+      "fullDutyKm": 72.0,
+      "routeComplexity": "Moderate",
+      "category": "Moderate",
+      "requiredCat": "B",
+      "drainSoc": 26,
+      "timeComplexity": "Peak",
+      "timetables": [
+        "07:00 AM",
+        "08:30 AM",
+        "09:00 AM",
+        "09:30 AM",
+        "10:00 AM",
+        "10:30 AM",
+        "01:10 PM",
+        "01:35 PM",
+        "01:45 PM",
+        "01:55 PM",
+        "02:05 PM",
+        "02:15 PM",
+        "02:25 PM",
+        "02:35 PM",
+        "02:45 PM",
+        "02:55 PM",
+        "03:05 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:00 AM": "Extreme Peak",
+        "08:30 AM": "Extreme Peak",
+        "09:00 AM": "Extreme Peak",
+        "10:00 AM": "Peak",
+        "01:10 PM": "Peak",
+        "03:05 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "KBS3A/1", "shift": "General Shift", "outTime": "07:00:00", "inTime": "15:00:00", "fixBm": "BM086", "swapBm": "BM268", "category": "Moderate", "singleChargeReqKm": 55 },
+        { "scheduleId": "KBS3A/2", "shift": "General Shift", "outTime": "08:30:00", "inTime": "16:30:00", "fixBm": "BM268", "swapBm": "BM081", "category": "Moderate", "singleChargeReqKm": 55 },
+        { "scheduleId": "KBS3A/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM259", "swapBm": "BM210", "category": "Moderate", "singleChargeReqKm": 55 },
+        { "scheduleId": "KBS3A/4", "shift": "Shift B", "outTime": "14:15:00", "inTime": "22:15:00", "fixBm": "BM210", "swapBm": "BM209", "category": "Moderate", "singleChargeReqKm": 55 }
+      ]
+    },
+    {
+      "code": "361C",
+      "depotId": "2",
+      "name": "Attibele ➔ Kempegowda Bus Station (361C)",
+      "fullName": "Attibele ➔ Kempegowda Bus Station (361C)",
+      "shortName": "361C",
+      "origin": "Attibele",
+      "destination": "Kempegowda Bus Station",
+      "distance": 38.5,
+      "fullDutyKm": 108.0,
+      "routeComplexity": "Complex",
+      "category": "Complex",
+      "requiredCat": "A",
+      "drainSoc": 36,
+      "timeComplexity": "Extreme Peak",
+      "timetables": [
+        "07:30 AM",
+        "09:00 AM",
+        "01:10 PM",
+        "01:30 PM",
+        "01:50 PM",
+        "02:10 PM",
+        "02:30 PM",
+        "02:50 PM",
+        "03:00 PM",
+        "03:10 PM",
+        "03:30 PM",
+        "03:50 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:30 AM": "Extreme Peak",
+        "09:00 AM": "Extreme Peak",
+        "01:10 PM": "Peak",
+        "02:30 PM": "Peak",
+        "03:50 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "361C/1", "shift": "General Shift", "outTime": "07:30:00", "inTime": "15:30:00", "fixBm": "BM299", "swapBm": "BM280", "category": "Complex", "singleChargeReqKm": 60 },
+        { "scheduleId": "361C/2", "shift": "General Shift", "outTime": "09:00:00", "inTime": "17:00:00", "fixBm": "BM054", "swapBm": "BM303", "category": "Complex", "singleChargeReqKm": 60 },
+        { "scheduleId": "361C/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM289", "swapBm": "BM020", "category": "Complex", "singleChargeReqKm": 60 },
+        { "scheduleId": "361C/4", "shift": "Shift B", "outTime": "15:00:00", "inTime": "23:00:00", "fixBm": "BM174", "swapBm": "BM225", "category": "Complex", "singleChargeReqKm": 60 }
+      ]
+    },
+    {
+      "code": "399C",
+      "depotId": "2",
+      "name": "Hosakote ➔ Electronic City (399C)",
+      "fullName": "Hosakote ➔ Electronic City (399C)",
+      "shortName": "399C",
+      "origin": "Hosakote",
+      "destination": "Electronic City",
+      "distance": 34.0,
+      "fullDutyKm": 85.0,
+      "routeComplexity": "Complex",
+      "category": "Complex",
+      "requiredCat": "A",
+      "drainSoc": 32,
+      "timeComplexity": "Moderate",
+      "timetables": [
+        "07:45 AM",
+        "09:15 AM",
+        "01:10 PM",
+        "01:15 PM",
+        "02:00 PM",
+        "02:40 PM",
+        "03:30 PM",
+        "03:35 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:45 AM": "Extreme Peak",
+        "09:15 AM": "Extreme Peak",
+        "01:10 PM": "Peak",
+        "03:35 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "399C/1", "shift": "General Shift", "outTime": "07:45:00", "inTime": "15:45:00", "fixBm": "BM216", "swapBm": "BM282", "category": "Complex", "singleChargeReqKm": 55 },
+        { "scheduleId": "399C/2", "shift": "General Shift", "outTime": "09:15:00", "inTime": "17:15:00", "fixBm": "BM272", "swapBm": "BM286", "category": "Complex", "singleChargeReqKm": 55 },
+        { "scheduleId": "399C/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM216", "swapBm": "BM088", "category": "Complex", "singleChargeReqKm": 55 },
+        { "scheduleId": "399C/4", "shift": "Shift B", "outTime": "15:30:00", "inTime": "23:30:00", "fixBm": "BM282", "swapBm": "BM272", "category": "Complex", "singleChargeReqKm": 55 }
+      ]
+    },
+    {
+      "code": "328H",
+      "depotId": "2",
+      "name": "Hoskote ➔ Kempegowda Bus Station (328H)",
+      "fullName": "Hoskote ➔ Kempegowda Bus Station (328H)",
+      "shortName": "328H",
+      "origin": "Hoskote",
+      "destination": "Kempegowda Bus Station",
+      "distance": 32.5,
+      "fullDutyKm": 95.0,
+      "routeComplexity": "Moderate",
+      "category": "Moderate",
+      "requiredCat": "B",
+      "drainSoc": 30,
+      "timeComplexity": "Peak",
+      "timetables": [
+        "01:00 PM",
+        "01:10 PM",
+        "01:20 PM",
+        "01:30 PM",
+        "01:45 PM",
+        "01:50 PM",
+        "02:00 PM",
+        "02:10 PM",
+        "02:15 PM",
+        "02:30 PM",
+        "02:45 PM",
+        "03:00 PM",
+        "03:10 PM",
+        "03:20 PM",
+        "03:30 PM",
+        "03:40 PM",
+        "03:50 PM",
+        "04:00 PM"
+      ],
+      "timeComplexitySlots": {
+        "01:00 PM": "Peak",
+        "01:10 PM": "Peak",
+        "02:00 PM": "Peak",
+        "03:00 PM": "Peak",
+        "04:00 PM": "Extreme Peak"
+      },
+      "schedules": [
+        { "scheduleId": "328H/1", "shift": "Night Halt", "outTime": "13:10:00", "inTime": "10:30:00", "fixBm": "BM279", "swapBm": "BM294", "category": "Complex", "singleChargeReqKm": 145.7 },
+        { "scheduleId": "328H/10", "shift": "Night Halt", "outTime": "13:45:00", "inTime": "11:45:00", "fixBm": "BM294", "swapBm": "BM279", "category": "Moderate", "singleChargeReqKm": 110.0 },
+        { "scheduleId": "328H/12", "shift": "Night Halt", "outTime": "13:50:00", "inTime": "11:10:00", "fixBm": "BM279", "swapBm": "BM294", "category": "Complex", "singleChargeReqKm": 145.7 }
+      ]
+    },
+    {
+      "code": "500DC",
+      "depotId": "2",
+      "name": "Attibele ➔ Whitefield (500DC)",
+      "fullName": "Attibele ➔ Whitefield (500DC)",
+      "shortName": "500DC",
+      "origin": "Attibele",
+      "destination": "Whitefield",
+      "distance": 33.2,
+      "fullDutyKm": 85.0,
+      "routeComplexity": "Moderate",
+      "category": "Standard",
+      "requiredCat": "B",
+      "drainSoc": 28,
+      "timeComplexity": "Extreme Peak",
+      "timetables": [
+        "07:45 AM",
+        "08:00 AM",
+        "08:15 AM",
+        "08:30 AM",
+        "01:10 PM",
+        "02:15 PM",
+        "03:45 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:45 AM": "Extreme Peak",
+        "08:00 AM": "Extreme Peak",
+        "08:15 AM": "Extreme Peak",
+        "08:30 AM": "Extreme Peak",
+        "01:10 PM": "Peak",
+        "02:15 PM": "Peak",
+        "03:45 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "500DC/12", "shift": "General Shift", "outTime": "07:45:00", "inTime": "14:45:00", "fixBm": "BM240", "swapBm": "BM255", "category": "Standard", "singleChargeReqKm": 85 },
+        { "scheduleId": "500DC/13", "shift": "General Shift", "outTime": "08:00:00", "inTime": "15:00:00", "fixBm": "BM255", "swapBm": "BM274", "category": "Standard", "singleChargeReqKm": 85 },
+        { "scheduleId": "500DC/14", "shift": "General Shift", "outTime": "08:15:00", "inTime": "15:15:00", "fixBm": "BM274", "swapBm": "BM240", "category": "Standard", "singleChargeReqKm": 85 },
+        { "scheduleId": "500DC/15", "shift": "General Shift", "outTime": "08:30:00", "inTime": "15:30:00", "fixBm": "BM240", "swapBm": "BM274", "category": "Standard", "singleChargeReqKm": 85 },
+        { "scheduleId": "500DC/1", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM255", "swapBm": "BM240", "category": "Standard", "singleChargeReqKm": 85 }
+      ]
+    },
+    {
+      "code": "KBS3F",
+      "depotId": "2",
+      "name": "Hoskote ➔ Kempegowda Bus Station (KBS3F)",
+      "fullName": "Hoskote ➔ Kempegowda Bus Station (KBS3F)",
+      "shortName": "KBS3F",
+      "origin": "Hoskote",
+      "destination": "Kempegowda Bus Station",
+      "distance": 24.5,
+      "fullDutyKm": 50.0,
+      "routeComplexity": "Simple",
+      "category": "Standard",
+      "requiredCat": "B",
+      "drainSoc": 22,
+      "timeComplexity": "Normal",
+      "timetables": [
+        "07:15 AM",
+        "08:45 AM",
+        "01:10 PM",
+        "02:30 PM"
+      ],
+      "timeComplexitySlots": {
+        "07:15 AM": "Extreme Peak",
+        "08:45 AM": "Extreme Peak",
+        "01:10 PM": "Peak",
+        "02:30 PM": "Peak"
+      },
+      "schedules": [
+        { "scheduleId": "KBS3F/1", "shift": "General Shift", "outTime": "07:15:00", "inTime": "15:15:00", "fixBm": "BM293", "swapBm": "BM250", "category": "Standard", "singleChargeReqKm": 30 },
+        { "scheduleId": "KBS3F/2", "shift": "General Shift", "outTime": "08:45:00", "inTime": "16:45:00", "fixBm": "BM250", "swapBm": "BM275", "category": "Standard", "singleChargeReqKm": 30 },
+        { "scheduleId": "KBS3F/3", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM293", "swapBm": "BM082", "category": "Standard", "singleChargeReqKm": 30 },
+        { "scheduleId": "KBS3F/4", "shift": "Shift B", "outTime": "14:30:00", "inTime": "22:30:00", "fixBm": "BM275", "swapBm": "BM293", "category": "Standard", "singleChargeReqKm": 30 }
+      ]
+    }
+  ],
+  "timeComplexityConfig": {
+    "EXTREME_PEAK": {
+      "key": "EXTREME_PEAK",
+      "label": "Extreme Peak",
+      "description": "07:00-10:00 & 16:00-20:00 (Heavy traffic congestion, maximum passenger loading)",
+      "hours": ["07:00-10:00", "16:00-20:00"],
+      "drainMultiplier": 1.30,
+      "requiredBusCat": "A"
+    },
+    "PEAK": {
+      "key": "PEAK",
+      "label": "Peak",
+      "description": "10:00-16:00 & 20:00-23:00 (Moderate-to-high urban transit flow)",
+      "hours": ["10:00-16:00", "20:00-23:00"],
+      "drainMultiplier": 1.15,
+      "requiredBusCat": "A"
+    },
+    "NORMAL": {
+      "key": "NORMAL",
+      "label": "Normal (Off-Peak)",
+      "description": "05:00-07:00 & 23:00-05:00 (Free flowing corridor operation)",
+      "hours": ["05:00-07:00", "23:00-05:00"],
+      "drainMultiplier": 1.00,
+      "requiredBusCat": "B"
+    }
+  }
+}

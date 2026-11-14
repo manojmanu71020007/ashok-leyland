@@ -43,6 +43,13 @@ import {
   getRoutesForDepot,
   getRouteDefinition,
 } from '../context/accounts';
+import {
+  getMasterDataset,
+  updateRouteComplexityInDataset,
+  updateTimeComplexityInDataset,
+  updateRouteTimetablesInDataset,
+  subscribeDatasetChanges,
+} from '../context/routeDataset';
 
 let NativeWebView = null;
 if (Platform.OS !== 'web') {
@@ -754,6 +761,54 @@ export default function AdminWorkspaceScreen() {
   const [depotCustomName, setDepotCustomName] = useState('');
   const [depotRouteShift, setDepotRouteShift] = useState('General Shift');
   const [depotRouteCategory, setDepotRouteCategory] = useState('Standard');
+  const [depotRouteTimeComplexity, setDepotRouteTimeComplexity] = useState('Normal');
+  const [depotRouteTimetables, setDepotRouteTimetables] = useState('06:30 AM, 08:00 AM, 01:10 PM, 03:00 PM, 06:45 PM');
+  const [datasetVersionTick, setDatasetVersionTick] = useState(0);
+
+  React.useEffect(() => {
+    const unsub = subscribeDatasetChanges(() => {
+      setDatasetVersionTick((v) => v + 1);
+    });
+    return unsub;
+  }, []);
+
+  const handleUpdateRouteComplexity = (routeCode, depotId, currentComplexity) => {
+    const complexities = ['Simple', 'Standard', 'Moderate', 'Complex'];
+    const currentIdx = complexities.findIndex((c) => c.toLowerCase() === String(currentComplexity || 'Standard').toLowerCase());
+    const nextIdx = (currentIdx + 1) % complexities.length;
+    const nextComp = complexities[nextIdx];
+    updateRouteComplexityInDataset(routeCode, depotId, nextComp);
+    setDatasetVersionTick((v) => v + 1);
+    Alert.alert(
+      '⚡ Route Complexity Updated',
+      `Route [${routeCode}] complexity is now updated to "${nextComp}".\n\n` +
+      (nextComp === 'Complex'
+        ? '• Strictly requires Category A Fleet Buses across all operating hours.'
+        : nextComp === 'Moderate'
+        ? '• Requires Category B or higher Fleet Buses.'
+        : '• Standard fleet eligible for dispatch.'),
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleUpdateTimeComplexity = (routeCode, depotId, currentTimeComplexity) => {
+    const timeTiers = ['Normal', 'Peak', 'Extreme Peak'];
+    const currentIdx = timeTiers.findIndex((t) => t.toLowerCase() === String(currentTimeComplexity || 'Normal').toLowerCase());
+    const nextIdx = (currentIdx + 1) % timeTiers.length;
+    const nextTier = timeTiers[nextIdx];
+    updateTimeComplexityInDataset(routeCode, depotId, nextTier);
+    setDatasetVersionTick((v) => v + 1);
+    Alert.alert(
+      '🕒 Time Complexity Updated',
+      `Route [${routeCode}] time complexity is now updated to "${nextTier}".\n\n` +
+      (nextTier === 'Extreme Peak'
+        ? '• +30% high battery drain multiplier.\n• Requires Category A bus.'
+        : nextTier === 'Peak'
+        ? '• +15% moderate battery drain multiplier.'
+        : '• Baseline normal drain rate.'),
+      [{ text: 'OK' }]
+    );
+  };
 
   // Form State: Delete Route / Depot
   const [delRouteSelectedCode, setDelRouteSelectedCode] = useState('');
@@ -913,7 +968,7 @@ export default function AdminWorkspaceScreen() {
     });
 
     return list;
-  }, [depotsList, customRoutes, deletedRouteCodes]);
+  }, [depotsList, customRoutes, deletedRouteCodes, datasetVersionTick]);
 
   const depot1Routes = useMemo(() => {
     return allAvailableRoutes.filter((r) => String(r.depotId) === '1');
@@ -1252,6 +1307,14 @@ export default function AdminWorkspaceScreen() {
       ? 'Depot 2 (Attibele / Hoskote)'
       : `Depot ${resolvedDepotId}`);
 
+    const parsedTimetables = (depotRouteTimetables || '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const finalTimetables = parsedTimetables.length > 0
+      ? parsedTimetables
+      : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
+
     const newRoute = {
       id: cleanCode,
       code: cleanCode,
@@ -1263,9 +1326,11 @@ export default function AdminWorkspaceScreen() {
       distance: distNum,
       fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
       category: depotRouteCategory || 'Standard',
-      requiredCat: depotRouteCategory === 'Complex' ? 'A' : (depotRouteCategory === 'Moderate' ? 'B' : 'C'),
+      routeComplexity: depotRouteCategory || 'Standard',
+      requiredCat: depotRouteCategory === 'Complex' ? 'A' : (depotRouteCategory === 'Moderate' ? 'B' : 'B'),
       drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
-      timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+      timeComplexity: depotRouteTimeComplexity || 'Normal',
+      timetables: finalTimetables,
       shift: depotRouteShift || 'General Shift',
       depotId: resolvedDepotId,
       depotName: resolvedDepotName,
@@ -4760,7 +4825,7 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepotsTab('directory')}
               >
                 <Text style={[styles.addDelTabText, depotsTab === 'directory' && styles.addDelTabTextActive]}>
-                  📋 Active Routes ({allAvailableRoutes.length})
+                  📋 Route & Complexity Dataset ({allAvailableRoutes.length})
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4989,12 +5054,13 @@ export default function AdminWorkspaceScreen() {
                         ))}
                       </View>
 
-                      {/* Category Selection */}
-                      <Text style={styles.modalFieldLabel}>Route Complexity</Text>
-                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
+                      {/* Route Complexity Selection */}
+                      <Text style={styles.modalFieldLabel}>Route Complexity (Difficulty & EV Class)</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                         {[
-                          { cat: 'Standard', label: 'Standard (Cat C/B)' },
-                          { cat: 'Moderate', label: 'Moderate (Cat B)' },
+                          { cat: 'Simple', label: 'Simple' },
+                          { cat: 'Standard', label: 'Standard' },
+                          { cat: 'Moderate', label: 'Moderate' },
                           { cat: 'Complex', label: 'Complex (Cat A)' },
                         ].map((item) => (
                           <TouchableOpacity
@@ -5003,11 +5069,41 @@ export default function AdminWorkspaceScreen() {
                             onPress={() => setDepotRouteCategory(item.cat)}
                           >
                             <Text style={[styles.modalCatBtnText, depotRouteCategory === item.cat && styles.modalCatBtnTextActive]}>
-                              {item.cat}
+                              {item.label}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
+
+                      {/* Time Complexity Selection */}
+                      <Text style={styles.modalFieldLabel}>Time Complexity Tier</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
+                        {[
+                          { tc: 'Normal', label: 'Normal (Off-Peak)' },
+                          { tc: 'Peak', label: 'Peak (+15%)' },
+                          { tc: 'Extreme Peak', label: 'Extreme Peak (+30%)' },
+                        ].map((item) => (
+                          <TouchableOpacity
+                            key={item.tc}
+                            style={[styles.modalCatBtn, depotRouteTimeComplexity === item.tc && styles.modalCatBtnActive]}
+                            onPress={() => setDepotRouteTimeComplexity(item.tc)}
+                          >
+                            <Text style={[styles.modalCatBtnText, depotRouteTimeComplexity === item.tc && styles.modalCatBtnTextActive]}>
+                              {item.label}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      {/* Timetable Departures Input */}
+                      <Text style={styles.modalFieldLabel}>Scheduled Departure Times (Comma Separated)</Text>
+                      <TextInput
+                        style={[styles.modalInput, { marginBottom: 16 }]}
+                        placeholder="e.g. 06:30 AM, 08:00 AM, 01:10 PM, 03:00 PM, 06:45 PM"
+                        placeholderTextColor="#94a3b8"
+                        value={depotRouteTimetables}
+                        onChangeText={setDepotRouteTimetables}
+                      />
 
                       {/* Action Buttons */}
                       <View style={styles.modalActionButtonsRow}>
@@ -5387,9 +5483,107 @@ export default function AdminWorkspaceScreen() {
                         </Text>
                         <View style={styles.corridorMetaRow}>
                           <Text style={styles.corridorMetaText}>⏱️ {r.shift || 'General Shift'}</Text>
-                          <Text style={styles.corridorMetaText}>⚡ Cat {r.requiredCat || 'B'} ({r.category || 'Standard'})</Text>
+                          <Text style={styles.corridorMetaText}>⚡ Cat {r.requiredCat || 'B'} ({r.routeComplexity || r.category || 'Standard'})</Text>
                           <Text style={styles.corridorMetaText}>🔋 ~{r.drainSoc || 25}% SoC drain</Text>
                         </View>
+
+                        {/* Interactive Updation: Route Complexity */}
+                        <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#475569' }}>
+                              ⚡ ROUTE COMPLEXITY:
+                            </Text>
+                            <Text style={{ fontSize: 11, color: '#64748b' }}>(Tap to update)</Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                            {['Simple', 'Standard', 'Moderate', 'Complex'].map((cOption) => {
+                              const isActive = (r.routeComplexity || r.category || 'Standard').toLowerCase() === cOption.toLowerCase();
+                              return (
+                                <TouchableOpacity
+                                  key={cOption}
+                                  style={[
+                                    {
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 5,
+                                      borderRadius: 8,
+                                      backgroundColor: isActive ? '#0284c7' : '#f1f5f9',
+                                      borderWidth: 1,
+                                      borderColor: isActive ? '#0284c7' : '#e2e8f0',
+                                    },
+                                  ]}
+                                  onPress={() => updateRouteComplexityInDataset(r.code, r.depotId, cOption)}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 11.5,
+                                      fontWeight: isActive ? '800' : '600',
+                                      color: isActive ? '#ffffff' : '#334155',
+                                    }}
+                                  >
+                                    {isActive ? `✓ ${cOption}` : cOption}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+
+                        {/* Interactive Updation: Time Complexity */}
+                        <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                            <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#475569' }}>
+                              🕒 TIME COMPLEXITY TIER:
+                            </Text>
+                            <Text style={{ fontSize: 11, color: '#64748b' }}>(Tap to update)</Text>
+                          </View>
+                          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                            {['Normal', 'Peak', 'Extreme Peak'].map((tOption) => {
+                              const isActive = (r.timeComplexity || 'Normal').toLowerCase() === tOption.toLowerCase();
+                              return (
+                                <TouchableOpacity
+                                  key={tOption}
+                                  style={[
+                                    {
+                                      paddingHorizontal: 10,
+                                      paddingVertical: 5,
+                                      borderRadius: 8,
+                                      backgroundColor: isActive
+                                        ? (tOption === 'Extreme Peak' ? '#dc2626' : (tOption === 'Peak' ? '#d97706' : '#16a34a'))
+                                        : '#f1f5f9',
+                                      borderWidth: 1,
+                                      borderColor: isActive ? 'transparent' : '#e2e8f0',
+                                    },
+                                  ]}
+                                  onPress={() => updateTimeComplexityInDataset(r.code, r.depotId, tOption)}
+                                  activeOpacity={0.7}
+                                >
+                                  <Text
+                                    style={{
+                                      fontSize: 11.5,
+                                      fontWeight: isActive ? '800' : '600',
+                                      color: isActive ? '#ffffff' : '#334155',
+                                    }}
+                                  >
+                                    {isActive ? `✓ ${tOption}` : tOption}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+
+                        {/* Scheduled Departures Summary */}
+                        {r.timetables && r.timetables.length > 0 && (
+                          <View style={{ marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
+                            <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 2 }}>
+                              🕒 Scheduled Departures ({r.timetables.length}):
+                            </Text>
+                            <Text style={{ fontSize: 11.5, color: '#0369a1', fontWeight: '600' }}>
+                              {r.timetables.join(' • ')}
+                            </Text>
+                          </View>
+                        )}
                       </View>
                     ))}
                 </View>

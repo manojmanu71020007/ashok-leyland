@@ -2,6 +2,14 @@
 // Exactly mirrors Webpage_Credentials.xlsx, Webpage_Logins.xlsx, and login.html
 
 import { api } from '../api/client.js';
+import {
+  addDepotToDataset,
+  deleteDepotFromDataset,
+  addRouteToDataset,
+  deleteRouteFromDataset,
+  getRouteFromDataset,
+  syncDatasetWithServer as syncMasterRouteDatasetWithServer,
+} from './routeDataset.js';
 
 export const WEBPAGE_ACCOUNTS = {
   // ── 1. Admin Dashboard & Fleet Overview ──
@@ -577,8 +585,13 @@ function notifyDepotListeners() {
  * Ensures that newly created depots are NEVER prematurely deleted when updating app code or on server restarts,
  * while respecting tombstones when an administrator explicitly deletes a depot.
  */
-export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds) {
+export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds, remoteRoutesDatabase) {
   let changed = false;
+
+  // 0. Ingest remote master route dataset
+  if (remoteRoutesDatabase && typeof remoteRoutesDatabase === 'object') {
+    syncMasterRouteDatasetWithServer(remoteRoutesDatabase, remoteDeletedIds);
+  }
 
   // 1. Ingest any remote tombstones (permanently deleted depot IDs)
   if (Array.isArray(remoteDeletedIds)) {
@@ -762,9 +775,11 @@ export function registerRouteDefinition(routeObj) {
   persistRouteDefinitions();
 }
 
-export function getRouteDefinition(code) {
+export function getRouteDefinition(code, depotId = null) {
   if (!code) return null;
   const clean = String(code).trim().toUpperCase();
+  const dsRoute = getRouteFromDataset(clean, depotId);
+  if (dsRoute) return dsRoute;
   return dynamicRouteDefinitions[clean] || null;
 }
 
@@ -787,6 +802,14 @@ export function addRouteToDepot(depotId, routeData) {
 
   if (isObj) {
     registerRouteDefinition({ ...routeData, depotId: cleanId });
+  }
+
+  // Also add to Master Route & Schedule Dataset
+  try {
+    const routeObj = isObj ? routeData : { code: cleanRoute };
+    addRouteToDataset(cleanId, routeObj);
+  } catch (err) {
+    console.warn('[addRouteToDepot] Dataset sync notice:', err?.message || err);
   }
 
   let updatedRoutes = [];
@@ -840,6 +863,13 @@ export function removeRouteFromDepot(depotId, routeCode) {
   if (dynamicRouteDefinitions[cleanRoute]) {
     delete dynamicRouteDefinitions[cleanRoute];
     persistRouteDefinitions();
+  }
+
+  // Also remove from Master Route & Schedule Dataset
+  try {
+    deleteRouteFromDataset(cleanId, cleanRoute);
+  } catch (err) {
+    console.warn('[removeRouteFromDepot] Dataset sync notice:', err?.message || err);
   }
 
   let updatedRoutes = [];
@@ -909,6 +939,13 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
     dynamicDepots[existingIdx] = newDepot;
   } else {
     dynamicDepots.push(newDepot);
+  }
+
+  // Also add to Master Route & Schedule Dataset
+  try {
+    addDepotToDataset(newDepot);
+  } catch (err) {
+    console.warn('[registerNewDepot] Dataset sync notice:', err?.message || err);
   }
 
   const idSanitized = cleanId.toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -1040,6 +1077,13 @@ export function deleteDepot(depotId) {
 
   persistLocalDepotState();
   notifyDepotListeners();
+
+  // Also remove from Master Route & Schedule Dataset
+  try {
+    deleteDepotFromDataset(cleanId);
+  } catch (err) {
+    console.warn('[deleteDepot] Dataset sync notice:', err?.message || err);
+  }
 
   // Cross-device sync: dispatch deletion to server so all devices reflect it
   try {

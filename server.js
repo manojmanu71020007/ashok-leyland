@@ -64,6 +64,38 @@ function loadDetailedSchedules() {
 
 }
 
+const ROUTES_DATASET_FILE = path.join(BASE_DIR, "data", "routes_schedules_dataset.json");
+
+function loadRoutesDataset() {
+    try {
+        if (fs.existsSync(ROUTES_DATASET_FILE)) {
+            const raw = fs.readFileSync(ROUTES_DATASET_FILE, "utf8");
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.routes)) {
+                return parsed;
+            }
+        }
+    } catch (e) {
+        console.warn("Could not load routes_schedules_dataset.json:", e.message);
+    }
+    return null;
+}
+
+function saveRoutesDataset(dataset) {
+    try {
+        if (dataset && typeof dataset === 'object') {
+            dataset.lastUpdated = new Date().toISOString();
+            const dataDir = path.join(BASE_DIR, "data");
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+            fs.writeFileSync(ROUTES_DATASET_FILE, JSON.stringify(dataset, null, 2), "utf8");
+        }
+    } catch (e) {
+        console.warn("Could not save routes_schedules_dataset.json:", e.message);
+    }
+}
+
 const ADAFRUIT_USERNAME = process.env.ADAFRUIT_USERNAME || "Manu123456789";
 
 const ADAFRUIT_FEED_NAME = process.env.ADAFRUIT_FEED_NAME || "gpslocation";
@@ -4948,6 +4980,8 @@ const server = http.createServer(async (req, res) => {
 
                 deletedDepotIds: currentState._deletedDepotIds || [],
 
+                routesDatabase: currentState._routesDatabase || loadRoutesDataset() || {},
+
                 timestamp: Date.now()
 
             });
@@ -5035,6 +5069,18 @@ const server = http.createServer(async (req, res) => {
                         if (Array.isArray(currentState._allocatedDuties)) {
                             currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
                         }
+                        // Also cascade delete depot and its routes from Master Route Dataset
+                        let db = currentState._routesDatabase || loadRoutesDataset();
+                        if (db) {
+                            if (Array.isArray(db.depots)) {
+                                db.depots = db.depots.filter(d => String(d.id) !== cleanId);
+                            }
+                            if (Array.isArray(db.routes)) {
+                                db.routes = db.routes.filter(r => String(r.depotId) !== cleanId);
+                            }
+                            currentState._routesDatabase = db;
+                            saveRoutesDataset(db);
+                        }
                     } else if (action === "sync" || Array.isArray(customDepots)) {
                         // Purge any depots or accounts that are in _deletedDepotIds
                         currentState._customDepots = (currentState._customDepots || []).filter(d => !currentState._deletedDepotIds.includes(String(d.id)));
@@ -5082,6 +5128,139 @@ const server = http.createServer(async (req, res) => {
                     });
                 } catch (err) {
                     sendJson(res, { ok: false, error: "Failed to update custom depots", details: err.message }, 500);
+                }
+            });
+            return;
+        }
+    }
+
+    // ── GET & POST /api/dataset/routes (Master Route, Schedule, and Complexity Dataset) ──
+    if (pathname === "/api/dataset/routes") {
+        if (req.method === "GET") {
+            try {
+                const currentState = loadBusState();
+                const dataset = currentState._routesDatabase || loadRoutesDataset() || {};
+                sendJson(res, { ok: true, dataset, version: stateVersion });
+            } catch (err) {
+                sendJson(res, { ok: false, error: "Failed to load routes dataset", details: err.message }, 500);
+            }
+            return;
+        }
+
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    let dataset = currentState._routesDatabase || loadRoutesDataset();
+                    if (!dataset || !Array.isArray(dataset.routes)) {
+                        dataset = {
+                            version: "1.0",
+                            name: "Ashok Leyland EV Fleet - Master Route & Schedule Database",
+                            lastUpdated: new Date().toISOString(),
+                            depots: [],
+                            routes: [],
+                            timeComplexityConfig: {}
+                        };
+                    }
+
+                    const { action, route, depot, routeCode, depotId, routeComplexity, timeComplexity, timeSlot, timetables, dataset: incomingDataset } = payload;
+
+                    if (incomingDataset && Array.isArray(incomingDataset.routes)) {
+                        dataset = incomingDataset;
+                    } else if (action === "add_route" && route) {
+                        const cleanCode = String(route.code || route.id || "").toUpperCase().trim();
+                        const dId = String(route.depotId || depotId || "1").trim();
+                        if (!dataset.routes) dataset.routes = [];
+                        const existingIdx = dataset.routes.findIndex(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
+                        if (existingIdx >= 0) {
+                            dataset.routes[existingIdx] = route;
+                        } else {
+                            dataset.routes.push(route);
+                        }
+                        if (dataset.depots) {
+                            const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
+                            if (depotObj && Array.isArray(depotObj.routes) && !depotObj.routes.includes(cleanCode)) {
+                                depotObj.routes.push(cleanCode);
+                            }
+                        }
+                    } else if (action === "delete_route" && routeCode) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        if (dataset.routes) {
+                            dataset.routes = dataset.routes.filter(r => !(String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
+                        }
+                        if (dId && dataset.depots) {
+                            const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
+                            if (depotObj && Array.isArray(depotObj.routes)) {
+                                depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+                            }
+                        }
+                    } else if (action === "add_depot" && depot) {
+                        const cleanId = String(depot.id || "").trim();
+                        if (!dataset.depots) dataset.depots = [];
+                        const existingIdx = dataset.depots.findIndex(d => String(d.id).trim() === cleanId);
+                        if (existingIdx >= 0) {
+                            dataset.depots[existingIdx] = { ...dataset.depots[existingIdx], ...depot };
+                        } else {
+                            dataset.depots.push(depot);
+                        }
+                    } else if (action === "delete_depot" && depotId) {
+                        const cleanId = String(depotId).trim();
+                        if (dataset.depots) {
+                            dataset.depots = dataset.depots.filter(d => String(d.id).trim() !== cleanId);
+                        }
+                        if (dataset.routes) {
+                            dataset.routes = dataset.routes.filter(r => String(r.depotId).trim() !== cleanId);
+                        }
+                    } else if (action === "update_route_complexity" && routeCode && routeComplexity) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        if (dataset.routes) {
+                            dataset.routes.forEach(r => {
+                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
+                                    r.routeComplexity = routeComplexity;
+                                    r.category = routeComplexity;
+                                    if (routeComplexity === 'Complex') r.requiredCat = 'A';
+                                    else if (routeComplexity === 'Moderate') r.requiredCat = 'B';
+                                }
+                            });
+                        }
+                    } else if (action === "update_time_complexity" && routeCode && timeComplexity) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        if (dataset.routes) {
+                            dataset.routes.forEach(r => {
+                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
+                                    if (timeSlot) {
+                                        if (!r.timeComplexitySlots) r.timeComplexitySlots = {};
+                                        r.timeComplexitySlots[timeSlot] = timeComplexity;
+                                    } else {
+                                        r.timeComplexity = timeComplexity;
+                                    }
+                                }
+                            });
+                        }
+                    } else if (action === "update_timetables" && routeCode && Array.isArray(timetables)) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        if (dataset.routes) {
+                            dataset.routes.forEach(r => {
+                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
+                                    r.timetables = timetables;
+                                }
+                            });
+                        }
+                    }
+
+                    currentState._routesDatabase = dataset;
+                    saveRoutesDataset(dataset);
+                    saveBusState(currentState);
+                    stateVersion = Date.now();
+                    broadcastSyncEvent("routes-dataset-updated", { dataset });
+                    sendJson(res, { ok: true, dataset, version: stateVersion });
+                } catch (err) {
+                    sendJson(res, { ok: false, error: "Failed to update routes dataset", details: err.message }, 500);
                 }
             });
             return;

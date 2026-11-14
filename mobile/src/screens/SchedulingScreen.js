@@ -29,6 +29,7 @@ import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
 import { getDepotDisplayName, getRoutesForDepot, getRouteDefinition } from '../context/accounts';
+import { getRouteFromDataset, subscribeDatasetChanges } from '../context/routeDataset';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 
@@ -397,6 +398,35 @@ export default function SchedulingScreen() {
 
   const resolveDepotRoute = useCallback((code) => {
     const clean = String(code || '').toUpperCase().trim();
+
+    // 1. Check Master Route & Schedule Dataset first
+    const ds = getRouteFromDataset(clean, depotNum);
+    if (ds) {
+      return {
+        id: clean,
+        code: clean,
+        name: ds.name || `${ds.origin || depotLabel} ➔ ${ds.destination || 'Terminal'} (${clean})`,
+        fullName: ds.fullName || ds.name || `Route ${clean}`,
+        shortName: ds.shortName || clean,
+        origin: ds.origin || `${depotLabel} Terminal`,
+        destination: ds.destination || 'Central Terminal',
+        via: ds.via || 'Direct Express',
+        timetables: Array.isArray(ds.timetables) ? ds.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+        distance: Number(ds.distance) || 25.0,
+        fullDutyKm: ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
+        duration: ds.duration || '50 mins',
+        energyEst: ds.energyEst || `${Math.round((Number(ds.distance) || 25.0) * 1.25)} kWh`,
+        shift: ds.shift || 'General Shift',
+        category: ds.category || ds.routeComplexity || 'Standard',
+        routeComplexity: ds.routeComplexity || ds.category || 'Standard',
+        requiredCat: ds.requiredCat || (ds.routeComplexity === 'Complex' ? 'A' : 'B'),
+        drainSoc: ds.drainSoc || Math.min(95, Math.max(10, Math.round((Number(ds.distance) || 25.0) * 0.85))),
+        timeComplexity: ds.timeComplexity || 'Normal',
+        timeComplexitySlots: ds.timeComplexitySlots || {},
+        schedules: ds.schedules || [],
+      };
+    }
+
     const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
     if (found) return found;
 
@@ -550,7 +580,7 @@ export default function SchedulingScreen() {
 
   // 2. Route Complexity & Time Category Matrix evaluation (Exact match to website scheduling.html)
   const complexity = getRouteComplexity(selectedRoute, matchedSched, scheduledTime);
-  const timeCatInfo = getTimeCategory(scheduledTime);
+  const timeCatInfo = getTimeCategory(scheduledTime, selectedRoute);
   const isPeak = Boolean(timeCatInfo && timeCatInfo.isPeak);
   const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
 
