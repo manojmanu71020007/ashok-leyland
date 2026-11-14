@@ -167,12 +167,26 @@ const adminSrc = fs.readFileSync(path.resolve('mobile/src/screens/AdminWorkspace
 const schedSrc = fs.readFileSync(path.resolve('mobile/src/screens/SchedulingScreen.js'), 'utf8');
 const opsSrc = fs.readFileSync(path.resolve('mobile/src/screens/DepotOpsScreen.js'), 'utf8');
 
-// A. Admin Schedule Overview dynamically maps depotsList
+// A. Admin Schedule Overview dynamically maps depots and incorporates 1 search box and 2 dropdowns
 assert(
-  adminSrc.includes('depotsList.map((depot) =>'),
-  'Admin Schedule Overview must dynamically map over depotsList'
+  adminSrc.includes('scheduleSearchWrap') && adminSrc.includes('scheduleSearchInput'),
+  'Admin Schedule Overview must contain unified search box for routes and depots'
 );
-console.log('PASS: AdminWorkspaceScreen.js dynamically maps depotsList in Schedule Overview.');
+assert(
+  adminSrc.includes('scheduleDropdownsContainer') &&
+  adminSrc.includes('1. Select Depot') &&
+  adminSrc.includes('2. Select Route'),
+  'Admin Schedule Overview must contain two dropdown menus for depots and routes'
+);
+assert(
+  adminSrc.includes('filteredRoutesForDropdown'),
+  'Route dropdown must be filtered for the selected depot'
+);
+assert(
+  adminSrc.includes('listToRender.map((depot) =>') || adminSrc.includes('depotsList.map((depot) =>'),
+  'Admin Schedule Overview must dynamically map over depots'
+);
+console.log('PASS: AdminWorkspaceScreen.js includes 1 search box and 2 filtered dropdowns in Schedule Overview.');
 
 // B. Admin Workspace allows deleting route corridors directly and via modal
 assert(

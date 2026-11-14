@@ -764,6 +764,12 @@ export default function AdminWorkspaceScreen() {
   const [routeAllocatedModalRoute, setRouteAllocatedModalRoute] = useState(ALL_ROUTES_DATA[0].code);
   const [routeAllocatedSearch, setRouteAllocatedSearch] = useState('');
 
+  // Schedule Overview Filters: 1 Search Box & 2 Dropdown Menus (Depots & Routes)
+  const [scheduleSearchQuery, setScheduleSearchQuery] = useState('');
+  const [scheduleSelectedDepot, setScheduleSelectedDepot] = useState('all'); // 'all' | depotId
+  const [scheduleDepotPickerOpen, setScheduleDepotPickerOpen] = useState(false);
+  const [scheduleRoutePickerOpen, setScheduleRoutePickerOpen] = useState(false);
+
   // Notifications Modal State: Recently Route Completed Buses
   const [recentCompletedModalOpen, setRecentCompletedModalOpen] = useState(false);
   const [recentCompletedFullscreen, setRecentCompletedFullscreen] = useState(true);
@@ -925,6 +931,100 @@ export default function AdminWorkspaceScreen() {
     const drivers = DEPOT_DRIVERS[selectedRouteDepot] || DEPOT_DRIVERS['1'];
     setSelectedDriver(drivers[0]);
   }, [selectedRouteDepot]);
+
+  // ── Schedule Overview: Filtered Depots for Dropdown (respects search box) ──
+  const filteredDepotsForDropdown = useMemo(() => {
+    if (!scheduleSearchQuery.trim()) return depotsList;
+    const q = scheduleSearchQuery.trim().toLowerCase();
+    return depotsList.filter((d) => {
+      const dName = (d.name || '').toLowerCase();
+      const dLoc = (d.location || '').toLowerCase();
+      const dId = String(d.id).toLowerCase();
+      if (dName.includes(q) || dLoc.includes(q) || dId === q || `depot ${dId}`.includes(q)) {
+        return true;
+      }
+      const dRoutes = allAvailableRoutes.filter((r) => String(r.depotId) === String(d.id));
+      return dRoutes.some((r) => {
+        return (
+          (r.code && r.code.toLowerCase().includes(q)) ||
+          (r.name && r.name.toLowerCase().includes(q)) ||
+          (r.origin && r.origin.toLowerCase().includes(q)) ||
+          (r.destination && r.destination.toLowerCase().includes(q))
+        );
+      });
+    });
+  }, [depotsList, allAvailableRoutes, scheduleSearchQuery]);
+
+  // ── Schedule Overview: Filtered Routes for Dropdown (filtered by selected depot AND search box) ──
+  const filteredRoutesForDropdown = useMemo(() => {
+    let routes = allAvailableRoutes;
+    if (scheduleSelectedDepot !== 'all') {
+      routes = routes.filter((r) => String(r.depotId) === String(scheduleSelectedDepot));
+    }
+    if (scheduleSearchQuery.trim()) {
+      const q = scheduleSearchQuery.trim().toLowerCase();
+      routes = routes.filter((r) => {
+        const rCode = (r.code || '').toLowerCase();
+        const rName = (r.name || r.fullName || '').toLowerCase();
+        const rOrigin = (r.origin || '').toLowerCase();
+        const rDest = (r.destination || '').toLowerCase();
+        const rDepot = (r.depotName || `Depot ${r.depotId}`).toLowerCase();
+        return (
+          rCode.includes(q) ||
+          rName.includes(q) ||
+          rOrigin.includes(q) ||
+          rDest.includes(q) ||
+          rDepot.includes(q) ||
+          String(r.depotId) === q
+        );
+      });
+    }
+    return routes;
+  }, [allAvailableRoutes, scheduleSelectedDepot, scheduleSearchQuery]);
+
+  // ── Schedule Overview: Handler when user selects depot from dropdown ──
+  const handleSelectScheduleDepot = (depotId) => {
+    const cleanId = String(depotId);
+    setScheduleSelectedDepot(cleanId);
+    setScheduleDepotPickerOpen(false);
+
+    let eligible = allAvailableRoutes;
+    if (cleanId !== 'all') {
+      eligible = allAvailableRoutes.filter((r) => String(r.depotId) === cleanId);
+    }
+    if (scheduleSearchQuery.trim()) {
+      const q = scheduleSearchQuery.trim().toLowerCase();
+      const matched = eligible.filter((r) => {
+        return (
+          (r.code && r.code.toLowerCase().includes(q)) ||
+          (r.name && r.name.toLowerCase().includes(q)) ||
+          (r.origin && r.origin.toLowerCase().includes(q)) ||
+          (r.destination && r.destination.toLowerCase().includes(q))
+        );
+      });
+      if (matched.length > 0) eligible = matched;
+    }
+
+    if (eligible.length > 0) {
+      const currentValid = eligible.some(
+        (r) => r.id === selectedRoute?.id || (r.code === selectedRoute?.code && String(r.depotId) === String(selectedRoute?.depotId))
+      );
+      if (!currentValid) {
+        setSelectedRoute(eligible[0]);
+        setScheduledTime((eligible[0].timetables && eligible[0].timetables[0]) || '01:10 PM');
+      }
+    }
+  };
+
+  // ── Schedule Overview: Handler when user selects route from dropdown ──
+  const handleSelectScheduleRoute = (route) => {
+    setSelectedRoute(route);
+    setScheduledTime((route.timetables && route.timetables[0]) || '01:10 PM');
+    if (scheduleSelectedDepot !== 'all' && String(scheduleSelectedDepot) !== String(route.depotId)) {
+      setScheduleSelectedDepot(String(route.depotId || '1'));
+    }
+    setScheduleRoutePickerOpen(false);
+  };
 
   // ── Handler: Create New Depot (Auto-Generates Charging, Cleaning, Scheduling, Ops & Credentials) ──
   const handleCreateNewDepot = () => {
@@ -2220,109 +2320,242 @@ export default function AdminWorkspaceScreen() {
             </View>
           </View>
           <Text style={styles.panelNote}>
-            Select a route from {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(', ')}. Allocation rules enforce Peak/Extreme Peak Category A vehicles.
+            Use the search box and dropdown filters to inspect corridors, departure timetables, and fleet feasibility across depots.
           </Text>
 
-          {/* Dynamic Depot Route Sections for All Added Depots */}
-          {depotsList.map((depot) => {
-            const dId = String(depot.id);
-            const dRoutes = allAvailableRoutes.filter((r) => String(r.depotId) === dId);
-            const isD2 = dId === '2';
-            const isCustom = dId !== '1' && dId !== '2';
+          {/* ── 1. UNIFIED SEARCH BOX (Searches both Depots and Routes) ── */}
+          <View style={styles.scheduleSearchWrap}>
+            <Text style={styles.scheduleSearchIcon}>🔍</Text>
+            <TextInput
+              style={styles.scheduleSearchInput}
+              placeholder="Search routes or depots (e.g. Chandapura, 356Z, Hoskote)..."
+              placeholderTextColor="#94a3b8"
+              value={scheduleSearchQuery}
+              onChangeText={setScheduleSearchQuery}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {scheduleSearchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setScheduleSearchQuery('')} style={styles.scheduleClearSearchBtn}>
+                <Text style={styles.scheduleClearSearchText}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-            return (
-              <View key={dId} style={styles.routeDepotBlock}>
-                <View style={styles.routeDepotTitleRow}>
-                  <Text style={styles.routeDepotGroupTitle}>🏢 {depot.name} Routes</Text>
-                  <View style={[styles.depotPillBadge1, isD2 && styles.depotPillBadge2, isCustom && { backgroundColor: '#f3e8ff' }]}>
-                    <Text style={[styles.depotPillText1, isD2 && styles.depotPillText2, isCustom && { color: '#7e22ce' }]}>
-                      {dRoutes.length} Routes
-                    </Text>
-                  </View>
+          {/* ── 2. TWO DROPDOWN MENUS (1. Select Depot, 2. Select Route) ── */}
+          <View style={styles.scheduleDropdownsContainer}>
+            {/* Dropdown 1: Select Depot */}
+            <View style={styles.scheduleDropdownCol}>
+              <Text style={styles.scheduleDropdownLabel}>🏢 1. Select Depot</Text>
+              <TouchableOpacity
+                style={styles.scheduleDropdownBtn}
+                onPress={() => setScheduleDepotPickerOpen(true)}
+                activeOpacity={0.8}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.scheduleDropdownBtnText} numberOfLines={1}>
+                    {scheduleSelectedDepot === 'all'
+                      ? `🌐 All Operating Depots (${depotsList.length} Facilities)`
+                      : (depotsList.find((d) => String(d.id) === String(scheduleSelectedDepot))?.name || `Depot ${scheduleSelectedDepot}`)}
+                  </Text>
                 </View>
+                <Text style={styles.scheduleDropdownCaret}>▼</Text>
+              </TouchableOpacity>
+            </View>
 
-                {dRoutes.length === 0 ? (
-                  <View style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12 }}>
-                    <Text style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
-                      ℹ️ No routes currently assigned to {depot.name}. Register corridors using Add in Depot Management to begin scheduling.
-                    </Text>
+            {/* Dropdown 2: Select Route (Filtered for Selected Depot) */}
+            <View style={styles.scheduleDropdownCol}>
+              <Text style={styles.scheduleDropdownLabel}>
+                🛣️ 2. Select Route {scheduleSelectedDepot !== 'all' ? `(Filtered: Depot ${scheduleSelectedDepot})` : '(All Corridors)'}
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.scheduleDropdownBtn,
+                  filteredRoutesForDropdown.length === 0 && styles.scheduleDropdownBtnDisabled,
+                ]}
+                onPress={() => {
+                  if (filteredRoutesForDropdown.length > 0) {
+                    setScheduleRoutePickerOpen(true);
+                  } else {
+                    Alert.alert(
+                      'No Routes Available',
+                      `No routes found for ${scheduleSelectedDepot === 'all' ? 'current search' : `Depot ${scheduleSelectedDepot}`}. Assign corridors from Depot Management.`
+                    );
+                  }
+                }}
+                activeOpacity={0.8}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.scheduleDropdownBtnText,
+                      filteredRoutesForDropdown.length === 0 && { color: '#94a3b8' },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {selectedRoute
+                      ? `🚌 [${selectedRoute.code}] ${selectedRoute.shortName || selectedRoute.code} (${selectedRoute.distance} km) • ${selectedRoute.depotName || ('Depot ' + selectedRoute.depotId)}`
+                      : (filteredRoutesForDropdown.length === 0 ? 'No routes available' : '— Choose a route —')}
+                  </Text>
+                </View>
+                <Text style={styles.scheduleDropdownCaret}>▼</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Dynamic Depot Route Sections for All Added Depots */}
+          {(() => {
+            let listToRender = depotsList;
+            if (scheduleSelectedDepot !== 'all') {
+              listToRender = listToRender.filter((d) => String(d.id) === String(scheduleSelectedDepot));
+            }
+            if (scheduleSearchQuery.trim()) {
+              const q = scheduleSearchQuery.trim().toLowerCase();
+              listToRender = listToRender.filter((d) => {
+                const dName = (d.name || '').toLowerCase();
+                const dLoc = (d.location || '').toLowerCase();
+                const dId = String(d.id).toLowerCase();
+                if (dName.includes(q) || dLoc.includes(q) || dId === q || `depot ${dId}`.includes(q)) return true;
+                const dRoutes = allAvailableRoutes.filter((r) => String(r.depotId) === String(d.id));
+                return dRoutes.some((r) => {
+                  return (
+                    (r.code && r.code.toLowerCase().includes(q)) ||
+                    (r.name && r.name.toLowerCase().includes(q)) ||
+                    (r.origin && r.origin.toLowerCase().includes(q)) ||
+                    (r.destination && r.destination.toLowerCase().includes(q))
+                  );
+                });
+              });
+            }
+
+            if (listToRender.length === 0) {
+              return (
+                <View style={{ backgroundColor: '#f8fafc', padding: 16, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 16, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13, color: '#64748b', fontWeight: '600', marginBottom: 6 }}>
+                    🔍 No depots or routes matched "{scheduleSearchQuery}"
+                  </Text>
+                  <TouchableOpacity onPress={() => { setScheduleSearchQuery(''); setScheduleSelectedDepot('all'); }}>
+                    <Text style={{ fontSize: 12, color: '#2563eb', fontWeight: '700' }}>Reset Filters & Show All</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            }
+
+            return listToRender.map((depot) => {
+              const dId = String(depot.id);
+              let dRoutes = allAvailableRoutes.filter((r) => String(r.depotId) === dId);
+              if (scheduleSearchQuery.trim()) {
+                const q = scheduleSearchQuery.trim().toLowerCase();
+                const dNameMatches = (depot.name || '').toLowerCase().includes(q) || String(depot.id) === q;
+                if (!dNameMatches) {
+                  dRoutes = dRoutes.filter((r) => {
+                    return (
+                      (r.code && r.code.toLowerCase().includes(q)) ||
+                      (r.name && r.name.toLowerCase().includes(q)) ||
+                      (r.origin && r.origin.toLowerCase().includes(q)) ||
+                      (r.destination && r.destination.toLowerCase().includes(q))
+                    );
+                  });
+                }
+              }
+
+              const isD2 = dId === '2';
+              const isCustom = dId !== '1' && dId !== '2';
+
+              return (
+                <View key={dId} style={styles.routeDepotBlock}>
+                  <View style={styles.routeDepotTitleRow}>
+                    <Text style={styles.routeDepotGroupTitle}>🏢 {depot.name} Routes</Text>
+                    <View style={[styles.depotPillBadge1, isD2 && styles.depotPillBadge2, isCustom && { backgroundColor: '#f3e8ff' }]}>
+                      <Text style={[styles.depotPillText1, isD2 && styles.depotPillText2, isCustom && { color: '#7e22ce' }]}>
+                        {dRoutes.length} Routes
+                      </Text>
+                    </View>
                   </View>
-                ) : (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                    {dRoutes.map((r) => {
-                      const isSelected = r.id === selectedRoute?.id || (r.code === selectedRoute?.code && String(r.depotId) === String(selectedRoute?.depotId));
-                      return (
-                        <View key={r.id || `${dId}_${r.code}`} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
-                          <TouchableOpacity
-                            style={[
-                              styles.routeChip,
-                              isSelected && styles.routeChipActive,
-                              !isSelected && isD2 && styles.routeChipD2,
-                              !isSelected && isCustom && { backgroundColor: '#faf5ff', borderColor: '#d8b4fe' },
-                            ]}
-                            onPress={() => {
-                              setSelectedRoute(r);
-                              setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
-                            }}
-                          >
-                            <Text
-                              style={[
-                                styles.routeChipText,
-                                isSelected && styles.routeChipTextActive,
-                                !isSelected && isCustom && { color: '#7e22ce' },
-                              ]}
-                            >
-                              {r.code} ({r.distance} km)
-                            </Text>
-                          </TouchableOpacity>
 
-                          {/* Delete Route button (allows deleting newly added routes or custom routes) */}
-                          {(isCustom || r.custom) && (
+                  {dRoutes.length === 0 ? (
+                    <View style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12 }}>
+                      <Text style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+                        ℹ️ No routes currently assigned to {depot.name}. Register corridors using Add in Depot Management to begin scheduling.
+                      </Text>
+                    </View>
+                  ) : (
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                      {dRoutes.map((r) => {
+                        const isSelected = r.id === selectedRoute?.id || (r.code === selectedRoute?.code && String(r.depotId) === String(selectedRoute?.depotId));
+                        return (
+                          <View key={r.id || `${dId}_${r.code}`} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
                             <TouchableOpacity
-                              style={{
-                                marginLeft: -10,
-                                marginRight: 6,
-                                backgroundColor: '#fee2e2',
-                                borderRadius: 12,
-                                width: 20,
-                                height: 20,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderWidth: 1,
-                                borderColor: '#fca5a5',
-                                zIndex: 2,
-                              }}
+                              style={[
+                                styles.routeChip,
+                                isSelected && styles.routeChipActive,
+                                !isSelected && isD2 && styles.routeChipD2,
+                                !isSelected && isCustom && { backgroundColor: '#faf5ff', borderColor: '#d8b4fe' },
+                              ]}
                               onPress={() => {
-                                Alert.alert(
-                                  'Delete Route Corridor',
-                                  `Are you sure you want to delete Route ${r.code} from ${depot.name}?`,
-                                  [
-                                    { text: 'Cancel', style: 'cancel' },
-                                    {
-                                      text: 'Delete Route',
-                                      style: 'destructive',
-                                      onPress: () => {
-                                        removeRouteFromDepot(dId, r.code);
-                                        setDeletedRouteCodes((prev) => [...prev, r.code]);
-                                        setCustomRoutes((prev) => prev.filter((cr) => cr.code !== r.code && cr.id !== r.id));
-                                        Alert.alert('Route Deleted', `Route ${r.code} was successfully removed from ${depot.name}.`);
-                                      },
-                                    },
-                                  ]
-                                );
+                                setSelectedRoute(r);
+                                setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
                               }}
                             >
-                              <Text style={{ fontSize: 10, color: '#dc2626', fontWeight: '800' }}>✕</Text>
+                              <Text
+                                style={[
+                                  styles.routeChipText,
+                                  isSelected && styles.routeChipTextActive,
+                                  !isSelected && isCustom && { color: '#7e22ce' },
+                                ]}
+                              >
+                                {r.code} ({r.distance} km)
+                              </Text>
                             </TouchableOpacity>
-                          )}
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
-                )}
-              </View>
-            );
-          })}
+
+                            {/* Delete Route button (allows deleting newly added routes or custom routes) */}
+                            {(isCustom || r.custom) && (
+                              <TouchableOpacity
+                                style={{
+                                  marginLeft: -10,
+                                  marginRight: 6,
+                                  backgroundColor: '#fee2e2',
+                                  borderRadius: 12,
+                                  width: 20,
+                                  height: 20,
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  borderWidth: 1,
+                                  borderColor: '#fca5a5',
+                                  zIndex: 2,
+                                }}
+                                onPress={() => {
+                                  Alert.alert(
+                                    'Delete Route Corridor',
+                                    `Are you sure you want to delete Route ${r.code} from ${depot.name}?`,
+                                    [
+                                      { text: 'Cancel', style: 'cancel' },
+                                      {
+                                        text: 'Delete Route',
+                                        style: 'destructive',
+                                        onPress: () => {
+                                          removeRouteFromDepot(dId, r.code);
+                                          setDeletedRouteCodes((prev) => [...prev, r.code]);
+                                          setCustomRoutes((prev) => prev.filter((cr) => cr.code !== r.code && cr.id !== r.id));
+                                          Alert.alert('Route Deleted', `Route ${r.code} was successfully removed from ${depot.name}.`);
+                                        },
+                                      },
+                                    ]
+                                  );
+                                }}
+                              >
+                                <Text style={{ fontSize: 10, color: '#dc2626', fontWeight: '800' }}>✕</Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
+                </View>
+              );
+            });
+          })()}
 
           {/* Allocation Result KPIs (Total buses of selected route & Allocated buses, matching admin.html) */}
           <View style={styles.adminKpiGrid}>
@@ -5218,6 +5451,138 @@ export default function AdminWorkspaceScreen() {
         </SafeAreaView>
       </Modal>
 
+      {/* ── MODAL: SCHEDULE OVERVIEW - SELECT DEPOT PICKER ── */}
+      <Modal
+        visible={scheduleDepotPickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setScheduleDepotPickerOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxHeight: '80%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.modalEyebrow, { color: '#4f46e5' }]}>FLEET DEPOT SELECTOR</Text>
+                <Text style={styles.modalTitle}>🏢 Select Operating Depot</Text>
+                <Text style={styles.modalSubtitle}>
+                  Select a depot to filter routes and schedule overview
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setScheduleDepotPickerOpen(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }}>
+              {/* Option: All Operating Depots */}
+              <TouchableOpacity
+                style={[
+                  styles.schedulePickerItem,
+                  scheduleSelectedDepot === 'all' && styles.schedulePickerItemActive,
+                ]}
+                onPress={() => handleSelectScheduleDepot('all')}
+                activeOpacity={0.7}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.schedulePickerTitle, scheduleSelectedDepot === 'all' && { color: '#2563eb' }]}>
+                    🌐 All Operating Depots
+                  </Text>
+                  <Text style={styles.schedulePickerSub}>
+                    {depotsList.length} Operating Facilities • {allAvailableRoutes.length} Total Corridors
+                  </Text>
+                </View>
+                {scheduleSelectedDepot === 'all' && (
+                  <Text style={styles.schedulePickerCheck}>✓</Text>
+                )}
+              </TouchableOpacity>
+
+              {/* Each Depot Option */}
+              {filteredDepotsForDropdown.map((d) => {
+                const isSelected = String(d.id) === String(scheduleSelectedDepot);
+                const dRoutesCount = allAvailableRoutes.filter((r) => String(r.depotId) === String(d.id)).length;
+                return (
+                  <TouchableOpacity
+                    key={d.id}
+                    style={[styles.schedulePickerItem, isSelected && styles.schedulePickerItemActive]}
+                    onPress={() => handleSelectScheduleDepot(d.id)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.schedulePickerTitle, isSelected && { color: '#2563eb' }]}>
+                        🏢 {d.name}
+                      </Text>
+                      <Text style={styles.schedulePickerSub}>
+                        📍 {d.location || d.name} • {dRoutesCount} Routes Assigned
+                      </Text>
+                    </View>
+                    {isSelected && <Text style={styles.schedulePickerCheck}>✓</Text>}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── MODAL: SCHEDULE OVERVIEW - SELECT ROUTE PICKER ── */}
+      <Modal
+        visible={scheduleRoutePickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setScheduleRoutePickerOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxHeight: '82%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.modalEyebrow, { color: '#0284c7' }]}>CORRIDOR DISPATCH SELECTOR</Text>
+                <Text style={styles.modalTitle}>🛣️ Select Route Corridor</Text>
+                <Text style={styles.modalSubtitle}>
+                  {scheduleSelectedDepot === 'all'
+                    ? `Showing all corridors (${filteredRoutesForDropdown.length} available)`
+                    : `Filtered for Depot ${scheduleSelectedDepot} (${filteredRoutesForDropdown.length} available)`}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setScheduleRoutePickerOpen(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 420 }}>
+              {filteredRoutesForDropdown.length === 0 ? (
+                <View style={{ padding: 24, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                    No routes match the current filter or search criteria for Depot {scheduleSelectedDepot}.
+                  </Text>
+                </View>
+              ) : (
+                filteredRoutesForDropdown.map((r) => {
+                  const isSelected = r.id === selectedRoute?.id || (r.code === selectedRoute?.code && String(r.depotId) === String(selectedRoute?.depotId));
+                  return (
+                    <TouchableOpacity
+                      key={r.id || `${r.depotId}_${r.code}`}
+                      style={[styles.schedulePickerItem, isSelected && styles.schedulePickerItemActive]}
+                      onPress={() => handleSelectScheduleRoute(r)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.schedulePickerTitle, isSelected && { color: '#0284c7' }]}>
+                          🚌 [{r.code}] {r.fullName || r.name}
+                        </Text>
+                        <Text style={styles.schedulePickerSub}>
+                          📍 {r.origin && r.destination ? `${r.origin} ➔ ${r.destination} • ` : ''}{r.distance} km • {r.depotName || ('Depot ' + r.depotId)} • Cat {r.requiredCat || 'B'} ({r.category || 'Standard'})
+                        </Text>
+                      </View>
+                      {isSelected && <Text style={styles.schedulePickerCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── MODAL 4: ROUTE ALLOCATED BUSES DIRECTORY MODAL (Exact Match with admin.html lines 2800-2845) ── */}
       <Modal
         visible={routeAllocatedModalOpen}
@@ -6157,6 +6522,110 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     marginTop: 2,
     textAlign: 'center',
+  },
+  // ── Schedule Overview: 1 Search Box & 2 Dropdowns ──
+  scheduleSearchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+    marginTop: 10,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  scheduleSearchIcon: {
+    fontSize: 15,
+    marginRight: 8,
+  },
+  scheduleSearchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#0f172a',
+    padding: 0,
+  },
+  scheduleClearSearchBtn: {
+    padding: 4,
+    marginLeft: 6,
+  },
+  scheduleClearSearchText: {
+    fontSize: 14,
+    color: '#94a3b8',
+    fontWeight: '800',
+  },
+  scheduleDropdownsContainer: {
+    flexDirection: 'column',
+    gap: 10,
+    marginBottom: 14,
+  },
+  scheduleDropdownCol: {
+    width: '100%',
+  },
+  scheduleDropdownLabel: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#334155',
+    marginBottom: 5,
+  },
+  scheduleDropdownBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+  },
+  scheduleDropdownBtnDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#f1f5f9',
+  },
+  scheduleDropdownBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  scheduleDropdownCaret: {
+    fontSize: 12,
+    color: '#64748b',
+    marginLeft: 8,
+  },
+  schedulePickerItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  schedulePickerItemActive: {
+    backgroundColor: '#eff6ff',
+  },
+  schedulePickerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#0f172a',
+  },
+  schedulePickerSub: {
+    fontSize: 11.5,
+    color: '#64748b',
+    marginTop: 2,
+  },
+  schedulePickerCheck: {
+    fontSize: 16,
+    color: '#2563eb',
+    fontWeight: '800',
+    marginLeft: 8,
   },
   routeDepotBlock: {
     marginBottom: 8,
