@@ -394,13 +394,34 @@ export default function SchedulingScreen() {
 
   const assignedRouteCodes = getRoutesForDepot(depotNum);
   const ALL_BASE_ROUTES = [...DEPOT_1_ROUTES, ...DEPOT_2_ROUTES];
-  const matchedRoutes = ALL_BASE_ROUTES.filter((r) => assignedRouteCodes.includes(r.code) || assignedRouteCodes.includes(r.id));
-  const availableRoutes = matchedRoutes.length > 0 ? matchedRoutes : (depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES);
+  const matchedRoutes = assignedRouteCodes.map((code) => {
+    const clean = String(code).toUpperCase().trim();
+    const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
+    if (found) return found;
+    return {
+      id: clean,
+      code: clean,
+      name: `Corridor ${clean}`,
+      origin: `${depotLabel} Terminal`,
+      destination: 'Central Terminal',
+      via: 'Direct Express',
+      timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+      distance: 25.0,
+      duration: '50 mins',
+      energyEst: '30 kWh',
+      shift: 'General Shift',
+    };
+  });
+  const availableRoutes = (depotNum === '1' && matchedRoutes.length === 0)
+    ? DEPOT_1_ROUTES
+    : (depotNum === '2' && matchedRoutes.length === 0)
+      ? DEPOT_2_ROUTES
+      : matchedRoutes;
   const availableDrivers = DEPOT_DRIVERS[depotNum] || DEPOT_DRIVERS['1'];
 
-  // Scheduling states
-  const [selectedRoute, setSelectedRoute] = useState(availableRoutes[0]);
-  const [scheduledTime, setScheduledTime] = useState(availableRoutes[0].timetables[0]);
+  // Scheduling states (Safe empty state when newly created depot has no routes or buses assigned yet)
+  const [selectedRoute, setSelectedRoute] = useState(availableRoutes[0] || null);
+  const [scheduledTime, setScheduledTime] = useState(availableRoutes[0]?.timetables?.[0] || '');
   const [selectedDriver, setSelectedDriver] = useState(availableDrivers[0]);
   const [driverNameInput, setDriverNameInput] = useState(availableDrivers[0].name);
   const [driverError, setDriverError] = useState('');
@@ -410,12 +431,40 @@ export default function SchedulingScreen() {
   // Sync route and driver when depot changes
   React.useEffect(() => {
     const codes = getRoutesForDepot(depotNum);
-    const matched = ALL_BASE_ROUTES.filter((r) => codes.includes(r.code) || codes.includes(r.id));
-    const routesForDepot = matched.length > 0 ? matched : (depotNum === '2' ? DEPOT_2_ROUTES : DEPOT_1_ROUTES);
-    const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute?.id);
-    if (!isCurrentInDepot && routesForDepot[0]) {
-      setSelectedRoute(routesForDepot[0]);
-      setScheduledTime(routesForDepot[0].timetables[0]);
+    const matched = codes.map((code) => {
+      const clean = String(code).toUpperCase().trim();
+      const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
+      if (found) return found;
+      return {
+        id: clean,
+        code: clean,
+        name: `Corridor ${clean}`,
+        origin: `${depotLabel} Terminal`,
+        destination: 'Central Terminal',
+        via: 'Direct Express',
+        timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+        distance: 25.0,
+        duration: '50 mins',
+        energyEst: '30 kWh',
+        shift: 'General Shift',
+      };
+    });
+    const routesForDepot = (depotNum === '1' && matched.length === 0)
+      ? DEPOT_1_ROUTES
+      : (depotNum === '2' && matched.length === 0)
+        ? DEPOT_2_ROUTES
+        : matched;
+
+    if (routesForDepot.length > 0) {
+      const isCurrentInDepot = routesForDepot.some((r) => r.id === selectedRoute?.id);
+      if (!isCurrentInDepot || !selectedRoute) {
+        setSelectedRoute(routesForDepot[0]);
+        setScheduledTime(routesForDepot[0].timetables?.[0] || '08:00 AM');
+        setSelectedCandidateBm(null);
+      }
+    } else {
+      setSelectedRoute(null);
+      setScheduledTime('');
       setSelectedCandidateBm(null);
     }
     const driversForDepot = DEPOT_DRIVERS[depotNum] || DEPOT_DRIVERS['1'];
@@ -576,6 +625,9 @@ export default function SchedulingScreen() {
 
   // 4. Candidate Buses Generation & Mandatory Assignment (Exact 1:1 match with scheduling.html getRouteCandidateBuses)
   const candidateBuses = useMemo(() => {
+    if (!selectedRoute || availableRoutes.length === 0) {
+      return [];
+    }
     const routeCode = String(selectedRoute?.code || selectedRoute?.id || selectedRoute?.routeCode || '356Z').toUpperCase().trim();
     const depTimeClean = scheduledTime || '13:10';
     const depShort = depTimeClean.substring(0, 5);
@@ -919,8 +971,44 @@ export default function SchedulingScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.contentWrap} showsVerticalScrollIndicator={false}>
-        {/* ── PANEL 1: SCHEDULE REQUIREMENT ── */}
-        <View style={styles.panel}>
+        {availableRoutes.length === 0 ? (
+          <View style={[styles.panel, { alignItems: 'center', paddingVertical: 36, paddingHorizontal: 20 }]}>
+            <Text style={{ fontSize: 44, marginBottom: 12 }}>ℹ️</Text>
+            <Text style={[styles.panelTitle, { textAlign: 'center', marginBottom: 8 }]}>
+              No Routes or Buses Assigned Yet
+            </Text>
+            <Text style={[styles.panelNote, { textAlign: 'center', marginBottom: 20, maxWidth: 460 }]}>
+              {depotLabel} (Depot {depotNum}) has been initialized with dedicated operational wings, but does not contain any assigned corridors or stationed buses yet.
+            </Text>
+
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Assigned Routes: 0</Text>
+              </View>
+              <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Stationed Fleet: 0</Text>
+              </View>
+              <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#475569' }}>Active Duties: 0</Text>
+              </View>
+            </View>
+
+            <View style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 12, padding: 16, width: '100%', maxWidth: 480 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#1e40af', marginBottom: 6 }}>
+                👉 To assign routes and fleet to this depot:
+              </Text>
+              <Text style={{ fontSize: 12, color: '#1e3a8a', lineHeight: 18 }}>
+                1. Sign in to Admin Workspace with CDM001 credentials.
+                {'\n'}2. Open "Add / Delete Depots & Corridors".
+                {'\n'}3. Register corridors or assign fleet vehicles to Depot {depotNum}.
+                {'\n'}Once updated from the admin page, the new routes and buses will immediately show here.
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            {/* ── PANEL 1: SCHEDULE REQUIREMENT ── */}
+            <View style={styles.panel}>
           <Text style={styles.panelTitle}>{t('panel_schedule_req_title', 'Schedule requirement')}</Text>
           <Text style={styles.panelNote}>
             {t('panel_schedule_req_note', 'Define the next departure and let the allocation rules evaluate fleet readiness.')}
@@ -1325,6 +1413,8 @@ export default function SchedulingScreen() {
             </Text>
           </View>
         )}
+          </>
+        )}
       </ScrollView>
 
       {/* ── MODAL: ROUTE SELECTOR ── */}
@@ -1341,7 +1431,7 @@ export default function SchedulingScreen() {
               {availableRoutes.map((r) => (
                 <TouchableOpacity
                   key={r.id}
-                  style={[styles.pickerItem, r.id === selectedRoute.id && styles.pickerItemActive]}
+                  style={[styles.pickerItem, r.id === selectedRoute?.id && styles.pickerItemActive]}
                   onPress={() => handleSelectRoute(r)}
                   activeOpacity={0.7}
                 >
@@ -1351,7 +1441,7 @@ export default function SchedulingScreen() {
                       GTFS Distance: {r.distance} km • Category {r.requiredCat} ({r.category})
                     </Text>
                   </View>
-                  {r.id === selectedRoute.id && <Text style={styles.pickerCheck}>✓</Text>}
+                  {r.id === selectedRoute?.id && <Text style={styles.pickerCheck}>✓</Text>}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -1370,7 +1460,7 @@ export default function SchedulingScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 350 }}>
-              {selectedRoute.timetables.map((t) => (
+              {(selectedRoute?.timetables || []).map((t) => (
                 <TouchableOpacity
                   key={t}
                   style={[styles.pickerItem, t === scheduledTime && styles.pickerItemActive]}

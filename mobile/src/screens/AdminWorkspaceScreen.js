@@ -38,6 +38,9 @@ import {
   getDepotCredentialsList,
   getDepotDisplayName,
   subscribeDepotChanges,
+  addRouteToDepot,
+  removeRouteFromDepot,
+  getRoutesForDepot,
 } from '../context/accounts';
 
 let NativeWebView = null;
@@ -816,38 +819,104 @@ export default function AdminWorkspaceScreen() {
     navigateToAdminTab('TOTAL_FLEET');
   };
 
-  // Combined Active Routes List (Bundled + Custom Routes - Deleted Routes)
+  // Combined Active Routes List (Default Depots + Custom Depots + Registered Routes - Deleted Routes)
   const allAvailableRoutes = useMemo(() => {
-    const combined = [...DEPOT_1_ROUTES_DATA, ...DEPOT_2_ROUTES_DATA, ...customRoutes];
-    return combined.filter(
-      (r) => !deletedRouteCodes.includes(r.code) && !deletedRouteCodes.includes(r.id)
-    );
-  }, [customRoutes, deletedRouteCodes]);
+    const list = [];
+    const seen = new Set();
+
+    // 1. Process custom registered routes first
+    (customRoutes || []).forEach((r) => {
+      const code = String(r.code || r.id).toUpperCase().trim();
+      const dId = String(r.depotId || '1');
+      if (!deletedRouteCodes.includes(code) && !seen.has(`${dId}_${code}`)) {
+        seen.add(`${dId}_${code}`);
+        list.push({ ...r, code, depotId: dId });
+      }
+    });
+
+    // 2. Process all dynamic and default depots in depotsList
+    (depotsList || []).forEach((depot) => {
+      const dId = String(depot.id);
+      const dName = depot.name || `Depot ${dId}`;
+      const dRoutes = Array.isArray(depot.routes) ? depot.routes : [];
+
+      dRoutes.forEach((routeCode) => {
+        const cleanCode = String(routeCode).toUpperCase().trim();
+        if (!cleanCode || deletedRouteCodes.includes(cleanCode)) return;
+
+        if (seen.has(`${dId}_${cleanCode}`)) return;
+        seen.add(`${dId}_${cleanCode}`);
+
+        const baseRoute = ALL_ROUTES_DATA.find((r) => r.code === cleanCode || r.id === cleanCode);
+        if (baseRoute) {
+          list.push({
+            ...baseRoute,
+            id: `${dId}_${cleanCode}`,
+            code: cleanCode,
+            depotId: dId,
+            depotName: dName,
+          });
+        } else {
+          list.push({
+            id: `${dId}_${cleanCode}`,
+            code: cleanCode,
+            name: `${cleanCode} Corridor (${dName})`,
+            fullName: `${cleanCode} Corridor (${dName})`,
+            shortName: cleanCode,
+            origin: `${dName} Station`,
+            destination: 'Central Terminal',
+            distance: 28.5,
+            fullDutyKm: 57.0,
+            category: 'Standard',
+            requiredCat: 'B',
+            drainSoc: 26,
+            timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+            shift: 'General Shift',
+            depotId: dId,
+            depotName: dName,
+            custom: true,
+          });
+        }
+      });
+    });
+
+    // 3. Ensure core default routes for Depot 1 and Depot 2 are included if not deleted
+    DEPOT_1_ROUTES_DATA.forEach((r) => {
+      const code = String(r.code).toUpperCase();
+      if (!deletedRouteCodes.includes(code) && !seen.has(`1_${code}`)) {
+        seen.add(`1_${code}`);
+        list.push({ ...r, depotId: '1', depotName: 'Depot 1 (Chandapura)' });
+      }
+    });
+    DEPOT_2_ROUTES_DATA.forEach((r) => {
+      const code = String(r.code).toUpperCase();
+      if (!deletedRouteCodes.includes(code) && !seen.has(`2_${code}`)) {
+        seen.add(`2_${code}`);
+        list.push({ ...r, depotId: '2', depotName: 'Depot 2 (Attibele / Hoskote)' });
+      }
+    });
+
+    return list;
+  }, [depotsList, customRoutes, deletedRouteCodes]);
 
   const depot1Routes = useMemo(() => {
-    return allAvailableRoutes.filter(
-      (r) => r.depotId === '1' || (!r.depotId && DEPOT_1_ROUTES_DATA.some((d) => d.id === r.id))
-    );
+    return allAvailableRoutes.filter((r) => String(r.depotId) === '1');
   }, [allAvailableRoutes]);
 
   const depot2Routes = useMemo(() => {
-    return allAvailableRoutes.filter(
-      (r) => r.depotId === '2' || (!r.depotId && DEPOT_2_ROUTES_DATA.some((d) => d.id === r.id))
-    );
+    return allAvailableRoutes.filter((r) => String(r.depotId) === '2');
   }, [allAvailableRoutes]);
 
   const customDepotRoutes = useMemo(() => {
-    return allAvailableRoutes.filter(
-      (r) => r.depotId && r.depotId !== '1' && r.depotId !== '2'
-    );
+    return allAvailableRoutes.filter((r) => String(r.depotId) !== '1' && String(r.depotId) !== '2');
   }, [allAvailableRoutes]);
 
-  // Schedule Requirement State (Supports routes from BOTH Depot 1 and Depot 2)
+  // Schedule Requirement State (Supports routes from ALL depots)
   const [selectedRoute, setSelectedRoute] = useState(ALL_ROUTES_DATA[0]);
   const [scheduledTime, setScheduledTime] = useState(ALL_ROUTES_DATA[0].timetables[0]);
 
   // Detected operating depot for the selected route
-  const selectedRouteDepot = selectedRoute?.depotId || (DEPOT_2_ROUTES_DATA.some((r) => r.id === selectedRoute?.id) ? '2' : '1');
+  const selectedRouteDepot = String(selectedRoute?.depotId || (DEPOT_2_ROUTES_DATA.some((r) => r.id === selectedRoute?.id) ? '2' : '1'));
   const routeDrivers = DEPOT_DRIVERS[selectedRouteDepot] || DEPOT_DRIVERS['1'];
   const [selectedDriver, setSelectedDriver] = useState(routeDrivers[0]);
 
@@ -1069,11 +1138,12 @@ export default function AdminWorkspaceScreen() {
     }
 
     const resolvedDepotId = depotTargetDepot === 'custom' ? (depotCustomName.trim() || 'Depot 3') : depotTargetDepot;
-    const resolvedDepotName = resolvedDepotId === '1'
+    const targetDepotObj = depotsList.find((d) => String(d.id) === String(resolvedDepotId));
+    const resolvedDepotName = targetDepotObj ? targetDepotObj.name : (resolvedDepotId === '1'
       ? 'Depot 1 (Chandapura)'
       : resolvedDepotId === '2'
       ? 'Depot 2 (Attibele / Hoskote)'
-      : resolvedDepotId;
+      : `Depot ${resolvedDepotId}`);
 
     const newRoute = {
       id: cleanCode,
@@ -1095,6 +1165,9 @@ export default function AdminWorkspaceScreen() {
       custom: true,
       createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
+
+    // Attach route to depot in accounts and sync across devices
+    addRouteToDepot(resolvedDepotId, cleanCode);
 
     setCustomRoutes((prev) => [newRoute, ...prev]);
     setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
@@ -1146,6 +1219,8 @@ export default function AdminWorkspaceScreen() {
           text: 'Delete Route',
           style: 'destructive',
           onPress: () => {
+            const routeDepotId = String(matchedRoute?.depotId || '1');
+            removeRouteFromDepot(routeDepotId, codeToDelete);
             setDeletedRouteCodes((prev) => [...prev, codeToDelete]);
             setCustomRoutes((prev) => prev.filter((r) => r.code !== codeToDelete && r.id !== codeToDelete));
             setDepotAuditLogs((prev) => [
@@ -2145,97 +2220,109 @@ export default function AdminWorkspaceScreen() {
             </View>
           </View>
           <Text style={styles.panelNote}>
-            Select a route from Depot 1 or Depot 2. Allocation rules enforce Peak/Extreme Peak Category A vehicles.
+            Select a route from {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(', ')}. Allocation rules enforce Peak/Extreme Peak Category A vehicles.
           </Text>
 
-          {/* Depot 1 Routes */}
-          <View style={styles.routeDepotBlock}>
-            <View style={styles.routeDepotTitleRow}>
-              <Text style={styles.routeDepotGroupTitle}>🏢 Depot 1 Routes (Chandapura)</Text>
-              <View style={styles.depotPillBadge1}>
-                <Text style={styles.depotPillText1}>{depot1Routes.length} Routes</Text>
-              </View>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-              {depot1Routes.map((r) => {
-                const isSelected = r.id === selectedRoute.id;
-                return (
-                  <TouchableOpacity
-                    key={r.id}
-                    style={[styles.routeChip, isSelected && styles.routeChipActive]}
-                    onPress={() => {
-                      setSelectedRoute(r);
-                      setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
-                    }}
-                  >
-                    <Text style={[styles.routeChipText, isSelected && styles.routeChipTextActive]}>
-                      {r.code} ({r.distance} km)
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
+          {/* Dynamic Depot Route Sections for All Added Depots */}
+          {depotsList.map((depot) => {
+            const dId = String(depot.id);
+            const dRoutes = allAvailableRoutes.filter((r) => String(r.depotId) === dId);
+            const isD2 = dId === '2';
+            const isCustom = dId !== '1' && dId !== '2';
 
-          {/* Depot 2 Routes */}
-          <View style={styles.routeDepotBlock}>
-            <View style={styles.routeDepotTitleRow}>
-              <Text style={styles.routeDepotGroupTitle}>🏢 Depot 2 Routes (Hoskote / Attibele)</Text>
-              <View style={styles.depotPillBadge2}>
-                <Text style={styles.depotPillText2}>{depot2Routes.length} Routes</Text>
-              </View>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-              {depot2Routes.map((r) => {
-                const isSelected = r.id === selectedRoute.id;
-                return (
-                  <TouchableOpacity
-                    key={r.id}
-                    style={[styles.routeChip, isSelected && styles.routeChipActive, !isSelected && styles.routeChipD2]}
-                    onPress={() => {
-                      setSelectedRoute(r);
-                      setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
-                    }}
-                  >
-                    <Text style={[styles.routeChipText, isSelected && styles.routeChipTextActive]}>
-                      {r.code} ({r.distance} km)
+            return (
+              <View key={dId} style={styles.routeDepotBlock}>
+                <View style={styles.routeDepotTitleRow}>
+                  <Text style={styles.routeDepotGroupTitle}>🏢 {depot.name} Routes</Text>
+                  <View style={[styles.depotPillBadge1, isD2 && styles.depotPillBadge2, isCustom && { backgroundColor: '#f3e8ff' }]}>
+                    <Text style={[styles.depotPillText1, isD2 && styles.depotPillText2, isCustom && { color: '#7e22ce' }]}>
+                      {dRoutes.length} Routes
                     </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-
-          {/* Custom / Additional Depot Routes */}
-          {customDepotRoutes.length > 0 && (
-            <View style={styles.routeDepotBlock}>
-              <View style={styles.routeDepotTitleRow}>
-                <Text style={styles.routeDepotGroupTitle}>🏢 Additional Depot Corridors</Text>
-                <View style={[styles.depotPillBadge1, { backgroundColor: '#f3e8ff' }]}>
-                  <Text style={[styles.depotPillText1, { color: '#7e22ce' }]}>{customDepotRoutes.length} Routes</Text>
+                  </View>
                 </View>
+
+                {dRoutes.length === 0 ? (
+                  <View style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12 }}>
+                    <Text style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
+                      ℹ️ No routes currently assigned to {depot.name}. Register corridors using Add in Depot Management to begin scheduling.
+                    </Text>
+                  </View>
+                ) : (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                    {dRoutes.map((r) => {
+                      const isSelected = r.id === selectedRoute?.id || (r.code === selectedRoute?.code && String(r.depotId) === String(selectedRoute?.depotId));
+                      return (
+                        <View key={r.id || `${dId}_${r.code}`} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 8 }}>
+                          <TouchableOpacity
+                            style={[
+                              styles.routeChip,
+                              isSelected && styles.routeChipActive,
+                              !isSelected && isD2 && styles.routeChipD2,
+                              !isSelected && isCustom && { backgroundColor: '#faf5ff', borderColor: '#d8b4fe' },
+                            ]}
+                            onPress={() => {
+                              setSelectedRoute(r);
+                              setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
+                            }}
+                          >
+                            <Text
+                              style={[
+                                styles.routeChipText,
+                                isSelected && styles.routeChipTextActive,
+                                !isSelected && isCustom && { color: '#7e22ce' },
+                              ]}
+                            >
+                              {r.code} ({r.distance} km)
+                            </Text>
+                          </TouchableOpacity>
+
+                          {/* Delete Route button (allows deleting newly added routes or custom routes) */}
+                          {(isCustom || r.custom) && (
+                            <TouchableOpacity
+                              style={{
+                                marginLeft: -10,
+                                marginRight: 6,
+                                backgroundColor: '#fee2e2',
+                                borderRadius: 12,
+                                width: 20,
+                                height: 20,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderWidth: 1,
+                                borderColor: '#fca5a5',
+                                zIndex: 2,
+                              }}
+                              onPress={() => {
+                                Alert.alert(
+                                  'Delete Route Corridor',
+                                  `Are you sure you want to delete Route ${r.code} from ${depot.name}?`,
+                                  [
+                                    { text: 'Cancel', style: 'cancel' },
+                                    {
+                                      text: 'Delete Route',
+                                      style: 'destructive',
+                                      onPress: () => {
+                                        removeRouteFromDepot(dId, r.code);
+                                        setDeletedRouteCodes((prev) => [...prev, r.code]);
+                                        setCustomRoutes((prev) => prev.filter((cr) => cr.code !== r.code && cr.id !== r.id));
+                                        Alert.alert('Route Deleted', `Route ${r.code} was successfully removed from ${depot.name}.`);
+                                      },
+                                    },
+                                  ]
+                                );
+                              }}
+                            >
+                              <Text style={{ fontSize: 10, color: '#dc2626', fontWeight: '800' }}>✕</Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
               </View>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
-                {customDepotRoutes.map((r) => {
-                  const isSelected = r.id === selectedRoute.id;
-                  return (
-                    <TouchableOpacity
-                      key={r.id}
-                      style={[styles.routeChip, isSelected && styles.routeChipActive, !isSelected && { backgroundColor: '#faf5ff', borderColor: '#d8b4fe' }]}
-                      onPress={() => {
-                        setSelectedRoute(r);
-                        setScheduledTime((r.timetables && r.timetables[0]) || '01:10 PM');
-                      }}
-                    >
-                      <Text style={[styles.routeChipText, isSelected && styles.routeChipTextActive, !isSelected && { color: '#7e22ce' }]}>
-                        {r.code} ({r.distance} km)
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-          )}
+            );
+          })}
 
           {/* Allocation Result KPIs (Total buses of selected route & Allocated buses, matching admin.html) */}
           <View style={styles.adminKpiGrid}>

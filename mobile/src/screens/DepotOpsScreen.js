@@ -58,16 +58,27 @@ export default function DepotOpsScreen() {
 
   // Helper to determine the duty's depot safely
   const getDutyDepot = (d) => {
-    if (d.depot && (String(d.depot) === '1' || String(d.depot) === '2')) return String(d.depot);
+    if (d.depot) return String(d.depot);
     const bm = String(d.bm || d.bmNumber || '').toUpperCase().trim();
     const bus = (fullFleetList || []).find((b) => b.bmNumber === bm);
     if (bus && bus.depot) return String(bus.depot);
     const rCode = String(d.routeCode || d.busNumber || d.routeId || '').toUpperCase();
     if (['361C', '399C', '328H', '500DC', 'KBS3F'].some((c) => rCode.includes(c))) return '2';
-    return getBusDepot(bm);
+    return String(getBusDepot(bm) || '1');
   };
 
-  // Filtered active allocated duties (Depot 1 only shows Depot 1, Depot 2 only shows Depot 2)
+  // Current depot fleet count (Depot 1: 62, Depot 2: 60, Newly Created Depot: 0 until buses assigned)
+  const currentDepotFleetCount = useMemo(() => {
+    if (depotNum === '1') {
+      return fullFleetList.filter((b) => String(b.depot || '1') === '1').length || 62;
+    }
+    if (depotNum === '2') {
+      return fullFleetList.filter((b) => String(b.depot || '') === '2').length || 60;
+    }
+    return fullFleetList.filter((b) => String(b.depot || '') === depotNum).length;
+  }, [fullFleetList, depotNum]);
+
+  // Filtered active allocated duties (Depot 1 only shows Depot 1, Depot 2 only shows Depot 2, Newly Created Depot shows 0)
   const filteredAllocatedDuties = useMemo(() => {
     return (allocatedDuties || [])
       .filter((d) => getDutyDepot(d) === String(depotNum))
@@ -86,9 +97,12 @@ export default function DepotOpsScreen() {
     ? filteredAllocatedDuties
     : filteredAllocatedDuties.slice(0, 1);
 
-  // Depot specific fleet (in Depot 1 only show Depot 1 fleet, in Depot 2 only show Depot 2 fleet)
+  // Depot specific fleet (in Depot 1 only show Depot 1 fleet, in Depot 2 only show Depot 2 fleet, in new depot show new depot fleet)
   const depotFleetList = useMemo(() => {
-    return fullFleetList.filter((b) => String(b.depot || '1') === depotNum);
+    if (depotNum === '1') {
+      return fullFleetList.filter((b) => String(b.depot || '1') === '1');
+    }
+    return fullFleetList.filter((b) => String(b.depot || '') === depotNum);
   }, [fullFleetList, depotNum]);
 
   // Selected bus object for the Select Bus Panel (Searched across all fleet buses)
@@ -141,9 +155,23 @@ export default function DepotOpsScreen() {
     );
   };
 
-  // Filtered Completed Log
+  // Filtered Completed Log strictly for this depot (Newly created depots start with 0 completed routes)
+  const depotCompletedLog = useMemo(() => {
+    return (completedRoutesLog || []).filter((item) => {
+      const itemDepot = String(item.depot || item.receivingDepot || item.homeDepot || item.targetDepot || '');
+      if (itemDepot) return itemDepot === depotNum;
+      const bm = String(item.bm || item.bmNumber || '').toUpperCase().trim();
+      const bus = (fullFleetList || []).find((b) => b.bmNumber === bm);
+      if (bus && bus.depot) return String(bus.depot) === depotNum;
+      if (depotNum === '1' || depotNum === '2') {
+        return String(getBusDepot(bm) || '1') === depotNum;
+      }
+      return false;
+    });
+  }, [completedRoutesLog, depotNum, fullFleetList]);
+
   const todayStr = new Date().toISOString().split('T')[0];
-  const allCompletedLog = completedRoutesLog || [];
+  const allCompletedLog = depotCompletedLog;
   const filteredCompletedLog = allCompletedLog.filter((item) => {
     if (logFilter === 'today') {
       return (
@@ -293,24 +321,14 @@ export default function DepotOpsScreen() {
             <Text style={styles.statSub}>{t('stat_returned_today', 'returned today')}</Text>
           </View>
 
-          {/* 3. Depot Fleet (Depot 1 shows only Depot 1; Depot 2 shows only Depot 2) */}
-          {depotNum === '1' ? (
-            <View style={[styles.statCard, styles.statCardFleet]}>
-              <Text style={styles.statLabel}>{t('depot_1', 'Depot 1')} {t('all_fleet', 'Fleet')}</Text>
-              <Text style={[styles.statValue, { color: '#0f766e' }]}>
-                {depot1Count || 62}
-              </Text>
-              <Text style={styles.statSub}>{t('assigned_buses', 'assigned buses')}</Text>
-            </View>
-          ) : (
-            <View style={[styles.statCard, styles.statCardFleet]}>
-              <Text style={styles.statLabel}>{t('depot_2', 'Depot 2')} {t('all_fleet', 'Fleet')}</Text>
-              <Text style={[styles.statValue, { color: '#6d28d9' }]}>
-                {depot2Count || 60}
-              </Text>
-              <Text style={styles.statSub}>{t('assigned_buses', 'assigned buses')}</Text>
-            </View>
-          )}
+          {/* 3. Depot Fleet (Depot 1 shows Depot 1, Depot 2 shows Depot 2, Newly Created Depot shows 0 until assigned) */}
+          <View style={[styles.statCard, styles.statCardFleet]}>
+            <Text style={styles.statLabel}>{depotName} {t('all_fleet', 'Fleet')}</Text>
+            <Text style={[styles.statValue, { color: depotNum === '2' ? '#6d28d9' : '#0f766e' }]}>
+              {currentDepotFleetCount}
+            </Text>
+            <Text style={styles.statSub}>{t('assigned_buses', 'assigned buses')}</Text>
+          </View>
         </View>
 
         {/* ── CARD 1: CURRENTLY ALLOCATED BUSES ── */}

@@ -699,12 +699,104 @@ export function getDepotDisplayName(depotId) {
  * Returns route codes assigned to a specific depot
  */
 export function getRoutesForDepot(depotId) {
-  const cleanId = String(depotId || '1').trim();
+  const cleanId = String(depotId || '').trim();
   const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
   if (found && Array.isArray(found.routes)) {
     return found.routes;
   }
-  return cleanId === '2' ? ['KBS3A', 'KBS3F', '328H', '500DC'] : ['356Z', '360K', '600F', '361C', '399C'];
+  if (cleanId === '1') return ['356Z', '360K', '600F', '361C', '399C'];
+  if (cleanId === '2') return ['KBS3A', 'KBS3F', '328H', '500DC'];
+  return [];
+}
+
+/**
+ * Adds a route code to a depot's assigned routes list and syncs across devices.
+ */
+export function addRouteToDepot(depotId, routeCode) {
+  const cleanId = String(depotId || '').trim();
+  const cleanRoute = String(routeCode || '').trim().toUpperCase();
+  if (!cleanId || !cleanRoute) {
+    return { ok: false, error: 'Depot ID and Route code are required.' };
+  }
+
+  let updatedRoutes = [];
+  const dIndex = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
+  if (dIndex >= 0) {
+    if (!Array.isArray(dynamicDepots[dIndex].routes)) {
+      dynamicDepots[dIndex].routes = [];
+    }
+    if (!dynamicDepots[dIndex].routes.includes(cleanRoute)) {
+      dynamicDepots[dIndex].routes = [...dynamicDepots[dIndex].routes, cleanRoute];
+    }
+    updatedRoutes = dynamicDepots[dIndex].routes;
+  } else {
+    const defDepot = DEFAULT_DEPOTS.find((d) => String(d.id) === cleanId);
+    if (defDepot) {
+      if (!Array.isArray(defDepot.routes)) defDepot.routes = [];
+      if (!defDepot.routes.includes(cleanRoute)) {
+        defDepot.routes = [...defDepot.routes, cleanRoute];
+      }
+      updatedRoutes = defDepot.routes;
+    }
+  }
+
+  persistLocalDepotState();
+  notifyDepotListeners();
+
+  try {
+    if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
+      api.saveCustomDepot({
+        action: 'sync',
+        customDepots: dynamicDepots,
+        customAccounts: dynamicAccounts,
+        deletedDepotIds: Array.from(deletedDepotIds),
+      }).catch(() => {});
+    }
+  } catch (_) {}
+
+  return { ok: true, routes: updatedRoutes };
+}
+
+/**
+ * Removes a route code from a depot's assigned routes list and syncs across devices.
+ */
+export function removeRouteFromDepot(depotId, routeCode) {
+  const cleanId = String(depotId || '').trim();
+  const cleanRoute = String(routeCode || '').trim().toUpperCase();
+  if (!cleanId || !cleanRoute) {
+    return { ok: false, error: 'Depot ID and Route code are required.' };
+  }
+
+  let updatedRoutes = [];
+  const dIndex = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
+  if (dIndex >= 0) {
+    if (Array.isArray(dynamicDepots[dIndex].routes)) {
+      dynamicDepots[dIndex].routes = dynamicDepots[dIndex].routes.filter((r) => r.toUpperCase() !== cleanRoute);
+    }
+    updatedRoutes = dynamicDepots[dIndex].routes;
+  } else {
+    const defDepot = DEFAULT_DEPOTS.find((d) => String(d.id) === cleanId);
+    if (defDepot && Array.isArray(defDepot.routes)) {
+      defDepot.routes = defDepot.routes.filter((r) => r.toUpperCase() !== cleanRoute);
+      updatedRoutes = defDepot.routes;
+    }
+  }
+
+  persistLocalDepotState();
+  notifyDepotListeners();
+
+  try {
+    if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
+      api.saveCustomDepot({
+        action: 'sync',
+        customDepots: dynamicDepots,
+        customAccounts: dynamicAccounts,
+        deletedDepotIds: Array.from(deletedDepotIds),
+      }).catch(() => {});
+    }
+  } catch (_) {}
+
+  return { ok: true, routes: updatedRoutes };
 }
 
 /**
