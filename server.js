@@ -2962,6 +2962,12 @@ function loadBusState() {
             masterBusState._completedRoutesLog = getDefaultCompletedRoutesLog();
             historyMissing = true;
         }
+        if (!Array.isArray(masterBusState._customDepots)) {
+            masterBusState._customDepots = [];
+        }
+        if (!masterBusState._customAccounts || typeof masterBusState._customAccounts !== "object") {
+            masterBusState._customAccounts = {};
+        }
         if (historyMissing) {
             saveBusState(masterBusState);
         }
@@ -4933,6 +4939,10 @@ const server = http.createServer(async (req, res) => {
 
                 depot2Count: counts.depot2Count,
 
+                customDepots: currentState._customDepots || [],
+
+                customAccounts: currentState._customAccounts || {},
+
                 timestamp: Date.now()
 
             });
@@ -4945,6 +4955,82 @@ const server = http.createServer(async (req, res) => {
 
         return;
 
+    }
+
+    // ── GET & POST /api/custom-depots (Cross-Device Dynamic Depot Synchronization) ──
+    if (pathname === "/api/custom-depots") {
+        if (req.method === "GET") {
+            try {
+                const currentState = loadBusState();
+                sendJson(res, {
+                    ok: true,
+                    customDepots: currentState._customDepots || [],
+                    customAccounts: currentState._customAccounts || {},
+                    version: stateVersion
+                });
+            } catch (err) {
+                sendJson(res, { ok: false, error: "Failed to load custom depots", details: err.message }, 500);
+            }
+            return;
+        }
+
+        if (req.method === "POST") {
+            readBody(req, body => {
+                try {
+                    const payload = JSON.parse(body || "{}");
+                    const currentState = loadBusState();
+                    if (!Array.isArray(currentState._customDepots)) {
+                        currentState._customDepots = [];
+                    }
+                    if (!currentState._customAccounts || typeof currentState._customAccounts !== "object") {
+                        currentState._customAccounts = {};
+                    }
+
+                    const { action, depot, depotId, accounts, customDepots, customAccounts } = payload;
+
+                    if (action === "add" && depot) {
+                        const cleanId = String(depot.id || "").trim();
+                        const existingIdx = currentState._customDepots.findIndex(d => String(d.id) === cleanId);
+                        if (existingIdx >= 0) {
+                            currentState._customDepots[existingIdx] = depot;
+                        } else {
+                            currentState._customDepots.push(depot);
+                        }
+                        if (accounts && typeof accounts === "object") {
+                            Object.assign(currentState._customAccounts, accounts);
+                        }
+                    } else if (action === "delete") {
+                        const cleanId = String(depotId || depot?.id || "").trim();
+                        currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
+                        for (const k of Object.keys(currentState._customAccounts)) {
+                            if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
+                                delete currentState._customAccounts[k];
+                            }
+                        }
+                    } else if (action === "sync" || Array.isArray(customDepots)) {
+                        if (Array.isArray(customDepots)) currentState._customDepots = customDepots;
+                        if (customAccounts && typeof customAccounts === "object") currentState._customAccounts = customAccounts;
+                    }
+
+                    saveBusState(currentState);
+                    broadcastSyncEvent("custom-depots-updated", {
+                        customDepots: currentState._customDepots,
+                        customAccounts: currentState._customAccounts
+                    });
+
+                    sendJson(res, {
+                        ok: true,
+                        message: "Custom depots synchronized successfully",
+                        customDepots: currentState._customDepots,
+                        customAccounts: currentState._customAccounts,
+                        version: stateVersion
+                    });
+                } catch (err) {
+                    sendJson(res, { ok: false, error: "Failed to update custom depots", details: err.message }, 500);
+                }
+            });
+            return;
+        }
     }
 
 

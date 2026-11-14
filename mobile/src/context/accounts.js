@@ -1,6 +1,8 @@
 // Official Allocated Credentials Directory
 // Exactly mirrors Webpage_Credentials.xlsx, Webpage_Logins.xlsx, and login.html
 
+import { api } from '../api/client.js';
+
 export const WEBPAGE_ACCOUNTS = {
   // ── 1. Admin Dashboard & Fleet Overview ──
   'cdm001': {
@@ -539,6 +541,58 @@ function notifyDepotListeners() {
 }
 
 /**
+ * Synchronizes in-memory and local dynamic depots with data received from backend server.
+ * Enables automatic cross-device reflection: when any device adds or deletes a depot,
+ * all devices polling /api/sync-state update their local dynamic depots & accounts automatically.
+ */
+export function syncDepotsWithServer(remoteDepots, remoteAccounts) {
+  let changed = false;
+
+  if (Array.isArray(remoteDepots)) {
+    const remoteSerialized = JSON.stringify(remoteDepots);
+    const localSerialized = JSON.stringify(dynamicDepots);
+    if (remoteSerialized !== localSerialized) {
+      dynamicDepots = [...remoteDepots];
+      changed = true;
+    }
+  }
+
+  if (remoteAccounts && typeof remoteAccounts === 'object') {
+    const remoteAccSerialized = JSON.stringify(remoteAccounts);
+    const localAccSerialized = JSON.stringify(dynamicAccounts);
+    if (remoteAccSerialized !== localAccSerialized) {
+      dynamicAccounts = { ...remoteAccounts };
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    try {
+      if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
+        localStorage.setItem(CUSTOM_DEPOTS_KEY, JSON.stringify(dynamicDepots));
+        localStorage.setItem(CUSTOM_ACCOUNTS_KEY, JSON.stringify(dynamicAccounts));
+      }
+    } catch (e) {
+      console.warn('Failed to cache synced dynamic depots in localStorage:', e);
+    }
+    notifyDepotListeners();
+  }
+
+  return { ok: true, changed, depots: getAllDepots() };
+}
+
+// Initial eager server hydration on startup
+try {
+  if (typeof api !== 'undefined' && api && typeof api.getCustomDepots === 'function') {
+    api.getCustomDepots().then((res) => {
+      if (res && res.ok && res.data) {
+        syncDepotsWithServer(res.data.customDepots || [], res.data.customAccounts || {});
+      }
+    }).catch(() => {});
+  }
+} catch (_) {}
+
+/**
  * Returns all active depots in the system (Default + Dynamic Custom Depots)
  */
 export function getAllDepots() {
@@ -686,6 +740,30 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
 
   notifyDepotListeners();
 
+  // Cross-device sync: dispatch addition to server so all devices reflect it
+  try {
+    if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
+      api.saveCustomDepot({
+        action: 'add',
+        depot: newDepot,
+        accounts: {
+          [chgKey]: chgAccount,
+          [chgAlias]: chgAccount,
+          [clnKey]: clnAccount,
+          [clnAlias]: clnAccount,
+          [schKey]: schAccount,
+          [schAlias]: schAccount,
+          [opsKey]: opsAccount,
+          [opsAlias]: opsAccount,
+        },
+      }).catch((err) => {
+        console.warn('[registerNewDepot] Server sync failed (offline or unreachable):', err?.message || err);
+      });
+    }
+  } catch (syncErr) {
+    console.warn('[registerNewDepot] Sync dispatch error:', syncErr);
+  }
+
   return {
     ok: true,
     depot: newDepot,
@@ -718,6 +796,18 @@ export function deleteDepot(depotId) {
   }
 
   notifyDepotListeners();
+
+  // Cross-device sync: dispatch deletion to server so all devices reflect it
+  try {
+    if (typeof api !== 'undefined' && api && typeof api.deleteCustomDepot === 'function') {
+      api.deleteCustomDepot(cleanId).catch((err) => {
+        console.warn('[deleteDepot] Server sync failed (offline or unreachable):', err?.message || err);
+      });
+    }
+  } catch (syncErr) {
+    console.warn('[deleteDepot] Sync dispatch error:', syncErr);
+  }
+
   return { ok: true, deletedDepotId: cleanId };
 }
 

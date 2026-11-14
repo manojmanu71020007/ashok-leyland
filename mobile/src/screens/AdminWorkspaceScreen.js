@@ -971,6 +971,65 @@ export default function AdminWorkspaceScreen() {
     );
   };
 
+  // ── Handler: Open & Download All Depot Login Credentials as CSV ──
+  const handleOpenDepotCredentialsCsv = useCallback(async () => {
+    try {
+      const credentialsData = getDepotCredentialsList();
+      const dateStr = new Date().toISOString().slice(0, 10);
+      const filename = `Depot_Login_Credentials_All_Depots_${dateStr}.csv`;
+
+      const headers = [
+        'Depot ID',
+        'Depot Name',
+        'Depot Facility Type',
+        'Location / Address',
+        'Assigned Corridors / Routes',
+        'Operation Name',
+        'Designated Role',
+        'Login Username',
+        'Password',
+        'Target Webpage / Screen',
+        'Official Email',
+      ];
+
+      const rows = [];
+      credentialsData.forEach((depot) => {
+        const dId = String(depot.depotId);
+        const dName = depot.depotName || `Depot ${dId}`;
+        const dType = depot.isDefault ? 'Core Master Depot' : 'Custom Added Depot';
+        const dLoc = depot.location || '';
+        const dRoutes = Array.isArray(depot.routes) ? depot.routes.join('; ') : '';
+
+        (depot.credentials || []).forEach((cred) => {
+          rows.push([
+            `Depot ${dId}`,
+            dName,
+            dType,
+            dLoc,
+            dRoutes,
+            cred.operation || '',
+            cred.role || '',
+            cred.username || '',
+            cred.password || '',
+            cred.pageName || '',
+            cred.email || '',
+          ]);
+        });
+      });
+
+      const success = await exportCsvFile(filename, [headers, ...rows]);
+      if (success) {
+        Alert.alert(
+          'CSV File Opened',
+          `Login credentials CSV for all ${credentialsData.length} operating depots has been generated and opened on your device.\n\nFile: ${filename}`
+        );
+      }
+    } catch (err) {
+      console.error('Failed to export depot credentials CSV:', err);
+      Alert.alert('Export Error', `Could not open CSV file: ${err?.message || err}`);
+    }
+  }, [depotsList]);
+
   // ── Handler: Add Route to Depot ──
   const handleAddRouteToDepot = () => {
     if (!depotRouteFullName.trim()) {
@@ -3092,127 +3151,49 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* ── 🔑 DEPOT CREDENTIALS DIRECTORY (ALL DEPOTS) ── */}
+            {/* ── 🔑 DEPOT LOGIN CREDENTIALS (ALL DEPOTS) CSV ROW ── */}
             <View style={styles.profileCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, flexWrap: 'wrap', gap: 8 }}>
-                <View style={{ flex: 1, minWidth: 200 }}>
-                  <Text style={styles.profileCardTitle}>🔑 Depot Login Credentials (All Depots)</Text>
-                  <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                    Dedicated system-generated credentials for all operating depots
-                  </Text>
+              <TouchableOpacity
+                style={styles.profileCredentialsRowBtn}
+                onPress={handleOpenDepotCredentialsCsv}
+                activeOpacity={0.75}
+              >
+                <View style={styles.profileCredentialsRowLeft}>
+                  <View style={styles.profileCredentialsIconWrap}>
+                    <Text style={{ fontSize: 22 }}>🔑</Text>
+                  </View>
+                  <View style={{ flex: 1, paddingRight: 8 }}>
+                    <Text style={styles.profileCredentialsRowTitle}>
+                      🔑 Depot Login Credentials (All Depots)
+                    </Text>
+                    <Text style={styles.profileCredentialsRowSubtitle}>
+                      Tap to open & download credentials CSV on device ({depotsList.length} Active Depots)
+                    </Text>
+                  </View>
                 </View>
+                <View style={styles.profileCredentialsActionPill}>
+                  <Text style={styles.profileCredentialsActionPillText}>📄 Open CSV ➔</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Quick Manage Depots Link */}
+              <View style={styles.profileDepotsQuickBar}>
+                <Text style={styles.profileDepotsQuickCountText}>
+                  🏢 {depotsList.length} Depots: {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(', ')}
+                </Text>
                 <TouchableOpacity
-                  style={styles.btnAddDepotProfilePill}
+                  style={styles.profileManageDepotsLink}
                   onPress={() => {
                     setDepotsTab('add');
                     setDepotAddMode('depot');
                     setAddDeleteDepotsFullscreen(true);
                     setAddDeleteDepotsModalOpen(true);
                   }}
-                  activeOpacity={0.8}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.btnAddDepotProfilePillText}>➕ Add Depot</Text>
+                  <Text style={styles.profileManageDepotsLinkText}>⚙️ Add / Delete Depots</Text>
                 </TouchableOpacity>
               </View>
-
-              {depotCredentialsList.map((depot) => (
-                <View key={depot.depotId} style={styles.profileDepotBox}>
-                  {/* Depot Header Row */}
-                  <View style={styles.profileDepotHeaderRow}>
-                    <View style={{ flex: 1, paddingRight: 8 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                        <Text style={styles.profileDepotNameText}>🏢 {depot.depotName}</Text>
-                        {depot.isDefault ? (
-                          <View style={styles.profileDepotDefaultBadge}>
-                            <Text style={styles.profileDepotDefaultBadgeText}>Core Facility</Text>
-                          </View>
-                        ) : (
-                          <View style={styles.profileDepotCustomBadge}>
-                            <Text style={styles.profileDepotCustomBadgeText}>Custom Depot</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.profileDepotLocText}>📍 {depot.location}</Text>
-                      {depot.routes && depot.routes.length > 0 && (
-                        <Text style={styles.profileDepotRoutesText}>
-                          🛣️ {depot.routes.length} Corridors: <Text style={{ fontWeight: '700', color: '#0f172a' }}>{depot.routes.join(', ')}</Text>
-                        </Text>
-                      )}
-                    </View>
-
-                    {!depot.isDefault && (
-                      <TouchableOpacity
-                        style={styles.btnDeleteDepotProfile}
-                        onPress={() => {
-                          setSelectedDepotToDelete(depot.depotId);
-                          setDepotsTab('delete');
-                          setDepotDelMode('depot');
-                          setAddDeleteDepotsFullscreen(true);
-                          setAddDeleteDepotsModalOpen(true);
-                        }}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={styles.btnDeleteDepotProfileText}>🗑️ Delete</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  {/* 4 Operations Credentials Grid */}
-                  <View style={styles.profileCredsGrid}>
-                    {depot.credentials.map((cred, cIdx) => (
-                      <View key={cIdx} style={styles.profileCredCard}>
-                        <View style={styles.profileCredTopRow}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-                            <Text style={{ fontSize: 16 }}>{cred.icon || '🔐'}</Text>
-                            <Text style={styles.profileCredOpTitle}>{cred.operation}</Text>
-                          </View>
-                          <TouchableOpacity
-                            style={styles.profileCredQuickOpenBtn}
-                            onPress={() => {
-                              if (typeof openDepotScreen === 'function') {
-                                openDepotScreen(cred.targetScreen, depot.depotId);
-                              }
-                            }}
-                            activeOpacity={0.75}
-                          >
-                            <Text style={styles.profileCredQuickOpenText}>Open ➔</Text>
-                          </TouchableOpacity>
-                        </View>
-
-                        <Text style={styles.profileCredRoleText}>{cred.role}</Text>
-                        <Text style={styles.profileCredPageText}>📄 {cred.pageName}</Text>
-
-                        <View style={styles.profileCredDetailsBox}>
-                          <View style={styles.profileCredRow}>
-                            <Text style={styles.profileCredKey}>Username:</Text>
-                            <Text style={styles.profileCredVal} selectable>{cred.username}</Text>
-                          </View>
-                          <View style={styles.profileCredRow}>
-                            <Text style={styles.profileCredKey}>Password:</Text>
-                            <Text style={styles.profileCredVal} selectable>{cred.password}</Text>
-                          </View>
-                        </View>
-
-                        <TouchableOpacity
-                          style={styles.profileCredCopyBtn}
-                          onPress={() => {
-                            const credString = `Depot: ${depot.depotName}\nOperation: ${cred.operation}\nUsername: ${cred.username}\nPassword: ${cred.password}\nRole: ${cred.role}\nPage: ${cred.pageName}`;
-                            if (typeof navigator !== 'undefined' && navigator.clipboard && navigator.clipboard.writeText) {
-                              navigator.clipboard.writeText(credString);
-                              Alert.alert('Copied to Clipboard', `Credentials for ${cred.operation} (${depot.depotName}) copied!`);
-                            } else {
-                              Alert.alert('Depot Credentials', credString);
-                            }
-                          }}
-                          activeOpacity={0.7}
-                        >
-                          <Text style={styles.profileCredCopyBtnText}>📋 Copy Credentials</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
             </View>
 
             {/* 🌐 System Language Card (Admin Profile Section) */}
@@ -9568,5 +9549,88 @@ const styles = StyleSheet.create({
     color: '#475569',
   },
 
-
+  // ── Profile Credentials CSV Row Styles ──
+  profileCredentialsRowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f8fafc',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    borderColor: '#e2e8f0',
+  },
+  profileCredentialsRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  profileCredentialsIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#eff6ff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  profileCredentialsRowTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
+    letterSpacing: -0.2,
+  },
+  profileCredentialsRowSubtitle: {
+    fontSize: 12,
+    color: '#64748b',
+    marginTop: 2,
+    fontWeight: '500',
+  },
+  profileCredentialsActionPill: {
+    backgroundColor: '#2563eb',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#2563eb',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  profileCredentialsActionPillText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  profileDepotsQuickBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#f1f5f9',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  profileDepotsQuickCountText: {
+    fontSize: 11.5,
+    color: '#64748b',
+    fontWeight: '600',
+  },
+  profileManageDepotsLink: {
+    backgroundColor: '#f1f5f9',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+  },
+  profileManageDepotsLinkText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#3b82f6',
+  },
 });

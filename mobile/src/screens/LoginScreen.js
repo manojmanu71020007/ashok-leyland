@@ -35,7 +35,7 @@ export default function LoginScreen() {
   // Focus tracking for input border highlight (matching admin inputs)
   const [focusedField, setFocusedField] = useState(null);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
     setErrorMessage('');
 
     if (!username.trim()) {
@@ -49,15 +49,17 @@ export default function LoginScreen() {
 
     setLoading(true);
 
-    // Small delay to provide smooth tactile feedback matching website
-    setTimeout(() => {
-      const res = loginWithCredentials(username.trim(), password);
+    try {
+      const res = await Promise.resolve(loginWithCredentials(username.trim(), password));
       setLoading(false);
 
       if (!res.ok) {
         setErrorMessage(res.error || 'Invalid username or password. Please verify your credentials and try again.');
       }
-    }, 250);
+    } catch (err) {
+      setLoading(false);
+      setErrorMessage(err?.message || 'Invalid username or password.');
+    }
   };
 
   const handleSelectFromDirectory = (item) => {

@@ -266,4 +266,25 @@ export const api = {
       body: JSON.stringify({ completedRoutesLog }),
     });
   },
+
+  // Get custom depots & accounts from server
+  getCustomDepots: async () => {
+    return apiRequest('/api/custom-depots');
+  },
+
+  // Save/add or sync custom depot with server
+  saveCustomDepot: async (payload) => {
+    return apiRequest('/api/custom-depots', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+
+  // Delete custom depot from server
+  deleteCustomDepot: async (depotId) => {
+    return apiRequest('/api/custom-depots', {
+      method: 'POST',
+      body: JSON.stringify({ action: 'delete', depotId: String(depotId) }),
+    });
+  },
 };

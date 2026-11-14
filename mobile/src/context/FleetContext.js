@@ -22,6 +22,7 @@ function mergeHistoryLists(serverList, localList) {
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
 import { api } from '../api/client';
 import { useAuth } from './AuthContext';
+import { syncDepotsWithServer } from './accounts';
 import { INITIAL_FLEET } from './initialFleet';
 import staticCats from './staticBusCategories.json';
 import staticRanges from './staticBusRanges.json';
@@ -777,6 +778,10 @@ export const FleetProvider = ({ children }) => {
       let deletedBusesObj = {};
 
       if (resSync.ok && resSync.data) {
+        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined) {
+          syncDepotsWithServer(resSync.data.customDepots || [], resSync.data.customAccounts || {});
+        }
+
         addedBusesObj = resSync.data.addedBuses || {};
         deletedBusesObj = resSync.data.deletedBuses || {};
 

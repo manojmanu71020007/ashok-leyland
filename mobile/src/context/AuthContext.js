@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext } from 'react';
-import { authenticateUser } from './accounts';
+import { authenticateUser, syncDepotsWithServer } from './accounts';
+import { api } from '../api/client';
 
 const AuthContext = createContext();
 
@@ -13,8 +14,20 @@ export const AuthProvider = ({ children }) => {
    * Log in with username and password.
    * Matches against authorized credentials and opens the designated screen.
    */
-  const loginWithCredentials = (username, password) => {
-    const authResult = authenticateUser(username, password);
+  const loginWithCredentials = async (username, password) => {
+    let authResult = authenticateUser(username, password);
+    if (!authResult.ok) {
+      try {
+        if (typeof api !== 'undefined' && api && typeof api.getCustomDepots === 'function') {
+          const res = await api.getCustomDepots();
+          if (res && res.ok && res.data) {
+            syncDepotsWithServer(res.data.customDepots || [], res.data.customAccounts || {});
+            authResult = authenticateUser(username, password);
+          }
+        }
+      } catch (_) {}
+    }
+
     if (!authResult.ok) {
       return authResult;
     }
