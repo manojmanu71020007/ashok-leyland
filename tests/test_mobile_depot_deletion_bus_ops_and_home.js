@@ -159,14 +159,40 @@ assert.strictEqual(
   'PASS: Home page depot filter pills are dynamic rather than hardcoded to Depot 1 & 2'
 );
 
-// Check 5: Home page includes OPERATING DEPOTS NETWORK section
+// Check 5: Home page Operating Depots Network section is removed as requested
 assert.strictEqual(
   adminCode.includes("🏢 OPERATING DEPOTS NETWORK"),
-  true,
-  'PASS: Home page includes prominent OPERATING DEPOTS NETWORK section'
+  false,
+  'PASS: Home page Operating Depots Network section was removed and restored to original clean layout'
 );
 
-// Check 6: Dynamic view metrics calculation for any depot
+// Check 6: Red INTU (✕) button beside routes removed from Schedule Overview
+assert.strictEqual(
+  adminCode.includes("<Text style={{ fontSize: 10, color: '#dc2626', fontWeight: '800' }}>✕</Text>"),
+  false,
+  'PASS: Red INTU (✕) button beside routes in Schedule Overview was removed'
+);
+
+// Check 7: Add and Delete Bus modals use Dropdown Menu for Operating Depot starting with "Select Depot"
+assert.strictEqual(
+  adminCode.includes("modalDropdownBtn"),
+  true,
+  'PASS: Add & Delete Bus modals use dedicated dropdown menu for selecting depot'
+);
+assert.strictEqual(
+  adminCode.includes("'Select Depot'"),
+  true,
+  'PASS: Dropdown menu displays "Select Depot" as default and initial selection'
+);
+
+// Check 8: Donut chart total defaults to 0 and correctly handles 0 total buses
+assert.strictEqual(
+  adminCode.includes("const DonutChart = ({ total = 0, allocated = 0, notAllocated = 0 })"),
+  true,
+  'PASS: DonutChart defaults total to 0 instead of 123'
+);
+
+// Check 9: Dynamic view metrics calculation for any depot
 assert.strictEqual(
   adminCode.includes("const viewBuses = useMemo("),
   true,

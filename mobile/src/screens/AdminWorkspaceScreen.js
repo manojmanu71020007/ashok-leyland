@@ -534,13 +534,13 @@ const SubScreenHeader = ({ title, subtitle, onBack, count, badge, onLangPress })
 
 
 // ── PHOTO-MATCHING CIRCULAR DONUT CHART (Dynamically updated by Allocated & Not Allocated) ──
-const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
+const DonutChart = ({ total = 0, allocated = 0, notAllocated = 0 }) => {
+  const numTotal = Number(total);
   const safeAllocated = Math.max(0, Number(allocated) || 0);
   const safeNotAllocated = Math.max(0, Number(notAllocated) || 0);
-  // Total is strictly the sum of allocated + not allocated, with fallback to total
-  const safeTotal = (safeAllocated + safeNotAllocated > 0)
-    ? (safeAllocated + safeNotAllocated)
-    : Math.max(1, Number(total) || 123);
+  const safeTotal = Number.isFinite(numTotal)
+    ? Math.max(0, numTotal)
+    : (safeAllocated + safeNotAllocated);
 
   const ratio = safeTotal > 0 ? safeAllocated / safeTotal : 0;
   const size = 120;
@@ -559,12 +559,12 @@ const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
           viewBox={`0 0 ${size} ${size}`}
           style={{ position: 'absolute', top: 0, left: 0, transform: 'rotate(-90deg)' }}
         >
-          {/* Base lavender ring (Not Allocated) */}
+          {/* Base lavender ring (Not Allocated), neutral gray if 0 */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="#ddd6fe"
+            stroke={safeTotal > 0 ? '#ddd6fe' : '#e2e8f0'}
             strokeWidth={strokeWidth}
             fill="none"
           />
@@ -606,7 +606,7 @@ const DonutChart = ({ total = 123, allocated = 0, notAllocated = 123 }) => {
 <body>
   <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
     <g transform="rotate(-90 ${size / 2} ${size / 2})">
-      <circle cx="${size / 2}" cy="${size / 2}" r="${radius}" stroke="#ddd6fe" stroke-width="${strokeWidth}" fill="none" />
+      <circle cx="${size / 2}" cy="${size / 2}" r="${radius}" stroke="${safeTotal > 0 ? '#ddd6fe' : '#e2e8f0'}" stroke-width="${strokeWidth}" fill="none" />
       ${safeAllocated > 0 ? `<circle cx="${size / 2}" cy="${size / 2}" r="${radius}" stroke="#10b981" stroke-width="${strokeWidth}" fill="none" stroke-dasharray="${circumference}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round" />` : ''}
     </g>
     <text x="${size / 2}" y="${size / 2 - 2}" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="800" text-anchor="middle" fill="#1e293b">${safeTotal}</text>
@@ -1368,14 +1368,16 @@ export default function AdminWorkspaceScreen() {
   const [addReg, setAddReg] = useState('');
   const [addCat, setAddCat] = useState('B');
   const [addSoc, setAddSoc] = useState('100');
-  const [addDepot, setAddDepot] = useState('1');
+  const [addDepot, setAddDepot] = useState('');
+  const [addDepotDropdownOpen, setAddDepotDropdownOpen] = useState(false);
   const [addReasonSelect, setAddReasonSelect] = useState('New Electric Bus Induction (Ashok Leyland EiV12)');
   const [addReasonDetail, setAddReasonDetail] = useState('');
 
   const [delSearchQuery, setDelSearchQuery] = useState('');
   const [delSelectedBm, setDelSelectedBm] = useState('');
   const [delReg, setDelReg] = useState('');
-  const [delDepot, setDelDepot] = useState('1');
+  const [delDepot, setDelDepot] = useState('');
+  const [delDepotDropdownOpen, setDelDepotDropdownOpen] = useState(false);
   const [delReasonSelect, setDelReasonSelect] = useState('Major Breakdown / Motor Defect');
   const [delReasonDetail, setDelReasonDetail] = useState('');
 
@@ -1996,6 +1998,10 @@ export default function AdminWorkspaceScreen() {
       Alert.alert('Registration Required', 'Please enter the Bus Registration Number (e.g. KA51AH4144).');
       return;
     }
+    if (!addDepot) {
+      Alert.alert('Operating Depot Required', 'Please select an operating depot from the dropdown menu.');
+      return;
+    }
     const cleanBm = addBm.trim().toUpperCase();
     const cleanReg = addReg.trim().toUpperCase();
     const reasonVal = addReasonDetail.trim() || addReasonSelect || 'New Electric Bus Induction';
@@ -2330,116 +2336,6 @@ export default function AdminWorkspaceScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-
-            {/* ── OPERATING DEPOTS NETWORK (Prominently displaying all default & newly added depots) ── */}
-            <View style={styles.depotNetworkSection}>
-              <View style={styles.depotNetworkHeaderRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.operationsHubTitle}>🏢 OPERATING DEPOTS NETWORK ({depotsList.length} Facilities)</Text>
-                  <Text style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>
-                    Active depot facilities, fleet allocations, corridors, and operations
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.btnAddDepotShortcut}
-                  onPress={() => {
-                    setDepotsTab('add');
-                    setDepotsModalOpen(true);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.btnAddDepotShortcutText}>➕ Manage Depots</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={{ gap: 10, marginTop: 10 }}>
-                {depotsList.map((depot) => {
-                  const dId = String(depot.id);
-                  const depotBuses = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId);
-                  const depotRoutes = depot.routes || getRoutesForDepot(dId) || [];
-                  const isSelected = adminDepotFilter === dId;
-
-                  return (
-                    <TouchableOpacity
-                      key={dId}
-                      style={[styles.depotNetworkCard, isSelected && styles.depotNetworkCardActive]}
-                      onPress={() => {
-                        setAdminDepotFilter(dId);
-                        setLockedDepotFilter(dId);
-                        setRecentCompletedDepot(dId);
-                      }}
-                      activeOpacity={0.85}
-                    >
-                      <View style={styles.depotNetworkCardTop}>
-                        <View style={{ flex: 1 }}>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                            <Text style={styles.depotNetworkCardTitle}>
-                              🏢 {depot.name || `Depot ${dId}`}
-                            </Text>
-                            <View style={[styles.depotNetworkBadge, { backgroundColor: isSelected ? '#e0e7ff' : '#f1f5f9' }]}>
-                              <Text style={[styles.depotNetworkBadgeText, { color: isSelected ? '#3730a3' : '#475569' }]}>
-                                ID: {dId}
-                              </Text>
-                            </View>
-                            {isSelected && (
-                              <View style={[styles.depotNetworkBadge, { backgroundColor: '#dcfce7' }]}>
-                                <Text style={[styles.depotNetworkBadgeText, { color: '#166534', fontWeight: '800' }]}>
-                                  ✓ Active Filter
-                                </Text>
-                              </View>
-                            )}
-                          </View>
-                          <Text style={styles.depotNetworkCardSub}>
-                            📍 {depot.location || 'Bengaluru'} • {depotRoutes.length} Corridors
-                          </Text>
-                        </View>
-                        <View style={styles.depotNetworkFleetCountBox}>
-                          <Text style={styles.depotNetworkFleetNum}>{depotBuses.length}</Text>
-                          <Text style={styles.depotNetworkFleetLbl}>Fleet</Text>
-                        </View>
-                      </View>
-
-                      {/* Corridors Preview */}
-                      {depotRoutes.length > 0 ? (
-                        <View style={styles.depotRoutesPillsRow}>
-                          <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b' }}>Routes: </Text>
-                          {depotRoutes.slice(0, 6).map((rCode) => (
-                            <View key={rCode} style={styles.depotRoutePillMini}>
-                              <Text style={styles.depotRoutePillMiniText}>{rCode}</Text>
-                            </View>
-                          ))}
-                          {depotRoutes.length > 6 && (
-                            <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic' }}>
-                              +{depotRoutes.length - 6} more
-                            </Text>
-                          )}
-                        </View>
-                      ) : (
-                        <Text style={{ fontSize: 11, color: '#94a3b8', fontStyle: 'italic', marginTop: 4 }}>
-                          No corridors assigned yet. Add routes in Add / Delete Depots.
-                        </Text>
-                      )}
-
-                      {/* 4 Dedicated Operational Services Indicator */}
-                      <View style={styles.depotOpsStatusRow}>
-                        <View style={styles.depotOpsBadge}>
-                          <Text style={styles.depotOpsBadgeText}>⚡ Charging (ES-DEPOT-{dId.toUpperCase()})</Text>
-                        </View>
-                        <View style={styles.depotOpsBadge}>
-                          <Text style={styles.depotOpsBadgeText}>🧹 Cleaning (INSP-DEPOT-{dId.toUpperCase()}-01)</Text>
-                        </View>
-                        <View style={styles.depotOpsBadge}>
-                          <Text style={styles.depotOpsBadgeText}>📅 Scheduling (IS-DEPOT-{dId.toUpperCase()})</Text>
-                        </View>
-                        <View style={styles.depotOpsBadge}>
-                          <Text style={styles.depotOpsBadgeText}>🏢 Depot Ops (DM-DEPOT-{dId.toUpperCase()})</Text>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            </View>
           </View>
         )}
 
@@ -2648,46 +2544,6 @@ export default function AdminWorkspaceScreen() {
                                 {r.code} ({r.distance} km)
                               </Text>
                             </TouchableOpacity>
-
-                            {/* Delete Route button (allows deleting newly added routes or custom routes) */}
-                            {(isCustom || r.custom) && (
-                              <TouchableOpacity
-                                style={{
-                                  marginLeft: -10,
-                                  marginRight: 6,
-                                  backgroundColor: '#fee2e2',
-                                  borderRadius: 12,
-                                  width: 20,
-                                  height: 20,
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  borderWidth: 1,
-                                  borderColor: '#fca5a5',
-                                  zIndex: 2,
-                                }}
-                                onPress={() => {
-                                  Alert.alert(
-                                    'Delete Route Corridor',
-                                    `Are you sure you want to delete Route ${r.code} from ${depot.name}?`,
-                                    [
-                                      { text: 'Cancel', style: 'cancel' },
-                                      {
-                                        text: 'Delete Route',
-                                        style: 'destructive',
-                                        onPress: () => {
-                                          removeRouteFromDepot(dId, r.code);
-                                          setDeletedRouteCodes((prev) => [...prev, r.code]);
-                                          setCustomRoutes((prev) => prev.filter((cr) => cr.code !== r.code && cr.id !== r.id));
-                                          Alert.alert('Route Deleted', `Route ${r.code} was successfully removed from ${depot.name}.`);
-                                        },
-                                      },
-                                    ]
-                                  );
-                                }}
-                              >
-                                <Text style={{ fontSize: 10, color: '#dc2626', fontWeight: '800' }}>✕</Text>
-                              </TouchableOpacity>
-                            )}
                           </View>
                         );
                       })}
@@ -4458,23 +4314,56 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>Operating Depot <Text style={{ color: '#ef4444' }}>*</Text></Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                    {depotsList.map((d) => {
-                      const dNum = String(d.id);
-                      const isSelected = delDepot === dNum;
-                      return (
-                        <TouchableOpacity
-                          key={dNum}
-                          style={[styles.depotSelectBtn, isSelected && styles.depotSelectBtnActive, { flex: undefined, minWidth: '45%' }]}
-                          onPress={() => setDelDepot(dNum)}
-                        >
-                          <Text style={[styles.depotSelectBtnText, isSelected && styles.depotSelectBtnTextActive]}>
-                            🏢 {d.shortName || d.name || `Depot ${dNum}`}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                  <TouchableOpacity
+                    style={[styles.modalDropdownBtn, delDepotDropdownOpen && styles.modalDropdownBtnActive]}
+                    onPress={() => setDelDepotDropdownOpen((prev) => !prev)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.modalDropdownBtnText, !delDepot && { color: '#94a3b8' }]}>
+                      {delDepot
+                        ? (depotsList.find((d) => String(d.id) === String(delDepot))?.name || `Depot ${delDepot}`)
+                        : 'Select Depot'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#64748b' }}>
+                      {delDepotDropdownOpen ? '▲' : '▼'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {delDepotDropdownOpen && (
+                    <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
+                      <TouchableOpacity
+                        style={[styles.modalDropdownItem, !delDepot && styles.modalDropdownItemActive]}
+                        onPress={() => {
+                          setDelDepot('');
+                          setDelDepotDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={[styles.modalDropdownItemText, !delDepot && styles.modalDropdownItemTextActive, { color: '#64748b' }]}>
+                          Select Depot
+                        </Text>
+                        {!delDepot && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                      </TouchableOpacity>
+                      {depotsList.map((d) => {
+                        const dNum = String(d.id);
+                        const isSelected = delDepot === dNum;
+                        return (
+                          <TouchableOpacity
+                            key={dNum}
+                            style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                            onPress={() => {
+                              setDelDepot(dNum);
+                              setDelDepotDropdownOpen(false);
+                            }}
+                          >
+                            <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                              🏢 {d.name || `Depot ${dNum}`}
+                            </Text>
+                            {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
 
                   <Text style={styles.modalFieldLabel}>Reason Category <Text style={{ color: '#ef4444' }}>*</Text></Text>
                   <View style={styles.reasonWrap}>
@@ -4552,23 +4441,56 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>Operating Depot <Text style={{ color: '#ef4444' }}>*</Text></Text>
-                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                    {depotsList.map((d) => {
-                      const dNum = String(d.id);
-                      const isSelected = addDepot === dNum;
-                      return (
-                        <TouchableOpacity
-                          key={dNum}
-                          style={[styles.depotSelectBtn, isSelected && styles.depotSelectBtnActive, { flex: undefined, minWidth: '45%' }]}
-                          onPress={() => setAddDepot(dNum)}
-                        >
-                          <Text style={[styles.depotSelectBtnText, isSelected && styles.depotSelectBtnTextActive]}>
-                            🏢 {d.shortName || d.name || `Depot ${dNum}`}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                  <TouchableOpacity
+                    style={[styles.modalDropdownBtn, addDepotDropdownOpen && styles.modalDropdownBtnActive]}
+                    onPress={() => setAddDepotDropdownOpen((prev) => !prev)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.modalDropdownBtnText, !addDepot && { color: '#94a3b8' }]}>
+                      {addDepot
+                        ? (depotsList.find((d) => String(d.id) === String(addDepot))?.name || `Depot ${addDepot}`)
+                        : 'Select Depot'}
+                    </Text>
+                    <Text style={{ fontSize: 12, color: '#64748b' }}>
+                      {addDepotDropdownOpen ? '▲' : '▼'}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {addDepotDropdownOpen && (
+                    <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
+                      <TouchableOpacity
+                        style={[styles.modalDropdownItem, !addDepot && styles.modalDropdownItemActive]}
+                        onPress={() => {
+                          setAddDepot('');
+                          setAddDepotDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={[styles.modalDropdownItemText, !addDepot && styles.modalDropdownItemTextActive, { color: '#64748b' }]}>
+                          Select Depot
+                        </Text>
+                        {!addDepot && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                      </TouchableOpacity>
+                      {depotsList.map((d) => {
+                        const dNum = String(d.id);
+                        const isSelected = addDepot === dNum;
+                        return (
+                          <TouchableOpacity
+                            key={dNum}
+                            style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                            onPress={() => {
+                              setAddDepot(dNum);
+                              setAddDepotDropdownOpen(false);
+                            }}
+                          >
+                            <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                              🏢 {d.name || `Depot ${dNum}`}
+                            </Text>
+                            {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
+                  )}
 
                   <Text style={styles.modalFieldLabel}>Fleet Range Category</Text>
                   <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
@@ -10376,143 +10298,60 @@ const styles = StyleSheet.create({
     marginBottom: 3,
     fontWeight: '600',
   },
-  depotNetworkSection: {
-    backgroundColor: '#ffffff',
-    borderRadius: 16,
-    padding: 16,
-    marginTop: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  modalDropdownBtn: {
+    backgroundColor: '#f8fafc',
     borderWidth: 1,
     borderColor: '#e2e8f0',
-  },
-  depotNetworkHeaderRow: {
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingBottom: 8,
+    marginBottom: 8,
+  },
+  modalDropdownBtnActive: {
+    borderColor: '#4361ee',
+    backgroundColor: '#ffffff',
+  },
+  modalDropdownBtnText: {
+    fontSize: 13.5,
+    color: '#0f172a',
+    fontWeight: '700',
+  },
+  modalDropdownMenu: {
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 14,
+    marginBottom: 12,
+    maxHeight: 180,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 3,
+  },
+  modalDropdownItem: {
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     borderBottomWidth: 1,
     borderBottomColor: '#f1f5f9',
-  },
-  btnAddDepotShortcut: {
-    backgroundColor: '#eff6ff',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#bfdbfe',
-  },
-  btnAddDepotShortcutText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#2563eb',
-  },
-  depotNetworkCard: {
-    backgroundColor: '#f8fafc',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1.5,
-    borderColor: '#e2e8f0',
-  },
-  depotNetworkCardActive: {
-    backgroundColor: '#f5f3ff',
-    borderColor: '#4361ee',
-    shadowColor: '#4361ee',
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 2 },
-  },
-  depotNetworkCardTop: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 10,
   },
-  depotNetworkCardTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: '#0f172a',
+  modalDropdownItemActive: {
+    backgroundColor: '#eff6ff',
   },
-  depotNetworkBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  depotNetworkBadgeText: {
-    fontSize: 10.5,
-    fontWeight: '700',
-  },
-  depotNetworkCardSub: {
-    fontSize: 12,
-    color: '#64748b',
-    marginTop: 3,
-    fontWeight: '500',
-  },
-  depotNetworkFleetCountBox: {
-    backgroundColor: '#ffffff',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-    minWidth: 54,
-  },
-  depotNetworkFleetNum: {
-    fontSize: 16,
-    fontWeight: '900',
+  modalDropdownItemText: {
+    fontSize: 13.5,
     color: '#1e293b',
-  },
-  depotNetworkFleetLbl: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#64748b',
-    textTransform: 'uppercase',
-  },
-  depotRoutesPillsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 5,
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
-  },
-  depotRoutePillMini: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#cbd5e1',
-  },
-  depotRoutePillMiniText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#334155',
-  },
-  depotOpsStatusRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
-  },
-  depotOpsBadge: {
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-  },
-  depotOpsBadgeText: {
-    fontSize: 10.5,
     fontWeight: '600',
-    color: '#475569',
+  },
+  modalDropdownItemTextActive: {
+    color: '#2563eb',
+    fontWeight: '800',
   },
 });
