@@ -28,7 +28,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
-import { getDepotDisplayName, getRoutesForDepot } from '../context/accounts';
+import { getDepotDisplayName, getRoutesForDepot, getRouteDefinition } from '../context/accounts';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
 
@@ -394,24 +394,57 @@ export default function SchedulingScreen() {
 
   const assignedRouteCodes = getRoutesForDepot(depotNum);
   const ALL_BASE_ROUTES = [...DEPOT_1_ROUTES, ...DEPOT_2_ROUTES];
-  const matchedRoutes = assignedRouteCodes.map((code) => {
-    const clean = String(code).toUpperCase().trim();
+
+  const resolveDepotRoute = useCallback((code) => {
+    const clean = String(code || '').toUpperCase().trim();
     const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
     if (found) return found;
+
+    const dyn = getRouteDefinition(clean);
+    if (dyn) {
+      return {
+        id: clean,
+        code: clean,
+        name: dyn.fullName || dyn.name || `Route ${clean}`,
+        fullName: dyn.fullName || dyn.name || `Route ${clean}`,
+        shortName: dyn.shortName || clean,
+        origin: dyn.origin || `${depotLabel} Terminal`,
+        destination: dyn.destination || 'Central Terminal',
+        via: dyn.via || 'Direct Express',
+        timetables: Array.isArray(dyn.timetables) ? dyn.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+        distance: Number(dyn.distance) || 25.0,
+        fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
+        duration: dyn.duration || '50 mins',
+        energyEst: dyn.energyEst || `${Math.round((Number(dyn.distance) || 25.0) * 1.25)} kWh`,
+        shift: dyn.shift || 'General Shift',
+        category: dyn.category || 'Standard',
+        requiredCat: dyn.requiredCat || 'B',
+        drainSoc: dyn.drainSoc || Math.min(95, Math.max(10, Math.round((Number(dyn.distance) || 25.0) * 0.85))),
+      };
+    }
+
     return {
       id: clean,
       code: clean,
-      name: `Corridor ${clean}`,
+      name: `Route ${clean}`,
+      fullName: `Route ${clean}`,
+      shortName: clean,
       origin: `${depotLabel} Terminal`,
       destination: 'Central Terminal',
       via: 'Direct Express',
       timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
       distance: 25.0,
+      fullDutyKm: 50.0,
       duration: '50 mins',
       energyEst: '30 kWh',
       shift: 'General Shift',
+      category: 'Standard',
+      requiredCat: 'B',
+      drainSoc: 24,
     };
-  });
+  }, [depotLabel, ALL_BASE_ROUTES]);
+
+  const matchedRoutes = assignedRouteCodes.map(resolveDepotRoute);
   const availableRoutes = (depotNum === '1' && matchedRoutes.length === 0)
     ? DEPOT_1_ROUTES
     : (depotNum === '2' && matchedRoutes.length === 0)
@@ -431,24 +464,7 @@ export default function SchedulingScreen() {
   // Sync route and driver when depot changes
   React.useEffect(() => {
     const codes = getRoutesForDepot(depotNum);
-    const matched = codes.map((code) => {
-      const clean = String(code).toUpperCase().trim();
-      const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
-      if (found) return found;
-      return {
-        id: clean,
-        code: clean,
-        name: `Corridor ${clean}`,
-        origin: `${depotLabel} Terminal`,
-        destination: 'Central Terminal',
-        via: 'Direct Express',
-        timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
-        distance: 25.0,
-        duration: '50 mins',
-        energyEst: '30 kWh',
-        shift: 'General Shift',
-      };
-    });
+    const matched = codes.map(resolveDepotRoute);
     const routesForDepot = (depotNum === '1' && matched.length === 0)
       ? DEPOT_1_ROUTES
       : (depotNum === '2' && matched.length === 0)
@@ -678,6 +694,14 @@ export default function SchedulingScreen() {
       }
     };
 
+    // 0. Depot fleet buses stationed at this active depot (including newly added buses)
+    depotBuses.forEach((b) => {
+      const bm = String(b.bmNumber || b.bm || b.id || '').toUpperCase().trim();
+      if (bm) {
+        addCand(bm, b.isNewlyAdded ? '✨ Inducted Fleet Bus' : 'Depot Fleet Bus');
+      }
+    });
+
     // 1. Primary duty bus from master timetable roster (fixBm)
     if (matchedSched && matchedSched.fixBm) {
       addCand(matchedSched.fixBm, `Primary Bus (${targetShift})`);
@@ -738,6 +762,46 @@ export default function SchedulingScreen() {
         }
         if (candidates.length >= 3) break;
       }
+    }
+
+    // 5b. Fallback for newly added depots or routes: ensure stationed fleet buses can be allocated
+    if (candidates.length === 0 && depotBuses.length > 0) {
+      depotBuses.forEach((b) => {
+        const bm = String(b.bmNumber || b.bm || b.id || '').toUpperCase().trim();
+        if (!bm || seenBms.has(bm)) return;
+        const isLocked = Boolean(b.isLocked || lockedBuses.some((lb) => String(lb.bm || lb.bmNumber || '').toUpperCase().trim() === bm));
+        const isAllocated = Boolean(allocatedDuties.some((d) => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === bm));
+        if (isLocked || b.isCharging || b.isCleaning || isAllocated) return;
+
+        seenBms.add(bm);
+        const liveSoc = Number(b.soc ?? 85);
+        const busCat = b.busCategory || b.category || 'B';
+        const operatingKm = routeDist;
+        const energyNeeded = Math.round(operatingKm * 1.25);
+        const projectedArrivalSoc = Math.max(0, Math.round(liveSoc - (operatingKm / 1.42)));
+        const bufferSoc = Math.max(0, projectedArrivalSoc - 10);
+        candidates.push({
+          ...b,
+          bmNumber: bm,
+          bm: bm,
+          regNo: b.regNo || getBusRegNo(bm),
+          role: b.isNewlyAdded ? '✨ Inducted Fleet Bus' : 'Depot Fleet Bus',
+          shift: targetShift,
+          liveSoc,
+          soc: liveSoc,
+          busCategory: busCat,
+          category: busCat,
+          constantMinReqSoc: Math.max(20, Math.round(routeDist * 0.8)),
+          reqSoc: Math.max(20, Math.round(routeDist * 0.8)),
+          fullDutyKm: Math.round(Math.max(0, liveSoc - 10) * 1.42),
+          actualRangeKm: Math.round(liveSoc * 1.42),
+          energyNeeded,
+          projectedArrivalSoc,
+          bufferSoc,
+          departureTime: depTimeClean,
+          routeCode: routeCode,
+        });
+      });
     }
 
     // 6. Sort candidates matching scheduling.html:
@@ -978,7 +1042,7 @@ export default function SchedulingScreen() {
               No Routes or Buses Assigned Yet
             </Text>
             <Text style={[styles.panelNote, { textAlign: 'center', marginBottom: 20, maxWidth: 460 }]}>
-              {depotLabel} (Depot {depotNum}) has been initialized with dedicated operational wings, but does not contain any assigned corridors or stationed buses yet.
+              {depotLabel} (Depot {depotNum}) has been initialized with dedicated operational wings, but does not contain any assigned routes or stationed buses yet.
             </Text>
 
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -999,8 +1063,8 @@ export default function SchedulingScreen() {
               </Text>
               <Text style={{ fontSize: 12, color: '#1e3a8a', lineHeight: 18 }}>
                 1. Sign in to Admin Workspace with CDM001 credentials.
-                {'\n'}2. Open "Add / Delete Depots & Corridors".
-                {'\n'}3. Register corridors or assign fleet vehicles to Depot {depotNum}.
+                {'\n'}2. Open "Add / Delete Depots & Routes".
+                {'\n'}3. Register routes or assign fleet vehicles to Depot {depotNum}.
                 {'\n'}Once updated from the admin page, the new routes and buses will immediately show here.
               </Text>
             </View>
@@ -1022,7 +1086,7 @@ export default function SchedulingScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.selectBoxText}>
-              🚌 {selectedRoute.code} — {selectedRoute.name} ({selectedRoute.distance} km)
+              🚌 {selectedRoute.code} — {selectedRoute.fullName || selectedRoute.name} ({selectedRoute.distance} km)
             </Text>
             <Text style={styles.caret}>▼</Text>
           </TouchableOpacity>
@@ -1436,7 +1500,7 @@ export default function SchedulingScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.pickerItemTitle}>{r.code} — {r.name}</Text>
+                    <Text style={styles.pickerItemTitle}>{r.code} — {r.fullName || r.name}</Text>
                     <Text style={styles.pickerItemSub}>
                       GTFS Distance: {r.distance} km • Category {r.requiredCat} ({r.category})
                     </Text>

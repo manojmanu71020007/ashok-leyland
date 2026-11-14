@@ -713,11 +713,80 @@ export function getRoutesForDepot(depotId) {
 /**
  * Adds a route code to a depot's assigned routes list and syncs across devices.
  */
-export function addRouteToDepot(depotId, routeCode) {
+// Shared registry for dynamic route definitions (stores full name, short name, origin, destination, distance, etc.)
+let dynamicRouteDefinitions = {};
+
+try {
+  if (typeof localStorage !== 'undefined') {
+    const saved = localStorage.getItem('al_dynamic_routes_v1');
+    if (saved) {
+      dynamicRouteDefinitions = JSON.parse(saved);
+    }
+  }
+} catch (_) {}
+
+function persistRouteDefinitions() {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('al_dynamic_routes_v1', JSON.stringify(dynamicRouteDefinitions));
+    }
+  } catch (_) {}
+}
+
+export function registerRouteDefinition(routeObj) {
+  if (!routeObj) return;
+  const cleanCode = String(routeObj.code || routeObj.shortName || routeObj.id || '').trim().toUpperCase();
+  if (!cleanCode) return;
+  const fullName = String(routeObj.fullName || routeObj.name || `Route ${cleanCode}`).trim();
+  const origin = String(routeObj.origin || 'Depot Terminal').trim();
+  const destination = String(routeObj.destination || 'City Terminal').trim();
+  const dist = Number(routeObj.distance) || 25.0;
+
+  dynamicRouteDefinitions[cleanCode] = {
+    id: cleanCode,
+    code: cleanCode,
+    shortName: routeObj.shortName ? String(routeObj.shortName).trim() : cleanCode,
+    fullName: fullName,
+    name: fullName,
+    origin: origin,
+    destination: destination,
+    distance: dist,
+    fullDutyKm: routeObj.fullDutyKm || parseFloat((dist * 2).toFixed(1)),
+    shift: routeObj.shift || 'General Shift',
+    timetables: Array.isArray(routeObj.timetables) ? routeObj.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+    category: routeObj.category || 'Standard',
+    requiredCat: routeObj.requiredCat || 'B',
+    depotId: String(routeObj.depotId || '1'),
+    custom: true,
+  };
+  persistRouteDefinitions();
+}
+
+export function getRouteDefinition(code) {
+  if (!code) return null;
+  const clean = String(code).trim().toUpperCase();
+  return dynamicRouteDefinitions[clean] || null;
+}
+
+export function getAllRouteDefinitions() {
+  return dynamicRouteDefinitions;
+}
+
+/**
+ * Adds a route to a depot's assigned routes list and syncs across devices.
+ * Accepts either a route code string (e.g. '356CW') or a full route definition object.
+ */
+export function addRouteToDepot(depotId, routeData) {
   const cleanId = String(depotId || '').trim();
-  const cleanRoute = String(routeCode || '').trim().toUpperCase();
+  const isObj = typeof routeData === 'object' && routeData !== null;
+  const rawCode = isObj ? (routeData.code || routeData.shortName || routeData.id) : routeData;
+  const cleanRoute = String(rawCode || '').trim().toUpperCase();
   if (!cleanId || !cleanRoute) {
     return { ok: false, error: 'Depot ID and Route code are required.' };
+  }
+
+  if (isObj) {
+    registerRouteDefinition({ ...routeData, depotId: cleanId });
   }
 
   let updatedRoutes = [];
@@ -766,6 +835,11 @@ export function removeRouteFromDepot(depotId, routeCode) {
   const cleanRoute = String(routeCode || '').trim().toUpperCase();
   if (!cleanId || !cleanRoute) {
     return { ok: false, error: 'Depot ID and Route code are required.' };
+  }
+
+  if (dynamicRouteDefinitions[cleanRoute]) {
+    delete dynamicRouteDefinitions[cleanRoute];
+    persistRouteDefinitions();
   }
 
   let updatedRoutes = [];

@@ -41,6 +41,7 @@ import {
   addRouteToDepot,
   removeRouteFromDepot,
   getRoutesForDepot,
+  getRouteDefinition,
 } from '../context/accounts';
 
 let NativeWebView = null;
@@ -756,7 +757,7 @@ export default function AdminWorkspaceScreen() {
 
   // Form State: Delete Route / Depot
   const [delRouteSelectedCode, setDelRouteSelectedCode] = useState('');
-  const [delRouteReason, setDelRouteReason] = useState('Corridor Realignment');
+  const [delRouteReason, setDelRouteReason] = useState('Route Realignment');
   const [delRouteCustomReason, setDelRouteCustomReason] = useState('');
   const [delRouteSearchQuery, setDelRouteSearchQuery] = useState('');
 
@@ -853,8 +854,17 @@ export default function AdminWorkspaceScreen() {
         if (seen.has(`${dId}_${cleanCode}`)) return;
         seen.add(`${dId}_${cleanCode}`);
 
+        const dynamicDef = getRouteDefinition(cleanCode);
         const baseRoute = ALL_ROUTES_DATA.find((r) => r.code === cleanCode || r.id === cleanCode);
-        if (baseRoute) {
+        if (dynamicDef) {
+          list.push({
+            ...dynamicDef,
+            id: `${dId}_${cleanCode}`,
+            code: cleanCode,
+            depotId: dId,
+            depotName: dName,
+          });
+        } else if (baseRoute) {
           list.push({
             ...baseRoute,
             id: `${dId}_${cleanCode}`,
@@ -866,8 +876,8 @@ export default function AdminWorkspaceScreen() {
           list.push({
             id: `${dId}_${cleanCode}`,
             code: cleanCode,
-            name: `${cleanCode} Corridor (${dName})`,
-            fullName: `${cleanCode} Corridor (${dName})`,
+            name: `Route ${cleanCode} (${dName})`,
+            fullName: `Route ${cleanCode} (${dName})`,
             shortName: cleanCode,
             origin: `${dName} Station`,
             destination: 'Central Terminal',
@@ -1048,7 +1058,7 @@ export default function AdminWorkspaceScreen() {
         id: cleanId,
         name: newDepotName.trim(),
         location: newDepotLocation.trim() || newDepotName.trim(),
-        routes: selectedDepotRoutes,
+        routes: [],
         password: 'Test@123',
       });
 
@@ -1060,7 +1070,7 @@ export default function AdminWorkspaceScreen() {
           fullName: newDepotName.trim(),
           origin: newDepotLocation.trim() || 'Central',
           destination: '4 Operations Active',
-          distance: selectedDepotRoutes.length,
+          distance: 0,
           depot: newDepotName.trim(),
           time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
@@ -1075,7 +1085,7 @@ export default function AdminWorkspaceScreen() {
 
       Alert.alert(
         '🏢 Depot Created Successfully!',
-        `Depot: ${res.depot.name} (ID: ${cleanId})\nRoutes Attached: ${res.depot.routes?.length || 0} Corridors\n\n⚡ Dedicated Pages & Login Credentials Created:\n• Charging: ES-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Cleaning: INSP-DEPOT-${cleanId.toUpperCase()}-01 (Test@123)\n• Scheduling: IS-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Depot Ops: DM-DEPOT-${cleanId.toUpperCase()} (Test@123)\n\nThese credentials are now active for login and viewable in Admin Profile.`,
+        `Depot: ${res.depot.name} (ID: ${cleanId})\n\n⚡ Dedicated Pages & Login Credentials Created:\n• Charging: ES-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Cleaning: INSP-DEPOT-${cleanId.toUpperCase()}-01 (Test@123)\n• Scheduling: IS-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Depot Ops: DM-DEPOT-${cleanId.toUpperCase()} (Test@123)\n\nThese credentials are now active for login and viewable in Admin Profile. You can add routes to this depot anytime under the "Add Route" tab.`,
         [{ text: 'View Directory', onPress: () => setDepotsTab('directory') }]
       );
     } catch (err) {
@@ -1096,7 +1106,7 @@ export default function AdminWorkspaceScreen() {
 
     Alert.alert(
       '⚠️ Confirm Permanent Depot Deletion',
-      `Are you sure you want to delete ${depotName} (ID: ${selectedDepotToDelete})?\n\nThis will permanently delete:\n• Charging Operations for this depot\n• Cleaning Operations for this depot\n• Scheduling Operations for this depot\n• Depot Operations for this depot\n• Unassign all associated corridors\n• Delete all generated credentials (ES-DEPOT-${selectedDepotToDelete.toUpperCase()}, INSP-DEPOT-${selectedDepotToDelete.toUpperCase()}-01, IS-DEPOT-${selectedDepotToDelete.toUpperCase()}, DM-DEPOT-${selectedDepotToDelete.toUpperCase()})\n\nReason: ${finalReason}`,
+      `Are you sure you want to delete ${depotName} (ID: ${selectedDepotToDelete})?\n\nThis will permanently delete:\n• Charging Operations for this depot\n• Cleaning Operations for this depot\n• Scheduling Operations for this depot\n• Depot Operations for this depot\n• Unassign all associated routes\n• Delete all generated credentials (ES-DEPOT-${selectedDepotToDelete.toUpperCase()}, INSP-DEPOT-${selectedDepotToDelete.toUpperCase()}-01, IS-DEPOT-${selectedDepotToDelete.toUpperCase()}, DM-DEPOT-${selectedDepotToDelete.toUpperCase()})\n\nReason: ${finalReason}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -1156,7 +1166,7 @@ export default function AdminWorkspaceScreen() {
         'Depot Name',
         'Depot Facility Type',
         'Location / Address',
-        'Assigned Corridors / Routes',
+        'Assigned Routes',
         'Operation Name',
         'Designated Role',
         'Login Username',
@@ -1264,7 +1274,7 @@ export default function AdminWorkspaceScreen() {
     };
 
     // Attach route to depot in accounts and sync across devices
-    addRouteToDepot(resolvedDepotId, cleanCode);
+    addRouteToDepot(resolvedDepotId, newRoute);
 
     setCustomRoutes((prev) => [newRoute, ...prev]);
     setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
@@ -1293,14 +1303,14 @@ export default function AdminWorkspaceScreen() {
     Alert.alert(
       'Route Registered Successfully',
       `Route: ${cleanCode}\nFull Name: ${newRoute.fullName}\nPath: ${newRoute.origin} ➔ ${newRoute.destination}\nTotal Distance: ${distNum} km\nOperating Depot: ${resolvedDepotName}`,
-      [{ text: 'View Corridors', onPress: () => setDepotsTab('directory') }]
+      [{ text: 'View Routes', onPress: () => setDepotsTab('directory') }]
     );
   };
 
   // ── Handler: Delete Route from Depot ──
   const handleDeleteRouteFromDepot = () => {
     if (!delRouteSelectedCode) {
-      Alert.alert('Selection Required', 'Please select a route corridor to delete.');
+      Alert.alert('Selection Required', 'Please select a route to delete.');
       return;
     }
     const matchedRoute = allAvailableRoutes.find((r) => r.code === delRouteSelectedCode || r.id === delRouteSelectedCode);
@@ -2357,7 +2367,7 @@ export default function AdminWorkspaceScreen() {
             </View>
           </View>
           <Text style={styles.panelNote}>
-            Use the search box and dropdown filters to inspect corridors, departure timetables, and fleet feasibility across depots.
+            Use the search box and dropdown filters to inspect routes, departure timetables, and fleet feasibility across depots.
           </Text>
 
           {/* ── 1. UNIFIED SEARCH BOX (Searches both Depots and Routes) ── */}
@@ -2403,7 +2413,7 @@ export default function AdminWorkspaceScreen() {
             {/* Dropdown 2: Select Route (Filtered for Selected Depot) */}
             <View style={styles.scheduleDropdownCol}>
               <Text style={styles.scheduleDropdownLabel}>
-                🛣️ 2. Select Route {scheduleSelectedDepot !== 'all' ? `(Filtered: Depot ${scheduleSelectedDepot})` : '(All Corridors)'}
+                🛣️ 2. Select Route {scheduleSelectedDepot !== 'all' ? `(Filtered: Depot ${scheduleSelectedDepot})` : '(All Routes)'}
               </Text>
               <TouchableOpacity
                 style={[
@@ -2416,7 +2426,7 @@ export default function AdminWorkspaceScreen() {
                   } else {
                     Alert.alert(
                       'No Routes Available',
-                      `No routes found for ${scheduleSelectedDepot === 'all' ? 'current search' : `Depot ${scheduleSelectedDepot}`}. Assign corridors from Depot Management.`
+                      `No routes found for ${scheduleSelectedDepot === 'all' ? 'current search' : `Depot ${scheduleSelectedDepot}`}. Assign routes from Depot Management.`
                     );
                   }
                 }}
@@ -2513,7 +2523,7 @@ export default function AdminWorkspaceScreen() {
                   {dRoutes.length === 0 ? (
                     <View style={{ backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', marginBottom: 12 }}>
                       <Text style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic' }}>
-                        ℹ️ No routes currently assigned to {depot.name}. Register corridors using Add in Depot Management to begin scheduling.
+                        ℹ️ No routes currently assigned to {depot.name}. Register routes using Add in Depot Management to begin scheduling.
                       </Text>
                     </View>
                   ) : (
@@ -2643,7 +2653,7 @@ export default function AdminWorkspaceScreen() {
           <View style={styles.panel}>
             <SubScreenHeader onLangPress={() => setLangModalOpen(true)}
               title="Allocated Buses"
-              subtitle="Active dispatches on scheduled corridors"
+              subtitle="Active dispatches on scheduled routes"
               onBack={() => navigateToAdminTab('HOME')}
               count={viewAllocatedDuties.length}
             />
@@ -4040,7 +4050,7 @@ export default function AdminWorkspaceScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* ── MODAL 0: QUICK FLEET & CORRIDOR ACTIONS CHOOSER (+ BUTTON) ── */}
+      {/* ── MODAL 0: QUICK FLEET & ROUTE ACTIONS CHOOSER (+ BUTTON) ── */}
       <Modal
         visible={plusOptionsModalOpen}
         transparent={true}
@@ -4089,13 +4099,13 @@ export default function AdminWorkspaceScreen() {
               </View>
               <View style={{ flex: 1, paddingLeft: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                  <Text style={styles.plusOptionTitle}>1. Add / Delete Depots</Text>
+                  <Text style={styles.plusOptionTitle}>1. Add / Delete Depots & Routes</Text>
                   <View style={styles.plusOptionTagDepot}>
-                    <Text style={styles.plusOptionTagTextDepot}>Corridors</Text>
+                    <Text style={styles.plusOptionTagTextDepot}>Routes</Text>
                   </View>
                 </View>
                 <Text style={styles.plusOptionDesc}>
-                  Register or remove corridors with Route [Full Name], Route [Short Name], Starting Point, Destination & Total Distance (km).
+                  Register or remove routes with Route [Full Name], Route [Short Name], Starting Point, Destination & Total Distance (km).
                 </Text>
               </View>
               <Text style={styles.plusOptionArrow}>➔</Text>
@@ -4683,7 +4693,7 @@ export default function AdminWorkspaceScreen() {
         </SafeAreaView>
       </Modal>
 
-      {/* ── MODAL 3B: ADD / DELETE DEPOTS & CORRIDORS MODAL (FULL SCREEN MANAGEMENT) ── */}
+      {/* ── MODAL 3B: ADD / DELETE DEPOTS & ROUTES MODAL (FULL SCREEN MANAGEMENT) ── */}
       <Modal
         visible={addDeleteDepotsModalOpen}
         transparent={!addDeleteDepotsFullscreen}
@@ -4697,17 +4707,17 @@ export default function AdminWorkspaceScreen() {
             {/* Header */}
             <View style={styles.modalHeader}>
               <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={[styles.modalEyebrow, { color: '#0d9488' }]}>DEPOT & CORRIDOR NETWORK</Text>
+                <Text style={[styles.modalEyebrow, { color: '#0d9488' }]}>DEPOT & ROUTE NETWORK</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                  <Text style={styles.modalTitle}>🏢 Add / Delete Depots</Text>
+                  <Text style={styles.modalTitle}>🏢 Add / Delete Depots & Routes</Text>
                   <View style={styles.depotCountHeaderBadge}>
                     <Text style={styles.depotCountHeaderBadgeText}>
-                      {allAvailableRoutes.length} Corridors Active
+                      {allAvailableRoutes.length} Routes Active
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.modalSubtitle}>
-                  Register new route corridors with full name, short name, origin, destination, and distance, or decommission corridors.
+                  Register new routes with full name, short name, origin, destination, and distance, or decommission routes.
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -4750,7 +4760,7 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepotsTab('directory')}
               >
                 <Text style={[styles.addDelTabText, depotsTab === 'directory' && styles.addDelTabTextActive]}>
-                  📋 Active Corridors ({allAvailableRoutes.length})
+                  📋 Active Routes ({allAvailableRoutes.length})
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4781,18 +4791,18 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotAddMode === 'route' && styles.depotSubModeBtnTextActive]}>
-                        🛣️ Add Corridor Route
+                        🛣️ Add Route
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  {/* ── SUB-MODE A: CREATE NEW DEPOT WITH ROUTE DROPDOWN ── */}
+                  {/* ── SUB-MODE A: CREATE NEW DEPOT ── */}
                   {depotAddMode === 'depot' && (
                     <View>
                       <View style={styles.depotInfoBanner}>
                         <Text style={styles.depotInfoText}>
                           <Text style={{ fontWeight: '800' }}>🏢 Depot Induction & Auto-Setup: </Text>
-                          Enter the depot details and use the dropdown menu below to select and add routes. The system will automatically configure dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials.
+                          Enter the depot details below. The system will automatically configure dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials. Routes can be assigned anytime under the "Add Route" tab.
                         </Text>
                       </View>
 
@@ -4831,119 +4841,6 @@ export default function AdminWorkspaceScreen() {
                         onChangeText={setNewDepotLocation}
                       />
 
-                      {/* 4. Dropdown Menu for Selecting and Adding Routes for Depot */}
-                      <Text style={styles.modalFieldLabel}>
-                        Select & Add Routes for Depot (Dropdown Menu) <Text style={{ color: '#ef4444' }}>*</Text>
-                      </Text>
-                      <TouchableOpacity
-                        style={styles.routeDropdownBtn}
-                        onPress={() => setRouteDropdownOpen((prev) => !prev)}
-                        activeOpacity={0.7}
-                      >
-                        <View style={{ flex: 1 }}>
-                          <Text style={styles.routeDropdownBtnText}>
-                            {selectedDepotRoutes.length > 0
-                              ? `🛣️ ${selectedDepotRoutes.length} Corridors Selected (${selectedDepotRoutes.join(', ')})`
-                              : '🛣️ Tap to Select & Add Routes from Network Menu...'}
-                          </Text>
-                        </View>
-                        <Text style={styles.routeDropdownChevron}>{routeDropdownOpen ? '▲ Close' : '▼ Open Menu'}</Text>
-                      </TouchableOpacity>
-
-                      {/* Dropdown Menu Box */}
-                      {routeDropdownOpen && (
-                        <View style={styles.routeDropdownMenu}>
-                          <TextInput
-                            style={styles.routeDropdownSearch}
-                            placeholder="Filter routes by code or destination..."
-                            placeholderTextColor="#94a3b8"
-                            value={routeDropdownSearch}
-                            onChangeText={setRouteDropdownSearch}
-                          />
-                          <ScrollView style={{ maxHeight: 220 }} nestedScrollEnabled>
-                            {allAvailableRoutes
-                              .filter((r) => {
-                                if (!routeDropdownSearch.trim()) return true;
-                                const q = routeDropdownSearch.trim().toLowerCase();
-                                return (
-                                  (r.code && r.code.toLowerCase().includes(q)) ||
-                                  (r.name && r.name.toLowerCase().includes(q)) ||
-                                  (r.origin && r.origin.toLowerCase().includes(q)) ||
-                                  (r.destination && r.destination.toLowerCase().includes(q))
-                                );
-                              })
-                              .map((r) => {
-                                const isSel = selectedDepotRoutes.includes(r.code) || selectedDepotRoutes.includes(r.id);
-                                return (
-                                  <TouchableOpacity
-                                    key={r.code || r.id}
-                                    style={[styles.routeDropdownItem, isSel && styles.routeDropdownItemActive]}
-                                    onPress={() => {
-                                      setSelectedDepotRoutes((prev) =>
-                                        isSel ? prev.filter((c) => c !== r.code && c !== r.id) : [...prev, r.code]
-                                      );
-                                    }}
-                                  >
-                                    <View style={{ flex: 1, paddingRight: 8 }}>
-                                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                                        <View style={[styles.routeCodePill, isSel && styles.routeCodePillActive]}>
-                                          <Text style={[styles.routeCodePillText, isSel && styles.routeCodePillTextActive]}>
-                                            {r.code}
-                                          </Text>
-                                        </View>
-                                        <Text style={[styles.routeDropdownItemTitle, isSel && { color: '#0d9488', fontWeight: '800' }]}>
-                                          {r.origin || 'Origin'} ➔ {r.destination || 'Dest'}
-                                        </Text>
-                                      </View>
-                                      <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                        {r.distance} km • {r.shift || 'General Shift'} • Cat {r.requiredCat || 'B'}
-                                      </Text>
-                                    </View>
-                                    <View style={[styles.routeDropdownCheckBadge, isSel && styles.routeDropdownCheckBadgeActive]}>
-                                      <Text style={[styles.routeDropdownCheckBadgeText, isSel && styles.routeDropdownCheckBadgeTextActive]}>
-                                        {isSel ? '✓ Added' : '+ Add'}
-                                      </Text>
-                                    </View>
-                                  </TouchableOpacity>
-                                );
-                              })}
-                          </ScrollView>
-                          <TouchableOpacity
-                            style={{ backgroundColor: '#0d9488', paddingVertical: 8, borderRadius: 8, alignItems: 'center', marginTop: 8 }}
-                            onPress={() => setRouteDropdownOpen(false)}
-                          >
-                            <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 12 }}>✓ Done Selecting Routes</Text>
-                          </TouchableOpacity>
-                        </View>
-                      )}
-
-                      {/* Selected Route Chips */}
-                      {selectedDepotRoutes.length > 0 && (
-                        <View style={{ marginTop: 4, marginBottom: 12 }}>
-                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569', marginBottom: 6 }}>
-                            Attached Corridors ({selectedDepotRoutes.length}):
-                          </Text>
-                          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                            {selectedDepotRoutes.map((code) => {
-                              const routeObj = allAvailableRoutes.find((r) => r.code === code || r.id === code);
-                              return (
-                                <View key={code} style={styles.selectedRouteChip}>
-                                  <Text style={styles.selectedRouteChipText}>
-                                    🛣️ {code} ({routeObj?.distance || '28'} km)
-                                  </Text>
-                                  <TouchableOpacity
-                                    onPress={() => setSelectedDepotRoutes((prev) => prev.filter((c) => c !== code))}
-                                    style={styles.selectedRouteChipRemove}
-                                  >
-                                    <Text style={styles.selectedRouteChipRemoveText}>✕</Text>
-                                  </TouchableOpacity>
-                                </View>
-                              );
-                            })}
-                          </View>
-                        </View>
-                      )}
-
                       {/* Auto-Generation Guarantee Banner */}
                       <View style={styles.autoGenBanner}>
                         <Text style={styles.autoGenBannerTitle}>⚡ Auto-Generated Operations & Credentials:</Text>
@@ -4970,13 +4867,13 @@ export default function AdminWorkspaceScreen() {
                     </View>
                   )}
 
-                  {/* ── SUB-MODE B: REGISTER ROUTE CORRIDOR TO DEPOT ── */}
+                  {/* ── SUB-MODE B: REGISTER ROUTE TO DEPOT ── */}
                   {depotAddMode === 'route' && (
                     <View>
                       <View style={styles.depotInfoBanner}>
                         <Text style={styles.depotInfoText}>
-                          <Text style={{ fontWeight: '800' }}>🛣️ Corridor Registration: </Text>
-                          Enter the route full name, short name / code, starting point, destination, and distance. The registered corridor will automatically become available for duty scheduling and bus allocation.
+                          <Text style={{ fontWeight: '800' }}>🛣️ Route Registration: </Text>
+                          Enter the route full name, short name / code, starting point, destination, and distance. The registered route will automatically become available for duty scheduling and bus allocation.
                         </Text>
                       </View>
 
@@ -5077,7 +4974,7 @@ export default function AdminWorkspaceScreen() {
                       />
 
                       {/* Shift Selection */}
-                      <Text style={styles.modalFieldLabel}>Corridor Shift Type</Text>
+                      <Text style={styles.modalFieldLabel}>Route Shift Type</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
                         {['General Shift', 'Morning Shift', 'Night Halt'].map((sh) => (
                           <TouchableOpacity
@@ -5093,7 +4990,7 @@ export default function AdminWorkspaceScreen() {
                       </View>
 
                       {/* Category Selection */}
-                      <Text style={styles.modalFieldLabel}>Corridor Route Complexity</Text>
+                      <Text style={styles.modalFieldLabel}>Route Complexity</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 16 }}>
                         {[
                           { cat: 'Standard', label: 'Standard (Cat C/B)' },
@@ -5146,7 +5043,7 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotDelMode === 'route' && styles.depotSubModeBtnTextActive]}>
-                        🛣️ Decommission Corridor
+                        🛣️ Decommission Route
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -5157,7 +5054,7 @@ export default function AdminWorkspaceScreen() {
                       <View style={styles.delWarnBanner}>
                         <Text style={styles.delWarnText}>
                           <Text style={{ fontWeight: '800' }}>⚠️ Depot Decommissioning Warning: </Text>
-                          Deleting a depot will permanently remove its Charging, Cleaning, Scheduling, and Depot Operations, unassign all associated corridors, and delete all generated login credentials for that depot.
+                          Deleting a depot will permanently remove its Charging, Cleaning, Scheduling, and Depot Operations, unassign all associated routes, and delete all generated login credentials for that depot.
                         </Text>
                       </View>
 
@@ -5200,7 +5097,7 @@ export default function AdminWorkspaceScreen() {
                       {selectedDepotToDelete && (
                         <View style={styles.delDepotPreviewCard}>
                           <Text style={styles.delDepotPreviewTitle}>
-                            📋 Operations & Corridors to be permanently removed:
+                            📋 Operations & Routes to be permanently removed:
                           </Text>
                           <Text style={styles.delDepotPreviewItem}>⚡ Charging Operations: ES-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
                           <Text style={styles.delDepotPreviewItem}>🧹 Cleaning & Sanitization: INSP-DEPOT-{selectedDepotToDelete.toUpperCase()}-01</Text>
@@ -5211,7 +5108,7 @@ export default function AdminWorkspaceScreen() {
                             const rCount = dObj?.routes?.length || 0;
                             return (
                               <Text style={styles.delDepotPreviewItem}>
-                                🛣️ Corridors unassigned: {rCount > 0 ? dObj.routes.join(', ') : 'None'}
+                                🛣️ Routes unassigned: {rCount > 0 ? dObj.routes.join(', ') : 'None'}
                               </Text>
                             );
                           })()}
@@ -5261,17 +5158,17 @@ export default function AdminWorkspaceScreen() {
                     </View>
                   )}
 
-                  {/* ── SUB-MODE B: DECOMMISSION CORRIDOR ROUTE ── */}
+                  {/* ── SUB-MODE B: DECOMMISSION ROUTE ── */}
                   {depotDelMode === 'route' && (
                     <View>
                       <View style={styles.delWarnBanner}>
                         <Text style={styles.delWarnText}>
                           <Text style={{ fontWeight: '800' }}>⚠️ Warning: </Text>
-                          Decommissioning a corridor will withdraw it from active schedules and prevent further bus allocations on this route.
+                          Decommissioning a route will withdraw it from active schedules and prevent further bus allocations on this route.
                         </Text>
                       </View>
 
-                      <Text style={styles.modalFieldLabel}>Search & Filter Corridors</Text>
+                      <Text style={styles.modalFieldLabel}>Search & Filter Routes</Text>
                       <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
                         <TextInput
                           style={styles.modalSearchInput}
@@ -5332,7 +5229,7 @@ export default function AdminWorkspaceScreen() {
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                         {[
-                          'Corridor Realignment',
+                          'Route Realignment',
                           'Route Cancelled by BMTC',
                           'Merged into Adjacent Depot',
                           'Other',
@@ -5364,7 +5261,7 @@ export default function AdminWorkspaceScreen() {
                           <Text style={styles.btnModalCancelText}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteRouteFromDepot}>
-                          <Text style={styles.btnSubmitDelText}>🗑️ Decommission Route Corridor</Text>
+                          <Text style={styles.btnSubmitDelText}>🗑️ Decommission Route</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -5372,7 +5269,7 @@ export default function AdminWorkspaceScreen() {
                 </View>
               )}
 
-              {/* ── TAB 3: ACTIVE DEPOTS & CORRIDORS DIRECTORY ── */}
+              {/* ── TAB 3: ACTIVE DEPOTS & ROUTES DIRECTORY ── */}
               {depotsTab === 'directory' && (
                 <View style={styles.tabContentBox}>
                   {/* Depots Summary Section */}
@@ -5407,7 +5304,7 @@ export default function AdminWorkspaceScreen() {
                         <Text style={{ fontSize: 12, color: '#64748b' }}>📍 Location: {d.location}</Text>
                         {d.routes && d.routes.length > 0 && (
                           <Text style={{ fontSize: 11.5, color: '#0f766e', fontWeight: '700', marginTop: 2 }}>
-                            🛣️ {d.routes.length} Corridors: {d.routes.join(', ')}
+                            🛣️ {d.routes.length} Routes: {d.routes.join(', ')}
                           </Text>
                         )}
                         <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
@@ -5421,7 +5318,7 @@ export default function AdminWorkspaceScreen() {
                   </View>
 
                   <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>
-                    🛣️ Corridor Route Network ({allAvailableRoutes.length})
+                    🛣️ Bus Route Network ({allAvailableRoutes.length})
                   </Text>
                   <View style={[styles.modalSearchRow, { marginBottom: 12 }]}>
                     <TextInput
@@ -5548,7 +5445,7 @@ export default function AdminWorkspaceScreen() {
                     🌐 All Operating Depots
                   </Text>
                   <Text style={styles.schedulePickerSub}>
-                    {depotsList.length} Operating Facilities • {allAvailableRoutes.length} Total Corridors
+                    {depotsList.length} Operating Facilities • {allAvailableRoutes.length} Total Routes
                   </Text>
                 </View>
                 {scheduleSelectedDepot === 'all' && (
@@ -5595,11 +5492,11 @@ export default function AdminWorkspaceScreen() {
           <View style={[styles.modalCard, { maxHeight: '82%' }]}>
             <View style={styles.modalHeader}>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.modalEyebrow, { color: '#0284c7' }]}>CORRIDOR DISPATCH SELECTOR</Text>
-                <Text style={styles.modalTitle}>🛣️ Select Route Corridor</Text>
+                <Text style={[styles.modalEyebrow, { color: '#0284c7' }]}>ROUTE DISPATCH SELECTOR</Text>
+                <Text style={styles.modalTitle}>🛣️ Select Bus Route</Text>
                 <Text style={styles.modalSubtitle}>
                   {scheduleSelectedDepot === 'all'
-                    ? `Showing all corridors (${filteredRoutesForDropdown.length} available)`
+                    ? `Showing all routes (${filteredRoutesForDropdown.length} available)`
                     : `Filtered for Depot ${scheduleSelectedDepot} (${filteredRoutesForDropdown.length} available)`}
                 </Text>
               </View>
@@ -5888,7 +5785,7 @@ export default function AdminWorkspaceScreen() {
                 <View style={styles.dutyMetricCard}>
                   <Text style={styles.dutyMetricLabel}>Route Distance</Text>
                   <Text style={styles.dutyMetricVal}>{selectedBmDuty?.routeDist} km</Text>
-                  <Text style={styles.dutyMetricSub}>Fixed GTFS Corridor</Text>
+                  <Text style={styles.dutyMetricSub}>Fixed GTFS Route</Text>
                 </View>
                 <View style={styles.dutyMetricCard}>
                   <Text style={styles.dutyMetricLabel}>Energy Reserve Margin</Text>

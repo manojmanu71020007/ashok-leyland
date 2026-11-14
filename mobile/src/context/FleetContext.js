@@ -1304,9 +1304,10 @@ export const FleetProvider = ({ children }) => {
   // Allocate a bus to a route duty
   const allocateBusToRoute = async (duty) => {
     const cleanBm = String(duty.bm || duty.bmNumber).toUpperCase();
-    const resolvedDepot = (duty.depot === '1' || duty.depot === '2')
-      ? String(duty.depot)
-      : getBusDepot(cleanBm, {});
+    const matchedBus = buses.find((b) => String(b.bmNumber || b.bm || b.id || '').toUpperCase() === cleanBm);
+    const resolvedDepot = duty.depot
+      ? String(duty.depot).replace(/^DEPOT\s*/i, '').trim()
+      : (matchedBus?.depot || getBusDepot(cleanBm, depotAssignments || {}));
     const cleanDuty = {
       ...duty,
       bm: cleanBm,
