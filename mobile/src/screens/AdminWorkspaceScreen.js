@@ -1091,67 +1091,80 @@ export default function AdminWorkspaceScreen() {
     setScheduleRoutePickerOpen(false);
   };
 
-  // ── Handler: Create New Depot (Auto-Generates Charging, Cleaning, Scheduling, Ops & Credentials) ──
+  // ── Handler: Create New Depot (With confirmation & translation) ──
   const handleCreateNewDepot = () => {
     const cleanId = String(newDepotId || '').trim().replace(/^DEPOT\s*/i, '');
     if (!cleanId) {
-      Alert.alert('Missing Field', 'Please enter a Depot Number / ID (e.g. 3, 4, or EC-3).');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_depot_id_msg', 'Please enter a Depot Number / ID (e.g. 3, 4, or EC-3).'));
       return;
     }
     if (!newDepotName.trim()) {
-      Alert.alert('Missing Field', 'Please enter Depot Name (e.g. Depot 3 — Electronic City).');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_depot_name_msg', 'Please enter Depot Name (e.g. Depot 3 — Electronic City).'));
       return;
     }
 
     if (cleanId === '1' || cleanId === '2') {
-      Alert.alert('Protected Master Facility', `Depot ${cleanId} is a core operational depot and already exists.`);
+      Alert.alert(t('protected_master_facility', 'Protected Master Facility'), `Depot ${cleanId} ${t('core_depot_exists_msg', 'is a core operational depot and already exists.')}`);
       return;
     }
 
-    try {
-      const res = registerNewDepot({
-        id: cleanId,
-        name: newDepotName.trim(),
-        location: newDepotLocation.trim() || newDepotName.trim(),
-        routes: [],
-        password: 'Test@123',
-      });
-
-      setDepotAuditLogs((prev) => [
+    const depotTitle = newDepotName.trim();
+    Alert.alert(
+      t('confirm_add_depot_title', 'Confirm Add Depot'),
+      `${t('confirm_add_depot_msg', 'Are you sure you want to add this depot?')}\n\n• ${t('depot_name_field', 'Depot Name')}: ${depotTitle}\n• ${t('depot_number_id', 'Depot ID')}: ${cleanId}${newDepotLocation.trim() ? `\n• ${t('location_label', 'Location')}: ${newDepotLocation.trim()}` : ''}`,
+      [
+        { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
-          id: Date.now().toString(),
-          action: 'DEPOT_CREATED',
-          code: `DEPOT-${cleanId}`,
-          fullName: newDepotName.trim(),
-          origin: newDepotLocation.trim() || 'Central',
-          destination: '4 Operations Active',
-          distance: 0,
-          depot: newDepotName.trim(),
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          text: t('btn_confirm_add', 'Confirm Add'),
+          onPress: () => {
+            try {
+              const res = registerNewDepot({
+                id: cleanId,
+                name: depotTitle,
+                location: newDepotLocation.trim() || depotTitle,
+                routes: [],
+                password: 'Test@123',
+              });
+
+              setDepotAuditLogs((prev) => [
+                {
+                  id: Date.now().toString(),
+                  action: 'DEPOT_CREATED',
+                  code: `DEPOT-${cleanId}`,
+                  fullName: depotTitle,
+                  origin: newDepotLocation.trim() || 'Central',
+                  destination: 'Active',
+                  distance: 0,
+                  depot: depotTitle,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                },
+                ...prev,
+              ]);
+
+              setNewDepotId('');
+              setNewDepotName('');
+              setNewDepotLocation('');
+              setSelectedDepotRoutes([]);
+              setRouteDropdownOpen(false);
+
+              Alert.alert(
+                t('depot_created_success_title', 'Depot Created Successfully!'),
+                `${t('depot_name_field', 'Depot')}: ${res.depot.name} (ID: ${cleanId})\n\n${t('depot_created_success_msg', 'Depot has been created and registered in the network.')}`,
+                [{ text: t('tab_route_dataset', 'View Directory'), onPress: () => setDepotsTab('directory') }]
+              );
+            } catch (err) {
+              Alert.alert(t('creation_error', 'Creation Error'), err.message || 'Failed to create depot.');
+            }
+          },
         },
-        ...prev,
-      ]);
-
-      setNewDepotId('');
-      setNewDepotName('');
-      setNewDepotLocation('');
-      setSelectedDepotRoutes([]);
-      setRouteDropdownOpen(false);
-
-      Alert.alert(
-        '🏢 Depot Created Successfully!',
-        `Depot: ${res.depot.name} (ID: ${cleanId})\n\n⚡ Dedicated Pages & Login Credentials Created:\n• Charging: ES-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Cleaning: INSP-DEPOT-${cleanId.toUpperCase()}-01 (Test@123)\n• Scheduling: IS-DEPOT-${cleanId.toUpperCase()} (Test@123)\n• Depot Ops: DM-DEPOT-${cleanId.toUpperCase()} (Test@123)\n\nThese credentials are now active for login and viewable in Admin Profile. You can add routes to this depot anytime under the "Add Route" tab.`,
-        [{ text: 'View Directory', onPress: () => setDepotsTab('directory') }]
-      );
-    } catch (err) {
-      Alert.alert('Creation Error', err.message || 'Failed to create depot.');
-    }
+      ]
+    );
   };
 
-  // ── Handler: Delete Depot (Removes Charging, Cleaning, Scheduling, Depot Ops & All Credentials) ──
+  // ── Handler: Delete Depot (With confirmation & translation) ──
   const handleDeleteDepot = () => {
     if (!selectedDepotToDelete) {
-      Alert.alert('Selection Required', 'Please select a depot to delete.');
+      Alert.alert(t('selection_required', 'Selection Required'), t('select_depot_delete_msg', 'Please select a depot to delete.'));
       return;
     }
 
@@ -1160,12 +1173,12 @@ export default function AdminWorkspaceScreen() {
     const finalReason = delDepotReason === 'Other' ? (delDepotCustomReason.trim() || 'Decommissioned by Admin') : delDepotReason;
 
     Alert.alert(
-      '⚠️ Confirm Permanent Depot Deletion',
-      `Are you sure you want to delete ${depotName} (ID: ${selectedDepotToDelete})?\n\nThis will permanently delete:\n• Charging Operations for this depot\n• Cleaning Operations for this depot\n• Scheduling Operations for this depot\n• Depot Operations for this depot\n• Unassign all associated routes\n• Delete all generated credentials (ES-DEPOT-${selectedDepotToDelete.toUpperCase()}, INSP-DEPOT-${selectedDepotToDelete.toUpperCase()}-01, IS-DEPOT-${selectedDepotToDelete.toUpperCase()}, DM-DEPOT-${selectedDepotToDelete.toUpperCase()})\n\nReason: ${finalReason}`,
+      t('confirm_delete_depot_title', 'Confirm Delete Depot'),
+      `${t('confirm_delete_depot_msg', 'Are you sure you want to delete this depot?')}\n\n• ${t('depot_name_field', 'Depot')}: ${depotName} (ID: ${selectedDepotToDelete})\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
-          text: 'Delete Depot & All Operations',
+          text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
           onPress: () => {
             deleteDepot(selectedDepotToDelete);
@@ -1200,8 +1213,8 @@ export default function AdminWorkspaceScreen() {
 
             setSelectedDepotToDelete('');
             Alert.alert(
-              'Depot Deleted',
-              `${depotName} and all its dedicated operations (Charging, Cleaning, Scheduling, Depot Ops) and login credentials have been deleted.`
+              t('depot_deleted_success_title', 'Depot Deleted'),
+              `${depotName} ${t('depot_deleted_success_msg', 'has been permanently removed from the depot network.')}`
             );
           },
         },
@@ -1268,34 +1281,34 @@ export default function AdminWorkspaceScreen() {
     }
   }, [depotsList]);
 
-  // ── Handler: Add Route to Depot ──
+  // ── Handler: Add Route to Depot (With confirmation & translation) ──
   const handleAddRouteToDepot = () => {
     if (!depotRouteFullName.trim()) {
-      Alert.alert('Missing Field', 'Please enter Route [Full Name].');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_fullname_msg', 'Please enter Route [Full Name].'));
       return;
     }
     if (!depotRouteShortName.trim()) {
-      Alert.alert('Missing Field', 'Please enter Route [Short Name] / Code.');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_code_msg', 'Please enter Route [Short Name] / Code.'));
       return;
     }
     if (!depotRouteOrigin.trim()) {
-      Alert.alert('Missing Field', 'Please enter Route Starting Point (Origin).');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_origin_msg', 'Please enter Route Starting Point (Origin).'));
       return;
     }
     if (!depotRouteDestination.trim()) {
-      Alert.alert('Missing Field', 'Please enter Route Destination Name.');
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_dest_msg', 'Please enter Route Destination Name.'));
       return;
     }
     const distNum = parseFloat(depotRouteDistance);
     if (!depotRouteDistance || isNaN(distNum) || distNum <= 0) {
-      Alert.alert('Invalid Distance', 'Please enter a valid total distance in km (e.g. 28.5).');
+      Alert.alert(t('invalid_distance', 'Invalid Distance'), t('enter_valid_dist_msg', 'Please enter a valid total distance in km (e.g. 28.5).'));
       return;
     }
 
     const cleanCode = depotRouteShortName.trim().toUpperCase().replace(/\s+/g, '');
     const alreadyExists = allAvailableRoutes.some((r) => r.code === cleanCode || r.id === cleanCode);
     if (alreadyExists) {
-      Alert.alert('Route Exists', `Route code "${cleanCode}" is already active in the depot network.`);
+      Alert.alert(t('route_exists', 'Route Exists'), `Route "${cleanCode}" ${t('route_already_active_msg', 'is already active in the depot network.')}`);
       return;
     }
 
@@ -1315,67 +1328,79 @@ export default function AdminWorkspaceScreen() {
       ? parsedTimetables
       : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
 
-    const newRoute = {
-      id: cleanCode,
-      code: cleanCode,
-      name: `${depotRouteOrigin.trim()} ➔ ${depotRouteDestination.trim()} (${cleanCode})`,
-      fullName: depotRouteFullName.trim(),
-      shortName: cleanCode,
-      origin: depotRouteOrigin.trim(),
-      destination: depotRouteDestination.trim(),
-      distance: distNum,
-      fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
-      category: depotRouteCategory || 'Standard',
-      routeComplexity: depotRouteCategory || 'Standard',
-      requiredCat: depotRouteCategory === 'Complex' ? 'A' : (depotRouteCategory === 'Moderate' ? 'B' : 'B'),
-      drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
-      timeComplexity: depotRouteTimeComplexity || 'Normal',
-      timetables: finalTimetables,
-      shift: depotRouteShift || 'General Shift',
-      depotId: resolvedDepotId,
-      depotName: resolvedDepotName,
-      custom: true,
-      createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    };
-
-    // Attach route to depot in accounts and sync across devices
-    addRouteToDepot(resolvedDepotId, newRoute);
-
-    setCustomRoutes((prev) => [newRoute, ...prev]);
-    setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
-    setDepotAuditLogs((prev) => [
-      {
-        id: Date.now().toString(),
-        action: 'ADDED',
-        code: cleanCode,
-        fullName: depotRouteFullName.trim(),
-        origin: depotRouteOrigin.trim(),
-        destination: depotRouteDestination.trim(),
-        distance: distNum,
-        depot: resolvedDepotName,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-      ...prev,
-    ]);
-
-    setDepotRouteFullName('');
-    setDepotRouteShortName('');
-    setDepotRouteOrigin('');
-    setDepotRouteDestination('');
-    setDepotRouteDistance('');
-    setDepotCustomName('');
-
     Alert.alert(
-      'Route Registered Successfully',
-      `Route: ${cleanCode}\nFull Name: ${newRoute.fullName}\nPath: ${newRoute.origin} ➔ ${newRoute.destination}\nTotal Distance: ${distNum} km\nOperating Depot: ${resolvedDepotName}`,
-      [{ text: 'View Routes', onPress: () => setDepotsTab('directory') }]
+      t('confirm_add_route_title', 'Confirm Add Route'),
+      `${t('confirm_add_route_msg', 'Are you sure you want to add this route?')}\n\n• ${t('route_short_name_label', 'Route Code')}: ${cleanCode}\n• ${t('route_full_name_label', 'Route Full Name')}: ${depotRouteFullName.trim()}\n• ${t('route_origin_label', 'Origin')}: ${depotRouteOrigin.trim()}\n• ${t('route_destination_label', 'Destination')}: ${depotRouteDestination.trim()}\n• ${t('route_distance_label', 'Total Distance')}: ${distNum} km\n• ${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
+      [
+        { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
+        {
+          text: t('btn_confirm_add', 'Confirm Add'),
+          onPress: () => {
+            const newRoute = {
+              id: cleanCode,
+              code: cleanCode,
+              name: `${depotRouteOrigin.trim()} ➔ ${depotRouteDestination.trim()} (${cleanCode})`,
+              fullName: depotRouteFullName.trim(),
+              shortName: cleanCode,
+              origin: depotRouteOrigin.trim(),
+              destination: depotRouteDestination.trim(),
+              distance: distNum,
+              fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
+              category: depotRouteCategory || 'Standard',
+              routeComplexity: depotRouteCategory || 'Standard',
+              requiredCat: depotRouteCategory === 'Complex' ? 'A' : (depotRouteCategory === 'Moderate' ? 'B' : 'B'),
+              drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
+              timeComplexity: depotRouteTimeComplexity || 'Normal',
+              timetables: finalTimetables,
+              shift: depotRouteShift || 'General Shift',
+              depotId: resolvedDepotId,
+              depotName: resolvedDepotName,
+              custom: true,
+              createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            };
+
+            // Attach route to depot in accounts and sync across devices
+            addRouteToDepot(resolvedDepotId, newRoute);
+
+            setCustomRoutes((prev) => [newRoute, ...prev]);
+            setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
+            setDepotAuditLogs((prev) => [
+              {
+                id: Date.now().toString(),
+                action: 'ADDED',
+                code: cleanCode,
+                fullName: depotRouteFullName.trim(),
+                origin: depotRouteOrigin.trim(),
+                destination: depotRouteDestination.trim(),
+                distance: distNum,
+                depot: resolvedDepotName,
+                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+              },
+              ...prev,
+            ]);
+
+            setDepotRouteFullName('');
+            setDepotRouteShortName('');
+            setDepotRouteOrigin('');
+            setDepotRouteDestination('');
+            setDepotRouteDistance('');
+            setDepotCustomName('');
+
+            Alert.alert(
+              t('route_registered_success_title', 'Route Registered Successfully'),
+              `${t('route_short_name_label', 'Route')}: ${cleanCode}\n${t('route_full_name_label', 'Full Name')}: ${newRoute.fullName}\n${t('route_origin_label', 'Origin')}: ${newRoute.origin} ➔ ${newRoute.destination}\n${t('route_distance_label', 'Total Distance')}: ${distNum} km\n${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
+              [{ text: t('tab_route_dataset', 'View Routes'), onPress: () => setDepotsTab('directory') }]
+            );
+          },
+        },
+      ]
     );
   };
 
-  // ── Handler: Delete Route from Depot ──
+  // ── Handler: Delete Route from Depot (With confirmation & translation) ──
   const handleDeleteRouteFromDepot = () => {
     if (!delRouteSelectedCode) {
-      Alert.alert('Selection Required', 'Please select a route to delete.');
+      Alert.alert(t('selection_required', 'Selection Required'), t('select_route_delete_msg', 'Please select a route to delete.'));
       return;
     }
     const matchedRoute = allAvailableRoutes.find((r) => r.code === delRouteSelectedCode || r.id === delRouteSelectedCode);
@@ -1383,12 +1408,12 @@ export default function AdminWorkspaceScreen() {
     const finalReason = delRouteReason === 'Other' ? (delRouteCustomReason.trim() || 'Decommissioned by Admin') : delRouteReason;
 
     Alert.alert(
-      'Confirm Route Deletion',
-      `Are you sure you want to remove Route ${codeToDelete} (${matchedRoute?.fullName || matchedRoute?.name || codeToDelete}) from depot operations?\n\nReason: ${finalReason}`,
+      t('confirm_delete_route_title', 'Confirm Delete Route'),
+      `${t('confirm_delete_route_msg', 'Are you sure you want to delete this route?')}\n\n• ${t('route_short_name_label', 'Route')}: ${codeToDelete} (${matchedRoute?.fullName || matchedRoute?.name || codeToDelete})\n• ${t('operating_depot_label', 'Depot')}: ${matchedRoute?.depotName || (matchedRoute?.depotId === '2' ? 'Depot 2' : 'Depot 1')}\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
-          text: 'Delete Route',
+          text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
           onPress: () => {
             const routeDepotId = String(matchedRoute?.depotId || '1');
@@ -1411,7 +1436,10 @@ export default function AdminWorkspaceScreen() {
               ...prev,
             ]);
             setDelRouteSelectedCode('');
-            Alert.alert('Route Deleted', `Route ${codeToDelete} was successfully removed from active service.`);
+            Alert.alert(
+              t('route_deleted_success_title', 'Route Deleted'),
+              `${t('route_short_name_label', 'Route')} ${codeToDelete} ${t('route_deleted_success_msg', 'was successfully removed from active service.')}`
+            );
           },
         },
       ]
@@ -3587,7 +3615,7 @@ export default function AdminWorkspaceScreen() {
                   }}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.profileManageDepotsLinkText}>⚙️ Add / Delete Depots</Text>
+                  <Text style={styles.profileManageDepotsLinkText}>⚙️ {t('add_delete_depots_routes', 'Add / Delete Depots')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -4164,13 +4192,13 @@ export default function AdminWorkspaceScreen() {
               </View>
               <View style={{ flex: 1, paddingLeft: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                  <Text style={styles.plusOptionTitle}>1. Add / Delete Depots & Routes</Text>
+                  <Text style={styles.plusOptionTitle}>1. {t('add_delete_depots_routes', 'Add / Delete Depots & Routes')}</Text>
                   <View style={styles.plusOptionTagDepot}>
-                    <Text style={styles.plusOptionTagTextDepot}>Routes</Text>
+                    <Text style={styles.plusOptionTagTextDepot}>{t('routes_label', 'Routes')}</Text>
                   </View>
                 </View>
                 <Text style={styles.plusOptionDesc}>
-                  Register or remove routes with Route [Full Name], Route [Short Name], Starting Point, Destination & Total Distance (km).
+                  {t('depot_route_subtitle', 'Register new routes with full name, short name, origin, destination, and distance, or decommission routes.')}
                 </Text>
               </View>
               <Text style={styles.plusOptionArrow}>➔</Text>
@@ -4772,17 +4800,17 @@ export default function AdminWorkspaceScreen() {
             {/* Header */}
             <View style={styles.modalHeader}>
               <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={[styles.modalEyebrow, { color: '#0d9488' }]}>DEPOT & ROUTE NETWORK</Text>
+                <Text style={[styles.modalEyebrow, { color: '#0d9488' }]}>{t('depot_route_network', 'DEPOT & ROUTE NETWORK')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                  <Text style={styles.modalTitle}>🏢 Add / Delete Depots & Routes</Text>
+                  <Text style={styles.modalTitle}>{t('add_delete_depots_routes', '🏢 Add / Delete Depots & Routes')}</Text>
                   <View style={styles.depotCountHeaderBadge}>
                     <Text style={styles.depotCountHeaderBadgeText}>
-                      {allAvailableRoutes.length} Routes Active
+                      {allAvailableRoutes.length} {t('routes_active', 'Routes Active')}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.modalSubtitle}>
-                  Register new routes with full name, short name, origin, destination, and distance, or decommission routes.
+                  {t('depot_route_subtitle', 'Register new routes with full name, short name, origin, destination, and distance, or decommission routes.')}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -4809,7 +4837,7 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepotsTab('add')}
               >
                 <Text style={[styles.addDelTabText, depotsTab === 'add' && styles.addDelTabTextActive]}>
-                  ➕ Add Route / Depot
+                  {t('tab_add_route_depot', '➕ Add Route / Depot')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -4817,7 +4845,7 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepotsTab('delete')}
               >
                 <Text style={[styles.addDelTabText, depotsTab === 'delete' && styles.addDelTabTextActive]}>
-                  🗑️ Delete Route / Depot
+                  {t('tab_delete_route_depot', '🗑️ Delete Route / Depot')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -4825,7 +4853,7 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepotsTab('directory')}
               >
                 <Text style={[styles.addDelTabText, depotsTab === 'directory' && styles.addDelTabTextActive]}>
-                  📋 Route & Complexity Dataset ({allAvailableRoutes.length})
+                  {t('tab_route_dataset', '📋 Route & Complexity Dataset')} ({allAvailableRoutes.length})
                 </Text>
               </TouchableOpacity>
             </View>
@@ -4847,7 +4875,7 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotAddMode === 'depot' && styles.depotSubModeBtnTextActive]}>
-                        🏢 Create New Depot
+                        {t('submode_create_depot', '🏢 Create New Depot')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -4856,7 +4884,7 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotAddMode === 'route' && styles.depotSubModeBtnTextActive]}>
-                        🛣️ Add Route
+                        {t('submode_add_route', '🛣️ Add Route')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -4864,20 +4892,13 @@ export default function AdminWorkspaceScreen() {
                   {/* ── SUB-MODE A: CREATE NEW DEPOT ── */}
                   {depotAddMode === 'depot' && (
                     <View>
-                      <View style={styles.depotInfoBanner}>
-                        <Text style={styles.depotInfoText}>
-                          <Text style={{ fontWeight: '800' }}>🏢 Depot Induction & Auto-Setup: </Text>
-                          Enter the depot details below. The system will automatically configure dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials. Routes can be assigned anytime under the "Add Route" tab.
-                        </Text>
-                      </View>
-
                       {/* 1. Depot Number / ID */}
                       <Text style={styles.modalFieldLabel}>
-                        Depot Number / ID <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('depot_number_id', 'Depot Number / ID')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. 3, 4, or EC-3"
+                        placeholder={t('placeholder_depot_id', 'e.g. 3, 4, or EC-3')}
                         placeholderTextColor="#94a3b8"
                         value={newDepotId}
                         onChangeText={setNewDepotId}
@@ -4886,47 +4907,33 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 2. Depot Name */}
                       <Text style={styles.modalFieldLabel}>
-                        Depot Name <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('depot_name_field', 'Depot Name')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. Depot 3 — Electronic City"
+                        placeholder={t('placeholder_depot_name', 'e.g. Depot 3 — Electronic City')}
                         placeholderTextColor="#94a3b8"
                         value={newDepotName}
                         onChangeText={setNewDepotName}
                       />
 
                       {/* 3. Depot Location */}
-                      <Text style={styles.modalFieldLabel}>Depot Location / Zone</Text>
+                      <Text style={styles.modalFieldLabel}>{t('depot_location_field', 'Depot Location / Zone')}</Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. Electronic City Phase 1, Bangalore"
+                        placeholder={t('placeholder_depot_location', 'e.g. Electronic City Phase 1, Bangalore')}
                         placeholderTextColor="#94a3b8"
                         value={newDepotLocation}
                         onChangeText={setNewDepotLocation}
                       />
 
-                      {/* Auto-Generation Guarantee Banner */}
-                      <View style={styles.autoGenBanner}>
-                        <Text style={styles.autoGenBannerTitle}>⚡ Auto-Generated Operations & Credentials:</Text>
-                        <Text style={styles.autoGenBannerDesc}>
-                          Creating this depot will automatically configure its 4 dedicated operational pages (Charging, Cleaning, Scheduling, and Depot Operations) and generate dedicated login credentials.
-                        </Text>
-                        <View style={styles.autoGenBadgesRow}>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>⚡ Charging</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🧹 Cleaning</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>📅 Scheduling</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🏢 Depot Ops</Text></View>
-                        </View>
-                      </View>
-
                       {/* Action Buttons */}
                       <View style={styles.modalActionButtonsRow}>
                         <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                          <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleCreateNewDepot}>
-                          <Text style={styles.btnSubmitAddDepotText}>🏢 Create Depot & Generate Operations</Text>
+                          <Text style={styles.btnSubmitAddDepotText}>{t('btn_create_depot', '🏢 Create Depot')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -4937,14 +4944,14 @@ export default function AdminWorkspaceScreen() {
                     <View>
                       <View style={styles.depotInfoBanner}>
                         <Text style={styles.depotInfoText}>
-                          <Text style={{ fontWeight: '800' }}>🛣️ Route Registration: </Text>
-                          Enter the route full name, short name / code, starting point, destination, and distance. The registered route will automatically become available for duty scheduling and bus allocation.
+                          <Text style={{ fontWeight: '800' }}>{t('submode_add_route', '🛣️ Add Route')}: </Text>
+                          {t('route_reg_banner', 'Enter the route full name, short name / code, starting point, destination, and distance. The registered route will automatically become available for duty scheduling and bus allocation.')}
                         </Text>
                       </View>
 
                       {/* 1. Operating Depot */}
                       <Text style={styles.modalFieldLabel}>
-                        Operating Depot <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('operating_depot_label', 'Operating Depot')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                         {depotsList.map((d) => (
@@ -4964,11 +4971,11 @@ export default function AdminWorkspaceScreen() {
                       {depotTargetDepot === 'custom' && (
                         <View style={{ marginBottom: 12 }}>
                           <Text style={styles.modalFieldLabel}>
-                            Custom Depot Name <Text style={{ color: '#ef4444' }}>*</Text>
+                            {t('custom_depot_name_label', 'Custom Depot Name')} <Text style={{ color: '#ef4444' }}>*</Text>
                           </Text>
                           <TextInput
                             style={styles.modalInput}
-                            placeholder="e.g. Depot 3 — Electronic City"
+                            placeholder={t('placeholder_depot_name', 'e.g. Depot 3 — Electronic City')}
                             placeholderTextColor="#94a3b8"
                             value={depotCustomName}
                             onChangeText={setDepotCustomName}
@@ -4978,11 +4985,11 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 2. Route [Full Name] */}
                       <Text style={styles.modalFieldLabel}>
-                        Route [Full Name] <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('route_full_name_label', 'Route [Full Name]')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. Kempegowda Bus Station ➔ Electronic City Wipro Gate"
+                        placeholder={t('placeholder_route_full_name', 'e.g. Kempegowda Bus Station ➔ Electronic City Wipro Gate')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteFullName}
                         onChangeText={setDepotRouteFullName}
@@ -4990,11 +4997,11 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 3. Route [Short Name] */}
                       <Text style={styles.modalFieldLabel}>
-                        Route [Short Name] / Code <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('route_short_name_label', 'Route [Short Name] / Code')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. 356CW or KBS-3A"
+                        placeholder={t('placeholder_route_short_name', 'e.g. 356CW or KBS-3A')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteShortName}
                         onChangeText={setDepotRouteShortName}
@@ -5003,11 +5010,11 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 4. Route Starting Point (Origin) */}
                       <Text style={styles.modalFieldLabel}>
-                        Route Starting Point (Origin) <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('route_origin_label', 'Route Starting Point (Origin)')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. Kempegowda Bus Station (Majestic)"
+                        placeholder={t('placeholder_route_origin', 'e.g. Kempegowda Bus Station (Majestic)')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteOrigin}
                         onChangeText={setDepotRouteOrigin}
@@ -5015,11 +5022,11 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 5. Route Destination Name */}
                       <Text style={styles.modalFieldLabel}>
-                        Route Destination Name <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('route_destination_label', 'Route Destination Name')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. Electronic City Wipro Gate"
+                        placeholder={t('placeholder_route_destination', 'e.g. Electronic City Wipro Gate')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteDestination}
                         onChangeText={setDepotRouteDestination}
@@ -5027,11 +5034,11 @@ export default function AdminWorkspaceScreen() {
 
                       {/* 6. Total Distance of the Route */}
                       <Text style={styles.modalFieldLabel}>
-                        Total Distance of the Route (km) <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('route_distance_label', 'Total Distance of the Route (km)')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <TextInput
                         style={styles.modalInput}
-                        placeholder="e.g. 28.5"
+                        placeholder={t('placeholder_route_distance', 'e.g. 28.5')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteDistance}
                         onChangeText={setDepotRouteDistance}
@@ -5039,29 +5046,33 @@ export default function AdminWorkspaceScreen() {
                       />
 
                       {/* Shift Selection */}
-                      <Text style={styles.modalFieldLabel}>Route Shift Type</Text>
+                      <Text style={styles.modalFieldLabel}>{t('route_shift_type_label', 'Route Shift Type')}</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-                        {['General Shift', 'Morning Shift', 'Night Halt'].map((sh) => (
+                        {[
+                          { id: 'General Shift', labelKey: 'shift_general', fallback: 'General Shift' },
+                          { id: 'Morning Shift', labelKey: 'shift_morning', fallback: 'Morning Shift' },
+                          { id: 'Night Halt', labelKey: 'shift_night', fallback: 'Night Halt' },
+                        ].map((sh) => (
                           <TouchableOpacity
-                            key={sh}
-                            style={[styles.modalShiftBtn, depotRouteShift === sh && styles.modalShiftBtnActive]}
-                            onPress={() => setDepotRouteShift(sh)}
+                            key={sh.id}
+                            style={[styles.modalShiftBtn, depotRouteShift === sh.id && styles.modalShiftBtnActive]}
+                            onPress={() => setDepotRouteShift(sh.id)}
                           >
-                            <Text style={[styles.modalShiftBtnText, depotRouteShift === sh && styles.modalShiftBtnTextActive]}>
-                              {sh}
+                            <Text style={[styles.modalShiftBtnText, depotRouteShift === sh.id && styles.modalShiftBtnTextActive]}>
+                              {t(sh.labelKey, sh.fallback)}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
 
                       {/* Route Complexity Selection */}
-                      <Text style={styles.modalFieldLabel}>Route Complexity (Difficulty & EV Class)</Text>
+                      <Text style={styles.modalFieldLabel}>{t('route_complexity_label', 'Route Complexity (Difficulty & EV Class)')}</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                         {[
-                          { cat: 'Simple', label: 'Simple' },
-                          { cat: 'Standard', label: 'Standard' },
-                          { cat: 'Moderate', label: 'Moderate' },
-                          { cat: 'Complex', label: 'Complex (Cat A)' },
+                          { cat: 'Simple', labelKey: 'complexity_simple', fallback: 'Simple' },
+                          { cat: 'Standard', labelKey: 'complexity_standard', fallback: 'Standard' },
+                          { cat: 'Moderate', labelKey: 'complexity_moderate', fallback: 'Moderate' },
+                          { cat: 'Complex', labelKey: 'complexity_complex', fallback: 'Complex (Cat A)' },
                         ].map((item) => (
                           <TouchableOpacity
                             key={item.cat}
@@ -5069,19 +5080,19 @@ export default function AdminWorkspaceScreen() {
                             onPress={() => setDepotRouteCategory(item.cat)}
                           >
                             <Text style={[styles.modalCatBtnText, depotRouteCategory === item.cat && styles.modalCatBtnTextActive]}>
-                              {item.label}
+                              {t(item.labelKey, item.fallback)}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
 
                       {/* Time Complexity Selection */}
-                      <Text style={styles.modalFieldLabel}>Time Complexity Tier</Text>
+                      <Text style={styles.modalFieldLabel}>{t('time_complexity_label', 'Time Complexity Tier')}</Text>
                       <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
                         {[
-                          { tc: 'Normal', label: 'Normal (Off-Peak)' },
-                          { tc: 'Peak', label: 'Peak (+15%)' },
-                          { tc: 'Extreme Peak', label: 'Extreme Peak (+30%)' },
+                          { tc: 'Normal', labelKey: 'time_tier_normal', fallback: 'Normal (Off-Peak)' },
+                          { tc: 'Peak', labelKey: 'time_tier_peak', fallback: 'Peak (+15%)' },
+                          { tc: 'Extreme Peak', labelKey: 'time_tier_extreme', fallback: 'Extreme Peak (+30%)' },
                         ].map((item) => (
                           <TouchableOpacity
                             key={item.tc}
@@ -5089,17 +5100,17 @@ export default function AdminWorkspaceScreen() {
                             onPress={() => setDepotRouteTimeComplexity(item.tc)}
                           >
                             <Text style={[styles.modalCatBtnText, depotRouteTimeComplexity === item.tc && styles.modalCatBtnTextActive]}>
-                              {item.label}
+                              {t(item.labelKey, item.fallback)}
                             </Text>
                           </TouchableOpacity>
                         ))}
                       </View>
 
                       {/* Timetable Departures Input */}
-                      <Text style={styles.modalFieldLabel}>Scheduled Departure Times (Comma Separated)</Text>
+                      <Text style={styles.modalFieldLabel}>{t('scheduled_departures_label', 'Scheduled Departure Times (Comma Separated)')}</Text>
                       <TextInput
                         style={[styles.modalInput, { marginBottom: 16 }]}
-                        placeholder="e.g. 06:30 AM, 08:00 AM, 01:10 PM, 03:00 PM, 06:45 PM"
+                        placeholder={t('placeholder_departures', 'e.g. 06:30 AM, 08:00 AM, 01:10 PM, 03:00 PM, 06:45 PM')}
                         placeholderTextColor="#94a3b8"
                         value={depotRouteTimetables}
                         onChangeText={setDepotRouteTimetables}
@@ -5108,10 +5119,10 @@ export default function AdminWorkspaceScreen() {
                       {/* Action Buttons */}
                       <View style={styles.modalActionButtonsRow}>
                         <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                          <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleAddRouteToDepot}>
-                          <Text style={styles.btnSubmitAddDepotText}>➕ Register Route to Depot</Text>
+                          <Text style={styles.btnSubmitAddDepotText}>{t('btn_register_route', '➕ Register Route to Depot')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -5130,7 +5141,7 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotDelMode === 'depot' && styles.depotSubModeBtnTextActive]}>
-                        🏢 Delete Operating Depot
+                        {t('submode_delete_depot', '🏢 Delete Operating Depot')}
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
@@ -5139,7 +5150,7 @@ export default function AdminWorkspaceScreen() {
                       activeOpacity={0.8}
                     >
                       <Text style={[styles.depotSubModeBtnText, depotDelMode === 'route' && styles.depotSubModeBtnTextActive]}>
-                        🛣️ Decommission Route
+                        {t('submode_decommission_route', '🛣️ Decommission Route')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -5149,18 +5160,18 @@ export default function AdminWorkspaceScreen() {
                     <View>
                       <View style={styles.delWarnBanner}>
                         <Text style={styles.delWarnText}>
-                          <Text style={{ fontWeight: '800' }}>⚠️ Depot Decommissioning Warning: </Text>
-                          Deleting a depot will permanently remove its Charging, Cleaning, Scheduling, and Depot Operations, unassign all associated routes, and delete all generated login credentials for that depot.
+                          <Text style={{ fontWeight: '800' }}>⚠️ {t('warning', 'Warning')}: </Text>
+                          {t('depot_del_warn', 'Deleting a depot will permanently remove it from the system and unassign all associated routes.')}
                         </Text>
                       </View>
 
                       <Text style={styles.modalFieldLabel}>
-                        Select Depot to Delete <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('select_depot_to_delete', 'Select Depot to Delete')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       {depotsList.length === 0 ? (
                         <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
                           <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
-                            ℹ️ No operating depots available in the system. Create a new depot in the Add tab.
+                            {t('no_depots_available', 'ℹ️ No operating depots available in the system. Create a new depot in the Add tab.')}
                           </Text>
                         </View>
                       ) : (
@@ -5178,11 +5189,11 @@ export default function AdminWorkspaceScreen() {
                                     🏢 {d.name} (ID: {d.id})
                                   </Text>
                                   <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                    📍 {d.location} • {d.routes?.length || 0} Routes Attached • 4 Dedicated Operations
+                                    📍 {d.location} • {d.routes?.length || 0} {t('routes_attached', 'Routes Attached')}
                                   </Text>
                                 </View>
                                 {isSelected && (
-                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
+                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
                                 )}
                               </TouchableOpacity>
                             );
@@ -5193,18 +5204,14 @@ export default function AdminWorkspaceScreen() {
                       {selectedDepotToDelete && (
                         <View style={styles.delDepotPreviewCard}>
                           <Text style={styles.delDepotPreviewTitle}>
-                            📋 Operations & Routes to be permanently removed:
+                            {t('confirm_delete_depot_title', 'Confirm Delete Depot')}:
                           </Text>
-                          <Text style={styles.delDepotPreviewItem}>⚡ Charging Operations: ES-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
-                          <Text style={styles.delDepotPreviewItem}>🧹 Cleaning & Sanitization: INSP-DEPOT-{selectedDepotToDelete.toUpperCase()}-01</Text>
-                          <Text style={styles.delDepotPreviewItem}>📅 Smart Bus Scheduling: IS-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
-                          <Text style={styles.delDepotPreviewItem}>🏢 Depot Operations: DM-DEPOT-{selectedDepotToDelete.toUpperCase()}</Text>
                           {(() => {
                             const dObj = depotsList.find((d) => String(d.id) === selectedDepotToDelete);
                             const rCount = dObj?.routes?.length || 0;
                             return (
                               <Text style={styles.delDepotPreviewItem}>
-                                🛣️ Routes unassigned: {rCount > 0 ? dObj.routes.join(', ') : 'None'}
+                                🛣️ {t('routes_label', 'Routes')}: {rCount > 0 ? dObj.routes.join(', ') : 'None'}
                               </Text>
                             );
                           })()}
@@ -5212,22 +5219,22 @@ export default function AdminWorkspaceScreen() {
                       )}
 
                       <Text style={styles.modalFieldLabel}>
-                        Decommission Reason <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('decommission_reason_label', 'Decommission Reason')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                         {[
-                          'Depot Consolidation',
-                          'Temporary Facility Closed',
-                          'Merged with Central Yard',
-                          'Other',
-                        ].map((reason) => (
+                          { id: 'Depot Consolidation', labelKey: 'reason_depot_consolidation', fallback: 'Depot Consolidation' },
+                          { id: 'Temporary Facility Closed', labelKey: 'reason_facility_closed', fallback: 'Temporary Facility Closed' },
+                          { id: 'Merged with Central Yard', labelKey: 'reason_merged_yard', fallback: 'Merged with Central Yard' },
+                          { id: 'Other', labelKey: 'reason_other', fallback: 'Other' },
+                        ].map((item) => (
                           <TouchableOpacity
-                            key={reason}
-                            style={[styles.modalCatBtn, delDepotReason === reason && styles.modalCatBtnActive]}
-                            onPress={() => setDelDepotReason(reason)}
+                            key={item.id}
+                            style={[styles.modalCatBtn, delDepotReason === item.id && styles.modalCatBtnActive]}
+                            onPress={() => setDelDepotReason(item.id)}
                           >
-                            <Text style={[styles.modalCatBtnText, delDepotReason === reason && styles.modalCatBtnTextActive]}>
-                              {reason}
+                            <Text style={[styles.modalCatBtnText, delDepotReason === item.id && styles.modalCatBtnTextActive]}>
+                              {t(item.labelKey, item.fallback)}
                             </Text>
                           </TouchableOpacity>
                         ))}
@@ -5236,7 +5243,7 @@ export default function AdminWorkspaceScreen() {
                       {delDepotReason === 'Other' && (
                         <TextInput
                           style={[styles.modalInput, { marginBottom: 12 }]}
-                          placeholder="Specify custom deletion reason..."
+                          placeholder={t('placeholder_custom_reason', 'Specify custom deletion reason...')}
                           placeholderTextColor="#94a3b8"
                           value={delDepotCustomReason}
                           onChangeText={setDelDepotCustomReason}
@@ -5245,10 +5252,10 @@ export default function AdminWorkspaceScreen() {
 
                       <View style={styles.modalActionButtonsRow}>
                         <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                          <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteDepot}>
-                          <Text style={styles.btnSubmitDelText}>🗑️ Delete Depot & All Operations</Text>
+                          <Text style={styles.btnSubmitDelText}>{t('btn_delete_depot', '🗑️ Delete Depot')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -5259,16 +5266,16 @@ export default function AdminWorkspaceScreen() {
                     <View>
                       <View style={styles.delWarnBanner}>
                         <Text style={styles.delWarnText}>
-                          <Text style={{ fontWeight: '800' }}>⚠️ Warning: </Text>
-                          Decommissioning a route will withdraw it from active schedules and prevent further bus allocations on this route.
+                          <Text style={{ fontWeight: '800' }}>⚠️ {t('warning', 'Warning')}: </Text>
+                          {t('route_del_warn', 'Decommissioning a route will withdraw it from active schedules and prevent further bus allocations on this route.')}
                         </Text>
                       </View>
 
-                      <Text style={styles.modalFieldLabel}>Search & Filter Routes</Text>
+                      <Text style={styles.modalFieldLabel}>{t('search_filter_routes', 'Search & Filter Routes')}</Text>
                       <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
                         <TextInput
                           style={styles.modalSearchInput}
-                          placeholder="Filter by route code or location..."
+                          placeholder={t('placeholder_filter_routes', 'Filter by route code or location...')}
                           placeholderTextColor="#94a3b8"
                           value={delRouteSearchQuery}
                           onChangeText={setDelRouteSearchQuery}
@@ -5282,7 +5289,7 @@ export default function AdminWorkspaceScreen() {
                       </View>
 
                       <Text style={styles.modalFieldLabel}>
-                        Select Route to Decommission <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('select_route_to_decommission', 'Select Route to Decommission')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <ScrollView style={styles.busSelectorBox} nestedScrollEnabled>
                         {allAvailableRoutes
@@ -5313,7 +5320,7 @@ export default function AdminWorkspaceScreen() {
                                   </Text>
                                 </View>
                                 {isSelected && (
-                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>✓ Selected</Text>
+                                  <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
                                 )}
                               </TouchableOpacity>
                             );
@@ -5321,22 +5328,22 @@ export default function AdminWorkspaceScreen() {
                       </ScrollView>
 
                       <Text style={styles.modalFieldLabel}>
-                        Decommission Reason <Text style={{ color: '#ef4444' }}>*</Text>
+                        {t('decommission_reason_label', 'Decommission Reason')} <Text style={{ color: '#ef4444' }}>*</Text>
                       </Text>
                       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
                         {[
-                          'Route Realignment',
-                          'Route Cancelled by BMTC',
-                          'Merged into Adjacent Depot',
-                          'Other',
-                        ].map((reason) => (
+                          { id: 'Route Realignment', labelKey: 'reason_route_realignment', fallback: 'Route Realignment' },
+                          { id: 'Route Cancelled by BMTC', labelKey: 'reason_route_cancelled', fallback: 'Route Cancelled by BMTC' },
+                          { id: 'Merged into Adjacent Depot', labelKey: 'reason_merged_depot', fallback: 'Merged into Adjacent Depot' },
+                          { id: 'Other', labelKey: 'reason_other', fallback: 'Other' },
+                        ].map((item) => (
                           <TouchableOpacity
-                            key={reason}
-                            style={[styles.modalCatBtn, delRouteReason === reason && styles.modalCatBtnActive]}
-                            onPress={() => setDelRouteReason(reason)}
+                            key={item.id}
+                            style={[styles.modalCatBtn, delRouteReason === item.id && styles.modalCatBtnActive]}
+                            onPress={() => setDelRouteReason(item.id)}
                           >
-                            <Text style={[styles.modalCatBtnText, delRouteReason === reason && styles.modalCatBtnTextActive]}>
-                              {reason}
+                            <Text style={[styles.modalCatBtnText, delRouteReason === item.id && styles.modalCatBtnTextActive]}>
+                              {t(item.labelKey, item.fallback)}
                             </Text>
                           </TouchableOpacity>
                         ))}
@@ -5345,7 +5352,7 @@ export default function AdminWorkspaceScreen() {
                       {delRouteReason === 'Other' && (
                         <TextInput
                           style={[styles.modalInput, { marginBottom: 12 }]}
-                          placeholder="Specify custom deletion reason..."
+                          placeholder={t('placeholder_custom_reason', 'Specify custom deletion reason...')}
                           placeholderTextColor="#94a3b8"
                           value={delRouteCustomReason}
                           onChangeText={setDelRouteCustomReason}
@@ -5354,10 +5361,10 @@ export default function AdminWorkspaceScreen() {
 
                       <View style={styles.modalActionButtonsRow}>
                         <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepotsModalOpen(false)}>
-                          <Text style={styles.btnModalCancelText}>Cancel</Text>
+                          <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteRouteFromDepot}>
-                          <Text style={styles.btnSubmitDelText}>🗑️ Decommission Route</Text>
+                          <Text style={styles.btnSubmitDelText}>{t('btn_decommission_route', '🗑️ Decommission Route')}</Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -5371,7 +5378,7 @@ export default function AdminWorkspaceScreen() {
                   {/* Depots Summary Section */}
                   <View style={{ marginBottom: 16 }}>
                     <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>
-                      🏢 Active Operating Depots ({depotsList.length})
+                      🏢 {t('active_operating_depots', 'Active Operating Depots')} ({depotsList.length})
                     </Text>
                     {depotsList.map((d) => (
                       <View key={d.id} style={[styles.corridorCard, { backgroundColor: '#f8fafc', borderColor: '#cbd5e1' }]}>
@@ -5380,7 +5387,7 @@ export default function AdminWorkspaceScreen() {
                             <Text style={{ fontSize: 14, fontWeight: '900', color: '#0f172a' }}>🏢 {d.name}</Text>
                             <View style={d.isDefault ? styles.profileDepotDefaultBadge : styles.profileDepotCustomBadge}>
                               <Text style={d.isDefault ? styles.profileDepotDefaultBadgeText : styles.profileDepotCustomBadgeText}>
-                                {d.isDefault ? 'Core Depot' : 'Custom'}
+                                {d.isDefault ? t('core_depot_badge', 'Core Depot') : t('custom_depot_badge', 'Custom')}
                               </Text>
                             </View>
                           </View>
@@ -5393,33 +5400,27 @@ export default function AdminWorkspaceScreen() {
                                 setDepotDelMode('depot');
                               }}
                             >
-                              <Text style={styles.btnDeleteDepotProfileText}>🗑️ Delete</Text>
+                              <Text style={styles.btnDeleteDepotProfileText}>{t('btn_delete', '🗑️ Delete')}</Text>
                             </TouchableOpacity>
                           )}
                         </View>
-                        <Text style={{ fontSize: 12, color: '#64748b' }}>📍 Location: {d.location}</Text>
+                        <Text style={{ fontSize: 12, color: '#64748b' }}>📍 {t('location_label', 'Location')}: {d.location}</Text>
                         {d.routes && d.routes.length > 0 && (
                           <Text style={{ fontSize: 11.5, color: '#0f766e', fontWeight: '700', marginTop: 2 }}>
-                            🛣️ {d.routes.length} Routes: {d.routes.join(', ')}
+                            🛣️ {d.routes.length} {t('routes_label', 'Routes')}: {d.routes.join(', ')}
                           </Text>
                         )}
-                        <View style={{ flexDirection: 'row', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>⚡ Charging</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🧹 Cleaning</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>📅 Scheduling</Text></View>
-                          <View style={styles.autoGenBadge}><Text style={styles.autoGenBadgeText}>🏢 Depot Ops</Text></View>
-                        </View>
                       </View>
                     ))}
                   </View>
 
                   <Text style={{ fontSize: 13.5, fontWeight: '900', color: '#0f172a', marginBottom: 8 }}>
-                    🛣️ Bus Route Network ({allAvailableRoutes.length})
+                    🛣️ {t('bus_route_network', 'Bus Route Network')} ({allAvailableRoutes.length})
                   </Text>
                   <View style={[styles.modalSearchRow, { marginBottom: 12 }]}>
                     <TextInput
                       style={styles.modalSearchInput}
-                      placeholder="Search routes by code, origin, destination..."
+                      placeholder={t('placeholder_search_directory', 'Search routes by code, origin, destination...')}
                       placeholderTextColor="#94a3b8"
                       value={depotDirectorySearch}
                       onChangeText={setDepotDirectorySearch}
@@ -5434,7 +5435,7 @@ export default function AdminWorkspaceScreen() {
                   {/* Summary badges */}
                   <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
                     <View style={styles.directorySummaryPill}>
-                      <Text style={styles.directorySummaryPillText}>Total: {allAvailableRoutes.length} Routes</Text>
+                      <Text style={styles.directorySummaryPillText}>{t('total_label', 'Total')}: {allAvailableRoutes.length} {t('routes_label', 'Routes')}</Text>
                     </View>
                     <View style={[styles.directorySummaryPill, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
                       <Text style={[styles.directorySummaryPillText, { color: '#1d4ed8' }]}>Depot 1: {depot1Routes.length}</Text>
@@ -5491,9 +5492,9 @@ export default function AdminWorkspaceScreen() {
                         <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                             <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#475569' }}>
-                              ⚡ ROUTE COMPLEXITY:
+                              ⚡ {t('route_complexity_heading', 'ROUTE COMPLEXITY')}:
                             </Text>
-                            <Text style={{ fontSize: 11, color: '#64748b' }}>(Tap to update)</Text>
+                            <Text style={{ fontSize: 11, color: '#64748b' }}>({t('tap_to_update', 'Tap to update')})</Text>
                           </View>
                           <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
                             {['Simple', 'Standard', 'Moderate', 'Complex'].map((cOption) => {
@@ -5533,9 +5534,9 @@ export default function AdminWorkspaceScreen() {
                         <View style={{ marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
                           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                             <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#475569' }}>
-                              🕒 TIME COMPLEXITY TIER:
+                              🕒 {t('time_complexity_heading', 'TIME COMPLEXITY TIER')}:
                             </Text>
-                            <Text style={{ fontSize: 11, color: '#64748b' }}>(Tap to update)</Text>
+                            <Text style={{ fontSize: 11, color: '#64748b' }}>({t('tap_to_update', 'Tap to update')})</Text>
                           </View>
                           <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
                             {['Normal', 'Peak', 'Extreme Peak'].map((tOption) => {
@@ -5577,7 +5578,7 @@ export default function AdminWorkspaceScreen() {
                         {r.timetables && r.timetables.length > 0 && (
                           <View style={{ marginTop: 8, paddingTop: 6, borderTopWidth: 1, borderTopColor: '#f1f5f9' }}>
                             <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748b', marginBottom: 2 }}>
-                              🕒 Scheduled Departures ({r.timetables.length}):
+                              🕒 {t('scheduled_departures_heading', 'Scheduled Departures')} ({r.timetables.length}):
                             </Text>
                             <Text style={{ fontSize: 11.5, color: '#0369a1', fontWeight: '600' }}>
                               {r.timetables.join(' • ')}
@@ -5589,15 +5590,6 @@ export default function AdminWorkspaceScreen() {
                 </View>
               )}
             </ScrollView>
-
-            {/* Bottom Close Button */}
-            <TouchableOpacity
-              style={styles.modalBtnCloseBottom}
-              onPress={() => setAddDeleteDepotsModalOpen(false)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.modalBtnCloseBottomText}>✕ Close Window</Text>
-            </TouchableOpacity>
           </View>
         </SafeAreaView>
       </Modal>
