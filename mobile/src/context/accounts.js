@@ -484,7 +484,7 @@ export const WEBPAGE_ACCOUNTS = {
   },
 };
 
-// ── Default System Depots ──
+// ── Default System Depots (Strictly filtered without duplicate routes between Depot 1 & 2) ──
 export const DEFAULT_DEPOTS = [
   {
     id: '1',
@@ -492,7 +492,7 @@ export const DEFAULT_DEPOTS = [
     name: 'Depot 1 (Chandapura)',
     shortName: 'Depot 1',
     location: 'Chandapura (BMT-32)',
-    routes: ['356Z', '360K', '600F', '361C', '399C'],
+    routes: ['356Z', '360K', '600F', 'KBS3A'],
     isDefault: true,
   },
   {
@@ -501,7 +501,7 @@ export const DEFAULT_DEPOTS = [
     name: 'Depot 2 (Attibele / Hoskote)',
     shortName: 'Depot 2',
     location: 'Attibele / Hoskote',
-    routes: ['KBS3A', 'KBS3F', '328H', '500DC'],
+    routes: ['361C', '399C', '328H', '500DC', 'KBS3F'],
     isDefault: true,
   },
 ];
@@ -715,11 +715,21 @@ export function getRoutesForDepot(depotId) {
   const cleanId = String(depotId || '').trim();
   if (deletedDepotIds.has(cleanId)) return [];
   const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
-  if (found && Array.isArray(found.routes)) {
-    return found.routes;
+  const core1 = ['356Z', '360K', '600F', 'KBS3A'];
+  const core2 = ['361C', '399C', '328H', '500DC', 'KBS3F'];
+  if (cleanId === '1') {
+    const list = found && Array.isArray(found.routes) ? found.routes : core1;
+    // Strictly filter out any Depot 2 routes to guarantee no duplicates
+    return Array.from(new Set(list.filter((r) => !core2.includes(String(r).trim().toUpperCase()))));
   }
-  if (cleanId === '1') return ['356Z', '360K', '600F', '361C', '399C'];
-  if (cleanId === '2') return ['KBS3A', 'KBS3F', '328H', '500DC'];
+  if (cleanId === '2') {
+    const list = found && Array.isArray(found.routes) ? found.routes : core2;
+    // Strictly filter out any Depot 1 routes to guarantee no duplicates
+    return Array.from(new Set(list.filter((r) => !core1.includes(String(r).trim().toUpperCase()))));
+  }
+  if (found && Array.isArray(found.routes)) {
+    return Array.from(new Set(found.routes));
+  }
   return [];
 }
 

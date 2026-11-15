@@ -101,7 +101,7 @@ console.log('PASS: Confirmation messages are properly wired up before adding and
 assert(adminSrc.includes("t('add_delete_depots_routes'"), 'Modal title must use translation');
 assert(adminSrc.includes("t('tab_add_route_depot'"), 'Add tab must use translation');
 assert(adminSrc.includes("t('tab_delete_route_depot'"), 'Delete tab must use translation');
-assert(adminSrc.includes("t('tab_route_dataset'"), 'Dataset tab must use translation');
+assert(adminSrc.includes("t('tab_depot_audit_log'") || adminSrc.includes("t('tab_route_dataset'"), 'Audit Log tab must use translation');
 assert(adminSrc.includes("t('btn_create_depot'"), 'Create depot button must use translation');
 assert(adminSrc.includes("t('btn_register_route'"), 'Register route button must use translation');
 assert(adminSrc.includes("t('btn_delete_depot'"), 'Delete depot button must use translation');

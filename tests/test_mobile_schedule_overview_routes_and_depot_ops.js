@@ -182,10 +182,12 @@ assert(
   adminSrc.includes('filteredRoutesForDropdown'),
   'Route dropdown must be filtered for the selected depot'
 );
+// Depot route sections beneath search & 2 dropdowns removed as requested by user
 assert(
-  adminSrc.includes('listToRender.map((depot) =>') || adminSrc.includes('depotsList.map((depot) =>'),
-  'Admin Schedule Overview must dynamically map over depots'
+  !adminSrc.includes('Dynamic Depot Route Sections for All Added Depots'),
+  'Admin Schedule Overview must remove depot blocks beneath search bar and 2 dropdowns'
 );
+console.log('PASS: Depot sections beneath search & 2 dropdowns removed in Schedule Overview.');
 console.log('PASS: AdminWorkspaceScreen.js includes 1 search box and 2 filtered dropdowns in Schedule Overview.');
 
 // B. Admin Workspace allows deleting route corridors directly and via modal
