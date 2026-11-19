@@ -19983,33 +19983,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM1570_401-BJ_1795104785408",
-      "bm": "BM1570",
-      "bmNumber": "BM1570",
-      "regNo": "KA30MS4013",
-      "routeId": "401-BJ",
-      "routeCode": "401-BJ",
-      "busNumber": "401-BJ",
-      "routeName": "Peenya 2nd stage ➔ rajanukunte (401-BJ) — 45 km",
-      "origin": "Peenya 2nd stage",
-      "destination": "rajanukunte",
-      "departureTime": "06:30 AM",
-      "isManualOverride": false,
-      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
-      "shift": "General Shift",
-      "soc": 96,
-      "fullDutyKm": 122,
-      "routeDist": 45,
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Ramesh Kumar (BMTC-4101)",
-      "depot": "3",
-      "allocatedAt": "09:43 PM, 21 Oct 2026",
-      "status": "Allocated"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "Chandapura (BMT-32)",
@@ -20138,7 +20112,7 @@
     "BM600": "1",
     "BM413": "1",
     "BM999": "2",
-    "BM1570": "3"
+    "BM1570": "1"
   },
   "_deletedBuses": {
     "BM000": {
@@ -21014,13 +20988,15 @@
     },
     "BM1570": {
       "bm": "BM1570",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "status": "available",
-      "cleaningCompletedAt": "12:28 pm, 14 Nov 2026"
+      "routeCompleted": true,
+      "routeCompletedAt": "04:28 pm, 19 Nov 2026",
+      "routeCompletedTs": 1795105693208,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "turnaround_charging"
     }
   },
   "BM600": {
@@ -21876,6 +21852,21 @@
   ],
   "_completedRoutesLog": [
     {
+      "id": "comp_1795105692581",
+      "bm": "BM1570",
+      "reg": "KA30MS4013",
+      "route": "Peenya 2nd stage ➔ rajanukunte (401-BJ) — 45 km",
+      "scheduledTime": "06:30 AM",
+      "completedAt": "09:58 PM, 21 Oct 2026",
+      "dateStr": "2026-11-19",
+      "depot": "1",
+      "prevDepot": "3",
+      "isTransferred": true,
+      "driver": "Ramesh Kumar (BMTC-4101)",
+      "remarks": "Transferred from Depot 3 to Depot 1 on route completion.",
+      "status": "Returned / Completed"
+    },
+    {
       "id": "comp_1793133421578",
       "bm": "BM214",
       "reg": "KA51AH8348",
@@ -22240,7 +22231,7 @@
   },
   "_deletedDepotIds": [],
   "BM1570": {
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "rawStatus": "On Time",
     "soc": 96,
     "condition": "Good",
@@ -22275,8 +22266,8 @@
         "status": "On Time"
       }
     ],
-    "needsCharging": false,
-    "chargingCompleted": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
     "uniqueId": "BM1570",
     "busNumber": "600F",
     "bmNumber": "BM1570",
@@ -22284,10 +22275,15 @@
     "assignedRouteDisplay": "Route BM1570 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
     "blocked": false,
-    "isLocked": false,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
-    "postRouteServicingPending": false
+    "isLocked": true,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
+    "postRouteServicingPending": false,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "depot": "1",
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "_routesDatabase": {
     "version": "1.0",
