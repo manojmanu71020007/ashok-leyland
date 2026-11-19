@@ -759,6 +759,12 @@ export default function AdminWorkspaceScreen() {
   });
   const [depotDirectorySearch, setDepotDirectorySearch] = useState('');
   const [depotAuditLogSearch, setDepotAuditLogSearch] = useState('');
+  const [depotAuditActionFilter, setDepotAuditActionFilter] = useState('all'); // 'all' | 'DEPOT_CREATED' | 'DEPOT_DELETED' | 'ADDED' | 'DELETED'
+  const [depotAuditActionDropdownOpen, setDepotAuditActionDropdownOpen] = useState(false);
+  const [fleetAuditActionFilter, setFleetAuditActionFilter] = useState('all'); // 'all' | 'ADDED' | 'DELETED'
+  const [fleetAuditActionDropdownOpen, setFleetAuditActionDropdownOpen] = useState(false);
+  const [homeDepotDropdownOpen, setHomeDepotDropdownOpen] = useState(false);
+  const [totalFleetDepotDropdownOpen, setTotalFleetDepotDropdownOpen] = useState(false);
 
   // Persist Depot Audit Logs to localStorage
   React.useEffect(() => {
@@ -881,6 +887,8 @@ export default function AdminWorkspaceScreen() {
 
   const navigateToAdminTab = (tab) => {
     setActiveAdminTab(tab);
+    setHomeDepotDropdownOpen(false);
+    setTotalFleetDepotDropdownOpen(false);
     if (mainScrollRef.current) {
       try {
         mainScrollRef.current.scrollTo({ y: 0, animated: false });
@@ -2281,43 +2289,72 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* Depot Filter Pills matching photo with dynamic support for ALL depots */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}
-              style={{ marginBottom: 14 }}
-            >
-              {[
-                { id: 'all', label: `${t('all_fleet', 'All fleet')} · ${buses.length}` },
-                ...depotsList.map((d) => {
-                  const dId = String(d.id);
-                  const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
-                  return {
-                    id: dId,
-                    label: `${d.shortName || d.name || ('Depot ' + dId)} · ${count}`,
-                  };
-                }),
-              ].map((item) => {
-                const isActive = adminDepotFilter === item.id;
-                return (
+            {/* Depot Filter Dropdown Menu for Home */}
+            <View style={{ marginBottom: 14, zIndex: 60 }}>
+              <Text style={styles.modalFieldLabel}>{t('operating_depot_label', 'Operating Depot')}</Text>
+              <TouchableOpacity
+                style={[styles.modalDropdownBtn, homeDepotDropdownOpen && styles.modalDropdownBtnActive, { backgroundColor: '#ffffff', borderColor: '#cbd5e1' }]}
+                onPress={() => setHomeDepotDropdownOpen((prev) => !prev)}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontSize: 16 }}>{adminDepotFilter === 'all' ? '🌐' : '🏢'}</Text>
+                  <Text style={[styles.modalDropdownBtnText, { fontWeight: '700', color: '#1e293b' }]}>
+                    {adminDepotFilter === 'all'
+                      ? `${t('all_operating_depots', 'All Operating Depots')} (${buses.length} ${t('buses_label', 'buses')})`
+                      : (() => {
+                          const matched = depotsList.find((d) => String(d.id) === String(adminDepotFilter));
+                          const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === String(adminDepotFilter)).length;
+                          return `${matched?.name || `Depot ${adminDepotFilter}`} (${count} ${t('buses_label', 'buses')})`;
+                        })()}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 13, color: '#64748b' }}>
+                  {homeDepotDropdownOpen ? '▲' : '▼'}
+                </Text>
+              </TouchableOpacity>
+
+              {homeDepotDropdownOpen && (
+                <ScrollView style={[styles.modalDropdownMenu, { backgroundColor: '#ffffff', maxHeight: 220, zIndex: 100 }]} nestedScrollEnabled>
                   <TouchableOpacity
-                    key={item.id}
-                    style={[styles.depotPill, isActive && styles.depotPillActive, { flex: undefined, minWidth: 92, paddingHorizontal: 12 }]}
+                    style={[styles.modalDropdownItem, adminDepotFilter === 'all' && styles.modalDropdownItemActive]}
                     onPress={() => {
-                      setAdminDepotFilter(item.id);
-                      setLockedDepotFilter(item.id);
-                      setRecentCompletedDepot(item.id);
+                      setAdminDepotFilter('all');
+                      setLockedDepotFilter('all');
+                      setRecentCompletedDepot('all');
+                      setHomeDepotDropdownOpen(false);
                     }}
-                    activeOpacity={0.8}
                   >
-                    <Text style={[styles.depotPillLabel, isActive && styles.depotPillLabelActive]}>
-                      {item.label}
+                    <Text style={[styles.modalDropdownItemText, adminDepotFilter === 'all' && styles.modalDropdownItemTextActive]}>
+                      🌐 {t('all_operating_depots', 'All Operating Depots')} ({buses.length} {t('buses_label', 'buses')})
                     </Text>
+                    {adminDepotFilter === 'all' && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
                   </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                  {depotsList.map((d) => {
+                    const dId = String(d.id);
+                    const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                    const isSelected = adminDepotFilter === dId;
+                    return (
+                      <TouchableOpacity
+                        key={dId}
+                        style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                        onPress={() => {
+                          setAdminDepotFilter(dId);
+                          setLockedDepotFilter(dId);
+                          setRecentCompletedDepot(dId);
+                          setHomeDepotDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                          🏢 {d.name || `Depot ${dId}`} ({count} {t('buses_label', 'buses')})
+                        </Text>
+                        {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </View>
 
             {/* Donut Chart Summary Card matching photo */}
             <View style={styles.fleetSummaryCard}>
@@ -3195,43 +3232,72 @@ export default function AdminWorkspaceScreen() {
               count={viewBuses.length}
             />
 
-            {/* Depot filter switcher tabs for Total Fleet */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.depotFilterTabBar}>
+            {/* Depot Filter Dropdown Menu for Total Fleet */}
+            <View style={{ marginBottom: 14, zIndex: 60 }}>
+              <Text style={styles.modalFieldLabel}>{t('operating_depot_label', 'Operating Depot')}</Text>
               <TouchableOpacity
-                style={[styles.depotTabBtn, adminDepotFilter === 'all' && styles.depotTabBtnActive, { flex: undefined, minWidth: 100 }]}
-                onPress={() => {
-                  setAdminDepotFilter('all');
-                  setLockedDepotFilter('all');
-                  setRecentCompletedDepot('all');
-                }}
+                style={[styles.modalDropdownBtn, totalFleetDepotDropdownOpen && styles.modalDropdownBtnActive, { backgroundColor: '#ffffff', borderColor: '#cbd5e1' }]}
+                onPress={() => setTotalFleetDepotDropdownOpen((prev) => !prev)}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.depotTabBtnText, adminDepotFilter === 'all' && styles.depotTabBtnTextActive]}>
-                  🌐 All Fleet ({buses.length})
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontSize: 16 }}>{adminDepotFilter === 'all' ? '🌐' : '🏢'}</Text>
+                  <Text style={[styles.modalDropdownBtnText, { fontWeight: '700', color: '#1e293b' }]}>
+                    {adminDepotFilter === 'all'
+                      ? `${t('all_operating_depots', 'All Operating Depots')} (${buses.length} ${t('buses_label', 'buses')})`
+                      : (() => {
+                          const matched = depotsList.find((d) => String(d.id) === String(adminDepotFilter));
+                          const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === String(adminDepotFilter)).length;
+                          return `${matched?.name || `Depot ${adminDepotFilter}`} (${count} ${t('buses_label', 'buses')})`;
+                        })()}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 13, color: '#64748b' }}>
+                  {totalFleetDepotDropdownOpen ? '▲' : '▼'}
                 </Text>
               </TouchableOpacity>
-              {depotsList.map((d) => {
-                const dId = String(d.id);
-                const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
-                const isActive = adminDepotFilter === dId;
-                return (
+
+              {totalFleetDepotDropdownOpen && (
+                <ScrollView style={[styles.modalDropdownMenu, { backgroundColor: '#ffffff', maxHeight: 220, zIndex: 100 }]} nestedScrollEnabled>
                   <TouchableOpacity
-                    key={dId}
-                    style={[styles.depotTabBtn, isActive && styles.depotTabBtnActive, { flex: undefined, minWidth: 100 }]}
+                    style={[styles.modalDropdownItem, adminDepotFilter === 'all' && styles.modalDropdownItemActive]}
                     onPress={() => {
-                      setAdminDepotFilter(dId);
-                      setLockedDepotFilter(dId);
-                      setRecentCompletedDepot(dId);
+                      setAdminDepotFilter('all');
+                      setLockedDepotFilter('all');
+                      setRecentCompletedDepot('all');
+                      setTotalFleetDepotDropdownOpen(false);
                     }}
-                    activeOpacity={0.8}
                   >
-                    <Text style={[styles.depotTabBtnText, isActive && styles.depotTabBtnTextActive]}>
-                      🏢 {d.shortName || `Depot ${dId}`} ({count})
+                    <Text style={[styles.modalDropdownItemText, adminDepotFilter === 'all' && styles.modalDropdownItemTextActive]}>
+                      🌐 {t('all_operating_depots', 'All Operating Depots')} ({buses.length} {t('buses_label', 'buses')})
                     </Text>
+                    {adminDepotFilter === 'all' && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
                   </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                  {depotsList.map((d) => {
+                    const dId = String(d.id);
+                    const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                    const isSelected = adminDepotFilter === dId;
+                    return (
+                      <TouchableOpacity
+                        key={dId}
+                        style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                        onPress={() => {
+                          setAdminDepotFilter(dId);
+                          setLockedDepotFilter(dId);
+                          setRecentCompletedDepot(dId);
+                          setTotalFleetDepotDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                          🏢 {d.name || `Depot ${dId}`} ({count} {t('buses_label', 'buses')})
+                        </Text>
+                        {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              )}
+            </View>
 
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
@@ -3848,20 +3914,61 @@ export default function AdminWorkspaceScreen() {
           <View style={recentCompletedFullscreen ? styles.modalCardFullScreen : [styles.modalCard, { maxHeight: '90%' }]}>
             <View style={styles.modalHeader}>
               <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={[styles.modalEyebrow, { color: '#4361ee' }]}>ROUTE ARRIVAL & DISPATCH LOG</Text>
+                <Text style={[styles.modalEyebrow, { color: '#4361ee' }]}>{t('route_arrival_dispatch_log', 'ROUTE ARRIVAL & DISPATCH LOG')}</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 2 }}>
-                  <Text style={styles.modalTitle}>🔔 Recently Completed Buses</Text>
+                  <Text style={styles.modalTitle}>🔔 {t('recently_completed_buses', 'Recently Completed Buses')}</Text>
                   <View style={[styles.lockedModalCountBadge, { backgroundColor: '#dcfce7', borderColor: '#86efac' }]}>
                     <Text style={[styles.lockedModalCountText, { color: '#15803d' }]}>
-                      {turnaroundAllList.length} Completed
+                      {turnaroundAllList.length} {t('completed_label', 'Completed')}
                     </Text>
                   </View>
                 </View>
                 <Text style={styles.modalSubtitle}>
-                  Real-time arrival telemetry of buses that finished assigned routes and safely returned to depot yard.
+                  {t('recent_completed_subtitle', 'Real-time arrival telemetry of buses that finished assigned routes and safely returned to depot yard.')}
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  style={styles.btnHeaderDownload}
+                  onPress={async () => {
+                    const listToExport = filteredRecentCompleted && filteredRecentCompleted.length > 0 ? filteredRecentCompleted : turnaroundAllList;
+                    if (!listToExport || listToExport.length === 0) {
+                      Alert.alert(t('no_records_title', 'No Records'), t('no_completed_buses_export', 'No completed buses available to export.'));
+                      return;
+                    }
+                    const headers = [
+                      'BM Number',
+                      'Registration Number',
+                      'Depot',
+                      'Route Code',
+                      'Route Name',
+                      'Driver Name',
+                      'Completion / Arrival Time',
+                      'Battery SoC (%)',
+                      'Status',
+                      'Turnaround Bay / Yard Location',
+                    ];
+                    const rows = listToExport.map((b) => [
+                      b.bm || b.bmNumber || '',
+                      b.regNo || b.reg || '',
+                      b.depot ? `Depot ${b.depot}` : (adminDepotFilter !== 'all' ? `Depot ${adminDepotFilter}` : 'Depot 1'),
+                      b.route || b.routeCode || '',
+                      b.routeName || '',
+                      b.driver || b.driverName || 'Depot Pilot',
+                      b.completedTime || b.arrivalTime || b.time || '',
+                      b.soc !== undefined ? `${b.soc}%` : '',
+                      b.status || 'Route Completed',
+                      b.bay || b.location || 'Arrival Bay',
+                    ]);
+                    const dateStr = new Date().toISOString().slice(0, 10);
+                    const depotTag = recentCompletedDepot === 'all' ? 'all_depots' : `depot_${recentCompletedDepot}`;
+                    await exportCsvFile(`recently_completed_buses_${depotTag}_${dateStr}.csv`, [headers, ...rows]);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.btnHeaderDownloadText}>{t('btn_download_csv', '📥 Download CSV')}</Text>
+                </TouchableOpacity>
+
                 <TouchableOpacity
                   onPress={() => setRecentCompletedFullscreen((prev) => !prev)}
                   style={styles.modalFullscreenToggleBtn}
@@ -4075,10 +4182,10 @@ export default function AdminWorkspaceScreen() {
             {/* Header */}
             <View style={styles.plusOptionsHeader}>
               <View style={{ flex: 1, paddingRight: 8 }}>
-                <Text style={styles.plusOptionsEyebrow}>FLEET OPERATIONS</Text>
-                <Text style={styles.plusOptionsTitle}>➕ Management Actions</Text>
+                <Text style={styles.plusOptionsEyebrow}>{t('fleet_operations', 'FLEET OPERATIONS')}</Text>
+                <Text style={styles.plusOptionsTitle}>➕ {t('management_actions', 'Management Actions')}</Text>
                 <Text style={styles.plusOptionsSubtitle}>
-                  Select an administrative management operation to proceed
+                  {t('select_management_action', 'Select an administrative management operation to proceed')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -4133,13 +4240,13 @@ export default function AdminWorkspaceScreen() {
               </View>
               <View style={{ flex: 1, paddingLeft: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
-                  <Text style={styles.plusOptionTitle}>2. Add / Delete Buses</Text>
+                  <Text style={styles.plusOptionTitle}>2. {t('add_delete_buses', 'Add / Delete Buses')}</Text>
                   <View style={styles.plusOptionTagBus}>
-                    <Text style={styles.plusOptionTagTextBus}>Fleet</Text>
+                    <Text style={styles.plusOptionTagTextBus}>{t('fleet_label', 'Fleet')}</Text>
                   </View>
                 </View>
                 <Text style={styles.plusOptionDesc}>
-                  Induct new electric buses into active service (BM number, registration, depot) or withdraw buses from the fleet.
+                  {t('add_delete_buses_desc', 'Induct new electric buses into active service (BM number, registration, depot) or withdraw buses from the fleet.')}
                 </Text>
               </View>
               <Text style={styles.plusOptionArrow}>➔</Text>
@@ -4151,7 +4258,7 @@ export default function AdminWorkspaceScreen() {
               onPress={() => setPlusOptionsModalOpen(false)}
               activeOpacity={0.8}
             >
-              <Text style={styles.plusOptionBtnCancelText}>Cancel</Text>
+              <Text style={styles.plusOptionBtnCancelText}>{t('btn_cancel', 'Cancel')}</Text>
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -4626,7 +4733,55 @@ export default function AdminWorkspaceScreen() {
                     </View>
                   </View>
 
-                  {auditLogs.map((entry) => {
+                  {/* Dropdown Menu to Select Action to be Audited for Fleet */}
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={styles.modalFieldLabel}>{t('filter_action_label', 'Filter Action to be Audited')}</Text>
+                    <TouchableOpacity
+                      style={[styles.modalDropdownBtn, fleetAuditActionDropdownOpen && styles.modalDropdownBtnActive]}
+                      onPress={() => setFleetAuditActionDropdownOpen((prev) => !prev)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.modalDropdownBtnText}>
+                        {fleetAuditActionFilter === 'all' && `🌐 ${t('all_actions', 'All Actions')} (${auditLogs.length})`}
+                        {fleetAuditActionFilter === 'ADDED' && `➕ ${t('badge_inducted', 'Inducted Buses')} (${auditLogs.filter((a) => a.action === 'ADDED').length})`}
+                        {fleetAuditActionFilter === 'DELETED' && `🗑️ ${t('badge_removed', 'Removed Buses')} (${auditLogs.filter((a) => a.action === 'DELETED').length})`}
+                      </Text>
+                      <Text style={{ fontSize: 12, color: '#64748b' }}>
+                        {fleetAuditActionDropdownOpen ? '▲' : '▼'}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {fleetAuditActionDropdownOpen && (
+                      <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
+                        {[
+                          { id: 'all', label: `🌐 ${t('all_actions', 'All Actions')} (${auditLogs.length})` },
+                          { id: 'ADDED', label: `➕ ${t('badge_inducted', 'Inducted Buses')} (${auditLogs.filter((a) => a.action === 'ADDED').length})` },
+                          { id: 'DELETED', label: `🗑️ ${t('badge_removed', 'Removed Buses')} (${auditLogs.filter((a) => a.action === 'DELETED').length})` },
+                        ].map((opt) => {
+                          const isSelected = fleetAuditActionFilter === opt.id;
+                          return (
+                            <TouchableOpacity
+                              key={opt.id}
+                              style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                              onPress={() => {
+                                setFleetAuditActionFilter(opt.id);
+                                setFleetAuditActionDropdownOpen(false);
+                              }}
+                            >
+                              <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                                {opt.label}
+                              </Text>
+                              {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    )}
+                  </View>
+
+                  {auditLogs
+                    .filter((entry) => fleetAuditActionFilter === 'all' || entry.action === fleetAuditActionFilter)
+                    .map((entry) => {
                     const isAdded = entry.action === 'ADDED';
                     return (
                       <View key={entry.id} style={styles.auditCard}>
@@ -5361,36 +5516,60 @@ export default function AdminWorkspaceScreen() {
                     )}
                   </View>
 
-                  {/* Summary Metric Badges */}
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                    <View style={styles.directorySummaryPill}>
-                      <Text style={styles.directorySummaryPillText}>{t('total_label', 'Total')}: {depotAuditLogs.length} Events</Text>
-                    </View>
-                    <View style={[styles.directorySummaryPill, { backgroundColor: '#f0fdf4', borderColor: '#bbf7d0' }]}>
-                      <Text style={[styles.directorySummaryPillText, { color: '#15803d' }]}>
-                        🏢 +{depotAuditLogs.filter((a) => a.action === 'DEPOT_CREATED').length} Depots
+                  {/* Dropdown Menu to Select Action to be Audited */}
+                  <View style={{ marginBottom: 14 }}>
+                    <Text style={styles.modalFieldLabel}>{t('filter_action_label', 'Filter Action to be Audited')}</Text>
+                    <TouchableOpacity
+                      style={[styles.modalDropdownBtn, depotAuditActionDropdownOpen && styles.modalDropdownBtnActive]}
+                      onPress={() => setDepotAuditActionDropdownOpen((prev) => !prev)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.modalDropdownBtnText}>
+                        {depotAuditActionFilter === 'all' && `🌐 ${t('all_actions', 'All Actions')} (${depotAuditLogs.length})`}
+                        {depotAuditActionFilter === 'DEPOT_CREATED' && `🏢 ${t('action_depot_created', 'Depot Created')} (+${depotAuditLogs.filter((a) => a.action === 'DEPOT_CREATED').length})`}
+                        {depotAuditActionFilter === 'DEPOT_DELETED' && `🗑️ ${t('action_depot_deleted', 'Depot Deleted')} (-${depotAuditLogs.filter((a) => a.action === 'DEPOT_DELETED').length})`}
+                        {depotAuditActionFilter === 'ADDED' && `🛣️ ${t('action_route_added', 'Route Added')} (+${depotAuditLogs.filter((a) => a.action === 'ADDED').length})`}
+                        {depotAuditActionFilter === 'DELETED' && `🗑️ ${t('action_route_deleted', 'Route Deleted')} (-${depotAuditLogs.filter((a) => a.action === 'DELETED').length})`}
                       </Text>
-                    </View>
-                    <View style={[styles.directorySummaryPill, { backgroundColor: '#fef2f2', borderColor: '#fecaca' }]}>
-                      <Text style={[styles.directorySummaryPillText, { color: '#b91c1c' }]}>
-                        🏢 -{depotAuditLogs.filter((a) => a.action === 'DEPOT_DELETED').length} Depots
+                      <Text style={{ fontSize: 12, color: '#64748b' }}>
+                        {depotAuditActionDropdownOpen ? '▲' : '▼'}
                       </Text>
-                    </View>
-                    <View style={[styles.directorySummaryPill, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }]}>
-                      <Text style={[styles.directorySummaryPillText, { color: '#1d4ed8' }]}>
-                        🛣️ +{depotAuditLogs.filter((a) => a.action === 'ADDED').length} Routes
-                      </Text>
-                    </View>
-                    <View style={[styles.directorySummaryPill, { backgroundColor: '#fff7ed', borderColor: '#fed7aa' }]}>
-                      <Text style={[styles.directorySummaryPillText, { color: '#c2410c' }]}>
-                        🛣️ -{depotAuditLogs.filter((a) => a.action === 'DELETED').length} Routes
-                      </Text>
-                    </View>
+                    </TouchableOpacity>
+
+                    {depotAuditActionDropdownOpen && (
+                      <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
+                        {[
+                          { id: 'all', label: `🌐 ${t('all_actions', 'All Actions')} (${depotAuditLogs.length})` },
+                          { id: 'DEPOT_CREATED', label: `🏢 ${t('action_depot_created', 'Depot Created')} (+${depotAuditLogs.filter((a) => a.action === 'DEPOT_CREATED').length})` },
+                          { id: 'DEPOT_DELETED', label: `🗑️ ${t('action_depot_deleted', 'Depot Deleted')} (-${depotAuditLogs.filter((a) => a.action === 'DEPOT_DELETED').length})` },
+                          { id: 'ADDED', label: `🛣️ ${t('action_route_added', 'Route Added')} (+${depotAuditLogs.filter((a) => a.action === 'ADDED').length})` },
+                          { id: 'DELETED', label: `🗑️ ${t('action_route_deleted', 'Route Deleted')} (-${depotAuditLogs.filter((a) => a.action === 'DELETED').length})` },
+                        ].map((opt) => {
+                          const isSelected = depotAuditActionFilter === opt.id;
+                          return (
+                            <TouchableOpacity
+                              key={opt.id}
+                              style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                              onPress={() => {
+                                setDepotAuditActionFilter(opt.id);
+                                setDepotAuditActionDropdownOpen(false);
+                              }}
+                            >
+                              <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                                {opt.label}
+                              </Text>
+                              {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </ScrollView>
+                    )}
                   </View>
 
                   {/* Audit Logs List */}
                   {(() => {
                     const filteredLogs = depotAuditLogs.filter((entry) => {
+                      if (depotAuditActionFilter !== 'all' && entry.action !== depotAuditActionFilter) return false;
                       if (!depotAuditLogSearch.trim()) return true;
                       const q = depotAuditLogSearch.trim().toLowerCase();
                       return (
