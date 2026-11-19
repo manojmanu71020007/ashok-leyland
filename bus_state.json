@@ -20912,13 +20912,13 @@
     },
     "BM1570": {
       "bm": "BM1570",
-      "routeCompleted": true,
+      "routeCompleted": false,
       "needsCharging": false,
       "chargingCompleted": true,
-      "needsCleaning": true,
-      "cleaningCompleted": false,
-      "status": "turnaround_cleaning",
-      "chargingCompletedAt": "09:58 pm, 19 Nov 2026"
+      "needsCleaning": false,
+      "cleaningCompleted": true,
+      "status": "available",
+      "cleaningCompletedAt": "09:59 pm, 19 Nov 2026"
     }
   },
   "BM600": {
@@ -21492,6 +21492,23 @@
     "busNumber": "600F"
   },
   "_cleaningHistory": [
+    {
+      "id": "clean_1795105789949",
+      "bm": "BM1570",
+      "reg": "KA30MS4013",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "09:59 pm, 19 Nov 2026",
+      "unlockTime": "09:59 pm, 19 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "09:59 pm",
+      "dateStr": "19 Nov 2026"
+    },
     {
       "id": "clean_1794639501844",
       "bm": "BM1570",
@@ -22218,7 +22235,12 @@
       }
     ],
     "needsCharging": false,
-    "chargingCompleted": true
+    "chargingCompleted": true,
+    "isLocked": false,
+    "blocked": false,
+    "needsCleaning": false,
+    "cleaningCompleted": true,
+    "postRouteServicingPending": false
   },
   "_routesDatabase": {
     "version": "1.0",
