@@ -844,6 +844,24 @@ export default function AdminWorkspaceScreen() {
   const [routeAllocatedModalOpen, setRouteAllocatedModalOpen] = useState(false);
   const [routeAllocatedModalRoute, setRouteAllocatedModalRoute] = useState(ALL_ROUTES_DATA[0].code);
   const [routeAllocatedSearch, setRouteAllocatedSearch] = useState('');
+  const [routeAllocatedFullscreen, setRouteAllocatedFullscreen] = useState(true);
+
+  // Home Page Depot Search State
+  const [homeDepotSearch, setHomeDepotSearch] = useState('');
+
+  // Notifications State: Recently Completed Route Tracking & Read-Status Badge
+  const [lastViewedCompletedCount, setLastViewedCompletedCount] = useState(() => {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const s = localStorage.getItem('last_viewed_completed_count');
+        if (s !== null) {
+          const parsed = parseInt(s, 10);
+          return isNaN(parsed) ? 0 : parsed;
+        }
+      }
+    } catch (_) {}
+    return 0;
+  });
 
   // Schedule Overview Filters: 1 Search Box & 2 Dropdown Menus (Depots & Routes)
   const [scheduleSearchQuery, setScheduleSearchQuery] = useState('');
@@ -1975,6 +1993,33 @@ export default function AdminWorkspaceScreen() {
     });
   }, [turnaroundAllList, turnaroundDepot1List, turnaroundDepot2List, recentCompletedDepot, recentCompletedSearch, recentCompletedSortBy]);
 
+  // Unread Route Completed count for Header Bell Icon (based on route completed buses)
+  const unreadCompletedCount = Math.max(0, turnaroundAllList.length - lastViewedCompletedCount);
+
+  // Filtered Depots for Home Workspace Search Box
+  const filteredHomeDepots = useMemo(() => {
+    if (!homeDepotSearch || !homeDepotSearch.trim()) return depotsList;
+    const q = homeDepotSearch.toLowerCase().trim();
+    return depotsList.filter((d) => {
+      const dId = String(d.id || '').toLowerCase();
+      const dName = String(d.name || '').toLowerCase();
+      const dLoc = String(d.location || '').toLowerCase();
+      return dId.includes(q) || dName.includes(q) || dLoc.includes(q) || `depot ${dId}`.includes(q);
+    });
+  }, [depotsList, homeDepotSearch]);
+
+  // Synchronize viewed completed count when notifications modal is open
+  useEffect(() => {
+    if (recentCompletedModalOpen && turnaroundAllList.length > lastViewedCompletedCount) {
+      setLastViewedCompletedCount(turnaroundAllList.length);
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('last_viewed_completed_count', String(turnaroundAllList.length));
+        }
+      } catch (_) {}
+    }
+  }, [recentCompletedModalOpen, turnaroundAllList.length, lastViewedCompletedCount]);
+
   // ── Filtered Lists for Each Section ──
 
   // 1. Filtered Allocated Duties
@@ -2278,6 +2323,12 @@ export default function AdminWorkspaceScreen() {
                 <TouchableOpacity
                   style={styles.headerBellBtn}
                   onPress={() => {
+                    setLastViewedCompletedCount(turnaroundAllList.length);
+                    try {
+                      if (typeof localStorage !== 'undefined') {
+                        localStorage.setItem('last_viewed_completed_count', String(turnaroundAllList.length));
+                      }
+                    } catch (_) {}
                     setRecentCompletedFullscreen(true);
                     setRecentCompletedModalOpen(true);
                   }}
@@ -2285,7 +2336,46 @@ export default function AdminWorkspaceScreen() {
                   accessibilityLabel="Recently Completed Routes"
                 >
                   <BellIcon color="#1e293b" size={20} />
+                  {unreadCompletedCount > 0 && (
+                    <>
+                      <View style={styles.bellRedDot} pointerEvents="none" />
+                      <View style={styles.bellNumberBadge} pointerEvents="none">
+                        <Text style={styles.bellNumberBadgeText}>
+                          {unreadCompletedCount > 99 ? '99+' : unreadCompletedCount}
+                        </Text>
+                      </View>
+                    </>
+                  )}
                 </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Depot Search Box for Home */}
+            <View style={{ marginBottom: 10 }}>
+              <Text style={styles.modalFieldLabel}>{t('search_depots_label', 'Search Depots')}</Text>
+              <View style={styles.homeDepotSearchBox}>
+                <Text style={{ fontSize: 14, marginRight: 6, color: '#64748b' }}>🔍</Text>
+                <TextInput
+                  style={styles.homeDepotSearchInput}
+                  placeholder={t('placeholder_search_depots', 'Search depots by name, location, or ID...')}
+                  placeholderTextColor="#94a3b8"
+                  value={homeDepotSearch}
+                  onChangeText={(val) => {
+                    setHomeDepotSearch(val);
+                    if (val.trim() && !homeDepotDropdownOpen) {
+                      setHomeDepotDropdownOpen(true);
+                    }
+                  }}
+                />
+                {homeDepotSearch.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setHomeDepotSearch('')}
+                    style={{ padding: 4 }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: 'bold' }}>✕</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 
@@ -2316,42 +2406,52 @@ export default function AdminWorkspaceScreen() {
 
               {homeDepotDropdownOpen && (
                 <ScrollView style={[styles.modalDropdownMenu, { backgroundColor: '#ffffff', maxHeight: 220, zIndex: 100 }]} nestedScrollEnabled>
-                  <TouchableOpacity
-                    style={[styles.modalDropdownItem, adminDepotFilter === 'all' && styles.modalDropdownItemActive]}
-                    onPress={() => {
-                      setAdminDepotFilter('all');
-                      setLockedDepotFilter('all');
-                      setRecentCompletedDepot('all');
-                      setHomeDepotDropdownOpen(false);
-                    }}
-                  >
-                    <Text style={[styles.modalDropdownItemText, adminDepotFilter === 'all' && styles.modalDropdownItemTextActive]}>
-                      🌐 {t('all_operating_depots', 'All Operating Depots')} ({buses.length} {t('buses_label', 'buses')})
-                    </Text>
-                    {adminDepotFilter === 'all' && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                  </TouchableOpacity>
-                  {depotsList.map((d) => {
-                    const dId = String(d.id);
-                    const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
-                    const isSelected = adminDepotFilter === dId;
-                    return (
-                      <TouchableOpacity
-                        key={dId}
-                        style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
-                        onPress={() => {
-                          setAdminDepotFilter(dId);
-                          setLockedDepotFilter(dId);
-                          setRecentCompletedDepot(dId);
-                          setHomeDepotDropdownOpen(false);
-                        }}
-                      >
-                        <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
-                          🏢 {d.name || `Depot ${dId}`} ({count} {t('buses_label', 'buses')})
-                        </Text>
-                        {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                      </TouchableOpacity>
-                    );
-                  })}
+                  {(!homeDepotSearch.trim() || 'all operating depots'.includes(homeDepotSearch.toLowerCase().trim())) && (
+                    <TouchableOpacity
+                      style={[styles.modalDropdownItem, adminDepotFilter === 'all' && styles.modalDropdownItemActive]}
+                      onPress={() => {
+                        setAdminDepotFilter('all');
+                        setLockedDepotFilter('all');
+                        setRecentCompletedDepot('all');
+                        setHomeDepotDropdownOpen(false);
+                      }}
+                    >
+                      <Text style={[styles.modalDropdownItemText, adminDepotFilter === 'all' && styles.modalDropdownItemTextActive]}>
+                        🌐 {t('all_operating_depots', 'All Operating Depots')} ({buses.length} {t('buses_label', 'buses')})
+                      </Text>
+                      {adminDepotFilter === 'all' && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                    </TouchableOpacity>
+                  )}
+                  {filteredHomeDepots.length === 0 ? (
+                    <View style={{ padding: 14, alignItems: 'center' }}>
+                      <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic' }}>
+                        {t('no_depots_found', 'No depots match your search.')}
+                      </Text>
+                    </View>
+                  ) : (
+                    filteredHomeDepots.map((d) => {
+                      const dId = String(d.id);
+                      const count = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                      const isSelected = adminDepotFilter === dId;
+                      return (
+                        <TouchableOpacity
+                          key={dId}
+                          style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                          onPress={() => {
+                            setAdminDepotFilter(dId);
+                            setLockedDepotFilter(dId);
+                            setRecentCompletedDepot(dId);
+                            setHomeDepotDropdownOpen(false);
+                          }}
+                        >
+                          <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                            🏢 {d.name || `Depot ${dId}`} ({count} {t('buses_label', 'buses')})
+                          </Text>
+                          {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
+                        </TouchableOpacity>
+                      );
+                    })
+                  )}
                 </ScrollView>
               )}
             </View>
@@ -2614,12 +2714,13 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.adminKpiLbl}>Total buses ({selectedRoute.code})</Text>
             </View>
 
-            {/* Clickable Allocated Buses KPI -> Opens Route Allocated Buses Modal */}
+            {/* Clickable Allocated Buses KPI -> Opens Route Allocated Buses Modal in Fullscreen Mode */}
             <TouchableOpacity
               style={[styles.adminKpiBox, styles.adminKpiBoxClickable]}
               onPress={() => {
                 setRouteAllocatedModalRoute(selectedRoute.code);
                 setRouteAllocatedSearch('');
+                setRouteAllocatedFullscreen(true);
                 setRouteAllocatedModalOpen(true);
               }}
               activeOpacity={0.8}
@@ -5816,15 +5917,17 @@ export default function AdminWorkspaceScreen() {
       {/* ── MODAL 4: ROUTE ALLOCATED BUSES DIRECTORY MODAL (Exact Match with admin.html lines 2800-2845) ── */}
       <Modal
         visible={routeAllocatedModalOpen}
-        transparent
+        transparent={!routeAllocatedFullscreen}
         animationType="slide"
         onRequestClose={() => setRouteAllocatedModalOpen(false)}
+        presentationStyle={routeAllocatedFullscreen ? 'fullScreen' : 'overFullScreen'}
+        statusBarTranslucent={true}
       >
-        <View style={styles.modalBackdrop}>
-          <View style={[styles.modalCard, { maxHeight: '88%' }]}>
+        <SafeAreaView style={routeAllocatedFullscreen ? styles.modalBackdropFullScreen : styles.modalBackdrop}>
+          <View style={routeAllocatedFullscreen ? styles.modalCardFullScreen : [styles.modalCard, { maxHeight: '88%' }]}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={[styles.modalEyebrow, { color: '#0284c7' }]}>ROUTE FLEET ALLOCATION DIRECTORY</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 2 }}>
                   <Text style={styles.modalTitle}>🚌 Route Allocated Buses</Text>
@@ -5841,9 +5944,21 @@ export default function AdminWorkspaceScreen() {
                   All vehicles currently allocated to Route {routeAllocatedModalRoute} across all shifts and departure times (independent of departure time).
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setRouteAllocatedModalOpen(false)} style={styles.modalCloseBtn}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setRouteAllocatedFullscreen((prev) => !prev)}
+                  style={styles.modalFullscreenToggleBtn}
+                  activeOpacity={0.7}
+                  accessibilityLabel="Toggle Fullscreen Mode"
+                >
+                  <Text style={styles.modalFullscreenToggleText}>
+                    {routeAllocatedFullscreen ? '🗗' : '⛶'}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setRouteAllocatedModalOpen(false)} style={styles.modalCloseBtn}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Route Switcher & Search Bar */}
@@ -5891,7 +6006,12 @@ export default function AdminWorkspaceScreen() {
             </View>
 
             {/* List of Allocated Buses on this Route */}
-            <ScrollView contentContainerStyle={styles.modalScrollBody} showsVerticalScrollIndicator={false}>
+            <ScrollView
+              style={routeAllocatedFullscreen ? { flex: 1 } : { maxHeight: 450 }}
+              contentContainerStyle={styles.modalScrollBody}
+              showsVerticalScrollIndicator={false}
+              nestedScrollEnabled
+            >
               {filteredRouteAllocatedDuties.length === 0 ? (
                 <View style={styles.modalEmptyBox}>
                   <Text style={styles.modalEmptyIcon}>🚌</Text>
@@ -5979,7 +6099,7 @@ export default function AdminWorkspaceScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </SafeAreaView>
       </Modal>
 
       {/* ── MODAL 5: BUS DUTY TASKS & INFORMATION MODAL (Exact match to website i symbol tasks modal) ── */}
@@ -9009,6 +9129,67 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 6,
     elevation: 3,
+    position: 'relative',
+  },
+  bellRedDot: {
+    position: 'absolute',
+    top: 4,
+    left: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#ef4444',
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+    zIndex: 10,
+  },
+  bellNumberBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -5,
+    backgroundColor: '#dc2626',
+    minWidth: 19,
+    height: 19,
+    borderRadius: 9.5,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    zIndex: 11,
+  },
+  bellNumberBadgeText: {
+    color: '#ffffff',
+    fontSize: 10,
+    fontWeight: '800',
+    lineHeight: 12,
+    textAlign: 'center',
+  },
+  homeDepotSearchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  homeDepotSearchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#0f172a',
+    padding: 0,
   },
   depotPillBar: {
     flexDirection: 'row',
