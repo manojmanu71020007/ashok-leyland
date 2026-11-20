@@ -5267,6 +5267,90 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
+    // ── POST /api/upload-dataset (Upload CSV or Excel spreadsheets to data/ & root) ──
+    if (pathname === "/api/upload-dataset" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const fileName = String(payload.fileName || "").trim();
+                const base64Data = payload.base64Data || "";
+                const datasetType = payload.datasetType || "spreadsheet";
+
+                if (!fileName || !base64Data) {
+                    sendJson(res, { ok: false, error: "Missing fileName or base64Data in upload request" }, 400);
+                    return;
+                }
+
+                // Sanitize file name
+                const safeName = path.basename(fileName);
+                const dataDir = path.join(BASE_DIR, "data");
+                if (!fs.existsSync(dataDir)) {
+                    fs.mkdirSync(dataDir, { recursive: true });
+                }
+
+                const targetPath = path.join(dataDir, safeName);
+                const fileBuffer = Buffer.from(base64Data, "base64");
+                fs.writeFileSync(targetPath, fileBuffer);
+
+                // If this file also resides in the root directory, update it as well
+                const rootCandidate = path.join(BASE_DIR, safeName);
+                if (fs.existsSync(rootCandidate)) {
+                    fs.writeFileSync(rootCandidate, fileBuffer);
+                }
+
+                // Invalidate cached corridor schedules
+                cachedCorridorSchedules = null;
+                detailedSchedulesCache = null;
+
+                stateVersion = Date.now();
+                broadcastSyncEvent("dataset-updated", {
+                    fileName: safeName,
+                    size: fileBuffer.length,
+                    timestamp: new Date().toISOString(),
+                    datasetType
+                });
+
+                sendJson(res, {
+                    ok: true,
+                    message: `Dataset spreadsheet "${safeName}" successfully uploaded and saved (${(fileBuffer.length / 1024).toFixed(1)} KB).`,
+                    fileName: safeName,
+                    size: fileBuffer.length,
+                    path: targetPath,
+                    timestamp: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error("Error saving uploaded dataset:", err);
+                sendJson(res, { ok: false, error: "Failed to save uploaded dataset", details: err.message }, 500);
+            }
+        });
+        return;
+    }
+
+    // ── GET /api/uploaded-datasets (List available datasets in data/) ──
+    if (pathname === "/api/uploaded-datasets" && req.method === "GET") {
+        try {
+            const dataDir = path.join(BASE_DIR, "data");
+            const files = [];
+            if (fs.existsSync(dataDir)) {
+                fs.readdirSync(dataDir).forEach(file => {
+                    if (file.endsWith(".xlsx") || file.endsWith(".xls") || file.endsWith(".csv") || file.endsWith(".json")) {
+                        const stat = fs.statSync(path.join(dataDir, file));
+                        files.push({
+                            name: file,
+                            size: stat.size,
+                            sizeFormatted: (stat.size / 1024).toFixed(1) + " KB",
+                            updatedAt: stat.mtime
+                        });
+                    }
+                });
+            }
+            sendJson(res, { ok: true, datasets: files });
+        } catch (err) {
+            sendJson(res, { ok: false, error: err.message }, 500);
+        }
+        return;
+    }
+
 
 
     // ── GET /api/fleet-distribution (Calculated by Python fleet_distribution.py) ──

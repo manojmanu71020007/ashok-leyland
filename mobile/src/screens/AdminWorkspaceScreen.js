@@ -765,6 +765,10 @@ export default function AdminWorkspaceScreen() {
   const [fleetAuditActionDropdownOpen, setFleetAuditActionDropdownOpen] = useState(false);
   const [homeDepotDropdownOpen, setHomeDepotDropdownOpen] = useState(false);
   const [totalFleetDepotDropdownOpen, setTotalFleetDepotDropdownOpen] = useState(false);
+  const [profileLangDropdownOpen, setProfileLangDropdownOpen] = useState(false);
+  const [selectedDatasetFile, setSelectedDatasetFile] = useState(null);
+  const [isUploadingDataset, setIsUploadingDataset] = useState(false);
+  const [datasetUploadStatus, setDatasetUploadStatus] = useState(null);
 
   // Persist Depot Audit Logs to localStorage
   React.useEffect(() => {
@@ -907,6 +911,7 @@ export default function AdminWorkspaceScreen() {
     setActiveAdminTab(tab);
     setHomeDepotDropdownOpen(false);
     setTotalFleetDepotDropdownOpen(false);
+    setProfileLangDropdownOpen(false);
     if (mainScrollRef.current) {
       try {
         mainScrollRef.current.scrollTo({ y: 0, animated: false });
@@ -1333,6 +1338,85 @@ export default function AdminWorkspaceScreen() {
       Alert.alert('Export Error', `Could not open CSV file: ${err?.message || err}`);
     }
   }, [depotsList]);
+
+  // ── Handler: Select Dataset Spreadsheet / CSV File from Local Machine ──
+  const handleSelectDatasetSpreadsheet = useCallback(() => {
+    setDatasetUploadStatus(null);
+    if (typeof document !== 'undefined') {
+      let fileInput = document.getElementById('admin-dataset-file-input');
+      if (!fileInput) {
+        fileInput = document.createElement('input');
+        fileInput.id = 'admin-dataset-file-input';
+        fileInput.type = 'file';
+        fileInput.accept = '.xlsx,.xls,.csv';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+      }
+      fileInput.value = '';
+      fileInput.onchange = (e) => {
+        const file = e.target?.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target.result;
+            const base64Data = dataUrl.split(',')[1] || '';
+            setSelectedDatasetFile({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              base64Data: base64Data
+            });
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      fileInput.click();
+    } else {
+      Alert.alert('Dataset Upload', 'Please open the app in a browser to upload spreadsheet or CSV files.');
+    }
+  }, []);
+
+  // ── Handler: Upload & Apply Dataset Spreadsheet to Server ──
+  const handleUploadDatasetFile = useCallback(async () => {
+    if (!selectedDatasetFile) return;
+    setIsUploadingDataset(true);
+    setDatasetUploadStatus(null);
+    try {
+      const response = await fetch('/api/upload-dataset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: selectedDatasetFile.name,
+          fileType: selectedDatasetFile.type,
+          base64Data: selectedDatasetFile.base64Data,
+          datasetType: 'spreadsheet'
+        })
+      });
+      const data = await response.json();
+      if (data && data.ok) {
+        setDatasetUploadStatus({
+          isError: false,
+          message: `✅ ${data.message || `Dataset "${selectedDatasetFile.name}" applied successfully!`}`
+        });
+        setSelectedDatasetFile(null);
+        Alert.alert(
+          'Dataset Updated Successfully',
+          `The spreadsheet "${selectedDatasetFile.name}" has been uploaded and applied to the depot system.\n\nActive schedules, corridor routes, and allocation models are refreshed.`
+        );
+      } else {
+        throw new Error(data?.error || data?.details || 'Upload failed');
+      }
+    } catch (err) {
+      console.error('Error uploading dataset:', err);
+      setDatasetUploadStatus({
+        isError: true,
+        message: `⚠️ Upload failed: ${err.message}`
+      });
+      Alert.alert('Upload Error', `Failed to upload dataset: ${err.message}`);
+    } finally {
+      setIsUploadingDataset(false);
+    }
+  }, [selectedDatasetFile]);
 
   // ── Handler: Add Route to Depot (With confirmation & translation) ──
   const handleAddRouteToDepot = () => {
@@ -3661,6 +3745,103 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
+            {/* ── 📊 DATASET / SPREADSHEET UPDATE CARD ── */}
+            <View style={styles.profileCard}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Text style={{ fontSize: 20 }}>📊</Text>
+                  <Text style={styles.profileCardTitle}>{t('update_dataset_title', 'Update Dataset / Spreadsheet')}</Text>
+                </View>
+                <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#a7f3d0' }}>
+                  <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#059669' }}>
+                    CSV / Excel (*.xlsx)
+                  </Text>
+                </View>
+              </View>
+
+              <Text style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12, fontWeight: '500', lineHeight: 18 }}>
+                {t('update_dataset_desc', 'Upload or update dataset spreadsheets (e.g. SCH_DATA_NH_new__1_.xlsx, Form_4_Consolidation_-_Chandapura.xlsx, or CSV files) to refresh fleet allocation models, timetables, and bus battery benchmarks.')}
+              </Text>
+
+              {/* Dataset Quick Badges */}
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
+                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 SCH_DATA_NH_new__1_.xlsx</Text>
+                </View>
+                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 Form_4_Consolidation_-_Chandapura.xlsx</Text>
+                </View>
+                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 Chandapura_Depot_Battery_Allocation.xlsx</Text>
+                </View>
+                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📊 Fleet / Route CSV Files (*.csv)</Text>
+                </View>
+              </View>
+
+              {/* File Selector / Action Row */}
+              <TouchableOpacity
+                style={styles.profileDatasetUploadBtn}
+                onPress={handleSelectDatasetSpreadsheet}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 8 }}>
+                  <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#bfdbfe' }}>
+                    <Text style={{ fontSize: 18 }}>📁</Text>
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: '#1e293b' }}>
+                      {selectedDatasetFile ? selectedDatasetFile.name : t('btn_select_dataset_file', 'Select Spreadsheet or CSV File')}
+                    </Text>
+                    <Text style={{ fontSize: 11.5, color: '#64748b' }}>
+                      {selectedDatasetFile
+                        ? `${(selectedDatasetFile.size / 1024).toFixed(1)} KB • Tap to choose a different file`
+                        : t('btn_select_dataset_sub', 'Tap to browse local device (.xlsx, .xls, .csv)')}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.profileDatasetActionPill}>
+                  <Text style={styles.profileDatasetActionPillText}>
+                    {selectedDatasetFile ? 'Change ➔' : 'Browse ➔'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Upload Confirmation Banner / Submit Button if file is selected */}
+              {selectedDatasetFile && (
+                <View style={{ marginTop: 12, padding: 12, backgroundColor: '#f8fafc', borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1' }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f766e' }}>
+                      ✅ Ready to upload: {selectedDatasetFile.name}
+                    </Text>
+                    <TouchableOpacity onPress={() => setSelectedDatasetFile(null)}>
+                      <Text style={{ fontSize: 12, color: '#ef4444', fontWeight: '700' }}>✕ Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <TouchableOpacity
+                    style={[styles.profileDatasetApplyBtn, isUploadingDataset && { opacity: 0.6 }]}
+                    onPress={handleUploadDatasetFile}
+                    disabled={isUploadingDataset}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.profileDatasetApplyBtnText}>
+                      {isUploadingDataset ? '⏳ Uploading & Updating Dataset...' : '🚀 Upload & Apply Dataset to System'}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Upload status message if available */}
+              {datasetUploadStatus ? (
+                <View style={{ marginTop: 10, padding: 10, backgroundColor: datasetUploadStatus.isError ? '#fef2f2' : '#f0fdf4', borderRadius: 8, borderWidth: 1, borderColor: datasetUploadStatus.isError ? '#fca5a5' : '#86efac' }}>
+                  <Text style={{ fontSize: 12, color: datasetUploadStatus.isError ? '#b91c1c' : '#15803d', fontWeight: '600' }}>
+                    {datasetUploadStatus.message}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+
             {/* ── 🔑 DEPOT LOGIN CREDENTIALS (ALL DEPOTS) CSV ROW ── */}
             <View style={styles.profileCard}>
               <TouchableOpacity
@@ -3706,7 +3887,7 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* 🌐 System Language Card (Admin Profile Section) */}
+            {/* 🌐 System Language Card (Admin Profile Section - Dropdown Menu) */}
             <View style={styles.profileCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
                 <Text style={styles.profileCardTitle}>🌐 {t('language_preference', 'Language Preference')}</Text>
@@ -3719,36 +3900,81 @@ export default function AdminWorkspaceScreen() {
               <Text style={{ fontSize: 12.5, color: '#64748b', marginBottom: 14, fontWeight: '500' }}>
                 {t('select_language_subtitle', 'Select system interface language / ಭಾಷೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ')}
               </Text>
-              {languages.map((lang) => {
-                const isActive = currentLang === lang.code;
-                return (
-                  <TouchableOpacity
-                    key={lang.code}
-                    style={[styles.profileLangItem, isActive && styles.profileLangItemActive]}
-                    onPress={() => setCurrentLang(lang.code)}
-                    activeOpacity={0.7}
-                  >
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                      <Text style={{ fontSize: 22 }}>{lang.flag || '🌐'}</Text>
-                      <View>
-                        <Text style={[styles.profileLangText, isActive && styles.profileLangTextActive]}>
-                          {lang.native}
-                        </Text>
-                        <Text style={{ fontSize: 11.5, color: isActive ? '#4361ee' : '#94a3b8', fontWeight: '600' }}>
-                          {lang.label}
-                        </Text>
-                      </View>
-                    </View>
-                    {isActive ? (
-                      <View style={{ backgroundColor: '#4361ee', width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' }}>
-                        <Text style={{ color: '#fff', fontSize: 14, fontWeight: '900' }}>✓</Text>
-                      </View>
-                    ) : (
-                      <View style={{ width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#cbd5e1' }} />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
+
+              {/* Language Dropdown Trigger */}
+              <TouchableOpacity
+                style={[
+                  styles.modalDropdownBtn,
+                  profileLangDropdownOpen && styles.modalDropdownBtnActive,
+                  { backgroundColor: '#ffffff', borderColor: profileLangDropdownOpen ? '#2563eb' : '#cbd5e1', paddingVertical: 14 }
+                ]}
+                onPress={() => setProfileLangDropdownOpen(!profileLangDropdownOpen)}
+                activeOpacity={0.8}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                  <Text style={{ fontSize: 20 }}>
+                    {languages.find((l) => l.code === currentLang)?.flag || '🌐'}
+                  </Text>
+                  <View>
+                    <Text style={{ fontSize: 14, fontWeight: '800', color: '#0f172a' }}>
+                      {languages.find((l) => l.code === currentLang)?.native || 'English'}
+                    </Text>
+                    <Text style={{ fontSize: 11.5, color: '#64748b', fontWeight: '500' }}>
+                      {languages.find((l) => l.code === currentLang)?.label || 'English'}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={{ fontSize: 14, color: '#64748b', fontWeight: '800' }}>
+                  {profileLangDropdownOpen ? '▲' : '▼'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Dropdown Menu Options */}
+              {profileLangDropdownOpen && (
+                <View style={[styles.modalDropdownMenu, { maxHeight: 260, borderColor: '#bfdbfe' }]}>
+                  <ScrollView nestedScrollEnabled style={{ maxHeight: 260 }}>
+                    {languages.map((lang) => {
+                      const isActive = currentLang === lang.code;
+                      return (
+                        <TouchableOpacity
+                          key={lang.code}
+                          style={[
+                            styles.modalDropdownItem,
+                            isActive && styles.modalDropdownItemActive,
+                            { paddingVertical: 12, paddingHorizontal: 16 }
+                          ]}
+                          onPress={() => {
+                            setCurrentLang(lang.code);
+                            setProfileLangDropdownOpen(false);
+                          }}
+                          activeOpacity={0.7}
+                        >
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            <Text style={{ fontSize: 20 }}>{lang.flag || '🌐'}</Text>
+                            <View>
+                              <Text style={[
+                                styles.modalDropdownItemText,
+                                isActive && styles.modalDropdownItemTextActive,
+                                { fontSize: 14 }
+                              ]}>
+                                {lang.native}
+                              </Text>
+                              <Text style={{ fontSize: 11.5, color: isActive ? '#2563eb' : '#64748b', fontWeight: '500' }}>
+                                {lang.label}
+                              </Text>
+                            </View>
+                          </View>
+                          {isActive && (
+                            <View style={{ backgroundColor: '#2563eb', width: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center' }}>
+                              <Text style={{ color: '#fff', fontSize: 12, fontWeight: '900' }}>✓</Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
             </View>
 
             {/* Sign Out Card */}
@@ -10710,5 +10936,46 @@ const styles = StyleSheet.create({
   modalDropdownItemTextActive: {
     color: '#2563eb',
     fontWeight: '800',
+  },
+  profileDatasetUploadBtn: {
+    backgroundColor: '#f8fafc',
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#94a3b8',
+    borderRadius: 14,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  profileDatasetActionPill: {
+    backgroundColor: '#0284c7',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  profileDatasetActionPillText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  profileDatasetApplyBtn: {
+    backgroundColor: '#059669',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#059669',
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  profileDatasetApplyBtnText: {
+    color: '#ffffff',
+    fontSize: 13.5,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
 });
