@@ -5275,6 +5275,8 @@ const server = http.createServer(async (req, res) => {
                 const fileName = String(payload.fileName || "").trim();
                 const base64Data = payload.base64Data || "";
                 const datasetType = payload.datasetType || "spreadsheet";
+                const targetDepot = String(payload.targetDepot || "").trim();
+                const targetDepotName = String(payload.targetDepotName || "").trim() || (targetDepot ? `Depot ${targetDepot}` : "General Fleet");
 
                 if (!fileName || !base64Data) {
                     sendJson(res, { ok: false, error: "Missing fileName or base64Data in upload request" }, 400);
@@ -5298,6 +5300,26 @@ const server = http.createServer(async (req, res) => {
                     fs.writeFileSync(rootCandidate, fileBuffer);
                 }
 
+                // Update datasets manifest with depot association
+                try {
+                    const manifestPath = path.join(dataDir, "datasets_manifest.json");
+                    let manifest = [];
+                    if (fs.existsSync(manifestPath)) {
+                        try { manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8") || "[]"); } catch (e) {}
+                    }
+                    manifest = manifest.filter(m => m.fileName !== safeName);
+                    manifest.unshift({
+                        fileName: safeName,
+                        targetDepot: targetDepot || "all",
+                        targetDepotName: targetDepotName,
+                        size: fileBuffer.length,
+                        uploadedAt: new Date().toISOString()
+                    });
+                    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+                } catch (e) {
+                    console.warn("Could not write datasets manifest:", e.message);
+                }
+
                 // Invalidate cached corridor schedules
                 cachedCorridorSchedules = null;
                 detailedSchedulesCache = null;
@@ -5306,14 +5328,18 @@ const server = http.createServer(async (req, res) => {
                 broadcastSyncEvent("dataset-updated", {
                     fileName: safeName,
                     size: fileBuffer.length,
+                    targetDepot: targetDepot,
+                    targetDepotName: targetDepotName,
                     timestamp: new Date().toISOString(),
                     datasetType
                 });
 
                 sendJson(res, {
                     ok: true,
-                    message: `Dataset spreadsheet "${safeName}" successfully uploaded and saved (${(fileBuffer.length / 1024).toFixed(1)} KB).`,
+                    message: `Dataset spreadsheet "${safeName}" successfully added to ${targetDepotName} (${(fileBuffer.length / 1024).toFixed(1)} KB).`,
                     fileName: safeName,
+                    targetDepot: targetDepot,
+                    targetDepotName: targetDepotName,
                     size: fileBuffer.length,
                     path: targetPath,
                     timestamp: new Date().toISOString()

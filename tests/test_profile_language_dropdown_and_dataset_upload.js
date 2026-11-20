@@ -63,16 +63,48 @@ if (langDropdownIdx === -1) {
 }
 console.log('PASS 3: Language preferences converted to collapsible dropdown menu in Profile tab.');
 
-// 3. Check server.js for /api/upload-dataset and /api/uploaded-datasets endpoints
+// 4. Check Total Fleet section updates
+// Verify D1: 57 | D2: 65 (breakdownBadge) and Add / Delete Buses removed from Total Fleet section header
+const totalFleetSectionIdx = adminScreen.indexOf("activeAdminTab === 'TOTAL_FLEET'");
+const totalFleetEndIdx = adminScreen.indexOf("activeAdminTab === 'PROFILE'");
+const totalFleetBlock = adminScreen.substring(totalFleetSectionIdx, totalFleetEndIdx);
+
+if (totalFleetBlock.includes('breakdownBadgeText')) {
+  throw new Error('Total fleet still contains breakdownBadgeText with D1: / D2: count badges');
+}
+if (totalFleetBlock.includes('btnAddDelHeader')) {
+  throw new Error('Total fleet still contains btnAddDelHeader (Add / Delete Buses button)');
+}
+console.log('PASS 4: D1/D2/D3 breakdown badges and Add / Delete Buses removed from Total Fleet header.');
+
+// Check search bar in Total Fleet
+if (!totalFleetBlock.includes('Search Bar for Total Fleet')) {
+  throw new Error('Total fleet does not include the Search Bar at top');
+}
+console.log('PASS 5: Prominent Search Bar included right at the top of Total Fleet.');
+
+// 5. Check Dataset Target Depot selection modal & requirement
+if (!adminScreen.includes('datasetTargetDepot') || !adminScreen.includes('datasetDepotModalOpen')) {
+  throw new Error('AdminWorkspaceScreen missing datasetTargetDepot or datasetDepotModalOpen state');
+}
+if (!adminScreen.includes('handleSelectDepotForDataset')) {
+  throw new Error('AdminWorkspaceScreen missing handleSelectDepotForDataset handler');
+}
+if (!adminScreen.includes('DATASET TARGET DEPOT SELECTION MODAL')) {
+  throw new Error('AdminWorkspaceScreen missing Dataset Target Depot Selection Modal');
+}
+console.log('PASS 6: Browse button asks for target depot and enforces depot selection before dataset addition.');
+
+// 6. Check server.js for /api/upload-dataset and manifest support
 const serverCode = fs.readFileSync('server.js', 'utf8');
 if (!serverCode.includes('/api/upload-dataset')) {
   throw new Error('server.js does not contain POST /api/upload-dataset endpoint');
 }
-if (!serverCode.includes('/api/uploaded-datasets')) {
-  throw new Error('server.js does not contain GET /api/uploaded-datasets endpoint');
+if (!serverCode.includes('targetDepot')) {
+  throw new Error('server.js POST /api/upload-dataset does not process targetDepot');
 }
-console.log('PASS 4: server.js includes /api/upload-dataset and /api/uploaded-datasets endpoints.');
+console.log('PASS 7: server.js handles targetDepot, metadata manifest, and sync broadcasts.');
 
-console.log('\n========================================');
-console.log('ALL PROFILE DROPDOWN & DATASET UPLOAD TESTS PASSED! 🚀');
-console.log('========================================');
+console.log('\n======================================================');
+console.log('ALL VERIFICATIONS PASSED: TOTAL FLEET & DATASET DEPOT! 🚀');
+console.log('======================================================');

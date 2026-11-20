@@ -767,6 +767,9 @@ export default function AdminWorkspaceScreen() {
   const [totalFleetDepotDropdownOpen, setTotalFleetDepotDropdownOpen] = useState(false);
   const [profileLangDropdownOpen, setProfileLangDropdownOpen] = useState(false);
   const [selectedDatasetFile, setSelectedDatasetFile] = useState(null);
+  const [datasetTargetDepot, setDatasetTargetDepot] = useState('');
+  const [datasetTargetDepotName, setDatasetTargetDepotName] = useState('');
+  const [datasetDepotModalOpen, setDatasetDepotModalOpen] = useState(false);
   const [isUploadingDataset, setIsUploadingDataset] = useState(false);
   const [datasetUploadStatus, setDatasetUploadStatus] = useState(null);
 
@@ -1339,9 +1342,8 @@ export default function AdminWorkspaceScreen() {
     }
   }, [depotsList]);
 
-  // ── Handler: Select Dataset Spreadsheet / CSV File from Local Machine ──
-  const handleSelectDatasetSpreadsheet = useCallback(() => {
-    setDatasetUploadStatus(null);
+  // ── Helper: Trigger Native File Browser for Spreadsheet / CSV ──
+  const triggerDatasetFilePicker = useCallback(() => {
     if (typeof document !== 'undefined') {
       let fileInput = document.getElementById('admin-dataset-file-input');
       if (!fileInput) {
@@ -1376,9 +1378,34 @@ export default function AdminWorkspaceScreen() {
     }
   }, []);
 
+  // ── Handler: Select Dataset Spreadsheet / CSV File from Local Machine ──
+  // Prompts for target depot details before browsing the file
+  const handleSelectDatasetSpreadsheet = useCallback(() => {
+    setDatasetUploadStatus(null);
+    setDatasetDepotModalOpen(true);
+  }, []);
+
+  // ── Handler: When user selects a depot in the dataset depot modal ──
+  const handleSelectDepotForDataset = useCallback((depotId, depotName) => {
+    setDatasetTargetDepot(depotId);
+    setDatasetTargetDepotName(depotName);
+    setDatasetDepotModalOpen(false);
+    setTimeout(() => {
+      triggerDatasetFilePicker();
+    }, 250);
+  }, [triggerDatasetFilePicker]);
+
   // ── Handler: Upload & Apply Dataset Spreadsheet to Server ──
   const handleUploadDatasetFile = useCallback(async () => {
     if (!selectedDatasetFile) return;
+    if (!datasetTargetDepot) {
+      Alert.alert(
+        t('depot_required', 'Depot Required'),
+        t('depot_selection_required', 'Please select which depot to add this dataset to before uploading.')
+      );
+      setDatasetDepotModalOpen(true);
+      return;
+    }
     setIsUploadingDataset(true);
     setDatasetUploadStatus(null);
     try {
@@ -1389,19 +1416,23 @@ export default function AdminWorkspaceScreen() {
           fileName: selectedDatasetFile.name,
           fileType: selectedDatasetFile.type,
           base64Data: selectedDatasetFile.base64Data,
-          datasetType: 'spreadsheet'
+          datasetType: 'spreadsheet',
+          targetDepot: datasetTargetDepot,
+          targetDepotName: datasetTargetDepotName || `Depot ${datasetTargetDepot}`
         })
       });
       const data = await response.json();
       if (data && data.ok) {
         setDatasetUploadStatus({
           isError: false,
-          message: `✅ ${data.message || `Dataset "${selectedDatasetFile.name}" applied successfully!`}`
+          message: `✅ ${data.message || `Dataset "${selectedDatasetFile.name}" added to ${datasetTargetDepotName || 'Depot ' + datasetTargetDepot} successfully!`}`
         });
+        const uploadedName = selectedDatasetFile.name;
+        const targetDepotDisplay = datasetTargetDepotName || `Depot ${datasetTargetDepot}`;
         setSelectedDatasetFile(null);
         Alert.alert(
-          'Dataset Updated Successfully',
-          `The spreadsheet "${selectedDatasetFile.name}" has been uploaded and applied to the depot system.\n\nActive schedules, corridor routes, and allocation models are refreshed.`
+          'Dataset Added Successfully',
+          `The spreadsheet "${uploadedName}" has been successfully added to ${targetDepotDisplay}.\n\nActive schedules, corridor routes, and allocation models are refreshed for this depot.`
         );
       } else {
         throw new Error(data?.error || data?.details || 'Upload failed');
@@ -1416,7 +1447,7 @@ export default function AdminWorkspaceScreen() {
     } finally {
       setIsUploadingDataset(false);
     }
-  }, [selectedDatasetFile]);
+  }, [selectedDatasetFile, datasetTargetDepot, datasetTargetDepotName]);
 
   // ── Handler: Add Route to Depot (With confirmation & translation) ──
   const handleAddRouteToDepot = () => {
@@ -2228,7 +2259,13 @@ export default function AdminWorkspaceScreen() {
       if (totalStatusFilter === 'new' && !isBusNewlyAdded(b, localAddedBuses)) return false;
       if (!totalSearch.trim()) return true;
       const q = totalSearch.toLowerCase().trim();
-      return b.bmNumber.toLowerCase().includes(q) || (b.regNo && b.regNo.toLowerCase().includes(q));
+      return (
+        b.bmNumber.toLowerCase().includes(q) ||
+        (b.regNo && b.regNo.toLowerCase().includes(q)) ||
+        (b.driver && b.driver.toLowerCase().includes(q)) ||
+        (b.busCategory && (`cat ${b.busCategory}`).toLowerCase().includes(q)) ||
+        (b.depot && (`depot ${b.depot}`).toLowerCase().includes(q))
+      );
     });
 
     return list.slice().sort((a, b) => {
@@ -3494,20 +3531,6 @@ export default function AdminWorkspaceScreen() {
               <View style={styles.sectionHeaderStack}>
                 <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>🚌 {t('total_buses', 'Total Buses')} ({viewBuses.length})</Text>
                 <View style={styles.sectionActionsRow}>
-                  <View style={styles.breakdownBadge}>
-                    <Text style={styles.breakdownBadgeText}>
-                      {depotsList.map((d) => `D${d.id}: ${buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === String(d.id)).length}`).join(' | ')}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.btnAddDelHeader}
-                    onPress={() => {
-                      setPlusOptionsModalOpen(true);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.btnAddDelHeaderText}>➕ {t('addDeleteBuses', 'Add / Delete')}</Text>
-                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
                     onPress={async () => {
@@ -3552,6 +3575,27 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.sectionNote}>
                 Complete fleet ({adminDepotFilter === 'all' ? 'Depot 1 & Depot 2' : 'Depot ' + adminDepotFilter}) with real-time status and telemetry.
               </Text>
+
+              {/* Search Bar for Total Fleet */}
+              <View style={[styles.searchWrap, { marginTop: 10, marginBottom: 14 }]}>
+                <Text style={styles.searchIcon}>🔍</Text>
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder={`Search all ${viewBuses.length} buses (${adminDepotFilter === 'all' ? 'All Depots' : 'Depot ' + adminDepotFilter}) by BM number, registration, or driver...`}
+                  placeholderTextColor="#94a3b8"
+                  value={totalSearch}
+                  onChangeText={setTotalSearch}
+                />
+                {totalSearch.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setTotalSearch('')}
+                    style={{ padding: 6 }}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: 'bold' }}>✕</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
               {/* Fleet Accounting Bar (Available, On Route, Locked counts matching user request) */}
               <View style={styles.totalFleetStatsBar}>
@@ -3639,17 +3683,7 @@ export default function AdminWorkspaceScreen() {
                 </ScrollView>
               </View>
 
-              {/* Search */}
-              <View style={styles.searchWrap}>
-                <Text style={styles.searchIcon}>🔍</Text>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder={`Search all ${viewBuses.length} buses (${adminDepotFilter === 'all' ? 'Depot 1 & 2' : 'Depot ' + adminDepotFilter})...`}
-                  placeholderTextColor="#94a3b8"
-                  value={totalSearch}
-                  onChangeText={setTotalSearch}
-                />
-              </View>
+
 
               {filteredTotalList.map((bus) => {
                 const isAlloc = allAllocatedDuties.some((d) => d.bm === bus.bmNumber);
@@ -3779,6 +3813,42 @@ export default function AdminWorkspaceScreen() {
                 </View>
               </View>
 
+              {/* Target Depot Selector (Mandatory before adding dataset) */}
+              <View style={{ marginBottom: 12 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155', marginBottom: 5 }}>
+                  🏢 {t('target_depot_for_dataset', 'Target Depot for Dataset:')}
+                </Text>
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderWidth: 1.5,
+                    borderColor: datasetTargetDepot ? '#0284c7' : '#cbd5e1',
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                  onPress={() => setDatasetDepotModalOpen(true)}
+                  activeOpacity={0.8}
+                >
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                    <Text style={{ fontSize: 16 }}>{datasetTargetDepot ? '🏢' : '❓'}</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '700', color: datasetTargetDepot ? '#0f172a' : '#64748b' }}>
+                      {datasetTargetDepot
+                        ? datasetTargetDepotName
+                        : 'Select Target Depot (Required) ▼'}
+                    </Text>
+                  </View>
+                  <View style={{ backgroundColor: datasetTargetDepot ? '#e0f2fe' : '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: datasetTargetDepot ? '#0369a1' : '#64748b' }}>
+                      {datasetTargetDepot ? 'Change ➔' : 'Select ➔'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+
               {/* File Selector / Action Row */}
               <TouchableOpacity
                 style={styles.profileDatasetUploadBtn}
@@ -3795,8 +3865,10 @@ export default function AdminWorkspaceScreen() {
                     </Text>
                     <Text style={{ fontSize: 11.5, color: '#64748b' }}>
                       {selectedDatasetFile
-                        ? `${(selectedDatasetFile.size / 1024).toFixed(1)} KB • Tap to choose a different file`
-                        : t('btn_select_dataset_sub', 'Tap to browse local device (.xlsx, .xls, .csv)')}
+                        ? `${(selectedDatasetFile.size / 1024).toFixed(1)} KB • Target: ${datasetTargetDepotName || 'Depot ' + datasetTargetDepot}`
+                        : datasetTargetDepot
+                          ? `Ready for ${datasetTargetDepotName} • Tap Browse to select file`
+                          : 'Tap Browse to choose depot & select file (.xlsx, .xls, .csv)'}
                     </Text>
                   </View>
                 </View>
@@ -3810,23 +3882,37 @@ export default function AdminWorkspaceScreen() {
               {/* Upload Confirmation Banner / Submit Button if file is selected */}
               {selectedDatasetFile && (
                 <View style={{ marginTop: 12, padding: 12, backgroundColor: '#f8fafc', borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1' }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                     <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f766e' }}>
-                      ✅ Ready to upload: {selectedDatasetFile.name}
+                      ✅ Ready: {selectedDatasetFile.name}
                     </Text>
                     <TouchableOpacity onPress={() => setSelectedDatasetFile(null)}>
                       <Text style={{ fontSize: 12, color: '#ef4444', fontWeight: '700' }}>✕ Remove</Text>
                     </TouchableOpacity>
                   </View>
 
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, backgroundColor: '#eff6ff', padding: 8, borderRadius: 8, borderWidth: 1, borderColor: '#bfdbfe' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={{ fontSize: 14 }}>🏢</Text>
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#1e40af' }}>
+                        Target Depot: {datasetTargetDepotName || `Depot ${datasetTargetDepot || 'Not selected'}`}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => setDatasetDepotModalOpen(true)}>
+                      <Text style={{ fontSize: 11.5, color: '#2563eb', fontWeight: '800' }}>Change Depot ➔</Text>
+                    </TouchableOpacity>
+                  </View>
+
                   <TouchableOpacity
-                    style={[styles.profileDatasetApplyBtn, isUploadingDataset && { opacity: 0.6 }]}
+                    style={[styles.profileDatasetApplyBtn, (!datasetTargetDepot || isUploadingDataset) && { opacity: 0.6 }]}
                     onPress={handleUploadDatasetFile}
-                    disabled={isUploadingDataset}
+                    disabled={!datasetTargetDepot || isUploadingDataset}
                     activeOpacity={0.8}
                   >
                     <Text style={styles.profileDatasetApplyBtnText}>
-                      {isUploadingDataset ? '⏳ Uploading & Updating Dataset...' : '🚀 Upload & Apply Dataset to System'}
+                      {isUploadingDataset
+                        ? '⏳ Adding Dataset to System...'
+                        : `🚀 Add Dataset to ${datasetTargetDepotName || ('Depot ' + datasetTargetDepot)}`}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -4494,6 +4580,152 @@ export default function AdminWorkspaceScreen() {
             </View>
           </View>
         </SafeAreaView>
+      </Modal>
+
+      {/* ── MODAL: DATASET TARGET DEPOT SELECTION MODAL ── */}
+      <Modal
+        visible={datasetDepotModalOpen}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDatasetDepotModalOpen(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalBackdropDimmed}
+          activeOpacity={1}
+          onPress={() => setDatasetDepotModalOpen(false)}
+        >
+          <View
+            style={[styles.plusOptionsSheet, { maxWidth: 440, padding: 20 }]}
+            onStartShouldSetResponder={() => true}
+          >
+            {/* Header */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, borderBottomWidth: 1, borderBottomColor: '#f1f5f9', paddingBottom: 12 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 8 }}>
+                <View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#eff6ff', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#bfdbfe' }}>
+                  <Text style={{ fontSize: 20 }}>🏢</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '800', color: '#0f172a' }}>
+                    {t('target_depot_for_dataset', 'Target Depot for Dataset')}
+                  </Text>
+                  <Text style={{ fontSize: 11.5, color: '#64748b' }}>
+                    {t('select_target_depot_prompt', 'Which depot should this dataset be added to?')}
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setDatasetDepotModalOpen(false)}
+                style={styles.modalCloseBtn}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={{ fontSize: 12.5, color: '#475569', marginBottom: 12, lineHeight: 18 }}>
+              Please select the operating depot for this dataset spreadsheet or CSV file (e.g. schedules, Form 4 consolidation, or battery allocation data):
+            </Text>
+
+            {/* List of Available Depots */}
+            <ScrollView style={{ maxHeight: 260 }} showsVerticalScrollIndicator={false}>
+              {depotsList.map((d) => {
+                const dId = String(d.id);
+                const isSelected = String(datasetTargetDepot) === dId;
+                const dName = d.name || `Depot ${dId}${d.location ? ' - ' + d.location : ''}`;
+                const depotBusCount = buses.filter((b) => String(b.depot || '1').replace(/^DEPOT\s*/i, '').trim() === dId).length;
+                return (
+                  <TouchableOpacity
+                    key={dId}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      backgroundColor: isSelected ? '#eff6ff' : '#f8fafc',
+                      borderWidth: 1.5,
+                      borderColor: isSelected ? '#2563eb' : '#e2e8f0',
+                      borderRadius: 12,
+                      padding: 12,
+                      marginBottom: 8
+                    }}
+                    onPress={() => handleSelectDepotForDataset(dId, dName)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 8 }}>
+                      <Text style={{ fontSize: 20 }}>🏢</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={{ fontSize: 13.5, fontWeight: '700', color: isSelected ? '#1e40af' : '#1e293b' }}>
+                          {dName}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#64748b' }}>
+                          Depot ID: {dId} • {depotBusCount} Active Fleet Buses
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={{
+                      backgroundColor: isSelected ? '#2563eb' : '#ffffff',
+                      borderWidth: 1,
+                      borderColor: isSelected ? '#2563eb' : '#cbd5e1',
+                      borderRadius: 20,
+                      paddingHorizontal: 10,
+                      paddingVertical: 5
+                    }}>
+                      <Text style={{ color: isSelected ? '#ffffff' : '#2563eb', fontSize: 11.5, fontWeight: '800' }}>
+                        {isSelected ? '✓ Selected' : 'Choose ➔'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+
+              {/* All Depots / System Wide Option */}
+              <TouchableOpacity
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: datasetTargetDepot === 'all' ? '#eff6ff' : '#f8fafc',
+                  borderWidth: 1.5,
+                  borderColor: datasetTargetDepot === 'all' ? '#2563eb' : '#e2e8f0',
+                  borderRadius: 12,
+                  padding: 12,
+                  marginBottom: 8
+                }}
+                onPress={() => handleSelectDepotForDataset('all', 'All Depots (System Master)')}
+                activeOpacity={0.7}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1, paddingRight: 8 }}>
+                  <Text style={{ fontSize: 20 }}>🌐</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: 13.5, fontWeight: '700', color: datasetTargetDepot === 'all' ? '#1e40af' : '#1e293b' }}>
+                      All Depots (System Master)
+                    </Text>
+                    <Text style={{ fontSize: 11, color: '#64748b' }}>
+                      Apply dataset globally across all {depotsList.length} depots
+                    </Text>
+                  </View>
+                </View>
+                <View style={{
+                  backgroundColor: datasetTargetDepot === 'all' ? '#2563eb' : '#ffffff',
+                  borderWidth: 1,
+                  borderColor: datasetTargetDepot === 'all' ? '#2563eb' : '#cbd5e1',
+                  borderRadius: 20,
+                  paddingHorizontal: 10,
+                  paddingVertical: 5
+                }}>
+                  <Text style={{ color: datasetTargetDepot === 'all' ? '#ffffff' : '#2563eb', fontSize: 11.5, fontWeight: '800' }}>
+                    {datasetTargetDepot === 'all' ? '✓ Selected' : 'Choose ➔'}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={{ marginTop: 10, paddingVertical: 10, alignItems: 'center' }}
+              onPress={() => setDatasetDepotModalOpen(false)}
+            >
+              <Text style={{ fontSize: 13, color: '#64748b', fontWeight: '700' }}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </Modal>
 
       {/* ── MODAL 0: QUICK FLEET & ROUTE ACTIONS CHOOSER (+ BUTTON) ── */}
