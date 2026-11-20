@@ -2529,7 +2529,7 @@
                 <h2 id="allocation-title">Allocation result</h2>
                 <p class="panel-note">A transparent recommendation based on the PDF guidelines.</p>
                 <div class="kpis">
-                    <div class="kpi"><strong id="bus-total">0</strong><span id="bus-total-label">Total buses available</span></div>
+                    <div class="kpi" id="kpi-req-soc" title="Estimated minimum battery SOC required for the selected route under Single Charge Operation"><strong id="bus-total">—</strong><span id="bus-total-label">Required SOC</span></div>
                     <div class="kpi kpi-clickable" id="kpi-bus-allocated" role="button" tabindex="0" onclick="openRouteAllocatedBusesModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openRouteAllocatedBusesModal();}" title="Click to view all buses allocated to this route (independent of departure time)">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
                             <strong id="bus-allocated-kpi">0</strong>
@@ -6358,25 +6358,33 @@ let busCategoriesMap = new Map();
         const renderAutoAllocatedCard = renderAllocatedCard;
 
         function updateRouteKpis(routeObj, departureTime) {
-            const routeCodeVal = routeObj ? (routeObj.code || "356Z") : "356Z";
+            const routeCodeVal = routeObj ? (routeObj.code || "") : "";
 
-            // Collect all unique BM numbers designated for this particular route only
-            const routeDesignatedBms = new Set();
-            (datasetSchedules || []).forEach(s => {
-                if (String(s.route || "").toUpperCase() === routeCodeVal.toUpperCase()) {
-                    if (s.fixBm) routeDesignatedBms.add(String(s.fixBm).toUpperCase().trim());
-                    if (s.swapBm) routeDesignatedBms.add(String(s.swapBm).toUpperCase().trim());
-                }
-            });
-            (routes || []).forEach(r => {
-                const rBusNum = String(r.busNumber || r.routeShortName || "").toUpperCase();
-                if (rBusNum === routeCodeVal.toUpperCase()) {
-                    const bm = String(r.bmNumber || r.uniqueId || "").toUpperCase().trim();
-                    if (bm) routeDesignatedBms.add(bm);
-                }
-            });
+            // Calculate Required SOC for the selected route
+            let reqSocDisplay = "—";
+            let reqSocLabel = "Required SOC";
 
-            const totalBusesForRoute = routeDesignatedBms.size > 0 ? routeDesignatedBms.size : 7;
+            if (routeObj) {
+                const routeDist = Number(routeObj.distKm || routeObj.distanceKm || 28.7);
+                const depTimeVal = departureTime || (document.getElementById("departure")?.value) || (scheduledTimeSelect ? scheduledTimeSelect.value : "") || "13:10";
+                
+                let calculatedReqSoc = 0;
+                if (currentlyAllocatedBus && currentlyAllocatedBus.reqSoc && (!currentlyAllocatedBus.routeCode || normalizeRoute(currentlyAllocatedBus.routeCode) === normalizeRoute(routeCodeVal))) {
+                    calculatedReqSoc = currentlyAllocatedBus.reqSoc;
+                } else if (typeof getRequiredSingleChargeSoc === "function") {
+                    calculatedReqSoc = getRequiredSingleChargeSoc(routeDist, currentScheduleMatch, null, depTimeVal);
+                }
+
+                if (calculatedReqSoc > 0) {
+                    reqSocDisplay = `${calculatedReqSoc}%`;
+                }
+                reqSocLabel = routeCodeVal ? `Required SOC (${routeCodeVal})` : `Required SOC`;
+            }
+
+            const busTotalEl = document.getElementById("bus-total");
+            if (busTotalEl) busTotalEl.textContent = reqSocDisplay;
+            const busTotalLabel = document.getElementById("bus-total-label") || (busTotalEl && busTotalEl.parentElement ? busTotalEl.parentElement.querySelector("span") : null);
+            if (busTotalLabel) busTotalLabel.textContent = reqSocLabel;
 
             // Ultra-fast instant computation of allocated buses for this route
             if (!Array.isArray(allocatedDuties)) allocatedDuties = loadAllocatedDuties();
@@ -6385,11 +6393,6 @@ let busCategoriesMap = new Map();
                 return r === normalizeRoute(routeCodeVal);
             });
             const allocatedCount = routeAllocDuties.length;
-
-            const busTotalEl = document.getElementById("bus-total");
-            if (busTotalEl) busTotalEl.textContent = String(totalBusesForRoute);
-            const busTotalLabel = document.getElementById("bus-total-label") || (busTotalEl && busTotalEl.parentElement ? busTotalEl.parentElement.querySelector("span") : null);
-            if (busTotalLabel) busTotalLabel.textContent = `Total buses (${routeCodeVal})`;
 
             const busAllocEl = document.getElementById("bus-allocated-kpi") || document.getElementById("bus-departure");
             if (busAllocEl) busAllocEl.textContent = String(allocatedCount);
@@ -8586,6 +8589,7 @@ let busCategoriesMap = new Map();
                     matrixStatusRule.style.color = "var(--muted)";
                 }
                 updateSelectedBusDutyBanner();
+                updateRouteKpis(null, "");
                 return;
             }
 
@@ -8617,6 +8621,7 @@ let busCategoriesMap = new Map();
                     matrixStatusRule.style.color = "var(--muted)";
                 }
                 updateSelectedBusDutyBanner();
+                updateRouteKpis(selectedRouteObj, "");
                 return;
             }
 
