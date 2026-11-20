@@ -667,6 +667,7 @@ export default function AdminWorkspaceScreen() {
     localDeletedBuses,
     unlockBus,
     unlockAllBuses,
+    refreshFleet,
   } = useFleet();
   const { user, selectedDepot, logout, openDepotScreen } = useAuth();
 
@@ -1430,10 +1431,25 @@ export default function AdminWorkspaceScreen() {
         const uploadedName = selectedDatasetFile.name;
         const targetDepotDisplay = datasetTargetDepotName || `Depot ${datasetTargetDepot}`;
         setSelectedDatasetFile(null);
-        Alert.alert(
-          'Dataset Added Successfully',
-          `The spreadsheet "${uploadedName}" has been successfully added to ${targetDepotDisplay}.\n\nActive schedules, corridor routes, and allocation models are refreshed for this depot.`
-        );
+
+        // Immediately trigger fleet refresh
+        if (typeof refreshFleet === 'function') {
+          refreshFleet();
+        }
+
+        if (data.busesAdded > 0 && Array.isArray(data.addedBuses)) {
+          const sampleList = data.addedBuses.slice(0, 5).map((b) => `• ${b.bm} (${b.regNo}) — Cat ${b.category}`).join('\n');
+          const moreCount = data.addedBuses.length > 5 ? `\n• ...and ${data.addedBuses.length - 5} more` : '';
+          Alert.alert(
+            `✅ ${data.busesAdded} Buses Added to Fleet!`,
+            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\nBuses added to fleet:\n${sampleList}${moreCount}\n\nTotal fleet count is now updated (${data.totalFleetCount || ''} total buses).`
+          );
+        } else {
+          Alert.alert(
+            'Dataset Added Successfully',
+            `The spreadsheet "${uploadedName}" has been successfully added to ${targetDepotDisplay}.\n\nActive schedules, corridor routes, and allocation models are refreshed for this depot.`
+          );
+        }
       } else {
         throw new Error(data?.error || data?.details || 'Upload failed');
       }

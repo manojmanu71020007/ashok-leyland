@@ -5267,6 +5267,181 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
+// ── Helper: Parse and ingest uploaded CSV or Excel dataset into Fleet ──
+function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepotName) {
+    const ext = path.extname(safeName || filePath).toLowerCase();
+    const rows = [];
+
+    if (ext === ".csv" || ext === ".txt") {
+        try {
+            const content = fs.readFileSync(filePath, "utf8");
+            const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length >= 2) {
+                const headers = parseCsvLine(lines[0]);
+                let regIdx = -1;
+                let catIdx = -1;
+                let bmIdx = -1;
+                let depotIdx = -1;
+                let socIdx = -1;
+                let modelIdx = -1;
+
+                headers.forEach((h, idx) => {
+                    const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    if (/reg(no|number|num)?|registration(number|no)?|busreg/i.test(clean)) regIdx = idx;
+                    else if (/cat(egory)?/i.test(clean)) catIdx = idx;
+                    else if (/^bm(no|number)?$|^busno$|^vehicleid$/i.test(clean)) bmIdx = idx;
+                    else if (/depot/i.test(clean)) depotIdx = idx;
+                    else if (/soc|battery/i.test(clean)) socIdx = idx;
+                    else if (/model/i.test(clean)) modelIdx = idx;
+                });
+
+                for (let i = 1; i < lines.length; i++) {
+                    const parts = parseCsvLine(lines[i]);
+                    if (!parts || parts.length === 0) continue;
+                    const regNo = regIdx >= 0 && parts[regIdx] ? parts[regIdx].replace(/\s+/g, "").toUpperCase() : "";
+                    const bm = bmIdx >= 0 && parts[bmIdx] ? parts[bmIdx].replace(/\s+/g, "").toUpperCase() : "";
+                    const rawCat = catIdx >= 0 && parts[catIdx] ? parts[catIdx].trim().toUpperCase() : "";
+                    const depotVal = depotIdx >= 0 && parts[depotIdx] ? parts[depotIdx].trim() : "";
+                    const socVal = socIdx >= 0 && parts[socIdx] ? parseFloat(parts[socIdx]) : 100;
+                    const modelVal = modelIdx >= 0 && parts[modelIdx] ? parts[modelIdx].trim() : "ELECTRIC BUS AC EiV12";
+
+                    if (!regNo && !bm) continue;
+                    const cleanReg = regNo.replace(/[^A-Z0-9]/g, "");
+                    if (cleanReg === "REGNO" || cleanReg === "REGISTRATIONNO" || cleanReg === "BUSREG") continue;
+                    rows.push({ bm, regNo, rawCat, depotVal, socVal, modelVal });
+                }
+            }
+        } catch (err) {
+            console.error("Error parsing CSV fleet dataset:", err.message);
+        }
+    } else if (ext === ".xlsx" || ext === ".xls") {
+        try {
+            const pyScript = path.join(BASE_DIR, "parse_excel_dataset.py");
+            if (fs.existsSync(pyScript)) {
+                const child_process = require("child_process");
+                const stdout = child_process.execFileSync("python", [pyScript, filePath], {
+                    encoding: "utf8",
+                    timeout: 15000
+                });
+                const parsed = JSON.parse(stdout || "[]");
+                if (Array.isArray(parsed)) {
+                    parsed.forEach(item => {
+                        rows.push({
+                            bm: item.bm || "",
+                            regNo: item.regNo || "",
+                            rawCat: item.category || "B",
+                            depotVal: item.depot || "",
+                            socVal: 100,
+                            modelVal: "ELECTRIC BUS AC EiV12"
+                        });
+                    });
+                }
+            }
+        } catch (err) {
+            console.warn("Could not parse Excel spreadsheet via python:", err.message);
+        }
+    }
+
+    if (rows.length === 0) {
+        return { busesProcessed: 0, added: [] };
+    }
+
+    const defaultDepot = targetDepot && targetDepot !== "all" ? String(targetDepot) : "1";
+    const addedList = [];
+
+    const state = loadBusState();
+    const usedBms = new Set();
+    Object.keys(state).forEach(k => {
+        if (/^BM\d+$/i.test(k)) usedBms.add(k.toUpperCase());
+    });
+    if (state._addedBuses) {
+        Object.keys(state._addedBuses).forEach(k => usedBms.add(k.toUpperCase()));
+    }
+
+    // Ingest each bus
+    rows.forEach((row, idx) => {
+        const regNo = String(row.regNo || "").replace(/\s+/g, "").toUpperCase();
+        let rawCat = String(row.rawCat || "B").toUpperCase().replace(/^CAT(EGORY)?\s*[:\-_]?\s*/i, "").trim();
+        let category = "B";
+        if (/^A\b/i.test(rawCat) || /CAT\s*A\b/i.test(row.rawCat)) category = "A";
+        else if (/^B\b/i.test(rawCat) || /CAT\s*B\b/i.test(row.rawCat)) category = "B";
+        else if (/^C\b/i.test(rawCat) || /CAT\s*C\b/i.test(row.rawCat)) category = "C";
+
+        let depot = defaultDepot;
+        if (row.depotVal) {
+            const cleanDepot = String(row.depotVal).replace(/\D/g, "");
+            if (cleanDepot) depot = cleanDepot;
+        }
+
+        let bm = String(row.bm || "").toUpperCase().trim();
+        if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+
+        // Check if this regNo already has a BM assigned in state
+        let existingBm = null;
+        Object.keys(state).forEach(k => {
+            if (state[k] && state[k].regNo && state[k].regNo.toUpperCase() === regNo) {
+                existingBm = k.toUpperCase();
+            }
+        });
+        if (!existingBm && state._addedBuses) {
+            Object.keys(state._addedBuses).forEach(k => {
+                if (state._addedBuses[k] && state._addedBuses[k].regNo && state._addedBuses[k].regNo.toUpperCase() === regNo) {
+                    existingBm = k.toUpperCase();
+                }
+            });
+        }
+
+        if (existingBm) {
+            bm = existingBm;
+        } else if (!bm && regNo) {
+            const digits = regNo.replace(/\D/g, "");
+            let candidate = digits.length >= 3 ? "BM" + digits.slice(-4) : "";
+            if (candidate && !usedBms.has(candidate)) {
+                bm = candidate;
+            } else {
+                let nextNum = 305 + idx;
+                while (usedBms.has("BM" + String(nextNum).padStart(3, "0")) || usedBms.has("BM" + nextNum)) {
+                    nextNum++;
+                }
+                bm = "BM" + String(nextNum).padStart(3, "0");
+            }
+        } else if (!bm) {
+            let nextNum = 305 + idx;
+            while (usedBms.has("BM" + String(nextNum).padStart(3, "0")) || usedBms.has("BM" + nextNum)) {
+                nextNum++;
+            }
+            bm = "BM" + String(nextNum).padStart(3, "0");
+        }
+
+        usedBms.add(bm);
+
+        try {
+            const result = addFleetBus({
+                bm,
+                regNo: regNo || `KA51AH${bm.replace(/\D/g, "").padStart(4, "0")}`,
+                category,
+                depot,
+                soc: Number(row.socVal) || 100,
+                model: row.modelVal || "ELECTRIC BUS AC EiV12",
+                reason: `Dataset import: ${safeName}`
+            });
+            addedList.push({
+                bm: result.bm,
+                regNo: result.regNo,
+                category: result.category,
+                depot: result.depot
+            });
+        } catch (addErr) {
+            console.warn("Could not add bus from dataset:", bm, addErr.message);
+        }
+    });
+
+    return {
+        busesProcessed: rows.length,
+        added: addedList
+    };
+}
+
     // ── POST /api/upload-dataset (Upload CSV or Excel spreadsheets to data/ & root) ──
     if (pathname === "/api/upload-dataset" && req.method === "POST") {
         readBody(req, body => {
@@ -5300,6 +5475,10 @@ const server = http.createServer(async (req, res) => {
                     fs.writeFileSync(rootCandidate, fileBuffer);
                 }
 
+                // Ingest buses from dataset into fleet if fleet data exists
+                const ingestResult = ingestUploadedFleetDataset(targetPath, safeName, targetDepot, targetDepotName);
+                const busesAdded = ingestResult.added.length;
+
                 // Update datasets manifest with depot association
                 try {
                     const manifestPath = path.join(dataDir, "datasets_manifest.json");
@@ -5313,6 +5492,7 @@ const server = http.createServer(async (req, res) => {
                         targetDepot: targetDepot || "all",
                         targetDepotName: targetDepotName,
                         size: fileBuffer.length,
+                        busesAdded: busesAdded,
                         uploadedAt: new Date().toISOString()
                     });
                     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -5330,16 +5510,36 @@ const server = http.createServer(async (req, res) => {
                     size: fileBuffer.length,
                     targetDepot: targetDepot,
                     targetDepotName: targetDepotName,
+                    busesAdded: busesAdded,
                     timestamp: new Date().toISOString(),
                     datasetType
                 });
 
+                if (busesAdded > 0) {
+                    broadcastSyncEvent("fleet-bus-added", {
+                        count: busesAdded,
+                        buses: ingestResult.added,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+                // Calculate updated total fleet count
+                const finalState = loadBusState();
+                const totalFleetCount = Object.keys(finalState).filter(k => /^BM\d+$/i.test(k) && !finalState[k].deleted && !finalState[k].isDeleted).length;
+
+                const responseMsg = busesAdded > 0
+                    ? `Dataset "${safeName}" successfully uploaded: ${busesAdded} buses added and assigned to ${targetDepotName}. Total fleet updated to ${totalFleetCount} buses.`
+                    : `Dataset spreadsheet "${safeName}" successfully added to ${targetDepotName} (${(fileBuffer.length / 1024).toFixed(1)} KB).`;
+
                 sendJson(res, {
                     ok: true,
-                    message: `Dataset spreadsheet "${safeName}" successfully added to ${targetDepotName} (${(fileBuffer.length / 1024).toFixed(1)} KB).`,
+                    message: responseMsg,
                     fileName: safeName,
                     targetDepot: targetDepot,
                     targetDepotName: targetDepotName,
+                    busesAdded: busesAdded,
+                    addedBuses: ingestResult.added,
+                    totalFleetCount: totalFleetCount,
                     size: fileBuffer.length,
                     path: targetPath,
                     timestamp: new Date().toISOString()
