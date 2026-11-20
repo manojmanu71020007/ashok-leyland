@@ -1750,8 +1750,14 @@ export default function AdminWorkspaceScreen() {
     return r === sel;
   }).length;
 
-  // Total buses available in the operating depot for this route (Exact match to admin.html bus-total)
-  const routeTotalAvailableCount = candidatePool.length;
+  // Required SOC for the selected route (Exact match to admin.html updated bus-total KPI)
+  const routeRequiredSoc = useMemo(() => {
+    if (!selectedRoute) return '—';
+    const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
+    const dist = Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
+    const calculated = getRequiredSingleChargeSoc(dist, null, null, depTime);
+    return calculated > 0 ? `${calculated}%` : '—';
+  }, [selectedRoute, scheduledTime]);
 
   // Duties allocated specifically to routeAllocatedModalRoute (independent of departure time, matching admin.html)
   const routeAllocatedDuties = useMemo(() => {
@@ -2707,11 +2713,11 @@ export default function AdminWorkspaceScreen() {
             </View>
           </View>
 
-          {/* Allocation Result KPIs (Total buses of selected route & Allocated buses, matching admin.html) */}
+          {/* Allocation Result KPIs (Required SOC of selected route & Allocated buses, matching admin.html) */}
           <View style={styles.adminKpiGrid}>
             <View style={styles.adminKpiBox}>
-              <Text style={styles.adminKpiVal}>{routeTotalAvailableCount}</Text>
-              <Text style={styles.adminKpiLbl}>Total buses ({selectedRoute.code})</Text>
+              <Text style={styles.adminKpiVal}>{routeRequiredSoc}</Text>
+              <Text style={styles.adminKpiLbl}>Required SOC {selectedRoute?.code ? `(${selectedRoute.code})` : ''}</Text>
             </View>
 
             {/* Clickable Allocated Buses KPI -> Opens Route Allocated Buses Modal in Fullscreen Mode */}
