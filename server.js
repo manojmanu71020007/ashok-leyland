@@ -8,6 +8,8 @@ const path = require("path");
 
 const zlib = require("zlib");
 
+const XLSX = require("xlsx");
+
 const socLogger = require("./soc_logger");
 
 
@@ -5054,33 +5056,39 @@ const server = http.createServer(async (req, res) => {
                         if (accounts && typeof accounts === "object") {
                             Object.assign(currentState._customAccounts, accounts);
                         }
-                    } else if (action === "delete") {
-                        const cleanId = String(depotId || depot?.id || "").trim();
-                        if (cleanId && !currentState._deletedDepotIds.includes(cleanId)) {
-                            currentState._deletedDepotIds.push(cleanId);
-                        }
-                        currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
-                        for (const k of Object.keys(currentState._customAccounts)) {
-                            if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
-                                delete currentState._customAccounts[k];
+                    } else if (action === "delete" || action === "delete_batch" || action === "delete-batch") {
+                        const idsToDelete = Array.isArray(payload.depotIds)
+                            ? payload.depotIds.map(x => String(x || "").trim()).filter(Boolean)
+                            : [String(depotId || depot?.id || "").trim()].filter(Boolean);
+
+                        idsToDelete.forEach(cleanId => {
+                            if (!cleanId) return;
+                            if (!currentState._deletedDepotIds.includes(cleanId)) {
+                                currentState._deletedDepotIds.push(cleanId);
                             }
-                        }
-                        // Unassign any bus duties allocated to this deleted depot
-                        if (Array.isArray(currentState._allocatedDuties)) {
-                            currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
-                        }
-                        // Also cascade delete depot and its routes from Master Route Dataset
-                        let db = currentState._routesDatabase || loadRoutesDataset();
-                        if (db) {
-                            if (Array.isArray(db.depots)) {
-                                db.depots = db.depots.filter(d => String(d.id) !== cleanId);
+                            currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
+                            for (const k of Object.keys(currentState._customAccounts)) {
+                                if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
+                                    delete currentState._customAccounts[k];
+                                }
                             }
-                            if (Array.isArray(db.routes)) {
-                                db.routes = db.routes.filter(r => String(r.depotId) !== cleanId);
+                            // Unassign any bus duties allocated to this deleted depot
+                            if (Array.isArray(currentState._allocatedDuties)) {
+                                currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
                             }
-                            currentState._routesDatabase = db;
-                            saveRoutesDataset(db);
-                        }
+                            // Also cascade delete depot and its routes from Master Route Dataset
+                            let db = currentState._routesDatabase || loadRoutesDataset();
+                            if (db) {
+                                if (Array.isArray(db.depots)) {
+                                    db.depots = db.depots.filter(d => String(d.id) !== cleanId);
+                                }
+                                if (Array.isArray(db.routes)) {
+                                    db.routes = db.routes.filter(r => String(r.depotId) !== cleanId);
+                                }
+                                currentState._routesDatabase = db;
+                                saveRoutesDataset(db);
+                            }
+                        });
                     } else if (action === "sync" || Array.isArray(customDepots)) {
                         // Purge any depots or accounts that are in _deletedDepotIds
                         currentState._customDepots = (currentState._customDepots || []).filter(d => !currentState._deletedDepotIds.includes(String(d.id)));
@@ -5184,18 +5192,21 @@ const server = http.createServer(async (req, res) => {
                                 depotObj.routes.push(cleanCode);
                             }
                         }
-                    } else if (action === "delete_route" && routeCode) {
-                        const cleanCode = String(routeCode).toUpperCase().trim();
-                        const dId = depotId ? String(depotId).trim() : null;
-                        if (dataset.routes) {
-                            dataset.routes = dataset.routes.filter(r => !(String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
-                        }
-                        if (dId && dataset.depots) {
-                            const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
-                            if (depotObj && Array.isArray(depotObj.routes)) {
-                                depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+                    } else if ((action === "delete_route" || action === "delete_routes_batch" || action === "delete-routes-batch") && (routeCode || Array.isArray(payload.routeCodes) || Array.isArray(payload.routes))) {
+                        const codes = Array.isArray(payload.routeCodes) ? payload.routeCodes : (Array.isArray(payload.routes) ? payload.routes : [routeCode]);
+                        codes.forEach(codeItem => {
+                            const cleanCode = String(codeItem?.code || codeItem?.id || codeItem || "").toUpperCase().trim();
+                            const dId = codeItem?.depotId ? String(codeItem.depotId).trim() : (depotId ? String(depotId).trim() : null);
+                            if (dataset.routes) {
+                                dataset.routes = dataset.routes.filter(r => !(String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
                             }
-                        }
+                            if (dId && dataset.depots) {
+                                const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
+                                if (depotObj && Array.isArray(depotObj.routes)) {
+                                    depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+                                }
+                            }
+                        });
                     } else if (action === "add_depot" && depot) {
                         const cleanId = String(depot.id || "").trim();
                         if (!dataset.depots) dataset.depots = [];
@@ -5269,21 +5280,108 @@ const server = http.createServer(async (req, res) => {
 
 // ── Helper: Parse and ingest uploaded CSV or Excel dataset into Fleet ──
 function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepotName) {
-    const ext = path.extname(safeName || filePath).toLowerCase();
+    const defaultDepot = targetDepot && targetDepot !== "all" ? String(targetDepot) : "1";
     const rows = [];
+    const seenRegOrBm = new Set();
 
-    if (ext === ".csv" || ext === ".txt") {
+    // 1. Try pure JavaScript SheetJS (XLSX) parser for .csv, .tsv, .xlsx, .xls, .xlx
+    try {
+        const fileBuffer = fs.readFileSync(filePath);
+        const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+
+        for (const sheetName of workbook.SheetNames) {
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) continue;
+
+            const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+            if (!rawRows || rawRows.length < 2) continue;
+
+            let headerRowIdx = -1;
+            let regIdx = -1;
+            let bmIdx = -1;
+            let catIdx = -1;
+            let depotIdx = -1;
+            let socIdx = -1;
+            let modelIdx = -1;
+            let rangeIdx = -1;
+
+            for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
+                const row = rawRows[r];
+                if (!Array.isArray(row)) continue;
+
+                let foundReg = -1, foundBm = -1, foundCat = -1, foundDepot = -1, foundSoc = -1, foundModel = -1, foundRange = -1;
+
+                row.forEach((cell, cIdx) => {
+                    const clean = String(cell || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                    if (!clean) return;
+
+                    if (/reg(no|number|num)?|registration(number|no)?|busreg/i.test(clean)) foundReg = cIdx;
+                    else if (/^bm(no|number)?$|^busno$|^vehicleid$|^rowlabels$/i.test(clean)) foundBm = cIdx;
+                    else if (/cat(egory)?/i.test(clean)) foundCat = cIdx;
+                    else if (/depot/i.test(clean)) foundDepot = cIdx;
+                    else if (/soc|battery/i.test(clean)) foundSoc = cIdx;
+                    else if (/model/i.test(clean)) foundModel = cIdx;
+                    else if (/range|actualrange/i.test(clean)) foundRange = cIdx;
+                });
+
+                if (foundReg !== -1 || foundBm !== -1) {
+                    headerRowIdx = r;
+                    regIdx = foundReg;
+                    bmIdx = foundBm;
+                    catIdx = foundCat;
+                    depotIdx = foundDepot;
+                    socIdx = foundSoc;
+                    modelIdx = foundModel;
+                    rangeIdx = foundRange;
+                    break;
+                }
+            }
+
+            if (headerRowIdx === -1) continue;
+
+            for (let r = headerRowIdx + 1; r < rawRows.length; r++) {
+                const row = rawRows[r];
+                if (!Array.isArray(row) || row.length === 0) continue;
+
+                const regNo = regIdx >= 0 && row[regIdx] ? String(row[regIdx]).replace(/\s+/g, "").toUpperCase() : "";
+                const bm = bmIdx >= 0 && row[bmIdx] ? String(row[bmIdx]).replace(/\s+/g, "").toUpperCase() : "";
+                const rawCat = catIdx >= 0 && row[catIdx] ? String(row[catIdx]).trim().toUpperCase() : "";
+                const depotVal = depotIdx >= 0 && row[depotIdx] ? String(row[depotIdx]).trim() : "";
+                const socVal = socIdx >= 0 && row[socIdx] ? parseFloat(row[socIdx]) : 100;
+                const modelVal = modelIdx >= 0 && row[modelIdx] ? String(row[modelIdx]).trim() : "ELECTRIC BUS AC EiV12";
+                const rangeVal = rangeIdx >= 0 && row[rangeIdx] ? parseFloat(row[rangeIdx]) : null;
+
+                if (!regNo && !bm) continue;
+                if (regNo === "REGNO" || regNo === "REGISTRATIONNO" || bm === "BMNO" || bm === "BM" || bm === "ROWLABELS") continue;
+
+                const dedupeKey = (bm || regNo);
+                if (seenRegOrBm.has(dedupeKey)) continue;
+                seenRegOrBm.add(dedupeKey);
+
+                rows.push({
+                    bm,
+                    regNo,
+                    rawCat,
+                    depotVal: depotVal || defaultDepot,
+                    socVal: isNaN(socVal) ? 100 : socVal,
+                    modelVal,
+                    rangeVal,
+                    sourceSheet: sheetName
+                });
+            }
+        }
+    } catch (sheetErr) {
+        console.warn("SheetJS parse warning, falling back to line parser:", sheetErr.message);
+    }
+
+    // 2. Line parser fallback for plain CSV/text
+    if (rows.length === 0) {
         try {
             const content = fs.readFileSync(filePath, "utf8");
             const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
             if (lines.length >= 2) {
                 const headers = parseCsvLine(lines[0]);
-                let regIdx = -1;
-                let catIdx = -1;
-                let bmIdx = -1;
-                let depotIdx = -1;
-                let socIdx = -1;
-                let modelIdx = -1;
+                let regIdx = -1, catIdx = -1, bmIdx = -1, depotIdx = -1, socIdx = -1, modelIdx = -1;
 
                 headers.forEach((h, idx) => {
                     const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -5308,37 +5406,14 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     if (!regNo && !bm) continue;
                     const cleanReg = regNo.replace(/[^A-Z0-9]/g, "");
                     if (cleanReg === "REGNO" || cleanReg === "REGISTRATIONNO" || cleanReg === "BUSREG") continue;
+                    const dedupeKey = (bm || regNo);
+                    if (seenRegOrBm.has(dedupeKey)) continue;
+                    seenRegOrBm.add(dedupeKey);
                     rows.push({ bm, regNo, rawCat, depotVal, socVal, modelVal });
                 }
             }
         } catch (err) {
-            console.error("Error parsing CSV fleet dataset:", err.message);
-        }
-    } else if (ext === ".xlsx" || ext === ".xls") {
-        try {
-            const pyScript = path.join(BASE_DIR, "parse_excel_dataset.py");
-            if (fs.existsSync(pyScript)) {
-                const child_process = require("child_process");
-                const stdout = child_process.execFileSync("python", [pyScript, filePath], {
-                    encoding: "utf8",
-                    timeout: 15000
-                });
-                const parsed = JSON.parse(stdout || "[]");
-                if (Array.isArray(parsed)) {
-                    parsed.forEach(item => {
-                        rows.push({
-                            bm: item.bm || "",
-                            regNo: item.regNo || "",
-                            rawCat: item.category || "B",
-                            depotVal: item.depot || "",
-                            socVal: 100,
-                            modelVal: "ELECTRIC BUS AC EiV12"
-                        });
-                    });
-                }
-            }
-        } catch (err) {
-            console.warn("Could not parse Excel spreadsheet via python:", err.message);
+            console.error("Error parsing fallback CSV fleet dataset:", err.message);
         }
     }
 
@@ -5346,7 +5421,6 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
         return { busesProcessed: 0, added: [] };
     }
 
-    const defaultDepot = targetDepot && targetDepot !== "all" ? String(targetDepot) : "1";
     const addedList = [];
 
     const state = loadBusState();
@@ -5429,7 +5503,10 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                 bm: result.bm,
                 regNo: result.regNo,
                 category: result.category,
-                depot: result.depot
+                depot: result.depot,
+                soc: Number(row.socVal) || 100,
+                model: row.modelVal || "ELECTRIC BUS AC EiV12",
+                reason: `Dataset import: ${safeName}`
             });
         } catch (addErr) {
             console.warn("Could not add bus from dataset:", bm, addErr.message);
@@ -6450,7 +6527,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
 
 
 
-    if (pathname === "/api/fleet/delete-bus" && req.method === "POST") {
+    if ((pathname === "/api/fleet/delete-bus" || pathname === "/api/fleet/delete-buses-batch") && req.method === "POST") {
 
         readBody(req, body => {
 
@@ -6458,9 +6535,36 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
 
                 const payload = JSON.parse(body || "{}");
 
-                const result = deleteFleetBus(payload);
-
-                sendJson(res, { ok: true, message: `Bus ${result.bm} deleted successfully from available fleet`, bus: result });
+                if (Array.isArray(payload.bms)) {
+                    const results = [];
+                    const reason = String(payload.reason || "Batch Fleet Decommissioning").trim();
+                    payload.bms.forEach(item => {
+                        const bm = typeof item === "string" ? item : (item.bm || item.bmNumber);
+                        const regNo = typeof item === "object" ? (item.regNo || item.regNumber || "") : "";
+                        const depot = typeof item === "object" ? (item.depot || "") : "";
+                        try {
+                            const resObj = deleteFleetBus({ bm, regNo, reason, depot });
+                            results.push(resObj);
+                        } catch (e) {
+                            console.warn("Could not delete bus in batch:", bm, e.message);
+                        }
+                    });
+                    stateVersion = Date.now();
+                    broadcastSyncEvent("fleet-buses-deleted", {
+                        count: results.length,
+                        bms: results.map(b => b.bm),
+                        timestamp: new Date().toISOString()
+                    });
+                    sendJson(res, {
+                        ok: true,
+                        count: results.length,
+                        deleted: results,
+                        message: `${results.length} buses deleted successfully from available fleet`
+                    });
+                } else {
+                    const result = deleteFleetBus(payload);
+                    sendJson(res, { ok: true, message: `Bus ${result.bm} deleted successfully from available fleet`, bus: result });
+                }
 
             } catch (err) {
 

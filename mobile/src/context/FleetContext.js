@@ -1126,6 +1126,125 @@ export const FleetProvider = ({ children }) => {
     }
   };
 
+  // Add a batch of newly inducted buses (e.g. from dataset upload) with immediate 0ms UI update
+  const addBusesBatchToFleet = (busesList) => {
+    if (!Array.isArray(busesList) || busesList.length === 0) return;
+    const nowIso = new Date().toISOString();
+    const nowTs = Date.now();
+
+    const addedMap = {};
+    const newBusObjs = [];
+
+    busesList.forEach((b) => {
+      const cleanBm = String(b.bm || b.bmNumber || b.busNumber || '').toUpperCase().trim();
+      if (!cleanBm) return;
+      const cleanReg = String(b.regNo || b.regNumber || '').toUpperCase().trim() || `KA51AH${cleanBm.replace(/\D/g, '').padStart(4, '0')}`;
+      const catVal = String(b.category || b.busCategory || 'B').toUpperCase().trim();
+      const depotVal = String(b.depot || '1').trim();
+      const socVal = Number.isFinite(Number(b.soc)) ? Math.max(10, Math.min(100, Number(b.soc))) : 100;
+      const reasonVal = String(b.reason || 'Dataset Import').trim();
+
+      const payload = {
+        bm: cleanBm,
+        busNumber: cleanBm,
+        regNo: cleanReg,
+        regNumber: cleanReg,
+        reason: reasonVal,
+        depot: depotVal,
+        busCategory: catVal,
+        category: catVal,
+        soc: socVal,
+        make: 'Ashok Leyland',
+        model: b.model || 'ELECTRIC BUS AC EiV12',
+        addedAt: nowIso,
+        timestamp: nowTs,
+        isNewlyAdded: true,
+      };
+
+      addedMap[cleanBm] = payload;
+
+      newBusObjs.push({
+        id: cleanBm,
+        bmNumber: cleanBm,
+        regNo: cleanReg,
+        depot: depotVal,
+        busCategory: catVal,
+        soc: socVal,
+        status: 'Available',
+        isCharging: false,
+        isCleaning: false,
+        isAllocated: false,
+        isLocked: false,
+        isNewlyAdded: true,
+        addedAt: nowIso,
+        timestamp: nowTs,
+        lastCharged: 'Just Now',
+        fullDutyDistanceKm: Math.round(socVal * 1.42),
+        actualRangeKm: catVal === 'A' ? 155 : catVal === 'B' ? 120 : 85,
+        notes: reasonVal,
+        reason: reasonVal,
+        model: b.model || 'ELECTRIC BUS AC EiV12',
+        make: 'Ashok Leyland',
+      });
+    });
+
+    setLocalAddedBuses((prev) => ({ ...prev, ...addedMap }));
+
+    setLocalDeletedBuses((prev) => {
+      const next = { ...prev };
+      Object.keys(addedMap).forEach((k) => delete next[k]);
+      return next;
+    });
+
+    setBuses((prev) => {
+      const keys = new Set(Object.keys(addedMap));
+      const filtered = prev.filter((b) => !keys.has(b.bmNumber));
+      return [...newBusObjs, ...filtered];
+    });
+
+    fetchFleet();
+  };
+
+  // Delete multiple buses in a single batch
+  const deleteBusesBatchFromFleet = async (bmsList, reasonVal = 'Batch Fleet Decommissioning') => {
+    if (!Array.isArray(bmsList) || bmsList.length === 0) return { ok: true, count: 0 };
+
+    const cleanBms = bmsList.map((bm) => String(bm).toUpperCase().trim()).filter(Boolean);
+    const deletedMap = {};
+    const nowIso = new Date().toISOString();
+    const nowTs = Date.now();
+
+    cleanBms.forEach((cleanBm) => {
+      deletedMap[cleanBm] = {
+        bm: cleanBm,
+        busNumber: cleanBm,
+        reason: reasonVal,
+        deletedAt: nowIso,
+        timestamp: nowTs,
+      };
+    });
+
+    setLocalDeletedBuses((prev) => ({ ...prev, ...deletedMap }));
+
+    setLocalAddedBuses((prev) => {
+      const next = { ...prev };
+      cleanBms.forEach((k) => delete next[k]);
+      return next;
+    });
+
+    setBuses((prev) => prev.filter((b) => !cleanBms.includes(b.bmNumber)));
+    setAllocatedDuties((prev) => prev.filter((d) => !cleanBms.includes(String(d.bm || d.bmNumber || '').toUpperCase().trim())));
+
+    try {
+      const res = await api.deleteBusesBatchFromFleet(cleanBms, reasonVal);
+      fetchFleet();
+      return res;
+    } catch (err) {
+      console.warn('Network error in deleteBusesBatchFromFleet:', err);
+      return { ok: false, error: err.message };
+    }
+  };
+
   // Delete/Decommission a bus from the available fleet (fully matching admin.html & server.js)
   const deleteBusFromFleet = async (bmNumber, details = {}) => {
     const cleanBm = String(bmNumber).toUpperCase().trim();
@@ -1564,7 +1683,9 @@ export const FleetProvider = ({ children }) => {
         unlockBus,
         unlockAllBuses,
         addBusToFleet,
+        addBusesBatchToFleet,
         deleteBusFromFleet,
+        deleteBusesBatchFromFleet,
         restoreBusToFleet,
         localAddedBuses,
         localDeletedBuses,

@@ -220,6 +220,14 @@ export const api = {
     });
   },
 
+  // Delete multiple buses in a batch from the available fleet
+  deleteBusesBatchFromFleet: async (bms, reason = 'Batch Fleet Decommissioning') => {
+    return apiRequest('/api/fleet/delete-buses-batch', {
+      method: 'POST',
+      body: JSON.stringify({ bms, reason }),
+    });
+  },
+
   // Restore a previously deleted bus to the available fleet
   restoreBusToFleet: async (restoreData) => {
     return apiRequest('/api/fleet/restore-bus', {

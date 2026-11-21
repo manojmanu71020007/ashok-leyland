@@ -661,7 +661,9 @@ export default function AdminWorkspaceScreen() {
     completeRoute,
     resetAllAllocations,
     addBusToFleet,
+    addBusesBatchToFleet,
     deleteBusFromFleet,
+    deleteBusesBatchFromFleet,
     restoreBusToFleet,
     localAddedBuses,
     localDeletedBuses,
@@ -734,6 +736,7 @@ export default function AdminWorkspaceScreen() {
   // Delete Depot states
   const [depotDelMode, setDepotDelMode] = useState('depot'); // 'depot' (Delete Depot) | 'route' (Decommission Route)
   const [selectedDepotToDelete, setSelectedDepotToDelete] = useState('');
+  const [selectedDepotsToDelete, setSelectedDepotsToDelete] = useState([]);
   const [delDepotReason, setDelDepotReason] = useState('Depot Consolidation');
   const [delDepotCustomReason, setDelDepotCustomReason] = useState('');
 
@@ -845,6 +848,7 @@ export default function AdminWorkspaceScreen() {
 
   // Form State: Delete Route / Depot
   const [delRouteSelectedCode, setDelRouteSelectedCode] = useState('');
+  const [selectedRoutesToDelete, setSelectedRoutesToDelete] = useState([]);
   const [delRouteReason, setDelRouteReason] = useState('Route Realignment');
   const [delRouteCustomReason, setDelRouteCustomReason] = useState('');
   const [delRouteSearchQuery, setDelRouteSearchQuery] = useState('');
@@ -1223,60 +1227,72 @@ export default function AdminWorkspaceScreen() {
     );
   };
 
-  // ── Handler: Delete Depot (With confirmation & translation) ──
+  // ── Handler: Delete Depot (With confirmation, batch multi-selection, & translation) ──
   const handleDeleteDepot = () => {
-    if (!selectedDepotToDelete) {
-      Alert.alert(t('selection_required', 'Selection Required'), t('select_depot_delete_msg', 'Please select a depot to delete.'));
+    const targets = selectedDepotsToDelete.length > 0
+      ? selectedDepotsToDelete
+      : (selectedDepotToDelete ? [selectedDepotToDelete] : []);
+
+    if (targets.length === 0) {
+      Alert.alert(t('selection_required', 'Selection Required'), t('select_depot_delete_msg', 'Please select at least one depot to delete.'));
       return;
     }
 
-    const depotObj = depotsList.find((d) => String(d.id) === selectedDepotToDelete);
-    const depotName = depotObj ? depotObj.name : `Depot ${selectedDepotToDelete}`;
     const finalReason = delDepotReason === 'Other' ? (delDepotCustomReason.trim() || 'Decommissioned by Admin') : delDepotReason;
+    const names = targets.map((id) => {
+      const d = depotsList.find((x) => String(x.id) === String(id));
+      return d ? `${d.name} (ID: ${id})` : `Depot ${id}`;
+    }).join(', ');
 
     Alert.alert(
       t('confirm_delete_depot_title', 'Confirm Delete Depot'),
-      `${t('confirm_delete_depot_msg', 'Are you sure you want to delete this depot?')}\n\n• ${t('depot_name_field', 'Depot')}: ${depotName} (ID: ${selectedDepotToDelete})\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
+      `${t('confirm_delete_depot_msg', 'Are you sure you want to delete these depots?')}\n\n• ${t('depot_name_field', 'Depot(s)')}: ${names}\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
       [
         { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
           text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
           onPress: () => {
-            deleteDepot(selectedDepotToDelete);
+            targets.forEach((depotId) => {
+              deleteDepot(depotId);
 
-            // Unassign custom routes
-            setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== selectedDepotToDelete));
+              // Unassign custom routes
+              setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== depotId));
 
-            if (adminDepotFilter === selectedDepotToDelete) {
-              setAdminDepotFilter('all');
-            }
-            if (selectedDepot === selectedDepotToDelete && typeof switchDepot === 'function') {
-              const remaining = getAllDepots();
-              const nextDepot = remaining.length > 0 ? String(remaining[0].id) : '1';
-              switchDepot(nextDepot);
-            }
+              if (adminDepotFilter === depotId) {
+                setAdminDepotFilter('all');
+              }
+              if (selectedDepot === depotId && typeof switchDepot === 'function') {
+                const remaining = getAllDepots();
+                const nextDepot = remaining.length > 0 ? String(remaining[0].id) : '1';
+                switchDepot(nextDepot);
+              }
 
-            setDepotAuditLogs((prev) => [
-              {
-                id: Date.now().toString(),
-                action: 'DEPOT_DELETED',
-                code: `DEPOT-${selectedDepotToDelete}`,
-                fullName: depotName,
-                origin: 'Decommissioned',
-                destination: 'Decommissioned',
-                distance: 0,
-                depot: depotName,
-                reason: finalReason,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              },
-              ...prev,
-            ]);
+              const dObj = depotsList.find((d) => String(d.id) === depotId);
+              const dName = dObj ? dObj.name : `Depot ${depotId}`;
+
+              setDepotAuditLogs((prev) => [
+                {
+                  id: (Date.now() + Math.random()).toString(),
+                  action: 'DEPOT_DELETED',
+                  code: `DEPOT-${depotId}`,
+                  fullName: dName,
+                  origin: 'Decommissioned',
+                  destination: 'Decommissioned',
+                  distance: 0,
+                  depot: dName,
+                  reason: finalReason,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                },
+                ...prev,
+              ]);
+            });
 
             setSelectedDepotToDelete('');
+            setSelectedDepotsToDelete([]);
             Alert.alert(
-              t('depot_deleted_success_title', 'Depot Deleted'),
-              `${depotName} ${t('depot_deleted_success_msg', 'has been permanently removed from the depot network.')}`
+              t('depot_deleted_success_title', 'Depots Deleted'),
+              `Successfully removed ${targets.length} depot(s) from the depot network.`
             );
           },
         },
@@ -1432,7 +1448,14 @@ export default function AdminWorkspaceScreen() {
         const targetDepotDisplay = datasetTargetDepotName || `Depot ${datasetTargetDepot}`;
         setSelectedDatasetFile(null);
 
-        // Immediately trigger fleet refresh
+        // Immediately inject added buses into fleet state with 0ms UI delay
+        if (data.busesAdded > 0 && Array.isArray(data.addedBuses)) {
+          if (typeof addBusesBatchToFleet === 'function') {
+            addBusesBatchToFleet(data.addedBuses);
+          }
+        }
+
+        // Trigger fleet refresh
         if (typeof refreshFleet === 'function') {
           refreshFleet();
         }
@@ -1581,48 +1604,56 @@ export default function AdminWorkspaceScreen() {
     );
   };
 
-  // ── Handler: Delete Route from Depot (With confirmation & translation) ──
+  // ── Handler: Delete Route from Depot (With confirmation, batch multi-selection, & translation) ──
   const handleDeleteRouteFromDepot = () => {
-    if (!delRouteSelectedCode) {
-      Alert.alert(t('selection_required', 'Selection Required'), t('select_route_delete_msg', 'Please select a route to delete.'));
+    const targets = selectedRoutesToDelete.length > 0
+      ? selectedRoutesToDelete
+      : (delRouteSelectedCode ? [delRouteSelectedCode] : []);
+
+    if (targets.length === 0) {
+      Alert.alert(t('selection_required', 'Selection Required'), t('select_route_delete_msg', 'Please select at least one route to delete.'));
       return;
     }
-    const matchedRoute = allAvailableRoutes.find((r) => r.code === delRouteSelectedCode || r.id === delRouteSelectedCode);
-    const codeToDelete = delRouteSelectedCode;
+
     const finalReason = delRouteReason === 'Other' ? (delRouteCustomReason.trim() || 'Decommissioned by Admin') : delRouteReason;
 
     Alert.alert(
       t('confirm_delete_route_title', 'Confirm Delete Route'),
-      `${t('confirm_delete_route_msg', 'Are you sure you want to delete this route?')}\n\n• ${t('route_short_name_label', 'Route')}: ${codeToDelete} (${matchedRoute?.fullName || matchedRoute?.name || codeToDelete})\n• ${t('operating_depot_label', 'Depot')}: ${matchedRoute?.depotName || (matchedRoute?.depotId === '2' ? 'Depot 2' : 'Depot 1')}\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
+      `${t('confirm_delete_route_msg', 'Are you sure you want to delete the selected route(s)?')}\n\n• ${t('route_short_name_label', 'Routes')} (${targets.length}): ${targets.slice(0, 5).join(', ')}${targets.length > 5 ? '... and ' + (targets.length - 5) + ' more' : ''}\n• ${t('decommission_reason_label', 'Reason')}: ${finalReason}`,
       [
         { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
           text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
           onPress: () => {
-            const routeDepotId = String(matchedRoute?.depotId || '1');
-            removeRouteFromDepot(routeDepotId, codeToDelete);
-            setDeletedRouteCodes((prev) => [...prev, codeToDelete]);
-            setCustomRoutes((prev) => prev.filter((r) => r.code !== codeToDelete && r.id !== codeToDelete));
-            setDepotAuditLogs((prev) => [
-              {
-                id: Date.now().toString(),
-                action: 'DELETED',
-                code: codeToDelete,
-                fullName: matchedRoute?.fullName || matchedRoute?.name || codeToDelete,
-                origin: matchedRoute?.origin || '',
-                destination: matchedRoute?.destination || '',
-                distance: matchedRoute?.distance || 0,
-                depot: matchedRoute?.depotName || (matchedRoute?.depotId === '2' ? 'Depot 2' : 'Depot 1'),
-                reason: finalReason,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-              },
-              ...prev,
-            ]);
+            targets.forEach((codeToDelete) => {
+              const matchedRoute = allAvailableRoutes.find((r) => r.code === codeToDelete || r.id === codeToDelete);
+              const routeDepotId = String(matchedRoute?.depotId || '1');
+              removeRouteFromDepot(routeDepotId, codeToDelete);
+              setDeletedRouteCodes((prev) => [...prev, codeToDelete]);
+              setCustomRoutes((prev) => prev.filter((r) => r.code !== codeToDelete && r.id !== codeToDelete));
+              setDepotAuditLogs((prev) => [
+                {
+                  id: (Date.now() + Math.random()).toString(),
+                  action: 'DELETED',
+                  code: codeToDelete,
+                  fullName: matchedRoute?.fullName || matchedRoute?.name || codeToDelete,
+                  origin: matchedRoute?.origin || '',
+                  destination: matchedRoute?.destination || '',
+                  distance: matchedRoute?.distance || 0,
+                  depot: matchedRoute?.depotName || (matchedRoute?.depotId === '2' ? 'Depot 2' : 'Depot 1'),
+                  reason: finalReason,
+                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                },
+                ...prev,
+              ]);
+            });
+
             setDelRouteSelectedCode('');
+            setSelectedRoutesToDelete([]);
             Alert.alert(
-              t('route_deleted_success_title', 'Route Deleted'),
-              `${t('route_short_name_label', 'Route')} ${codeToDelete} ${t('route_deleted_success_msg', 'was successfully removed from active service.')}`
+              t('route_deleted_success_title', 'Routes Decommissioned'),
+              `Successfully removed ${targets.length} route(s) from active service.`
             );
           },
         },
@@ -1662,11 +1693,16 @@ export default function AdminWorkspaceScreen() {
 
   const [delSearchQuery, setDelSearchQuery] = useState('');
   const [delSelectedBm, setDelSelectedBm] = useState('');
+  const [selectedDelBms, setSelectedDelBms] = useState([]);
   const [delReg, setDelReg] = useState('');
   const [delDepot, setDelDepot] = useState('');
   const [delDepotDropdownOpen, setDelDepotDropdownOpen] = useState(false);
   const [delReasonSelect, setDelReasonSelect] = useState('Major Breakdown / Motor Defect');
   const [delReasonDetail, setDelReasonDetail] = useState('');
+
+  // Total Fleet Multi-Selection & Batch Delete States
+  const [fleetMultiSelectMode, setFleetMultiSelectMode] = useState(false);
+  const [selectedFleetBms, setSelectedFleetBms] = useState([]);
 
   const [auditLogs, setAuditLogs] = useState([
     {
@@ -2374,60 +2410,120 @@ export default function AdminWorkspaceScreen() {
   };
 
   const handleSubmitDelete = () => {
-    const targetBm = delSelectedBm.trim().toUpperCase();
-    if (!targetBm) {
-      Alert.alert('Selection Required', 'Please enter or select an active bus to delete.');
+    const targets = selectedDelBms.length > 0
+      ? selectedDelBms
+      : (delSelectedBm.trim().toUpperCase() ? [delSelectedBm.trim().toUpperCase()] : []);
+
+    if (targets.length === 0) {
+      Alert.alert('Selection Required', 'Please enter or select at least one active bus to delete.');
       return;
     }
-    const targetBus = buses.find((b) => b.bmNumber === targetBm);
-    const targetReg = delReg.trim().toUpperCase() || (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
+
     const reasonVal = delReasonDetail.trim() || delReasonSelect || 'Fleet Maintenance Off-road';
-    const targetDepot = String(delDepot || (targetBus && targetBus.depot) || '1');
 
     Alert.alert(
       '⚠️ Confirm Fleet Deletion',
-      `Delete Bus ${targetBm} (${targetReg}) from available fleet?\n\nReason: ${reasonVal}\nDepot: Depot ${targetDepot}`,
+      `Delete ${targets.length} bus(es) from available fleet?\n\n• Buses: ${targets.slice(0, 6).join(', ')}${targets.length > 6 ? '... and ' + (targets.length - 6) + ' more' : ''}\n• Reason: ${reasonVal}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: '🗑 Confirm Delete',
+          text: `🗑 Confirm Delete (${targets.length})`,
           style: 'destructive',
           onPress: async () => {
-            const delPayload = {
-              bm: targetBm,
-              busNumber: targetBm,
-              regNo: targetReg,
-              regNumber: targetReg,
-              depot: targetDepot,
-              reason: reasonVal,
-              reasonVal,
-              make: 'Ashok Leyland',
-              model: 'ELECTRIC BUS AC EiV12',
-            };
-            await deleteBusFromFleet(targetBm, delPayload);
+            if (typeof deleteBusesBatchFromFleet === 'function') {
+              await deleteBusesBatchFromFleet(targets, reasonVal);
+            } else {
+              for (const bm of targets) {
+                await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+              }
+            }
 
-            const newAuditEntry = {
-              id: 'audit_' + Date.now(),
-              action: 'DELETED',
-              bm: targetBm,
-              reg: targetReg,
-              depot: targetDepot,
-              reasonCategory: delReasonSelect,
-              detail: reasonVal,
-              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
-              user: user?.email || 'admin@bmtc.gov.in',
-            };
-            setAuditLogs((prev) => [newAuditEntry, ...prev]);
+            targets.forEach((targetBm) => {
+              const targetBus = buses.find((b) => b.bmNumber === targetBm);
+              const targetReg = (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
+              const targetDepot = String(delDepot || (targetBus && targetBus.depot) || '1');
+              setAuditLogs((prev) => [
+                {
+                  id: 'audit_' + Date.now() + Math.random(),
+                  action: 'DELETED',
+                  bm: targetBm,
+                  reg: targetReg,
+                  depot: targetDepot,
+                  reasonCategory: delReasonSelect,
+                  detail: reasonVal,
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
+                  user: user?.email || 'admin@bmtc.gov.in',
+                },
+                ...prev,
+              ]);
+            });
 
             Alert.alert(
-              '🗑️ Bus Deleted',
-              `Bus ${targetBm} (${targetReg}) has been deleted from the available fleet.\n\nReason recorded: ${reasonVal}`
+              '🗑️ Buses Deleted',
+              `${targets.length} bus(es) have been successfully deleted from the available fleet.\n\nReason recorded: ${reasonVal}`
             );
+            setSelectedDelBms([]);
             setDelSelectedBm('');
             setDelReg('');
             setDelReasonDetail('');
             setDelSearchQuery('');
             setAddDeleteTab('audit');
+          },
+        },
+      ]
+    );
+  };
+
+  // ── Handler: Batch Delete Selected Buses directly from Total Fleet View ──
+  const handleBatchDeleteFleetBuses = () => {
+    if (selectedFleetBms.length === 0) {
+      Alert.alert('Selection Required', 'Please select at least one bus to delete.');
+      return;
+    }
+
+    const targets = [...selectedFleetBms];
+    const reasonVal = 'Batch Fleet Decommissioning';
+
+    Alert.alert(
+      '⚠️ Confirm Fleet Deletion',
+      `Permanently delete ${targets.length} selected buses from the active fleet?\n\n• Buses: ${targets.slice(0, 6).join(', ')}${targets.length > 6 ? '... and ' + (targets.length - 6) + ' more' : ''}\n• Action: Immediate Fleet Decommissioning`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: `🗑 Delete (${targets.length} Buses)`,
+          style: 'destructive',
+          onPress: async () => {
+            if (typeof deleteBusesBatchFromFleet === 'function') {
+              await deleteBusesBatchFromFleet(targets, reasonVal);
+            } else {
+              for (const bm of targets) {
+                await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+              }
+            }
+
+            targets.forEach((targetBm) => {
+              const targetBus = buses.find((b) => b.bmNumber === targetBm);
+              const targetReg = (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
+              const targetDepot = String((targetBus && targetBus.depot) || '1');
+              setAuditLogs((prev) => [
+                {
+                  id: 'audit_' + Date.now() + Math.random(),
+                  action: 'DELETED',
+                  bm: targetBm,
+                  reg: targetReg,
+                  depot: targetDepot,
+                  reasonCategory: 'Batch Fleet Decommissioning',
+                  detail: reasonVal,
+                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
+                  user: user?.email || 'admin@bmtc.gov.in',
+                },
+                ...prev,
+              ]);
+            });
+
+            setSelectedFleetBms([]);
+            setFleetMultiSelectMode(false);
+            Alert.alert('🗑️ Fleet Updated', `${targets.length} buses deleted successfully.`);
           },
         },
       ]
@@ -3548,6 +3644,18 @@ export default function AdminWorkspaceScreen() {
                 <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>🚌 {t('total_buses', 'Total Buses')} ({viewBuses.length})</Text>
                 <View style={styles.sectionActionsRow}>
                   <TouchableOpacity
+                    style={[styles.btnHeaderDownload, fleetMultiSelectMode && { backgroundColor: '#fee2e2', borderColor: '#f87171' }]}
+                    onPress={() => {
+                      setFleetMultiSelectMode((prev) => !prev);
+                      setSelectedFleetBms([]);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.btnHeaderDownloadText, fleetMultiSelectMode && { color: '#dc2626', fontWeight: '800' }]}>
+                      {fleetMultiSelectMode ? '✕ Cancel Batch' : '☑ Batch Delete'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
                     style={styles.btnHeaderDownload}
                     onPress={async () => {
                       if (!viewBuses || viewBuses.length === 0) {
@@ -3612,6 +3720,40 @@ export default function AdminWorkspaceScreen() {
                   </TouchableOpacity>
                 )}
               </View>
+
+              {/* Total Fleet Multi-Select / Batch Delete Control Bar */}
+              {fleetMultiSelectMode && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fef2f2', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#fecaca', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#991b1b' }}>
+                      ☑ {selectedFleetBms.length} Selected
+                    </Text>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1' }}
+                      onPress={() => setSelectedFleetBms(filteredTotalList.map((b) => b.bmNumber))}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Select All Filtered ({filteredTotalList.length})</Text>
+                    </TouchableOpacity>
+                    {selectedFleetBms.length > 0 && (
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1' }}
+                        onPress={() => setSelectedFleetBms([])}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>Clear</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <TouchableOpacity
+                    style={{ backgroundColor: selectedFleetBms.length > 0 ? '#dc2626' : '#94a3b8', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 8 }}
+                    disabled={selectedFleetBms.length === 0}
+                    onPress={handleBatchDeleteFleetBuses}
+                  >
+                    <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 }}>
+                      🗑️ Delete Selected ({selectedFleetBms.length})
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
 
               {/* Fleet Accounting Bar (Available, On Route, Locked counts matching user request) */}
               <View style={styles.totalFleetStatsBar}>
@@ -3704,10 +3846,30 @@ export default function AdminWorkspaceScreen() {
               {filteredTotalList.map((bus) => {
                 const isAlloc = allAllocatedDuties.some((d) => d.bm === bus.bmNumber);
                 const statusColor = isAlloc ? '#6d28d9' : bus.status === 'Available' ? '#15803d' : '#b45309';
+                const isFleetSelected = selectedFleetBms.includes(bus.bmNumber);
                 return (
-                  <View key={bus.bmNumber} style={styles.totalCard}>
+                  <TouchableOpacity
+                    key={bus.bmNumber}
+                    style={[
+                      styles.totalCard,
+                      isFleetSelected && { borderColor: '#dc2626', borderWidth: 2, backgroundColor: '#fef2f2' },
+                    ]}
+                    activeOpacity={fleetMultiSelectMode ? 0.7 : 1}
+                    onPress={() => {
+                      if (fleetMultiSelectMode) {
+                        setSelectedFleetBms((prev) =>
+                          prev.includes(bus.bmNumber) ? prev.filter((x) => x !== bus.bmNumber) : [...prev, bus.bmNumber]
+                        );
+                      }
+                    }}
+                  >
                     <View style={styles.cardHeaderRowTop}>
                       <View style={styles.cardHeaderLeftWrap}>
+                        {fleetMultiSelectMode && (
+                          <Text style={{ fontSize: 18, fontWeight: '800', color: isFleetSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
+                            {isFleetSelected ? '☑' : '☐'}
+                          </Text>
+                        )}
                         <Text style={styles.totalBm}>🚌 {bus.bmNumber}</Text>
                         <Text style={styles.totalReg}>({bus.regNo})</Text>
                         {isBusNewlyAdded(bus, localAddedBuses) && (
@@ -3741,7 +3903,7 @@ export default function AdminWorkspaceScreen() {
                         Range: ~{Math.round(Math.max(0, bus.soc - 10) * 1.42)} km
                       </Text>
                     </View>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
             </View>
@@ -4953,8 +5115,30 @@ export default function AdminWorkspaceScreen() {
 
                   <Text style={styles.modalFieldLabel}>
                     {t('select_existing_active_bus', 'Select Existing Active Bus')} <Text style={{ color: '#ef4444' }}>*</Text>
-                    {delSelectedBm ? ` (${t('selected_badge', 'Selected')}: ${delSelectedBm})` : ` (${filteredDelBuses.length} ${t('active_status', 'Active')})`}
+                    {selectedDelBms.length > 0 ? ` (${selectedDelBms.length} Selected)` : (delSelectedBm ? ` (${t('selected_badge', 'Selected')}: ${delSelectedBm})` : ` (${filteredDelBuses.length} ${t('active_status', 'Active')})`)}
                   </Text>
+                  
+                  {/* Multi-Select Action Bar for Buses */}
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#e0e7ff', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                      onPress={() => setSelectedDelBms(filteredDelBuses.map((b) => b.bmNumber))}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#4338ca' }}>
+                        ✓ Select All ({filteredDelBuses.length})
+                      </Text>
+                    </TouchableOpacity>
+                    {selectedDelBms.length > 0 && (
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                        onPress={() => { setSelectedDelBms([]); setDelSelectedBm(''); }}
+                      >
+                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>
+                          ✕ Clear Selection
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                   <ScrollView style={styles.busSelectorBox} nestedScrollEnabled>
                     {filteredDelBuses.length === 0 ? (
                       <View style={{ padding: 14, alignItems: 'center' }}>
@@ -4964,7 +5148,7 @@ export default function AdminWorkspaceScreen() {
                       </View>
                     ) : (
                       filteredDelBuses.map((bus) => {
-                        const isSelected = delSelectedBm.trim().toUpperCase() === bus.bmNumber.toUpperCase();
+                        const isSelected = selectedDelBms.includes(bus.bmNumber) || delSelectedBm.trim().toUpperCase() === bus.bmNumber.toUpperCase();
                         return (
                           <TouchableOpacity
                             key={bus.bmNumber}
@@ -4972,11 +5156,23 @@ export default function AdminWorkspaceScreen() {
                               styles.delBusOption,
                               isSelected && styles.delBusOptionActive,
                             ]}
-                            onPress={() => handleSelectDelBus(bus.bmNumber)}
+                            onPress={() => {
+                              if (selectedDelBms.includes(bus.bmNumber)) {
+                                setSelectedDelBms((prev) => prev.filter((x) => x !== bus.bmNumber));
+                              } else {
+                                setSelectedDelBms((prev) => [...prev, bus.bmNumber]);
+                                handleSelectDelBus(bus.bmNumber);
+                              }
+                            }}
                           >
-                            <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                              <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
+                                {isSelected ? '☑' : '☐'}
+                              </Text>
+                              <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
                               🚌 {bus.bmNumber} — {bus.regNo || `KA51AH${bus.bmNumber.replace(/\D/g, '').padStart(4, '0')}`} (Depot {bus.depot || '1'})
                             </Text>
+                            </View>
                             {isSelected && (
                               <Text style={{ color: '#dc2626', fontWeight: '800' }}>{t('selected_badge', '✓ Selected')}</Text>
                             )}
@@ -5108,7 +5304,11 @@ export default function AdminWorkspaceScreen() {
                       <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.btnSubmitDel} onPress={handleSubmitDelete}>
-                      <Text style={styles.btnSubmitDelText}>{t('btn_delete_bus_fleet', '🗑️ Delete Bus from Available Fleet')}</Text>
+                      <Text style={styles.btnSubmitDelText}>
+                        {selectedDelBms.length > 1
+                          ? `🗑️ Delete ${selectedDelBms.length} Selected Buses from Fleet`
+                          : t('btn_delete_bus_fleet', '🗑️ Delete Bus from Available Fleet')}
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -5828,7 +6028,30 @@ export default function AdminWorkspaceScreen() {
 
                       <Text style={styles.modalFieldLabel}>
                         {t('select_depot_to_delete', 'Select Depot to Delete')} <Text style={{ color: '#ef4444' }}>*</Text>
+                        {selectedDepotsToDelete.length > 0 ? ` (${selectedDepotsToDelete.length} Selected)` : ''}
                       </Text>
+
+                      {/* Multi-Select Action Bar for Depots */}
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#fee2e2', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                          onPress={() => setSelectedDepotsToDelete(depotsList.map((d) => String(d.id)))}
+                        >
+                          <Text style={{ fontSize: 12, fontWeight: '700', color: '#b91c1c' }}>
+                            ✓ Select All Depots ({depotsList.length})
+                          </Text>
+                        </TouchableOpacity>
+                        {selectedDepotsToDelete.length > 0 && (
+                          <TouchableOpacity
+                            style={{ backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                            onPress={() => { setSelectedDepotsToDelete([]); setSelectedDepotToDelete(''); }}
+                          >
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>
+                              ✕ Clear Selection
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                       {depotsList.length === 0 ? (
                         <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
                           <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
@@ -5838,20 +6061,33 @@ export default function AdminWorkspaceScreen() {
                       ) : (
                         <ScrollView style={[styles.busSelectorBox, { maxHeight: 180 }]} nestedScrollEnabled>
                           {depotsList.map((d) => {
-                            const isSelected = selectedDepotToDelete === String(d.id);
+                            const dId = String(d.id);
+                            const isSelected = selectedDepotsToDelete.includes(dId) || selectedDepotToDelete === dId;
                             return (
                               <TouchableOpacity
                                 key={d.id}
                                 style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
-                                onPress={() => setSelectedDepotToDelete(String(d.id))}
+                                onPress={() => {
+                                  if (selectedDepotsToDelete.includes(dId)) {
+                                    setSelectedDepotsToDelete((prev) => prev.filter((x) => x !== dId));
+                                  } else {
+                                    setSelectedDepotsToDelete((prev) => [...prev, dId]);
+                                    setSelectedDepotToDelete(dId);
+                                  }
+                                }}
                               >
-                                <View style={{ flex: 1 }}>
-                                  <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
-                                    🏢 {d.name} (ID: {d.id})
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                  <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
+                                    {isSelected ? '☑' : '☐'}
                                   </Text>
-                                  <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                    📍 {d.location} • {d.routes?.length || 0} {t('routes_attached', 'Routes Attached')}
-                                  </Text>
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                      🏢 {d.name} (ID: {d.id})
+                                    </Text>
+                                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                      📍 {d.location} • {d.routes?.length || 0} {t('routes_attached', 'Routes Attached')}
+                                    </Text>
+                                  </View>
                                 </View>
                                 {isSelected && (
                                   <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
@@ -5916,7 +6152,11 @@ export default function AdminWorkspaceScreen() {
                           <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteDepot}>
-                          <Text style={styles.btnSubmitDelText}>{t('btn_delete_depot', '🗑️ Delete Depot')}</Text>
+                          <Text style={styles.btnSubmitDelText}>
+                            {selectedDepotsToDelete.length > 1
+                              ? `🗑️ Delete ${selectedDepotsToDelete.length} Selected Depots`
+                              : t('btn_delete_depot', '🗑️ Delete Depot')}
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
@@ -5951,7 +6191,44 @@ export default function AdminWorkspaceScreen() {
 
                       <Text style={styles.modalFieldLabel}>
                         {t('select_route_to_decommission', 'Select Route to Decommission')} <Text style={{ color: '#ef4444' }}>*</Text>
+                        {selectedRoutesToDelete.length > 0 ? ` (${selectedRoutesToDelete.length} Selected)` : ''}
                       </Text>
+
+                      {/* Multi-Select Action Bar for Routes */}
+                      {(() => {
+                        const filteredRoutes = allAvailableRoutes.filter((r) => {
+                          if (!delRouteSearchQuery.trim()) return true;
+                          const q = delRouteSearchQuery.trim().toLowerCase();
+                          return (
+                            (r.code && r.code.toLowerCase().includes(q)) ||
+                            (r.name && r.name.toLowerCase().includes(q)) ||
+                            (r.origin && r.origin.toLowerCase().includes(q)) ||
+                            (r.destination && r.destination.toLowerCase().includes(q))
+                          );
+                        });
+                        return (
+                          <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+                            <TouchableOpacity
+                              style={{ backgroundColor: '#fee2e2', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                              onPress={() => setSelectedRoutesToDelete(filteredRoutes.map((r) => r.code))}
+                            >
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#b91c1c' }}>
+                                ✓ Select All Filtered ({filteredRoutes.length})
+                              </Text>
+                            </TouchableOpacity>
+                            {selectedRoutesToDelete.length > 0 && (
+                              <TouchableOpacity
+                                style={{ backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                                onPress={() => { setSelectedRoutesToDelete([]); setDelRouteSelectedCode(''); }}
+                              >
+                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>
+                                  ✕ Clear Selection
+                                </Text>
+                              </TouchableOpacity>
+                            )}
+                          </View>
+                        );
+                      })()}
                       <ScrollView style={styles.busSelectorBox} nestedScrollEnabled>
                         {allAvailableRoutes
                           .filter((r) => {
@@ -5965,20 +6242,32 @@ export default function AdminWorkspaceScreen() {
                             );
                           })
                           .map((r) => {
-                            const isSelected = delRouteSelectedCode === r.code;
+                            const isSelected = selectedRoutesToDelete.includes(r.code) || delRouteSelectedCode === r.code;
                             return (
                               <TouchableOpacity
                                 key={r.code}
                                 style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
-                                onPress={() => setDelRouteSelectedCode(r.code)}
+                                onPress={() => {
+                                  if (selectedRoutesToDelete.includes(r.code)) {
+                                    setSelectedRoutesToDelete((prev) => prev.filter((x) => x !== r.code));
+                                  } else {
+                                    setSelectedRoutesToDelete((prev) => [...prev, r.code]);
+                                    setDelRouteSelectedCode(r.code);
+                                  }
+                                }}
                               >
-                                <View style={{ flex: 1 }}>
-                                  <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
-                                    🛣️ [{r.code}] {r.fullName || r.name}
+                                <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                  <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
+                                    {isSelected ? '☑' : '☐'}
                                   </Text>
-                                  <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                    {r.origin && r.destination ? `${r.origin} ➔ ${r.destination}` : r.name} • {r.distance} km • {r.depotName || (r.depotId === '2' ? 'Depot 2' : 'Depot 1')}
-                                  </Text>
+                                  <View style={{ flex: 1 }}>
+                                    <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                      🛣️ [{r.code}] {r.fullName || r.name}
+                                    </Text>
+                                    <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                      {r.origin && r.destination ? `${r.origin} ➔ ${r.destination}` : r.name} • {r.distance} km • {r.depotName || (r.depotId === '2' ? 'Depot 2' : 'Depot 1')}
+                                    </Text>
+                                  </View>
                                 </View>
                                 {isSelected && (
                                   <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
@@ -6025,7 +6314,11 @@ export default function AdminWorkspaceScreen() {
                           <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitDel} onPress={handleDeleteRouteFromDepot}>
-                          <Text style={styles.btnSubmitDelText}>{t('btn_decommission_route', '🗑️ Decommission Route')}</Text>
+                          <Text style={styles.btnSubmitDelText}>
+                            {selectedRoutesToDelete.length > 1
+                              ? `🛣️ Decommission ${selectedRoutesToDelete.length} Selected Routes`
+                              : t('btn_decommission_route', '🗑️ Decommission Route')}
+                          </Text>
                         </TouchableOpacity>
                       </View>
                     </View>
