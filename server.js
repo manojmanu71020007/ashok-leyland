@@ -8,7 +8,12 @@ const path = require("path");
 
 const zlib = require("zlib");
 
-const XLSX = require("xlsx");
+let XLSX;
+try {
+    XLSX = require("xlsx");
+} catch (e) {
+    console.warn("[WARN] 'xlsx' module not found, fallback parser active:", e.message);
+}
 
 const socLogger = require("./soc_logger");
 
@@ -5285,9 +5290,10 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
     const seenRegOrBm = new Set();
 
     // 1. Try pure JavaScript SheetJS (XLSX) parser for .csv, .tsv, .xlsx, .xls, .xlx
-    try {
-        const fileBuffer = fs.readFileSync(filePath);
-        const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+    if (XLSX) {
+        try {
+            const fileBuffer = fs.readFileSync(filePath);
+            const workbook = XLSX.read(fileBuffer, { type: "buffer" });
 
         for (const sheetName of workbook.SheetNames) {
             const sheet = workbook.Sheets[sheetName];
@@ -5373,6 +5379,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
     } catch (sheetErr) {
         console.warn("SheetJS parse warning, falling back to line parser:", sheetErr.message);
     }
+}
 
     // 2. Line parser fallback for plain CSV/text
     if (rows.length === 0) {

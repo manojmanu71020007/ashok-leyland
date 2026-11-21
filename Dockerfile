@@ -14,6 +14,10 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install Node.js dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
+
 # Copy application source and data files
 COPY . .
 
