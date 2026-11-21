@@ -22415,7 +22415,7 @@
   "_routesDatabase": {
     "version": "1.0",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-15T08:58:07.801Z",
+    "lastUpdated": "2026-11-21T15:10:35.433Z",
     "depots": [
       {
         "id": "1",
@@ -22444,6 +22444,17 @@
           "328H",
           "500DC",
           "KBS3F"
+        ]
+      },
+      {
+        "id": "3",
+        "name": "Peenya",
+        "routes": [
+          "201G",
+          "275M",
+          "318R",
+          "342A",
+          "415T"
         ]
       }
     ],
@@ -23201,6 +23212,211 @@
             "swapBm": "BM293",
             "category": "Standard",
             "singleChargeReqKm": 30
+          }
+        ]
+      },
+      {
+        "code": "201G",
+        "id": "201G",
+        "depotId": "3",
+        "name": "Hebbagodi ➔ Shivajinagar (201G)",
+        "fullName": "Hebbagodi ➔ Shivajinagar (201G)",
+        "shortName": "201G",
+        "origin": "Hebbagodi",
+        "destination": "Shivajinagar",
+        "distance": 108.35,
+        "fullDutyKm": 216.7,
+        "routeComplexity": "Complex",
+        "category": "Complex",
+        "requiredCat": "A",
+        "drainSoc": 92,
+        "timeComplexity": "Normal",
+        "timetables": [
+          "06:30 AM",
+          "08:00 AM",
+          "01:10 PM",
+          "03:00 PM",
+          "06:45 PM"
+        ],
+        "timeComplexitySlots": {
+          "06:30 AM": "Normal",
+          "08:00 AM": "Extreme Peak",
+          "01:10 PM": "Peak",
+          "03:00 PM": "Peak",
+          "06:45 PM": "Extreme Peak"
+        },
+        "schedules": [
+          {
+            "scheduleId": "201G/1",
+            "shift": "General Shift",
+            "outTime": "08:00 AM",
+            "inTime": "04:00 PM",
+            "fixBm": "",
+            "swapBm": ""
+          }
+        ]
+      },
+      {
+        "code": "275M",
+        "id": "275M",
+        "depotId": "3",
+        "name": "Attibele ➔ Jayanagar (275M)",
+        "fullName": "Attibele ➔ Jayanagar (275M)",
+        "shortName": "275M",
+        "origin": "Attibele",
+        "destination": "Jayanagar",
+        "distance": 126.45,
+        "fullDutyKm": 252.9,
+        "routeComplexity": "Complex",
+        "category": "Complex",
+        "requiredCat": "A",
+        "drainSoc": 95,
+        "timeComplexity": "Normal",
+        "timetables": [
+          "06:30 AM",
+          "08:00 AM",
+          "01:10 PM",
+          "03:00 PM",
+          "06:45 PM"
+        ],
+        "timeComplexitySlots": {
+          "06:30 AM": "Normal",
+          "08:00 AM": "Extreme Peak",
+          "01:10 PM": "Peak",
+          "03:00 PM": "Peak",
+          "06:45 PM": "Extreme Peak"
+        },
+        "schedules": [
+          {
+            "scheduleId": "275M/1",
+            "shift": "General Shift",
+            "outTime": "08:00 AM",
+            "inTime": "04:00 PM",
+            "fixBm": "",
+            "swapBm": ""
+          }
+        ]
+      },
+      {
+        "code": "318R",
+        "id": "318R",
+        "depotId": "3",
+        "name": "Anekal ➔ Yeshwanthpur (318R)",
+        "fullName": "Anekal ➔ Yeshwanthpur (318R)",
+        "shortName": "318R",
+        "origin": "Anekal",
+        "destination": "Yeshwanthpur",
+        "distance": 119.9,
+        "fullDutyKm": 239.8,
+        "routeComplexity": "Complex",
+        "category": "Complex",
+        "requiredCat": "A",
+        "drainSoc": 95,
+        "timeComplexity": "Normal",
+        "timetables": [
+          "06:30 AM",
+          "08:00 AM",
+          "01:10 PM",
+          "03:00 PM",
+          "06:45 PM"
+        ],
+        "timeComplexitySlots": {
+          "06:30 AM": "Normal",
+          "08:00 AM": "Extreme Peak",
+          "01:10 PM": "Peak",
+          "03:00 PM": "Peak",
+          "06:45 PM": "Extreme Peak"
+        },
+        "schedules": [
+          {
+            "scheduleId": "318R/1",
+            "shift": "General Shift",
+            "outTime": "08:00 AM",
+            "inTime": "04:00 PM",
+            "fixBm": "",
+            "swapBm": ""
+          }
+        ]
+      },
+      {
+        "code": "342A",
+        "id": "342A",
+        "depotId": "3",
+        "name": "Bommasandra ➔ Hebbal (342A)",
+        "fullName": "Bommasandra ➔ Hebbal (342A)",
+        "shortName": "342A",
+        "origin": "Bommasandra",
+        "destination": "Hebbal",
+        "distance": 139.26,
+        "fullDutyKm": 278.5,
+        "routeComplexity": "Complex",
+        "category": "Complex",
+        "requiredCat": "A",
+        "drainSoc": 95,
+        "timeComplexity": "Normal",
+        "timetables": [
+          "06:30 AM",
+          "08:00 AM",
+          "01:10 PM",
+          "03:00 PM",
+          "06:45 PM"
+        ],
+        "timeComplexitySlots": {
+          "06:30 AM": "Normal",
+          "08:00 AM": "Extreme Peak",
+          "01:10 PM": "Peak",
+          "03:00 PM": "Peak",
+          "06:45 PM": "Extreme Peak"
+        },
+        "schedules": [
+          {
+            "scheduleId": "342A/1",
+            "shift": "General Shift",
+            "outTime": "08:00 AM",
+            "inTime": "04:00 PM",
+            "fixBm": "",
+            "swapBm": ""
+          }
+        ]
+      },
+      {
+        "code": "415T",
+        "id": "415T",
+        "depotId": "3",
+        "name": "Harohalli ➔ Devanahalli (415T)",
+        "fullName": "Harohalli ➔ Devanahalli (415T)",
+        "shortName": "415T",
+        "origin": "Harohalli",
+        "destination": "Devanahalli",
+        "distance": 159.5,
+        "fullDutyKm": 319,
+        "routeComplexity": "Complex",
+        "category": "Complex",
+        "requiredCat": "A",
+        "drainSoc": 95,
+        "timeComplexity": "Normal",
+        "timetables": [
+          "06:30 AM",
+          "08:00 AM",
+          "01:10 PM",
+          "03:00 PM",
+          "06:45 PM"
+        ],
+        "timeComplexitySlots": {
+          "06:30 AM": "Normal",
+          "08:00 AM": "Extreme Peak",
+          "01:10 PM": "Peak",
+          "03:00 PM": "Peak",
+          "06:45 PM": "Extreme Peak"
+        },
+        "schedules": [
+          {
+            "scheduleId": "415T/1",
+            "shift": "General Shift",
+            "outTime": "08:00 AM",
+            "inTime": "04:00 PM",
+            "fixBm": "",
+            "swapBm": ""
           }
         ]
       }
