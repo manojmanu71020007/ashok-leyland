@@ -735,6 +735,49 @@ export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
 }
 
 /**
+ * Adds a new departure time to an existing route's timetables and syncs to dataset
+ */
+export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
+  const cleanCode = String(routeCode || '').toUpperCase().trim();
+  const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
+  const cleanTime = String(departureTime || '').trim();
+  if (!cleanCode || !cleanTime) return false;
+
+  let found = false;
+  masterDataset.routes.forEach((r) => {
+    const matchCode = String(r.code || r.id).toUpperCase().trim() === cleanCode;
+    const matchDepot = dId ? String(r.depotId).trim() === dId : true;
+    if (matchCode && matchDepot) {
+      if (!Array.isArray(r.timetables)) r.timetables = [];
+      if (!r.timetables.includes(cleanTime)) {
+        r.timetables.push(cleanTime);
+        r.timetables.sort((a, b) => {
+          const parseMin = (t) => {
+            const m = String(t).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+            if (!m) return 0;
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2], 10);
+            const isPm = /pm/i.test(m[3] || '');
+            if (isPm && h < 12) h += 12;
+            if (!isPm && h === 12) h = 0;
+            return h * 60 + min;
+          };
+          return parseMin(a) - parseMin(b);
+        });
+        found = true;
+      }
+    }
+  });
+
+  if (found) {
+    persistDataset();
+    notifyListeners();
+    syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime });
+  }
+  return found;
+}
+
+/**
  * Synchronizes in-memory dataset with server data
  */
 export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {

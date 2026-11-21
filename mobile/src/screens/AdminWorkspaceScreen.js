@@ -45,9 +45,12 @@ import {
 } from '../context/accounts';
 import {
   getMasterDataset,
+  addRouteToDataset,
   updateRouteComplexityInDataset,
   updateTimeComplexityInDataset,
   updateRouteTimetablesInDataset,
+  addDepartureTimeToRoute,
+  syncDatasetWithServer,
   subscribeDatasetChanges,
 } from '../context/routeDataset';
 
@@ -875,11 +878,14 @@ export default function AdminWorkspaceScreen() {
     return 0;
   });
 
-  // Schedule Overview Filters: 1 Search Box & 2 Dropdown Menus (Depots & Routes)
+  // Schedule Overview Filters: 1 Search Box & 3 Dropdown Menus (Depots, Routes, & Departure Times)
   const [scheduleSearchQuery, setScheduleSearchQuery] = useState('');
   const [scheduleSelectedDepot, setScheduleSelectedDepot] = useState('all'); // 'all' | depotId
   const [scheduleDepotPickerOpen, setScheduleDepotPickerOpen] = useState(false);
   const [scheduleRoutePickerOpen, setScheduleRoutePickerOpen] = useState(false);
+  const [scheduleTimePickerOpen, setScheduleTimePickerOpen] = useState(false);
+  const [newDepartureTimeInput, setNewDepartureTimeInput] = useState('');
+  const [showAddDepartureTimeInput, setShowAddDepartureTimeInput] = useState(false);
 
   // Notifications Modal State: Recently Route Completed Buses
   const [recentCompletedModalOpen, setRecentCompletedModalOpen] = useState(false);
@@ -1032,6 +1038,41 @@ export default function AdminWorkspaceScreen() {
         list.push({ ...r, depotId: '2', depotName: 'Depot 2 (Attibele / Hoskote)' });
       }
     });
+
+    // 4. Enrich with Master Route & Schedule Dataset (including uploaded spreadsheets & dynamic departure times)
+    try {
+      const masterDs = getMasterDataset();
+      if (masterDs && Array.isArray(masterDs.routes)) {
+        masterDs.routes.forEach((mr) => {
+          const code = String(mr.code || mr.id).toUpperCase().trim();
+          const dId = String(mr.depotId || '1');
+          if (deletedRouteCodes.includes(code)) return;
+          if (dId === '1' && CORE_DEPOT_2_CODES.includes(code)) return;
+          if (dId === '2' && CORE_DEPOT_1_CODES.includes(code)) return;
+
+          const existingIdx = list.findIndex((x) => x.code === code && String(x.depotId) === dId);
+          if (existingIdx >= 0) {
+            // Merge richer timetables from dataset
+            if (Array.isArray(mr.timetables) && mr.timetables.length > 0) {
+              const combined = Array.from(new Set([...(list[existingIdx].timetables || []), ...mr.timetables]));
+              list[existingIdx].timetables = combined;
+            }
+            if (Array.isArray(mr.schedules) && mr.schedules.length > 0) {
+              list[existingIdx].schedules = mr.schedules;
+            }
+          } else if (!seen.has(`${dId}_${code}`)) {
+            seen.add(`${dId}_${code}`);
+            list.push({
+              ...mr,
+              id: `${dId}_${code}`,
+              code,
+              depotId: dId,
+              depotName: mr.depotName || (dId === '1' ? 'Depot 1 (Chandapura)' : dId === '2' ? 'Depot 2 (Attibele / Hoskote)' : `Depot ${dId}`),
+            });
+          }
+        });
+      }
+    } catch (_) {}
 
     return list;
   }, [depotsList, customRoutes, deletedRouteCodes, datasetVersionTick]);
@@ -1455,17 +1496,38 @@ export default function AdminWorkspaceScreen() {
           }
         }
 
+        // Immediately sync updated master route & schedule dataset with 0ms UI delay
+        if (data.routesDataset) {
+          syncDatasetWithServer(data.routesDataset);
+        }
+        setDatasetVersionTick((v) => v + 1);
+
         // Trigger fleet refresh
         if (typeof refreshFleet === 'function') {
           refreshFleet();
         }
 
+        const reportLines = [];
+        if (data.busesAdded > 0) reportLines.push(`• 🚌 Buses Added: ${data.busesAdded} vehicles registered`);
+        if (data.routesAdded > 0) reportLines.push(`• 🛣️ New Routes: ${data.routesAdded} routes registered to dataset`);
+        if (data.timetablesAdded > 0) reportLines.push(`• 🕒 Departure Times: ${data.timetablesAdded} timetable slots added`);
+        if (data.schedulesAdded > 0) reportLines.push(`• 📋 Duty Schedules: ${data.schedulesAdded} schedules updated`);
+
         if (data.busesAdded > 0 && Array.isArray(data.addedBuses)) {
           const sampleList = data.addedBuses.slice(0, 5).map((b) => `• ${b.bm} (${b.regNo}) — Cat ${b.category}`).join('\n');
           const moreCount = data.addedBuses.length > 5 ? `\n• ...and ${data.addedBuses.length - 5} more` : '';
           Alert.alert(
-            `✅ ${data.busesAdded} Buses Added to Fleet!`,
-            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\nBuses added to fleet:\n${sampleList}${moreCount}\n\nTotal fleet count is now updated (${data.totalFleetCount || ''} total buses).`
+            `✅ Dataset Updated Successfully!`,
+            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\n` +
+            (reportLines.length > 0 ? reportLines.join('\n') + '\n\n' : '') +
+            `Buses added to fleet:\n${sampleList}${moreCount}\n\nTotal fleet count is now updated (${data.totalFleetCount || ''} total buses).`
+          );
+        } else if (data.routesAdded > 0 || data.timetablesAdded > 0 || data.schedulesAdded > 0) {
+          Alert.alert(
+            `✅ Route & Timetable Dataset Updated!`,
+            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\n` +
+            reportLines.join('\n') + '\n\n' +
+            `Active schedules and departure timetables are now available across all dispatch consoles.`
           );
         } else {
           Alert.alert(
@@ -1568,6 +1630,11 @@ export default function AdminWorkspaceScreen() {
 
             // Attach route to depot in accounts and sync across devices
             addRouteToDepot(resolvedDepotId, newRoute);
+            try {
+              addRouteToDataset(resolvedDepotId, newRoute);
+              api.updateRoutesDataset({ action: 'add_route', depotId: resolvedDepotId, route: newRoute }).catch(() => {});
+            } catch (_) {}
+            setDatasetVersionTick((v) => v + 1);
 
             setCustomRoutes((prev) => [newRoute, ...prev]);
             setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
@@ -2939,6 +3006,36 @@ export default function AdminWorkspaceScreen() {
                     {selectedRoute
                       ? `🚌 [${selectedRoute.code}] ${selectedRoute.shortName || selectedRoute.code} (${selectedRoute.distance} km) • ${selectedRoute.depotName || ('Depot ' + selectedRoute.depotId)}`
                       : (filteredRoutesForDropdown.length === 0 ? 'No routes available' : '— Choose a route —')}
+                  </Text>
+                </View>
+                <Text style={styles.scheduleDropdownCaret}>▼</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Dropdown 3: Select Scheduled Departure Time (Dataset Timetable) */}
+            <View style={styles.scheduleDropdownCol}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.scheduleDropdownLabel}>
+                  🕒 3. Departure Time (from dataset)
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setShowAddDepartureTimeInput(true);
+                    setScheduleTimePickerOpen(true);
+                  }}
+                  style={{ paddingVertical: 2, paddingHorizontal: 6 }}
+                >
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>+ Add Time</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={styles.scheduleDropdownBtn}
+                onPress={() => setScheduleTimePickerOpen(true)}
+                activeOpacity={0.8}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.scheduleDropdownBtnText} numberOfLines={1}>
+                    🕒 {scheduledTime || (selectedRoute?.timetables && selectedRoute.timetables[0]) || 'Select departure time'} • {(selectedRoute?.timetables || []).length} departure slots
                   </Text>
                 </View>
                 <Text style={styles.scheduleDropdownCaret}>▼</Text>
@@ -6678,6 +6775,171 @@ export default function AdminWorkspaceScreen() {
                         </Text>
                       </View>
                       {isSelected && <Text style={styles.schedulePickerCheck}>✓</Text>}
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── MODAL: SCHEDULE OVERVIEW - SELECT DEPARTURE TIME PICKER ── */}
+      <Modal
+        visible={scheduleTimePickerOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setScheduleTimePickerOpen(false);
+          setShowAddDepartureTimeInput(false);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxHeight: '82%' }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.modalEyebrow, { color: '#0284c7' }]}>TIMETABLE DEPARTURE SELECTOR</Text>
+                <Text style={styles.modalTitle}>🕒 Scheduled Departure Time</Text>
+                <Text style={styles.modalSubtitle}>
+                  Route {selectedRoute?.code || '—'} ({selectedRoute?.origin || ''} ➔ {selectedRoute?.destination || ''}) • {selectedRoute?.depotName || ('Depot ' + (selectedRoute?.depotId || '1'))}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setScheduleTimePickerOpen(false);
+                  setShowAddDepartureTimeInput(false);
+                }}
+                style={styles.modalCloseBtn}
+              >
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Quick Add New Departure Time Input */}
+            <View style={{ paddingHorizontal: 16, paddingTop: 10, paddingBottom: 6, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>
+                  {showAddDepartureTimeInput ? '➕ Add New Departure Time to Route Dataset:' : 'Available Dataset Departure Times:'}
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowAddDepartureTimeInput(!showAddDepartureTimeInput)}
+                  style={{ paddingVertical: 2, paddingHorizontal: 6 }}
+                >
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0284c7' }}>
+                    {showAddDepartureTimeInput ? 'Hide' : '+ Add Time'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {showAddDepartureTimeInput && (
+                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
+                  <TextInput
+                    style={{
+                      flex: 1,
+                      borderWidth: 1,
+                      borderColor: '#cbd5e1',
+                      borderRadius: 8,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      fontSize: 13,
+                      backgroundColor: '#ffffff',
+                      color: '#0f172a'
+                    }}
+                    placeholder="e.g. 11:45 AM or 04:30 PM"
+                    placeholderTextColor="#94a3b8"
+                    value={newDepartureTimeInput}
+                    onChangeText={setNewDepartureTimeInput}
+                    autoCapitalize="characters"
+                  />
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: '#0284c7',
+                      paddingHorizontal: 14,
+                      paddingVertical: 9,
+                      borderRadius: 8,
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onPress={() => {
+                      const clean = newDepartureTimeInput.trim();
+                      if (!clean) {
+                        Alert.alert('Empty Input', 'Please enter a departure time (e.g. 11:45 AM).');
+                        return;
+                      }
+                      if (!selectedRoute?.code) {
+                        Alert.alert('No Route Selected', 'Please select a route first.');
+                        return;
+                      }
+                      addDepartureTimeToRoute(selectedRoute.code, selectedRoute.depotId, clean);
+                      if (api && typeof api.updateRoutesDataset === 'function') {
+                        api.updateRoutesDataset({
+                          action: 'add_departure_time',
+                          routeCode: selectedRoute.code,
+                          depotId: selectedRoute.depotId,
+                          departureTime: clean
+                        }).catch(() => {});
+                      }
+                      setScheduledTime(clean);
+                      setNewDepartureTimeInput('');
+                      setShowAddDepartureTimeInput(false);
+                      setDatasetVersionTick(v => v + 1);
+                      Alert.alert(
+                        'Departure Time Added',
+                        `Departure time ${clean} has been successfully saved to Route ${selectedRoute.code} in the Master Dataset.`
+                      );
+                    }}
+                  >
+                    <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }}>
+              {(!selectedRoute?.timetables || selectedRoute.timetables.length === 0) ? (
+                <View style={{ padding: 24, alignItems: 'center' }}>
+                  <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                    No departure timetables configured for this route. Tap "+ Add Time" above to add one.
+                  </Text>
+                </View>
+              ) : (
+                selectedRoute.timetables.map((t) => {
+                  const isSelected = String(t).trim().toUpperCase() === String(scheduledTime).trim().toUpperCase();
+                  const timeInfo = getTimeCategory(t);
+                  const isPeak = timeInfo && timeInfo.isPeak;
+                  return (
+                    <TouchableOpacity
+                      key={t}
+                      style={[styles.schedulePickerItem, isSelected && styles.schedulePickerItemActive]}
+                      onPress={() => {
+                        setScheduledTime(t);
+                        setScheduleTimePickerOpen(false);
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <View>
+                          <Text style={[styles.schedulePickerTitle, isSelected && { color: '#0284c7' }]}>
+                            🕒 {t}
+                          </Text>
+                          <Text style={styles.schedulePickerSub}>
+                            {timeInfo?.timeSlot || 'Scheduled Timetable'} • Route {selectedRoute.code}
+                          </Text>
+                        </View>
+                        <View style={{
+                          paddingHorizontal: 8,
+                          paddingVertical: 3,
+                          borderRadius: 6,
+                          backgroundColor: isPeak ? '#fef2f2' : '#f0fdf4',
+                          borderWidth: 1,
+                          borderColor: isPeak ? '#fca5a5' : '#86efac'
+                        }}>
+                          <Text style={{ fontSize: 10, fontWeight: '700', color: isPeak ? '#dc2626' : '#16a34a' }}>
+                            {isPeak ? 'PEAK' : 'OFF-PEAK'}
+                          </Text>
+                        </View>
+                      </View>
+                      {isSelected && <Text style={[styles.schedulePickerCheck, { marginLeft: 8 }]}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })

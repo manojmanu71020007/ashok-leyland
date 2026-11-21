@@ -299,4 +299,26 @@ export const api = {
       }),
     });
   },
+
+  // Generic GET & POST helpers
+  get: async (endpoint) => {
+    return apiRequest(endpoint, { method: 'GET' });
+  },
+  post: async (endpoint, data = {}) => {
+    return apiRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Master Route & Schedule Dataset
+  getRoutesDataset: async () => {
+    return apiRequest('/api/dataset/routes');
+  },
+  updateRoutesDataset: async (payload) => {
+    return apiRequest('/api/dataset/routes', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
 };

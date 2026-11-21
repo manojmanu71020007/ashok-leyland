@@ -1049,7 +1049,56 @@ function loadCorridorSchedules() {
 
     }
 
-
+    // Enrich with master route dataset (including dynamically ingested routes and departure schedules)
+    try {
+        const state = loadBusState();
+        const ds = state._routesDatabase || loadRoutesDataset();
+        if (ds && Array.isArray(ds.routes)) {
+            ds.routes.forEach(r => {
+                const cleanCode = String(r.code || r.id || "").toUpperCase().trim();
+                if (!cleanCode) return;
+                let existingDir = directionalRoutes.find(c => c.code === cleanCode);
+                if (!existingDir) {
+                    const cObj = {
+                        id: cleanCode,
+                        code: cleanCode,
+                        routeCode: cleanCode,
+                        routeId: cleanCode,
+                        origin: r.origin || "Origin",
+                        destination: r.destination || "Destination",
+                        distKm: Number(r.distance) || 28.7,
+                        distanceKm: Number(r.distance) || 28.7,
+                        trips: (r.timetables && r.timetables.length) || 8,
+                        label: `${r.origin || 'Origin'} ⇔ ${r.destination || 'Destination'} (Route ${cleanCode}) — ${r.distance || 28.7} km`
+                    };
+                    directionalRoutes.push(cObj);
+                    corridorMap.push(cObj);
+                }
+                if (Array.isArray(r.schedules)) {
+                    r.schedules.forEach(s => {
+                        const sId = String(s.scheduleId || "").trim();
+                        if (sId && !schedules.some(x => String(x.scheduleId).toLowerCase() === sId.toLowerCase())) {
+                            schedules.push({
+                                scheduleId: sId,
+                                route: cleanCode,
+                                shift: s.shift || "General Shift",
+                                fixBm: s.fixBm || "",
+                                fixReg: s.fixReg || "",
+                                swapBm: s.swapBm || "",
+                                swapReg: s.swapReg || "",
+                                outTime: s.outTime || "08:00:00",
+                                inTime: s.inTime || "16:00:00",
+                                category: s.category || r.routeComplexity || "Standard",
+                                singleChargeReqKm: s.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5)
+                            });
+                        }
+                    });
+                }
+            });
+        }
+    } catch (e) {
+        console.warn("Could not enrich corridor schedules from master route dataset:", e.message);
+    }
 
     cachedCorridorSchedules = { corridors: corridorMap, directionalRoutes, schedules };
 
@@ -5267,11 +5316,26 @@ const server = http.createServer(async (req, res) => {
                                 }
                             });
                         }
+                    } else if (action === "add_departure_time" && routeCode && payload.departureTime) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        const newTime = String(payload.departureTime).trim();
+                        if (dataset.routes) {
+                            dataset.routes.forEach(r => {
+                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
+                                    if (!Array.isArray(r.timetables)) r.timetables = [];
+                                    if (!r.timetables.includes(newTime)) {
+                                        r.timetables.push(newTime);
+                                    }
+                                }
+                            });
+                        }
                     }
 
                     currentState._routesDatabase = dataset;
                     saveRoutesDataset(dataset);
                     saveBusState(currentState);
+                    cachedCorridorSchedules = null;
                     stateVersion = Date.now();
                     broadcastSyncEvent("routes-dataset-updated", { dataset });
                     sendJson(res, { ok: true, dataset, version: stateVersion });
@@ -5526,6 +5590,396 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
     };
 }
 
+// ── Helper: Format Excel numeric time fraction or time string to HH:MM AM/PM ──
+function formatSpreadsheetTime(val) {
+    if (val === null || val === undefined || val === "") return null;
+    if (typeof val === "number") {
+        const totalMinutes = Math.round(val * 24 * 60);
+        const hours24 = Math.floor(totalMinutes / 60) % 24;
+        const minutes = totalMinutes % 60;
+        const isPm = hours24 >= 12;
+        const hours12 = hours24 % 12 || 12;
+        const pad = (n) => String(n).padStart(2, "0");
+        return `${pad(hours12)}:${pad(minutes)} ${isPm ? "PM" : "AM"}`;
+    }
+    const str = String(val).trim();
+    if (/^\d{1,2}:\d{2}(:\d{2})?\s*(am|pm)?$/i.test(str)) {
+        const match = str.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(am|pm)?$/i);
+        if (match) {
+            let h = parseInt(match[1], 10);
+            const m = match[2];
+            const ampm = match[3] ? match[3].toUpperCase() : null;
+            if (ampm) {
+                return `${String(h).padStart(2, "0")}:${m} ${ampm}`;
+            } else {
+                const isPm = h >= 12;
+                const h12 = h % 12 || 12;
+                return `${String(h12).padStart(2, "0")}:${m} ${isPm ? "PM" : "AM"}`;
+            }
+        }
+    }
+    return str;
+}
+
+// ── Helper: Parse and ingest uploaded Route details and Departure Times into Master Dataset ──
+function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, targetDepotName) {
+    const defaultDepot = targetDepot && targetDepot !== "all" ? String(targetDepot) : "1";
+    const routesMap = new Map();
+
+    // 1. SheetJS parser for Excel & CSV
+    if (XLSX) {
+        try {
+            const fileBuffer = fs.readFileSync(filePath);
+            const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+
+            for (const sheetName of workbook.SheetNames) {
+                const sheet = workbook.Sheets[sheetName];
+                if (!sheet) continue;
+
+                const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                if (!rawRows || rawRows.length < 2) continue;
+
+                let headerIdx = -1;
+                let routeIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1;
+                let fixBmIdx = -1, swapBmIdx = -1, distIdx = -1, origIdx = -1, destIdx = -1;
+
+                for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
+                    const row = rawRows[r];
+                    if (!Array.isArray(row)) continue;
+                    let fRoute = -1, fSched = -1, fOut = -1, fIn = -1, fShift = -1, fFix = -1, fSwap = -1, fDist = -1, fOrig = -1, fDest = -1;
+
+                    row.forEach((cell, cIdx) => {
+                        const clean = String(cell || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                        if (/^route(no|code|name)?$/i.test(clean) || clean === "route") fRoute = cIdx;
+                        else if (/^sched(ule)?(id|no|code)?$/i.test(clean) || clean === "schedule") fSched = cIdx;
+                        else if (/^(outtime|departuretime|deptime|departure|cumtime|starttime|timetable|timetables)$/i.test(clean)) fOut = cIdx;
+                        else if (/^(intime|arrivaltime|arrtime|arrival|endtime)$/i.test(clean)) fIn = cIdx;
+                        else if (/^shift$/i.test(clean)) fShift = cIdx;
+                        else if (/^(fixbm|fixedbm|bmno)$/i.test(clean)) fFix = cIdx;
+                        else if (/^(swapbm|swap)$/i.test(clean)) fSwap = cIdx;
+                        else if (/^(distance|routelength|km|length|actualkm)$/i.test(clean)) fDist = cIdx;
+                        else if (/^(origin|from|startpoint|startingpoint)$/i.test(clean)) fOrig = cIdx;
+                        else if (/^(destination|dest|to|endpoint)$/i.test(clean)) fDest = cIdx;
+                    });
+
+                    if (fRoute !== -1 || fSched !== -1 || fOut !== -1) {
+                        headerIdx = r;
+                        routeIdx = fRoute;
+                        schedIdx = fSched;
+                        outTimeIdx = fOut;
+                        inTimeIdx = fIn;
+                        shiftIdx = fShift;
+                        fixBmIdx = fFix;
+                        swapBmIdx = fSwap;
+                        distIdx = fDist;
+                        origIdx = fOrig;
+                        destIdx = fDest;
+                        break;
+                    }
+                }
+
+                if (headerIdx === -1) continue;
+
+                for (let r = headerIdx + 1; r < rawRows.length; r++) {
+                    const row = rawRows[r];
+                    if (!Array.isArray(row) || row.length === 0) continue;
+
+                    const rawRouteOrSched = (routeIdx >= 0 ? row[routeIdx] : "") || (schedIdx >= 0 ? row[schedIdx] : "");
+                    if (!rawRouteOrSched) continue;
+
+                    const fullStr = String(rawRouteOrSched).trim().toUpperCase();
+                    if (fullStr === "ROUTE" || fullStr === "SCHEDULE" || fullStr === "SL" || fullStr === "TOTAL" || fullStr === "SL NO" || fullStr === "SL NO.") continue;
+
+                    let routeCode = fullStr;
+                    let scheduleId = fullStr;
+                    if (fullStr.includes("/")) {
+                        routeCode = fullStr.split("/")[0].trim();
+                    }
+
+                    if (!routesMap.has(routeCode)) {
+                        routesMap.set(routeCode, {
+                            code: routeCode,
+                            depotId: defaultDepot,
+                            distance: distIdx >= 0 && row[distIdx] && !isNaN(parseFloat(row[distIdx])) ? parseFloat(row[distIdx]) : null,
+                            origin: origIdx >= 0 && row[origIdx] ? String(row[origIdx]).trim() : null,
+                            destination: destIdx >= 0 && row[destIdx] ? String(row[destIdx]).trim() : null,
+                            timetables: new Set(),
+                            schedules: []
+                        });
+                    }
+
+                    const rObj = routesMap.get(routeCode);
+                    const outTime = outTimeIdx >= 0 ? formatSpreadsheetTime(row[outTimeIdx]) : null;
+                    const inTime = inTimeIdx >= 0 ? formatSpreadsheetTime(row[inTimeIdx]) : null;
+                    const shift = shiftIdx >= 0 && row[shiftIdx] ? String(row[shiftIdx]).trim() : "General Shift";
+                    const fixBm = fixBmIdx >= 0 && row[fixBmIdx] ? String(row[fixBmIdx]).trim().toUpperCase() : "";
+                    const swapBm = swapBmIdx >= 0 && row[swapBmIdx] ? String(row[swapBmIdx]).trim().toUpperCase() : "";
+
+                    if (outTime) {
+                        rObj.timetables.add(outTime);
+                    }
+
+                    rObj.schedules.push({
+                        scheduleId,
+                        shift,
+                        outTime: outTime || "08:00 AM",
+                        inTime: inTime || "04:00 PM",
+                        fixBm,
+                        swapBm
+                    });
+                }
+            }
+        } catch (err) {
+            console.warn("SheetJS error in ingestUploadedRouteAndScheduleDataset:", err.message);
+        }
+    }
+
+    // 2. Line parser fallback for plain CSV/text
+    if (routesMap.size === 0) {
+        try {
+            const content = fs.readFileSync(filePath, "utf8");
+            const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length >= 2) {
+                const headers = parseCsvLine(lines[0]);
+                let routeIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1, distIdx = -1, origIdx = -1, destIdx = -1;
+
+                headers.forEach((h, idx) => {
+                    const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    if (/^route(no|code|name)?$/i.test(clean) || clean === "route") routeIdx = idx;
+                    else if (/^sched(ule)?(id|no|code)?$/i.test(clean) || clean === "schedule") schedIdx = idx;
+                    else if (/^(outtime|departuretime|deptime|departure|cumtime|timetable|timetables)$/i.test(clean)) outTimeIdx = idx;
+                    else if (/^(intime|arrivaltime|arrtime|arrival)$/i.test(clean)) inTimeIdx = idx;
+                    else if (/^shift$/i.test(clean)) shiftIdx = idx;
+                    else if (/^(distance|routelength|km|length)$/i.test(clean)) distIdx = idx;
+                    else if (/^(origin|from)$/i.test(clean)) origIdx = idx;
+                    else if (/^(destination|dest|to)$/i.test(clean)) destIdx = idx;
+                });
+
+                if (routeIdx !== -1 || schedIdx !== -1 || outTimeIdx !== -1) {
+                    for (let i = 1; i < lines.length; i++) {
+                        const parts = parseCsvLine(lines[i]);
+                        if (!parts || parts.length === 0) continue;
+
+                        const rawRouteOrSched = (routeIdx >= 0 ? parts[routeIdx] : "") || (schedIdx >= 0 ? parts[schedIdx] : "");
+                        if (!rawRouteOrSched) continue;
+
+                        const fullStr = String(rawRouteOrSched).trim().toUpperCase();
+                        let routeCode = fullStr.includes("/") ? fullStr.split("/")[0].trim() : fullStr;
+
+                        if (!routesMap.has(routeCode)) {
+                            routesMap.set(routeCode, {
+                                code: routeCode,
+                                depotId: defaultDepot,
+                                distance: distIdx >= 0 && parts[distIdx] && !isNaN(parseFloat(parts[distIdx])) ? parseFloat(parts[distIdx]) : null,
+                                origin: origIdx >= 0 && parts[origIdx] ? String(parts[origIdx]).trim() : null,
+                                destination: destIdx >= 0 && parts[destIdx] ? String(parts[destIdx]).trim() : null,
+                                timetables: new Set(),
+                                schedules: []
+                            });
+                        }
+
+                        const rObj = routesMap.get(routeCode);
+                        const outTime = outTimeIdx >= 0 ? formatSpreadsheetTime(parts[outTimeIdx]) : null;
+                        const inTime = inTimeIdx >= 0 ? formatSpreadsheetTime(parts[inTimeIdx]) : null;
+                        const shift = shiftIdx >= 0 && parts[shiftIdx] ? String(parts[shiftIdx]).trim() : "General Shift";
+
+                        if (outTime) rObj.timetables.add(outTime);
+                        rObj.schedules.push({
+                            scheduleId: fullStr,
+                            shift,
+                            outTime: outTime || "08:00 AM",
+                            inTime: inTime || "04:00 PM"
+                        });
+                    }
+                }
+            }
+        } catch (csvErr) {
+            console.warn("CSV error in ingestUploadedRouteAndScheduleDataset:", csvErr.message);
+        }
+    }
+
+    if (routesMap.size === 0) {
+        return { routesProcessed: 0, routesAdded: 0, timetablesAdded: 0, schedulesAdded: 0, updatedRoutes: [] };
+    }
+
+    const currentState = loadBusState();
+    let dataset = currentState._routesDatabase || loadRoutesDataset();
+    if (!dataset || !Array.isArray(dataset.routes)) {
+        dataset = {
+            version: "1.0",
+            name: "Ashok Leyland EV Fleet - Master Route & Schedule Database",
+            lastUpdated: new Date().toISOString(),
+            depots: [
+                { id: "1", number: "1", name: "Depot 1 (Chandapura)", routes: ["356Z", "360K", "600F", "KBS3A"] },
+                { id: "2", number: "2", name: "Depot 2 (Attibele / Hoskote)", routes: ["361C", "399C", "328H", "500DC", "KBS3F"] }
+            ],
+            routes: [],
+            timeComplexityConfig: {}
+        };
+    }
+
+    let routesAddedCount = 0;
+    let timetablesAddedCount = 0;
+    let schedulesAddedCount = 0;
+    const updatedRoutesList = [];
+
+    function sortTimetables(times) {
+        return Array.from(new Set(times)).sort((a, b) => {
+            const parseMin = (t) => {
+                const m = String(t).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+                if (!m) return 0;
+                let h = parseInt(m[1], 10);
+                const min = parseInt(m[2], 10);
+                const isPm = /pm/i.test(m[3] || "");
+                if (isPm && h < 12) h += 12;
+                if (!isPm && h === 12) h = 0;
+                return h * 60 + min;
+            };
+            return parseMin(a) - parseMin(b);
+        });
+    }
+
+    routesMap.forEach((entry, rCode) => {
+        const cleanCode = rCode.toUpperCase().trim();
+        const dId = String(entry.depotId || defaultDepot);
+        const extractedTimes = Array.from(entry.timetables);
+
+        let existingRoute = dataset.routes.find(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
+        if (!existingRoute) {
+            existingRoute = dataset.routes.find(r => String(r.code).toUpperCase().trim() === cleanCode);
+        }
+
+        if (existingRoute) {
+            const prevTimes = Array.isArray(existingRoute.timetables) ? existingRoute.timetables : [];
+            const prevSet = new Set(prevTimes);
+            let addedTimesCount = 0;
+            extractedTimes.forEach(t => {
+                if (!prevSet.has(t)) {
+                    addedTimesCount++;
+                }
+            });
+            existingRoute.timetables = sortTimetables([...prevTimes, ...extractedTimes]);
+            timetablesAddedCount += addedTimesCount;
+
+            if (!Array.isArray(existingRoute.schedules)) existingRoute.schedules = [];
+            const existingSchedIds = new Set(existingRoute.schedules.map(s => String(s.scheduleId).toLowerCase()));
+            entry.schedules.forEach(s => {
+                if (!existingSchedIds.has(String(s.scheduleId).toLowerCase())) {
+                    existingRoute.schedules.push(s);
+                    schedulesAddedCount++;
+                }
+            });
+
+            if (entry.distance && (!existingRoute.distance || existingRoute.distance === 25)) {
+                existingRoute.distance = entry.distance;
+                existingRoute.fullDutyKm = parseFloat((entry.distance * 2).toFixed(1));
+            }
+            if (entry.origin && !existingRoute.origin) existingRoute.origin = entry.origin;
+            if (entry.destination && !existingRoute.destination) existingRoute.destination = entry.destination;
+
+            if (!existingRoute.timeComplexitySlots) existingRoute.timeComplexitySlots = {};
+            existingRoute.timetables.forEach(t => {
+                if (!existingRoute.timeComplexitySlots[t]) {
+                    const m = String(t).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+                    if (m) {
+                        let h = parseInt(m[1], 10);
+                        const isPm = /pm/i.test(m[3] || "");
+                        if (isPm && h < 12) h += 12;
+                        if (!isPm && h === 12) h = 0;
+                        if ((h >= 7 && h < 10) || (h >= 16 && h < 20)) existingRoute.timeComplexitySlots[t] = "Extreme Peak";
+                        else if ((h >= 10 && h < 16) || (h >= 20 && h < 23)) existingRoute.timeComplexitySlots[t] = "Peak";
+                        else existingRoute.timeComplexitySlots[t] = "Normal";
+                    }
+                }
+            });
+
+            updatedRoutesList.push(cleanCode);
+        } else {
+            const dist = entry.distance || 28.7;
+            const orig = entry.origin || `Depot ${dId} Terminal`;
+            const dest = entry.destination || "Central Terminal";
+            let routeComp = dist > 35 ? "Complex" : (dist >= 30 ? "Moderate" : (dist < 25 ? "Simple" : "Standard"));
+            const reqCat = routeComp === "Complex" ? "A" : (routeComp === "Moderate" ? "B" : "B");
+            const finalTimetables = extractedTimes.length > 0 ? sortTimetables(extractedTimes) : ["06:30 AM", "08:00 AM", "01:10 PM", "03:00 PM", "06:45 PM"];
+
+            const timeComplexitySlots = {};
+            finalTimetables.forEach(t => {
+                const m = String(t).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+                if (m) {
+                    let h = parseInt(m[1], 10);
+                    const isPm = /pm/i.test(m[3] || "");
+                    if (isPm && h < 12) h += 12;
+                    if (!isPm && h === 12) h = 0;
+                    if ((h >= 7 && h < 10) || (h >= 16 && h < 20)) timeComplexitySlots[t] = "Extreme Peak";
+                    else if ((h >= 10 && h < 16) || (h >= 20 && h < 23)) timeComplexitySlots[t] = "Peak";
+                    else timeComplexitySlots[t] = "Normal";
+                }
+            });
+
+            const newRouteObj = {
+                code: cleanCode,
+                id: cleanCode,
+                depotId: dId,
+                name: `${orig} ➔ ${dest} (${cleanCode})`,
+                fullName: `${orig} ➔ ${dest} (${cleanCode})`,
+                shortName: cleanCode,
+                origin: orig,
+                destination: dest,
+                distance: dist,
+                fullDutyKm: parseFloat((dist * 2).toFixed(1)),
+                routeComplexity: routeComp,
+                category: routeComp,
+                requiredCat: reqCat,
+                drainSoc: Math.min(95, Math.max(12, Math.round(dist * 0.85))),
+                timeComplexity: "Normal",
+                timetables: finalTimetables,
+                timeComplexitySlots: timeComplexitySlots,
+                schedules: entry.schedules.length > 0 ? entry.schedules : finalTimetables.map((t, idx) => ({
+                    scheduleId: `${cleanCode}/${idx + 1}`,
+                    shift: idx < 2 ? "General Shift" : (idx < 4 ? "Shift B" : "Night Halt"),
+                    outTime: t,
+                    inTime: "15:15:00",
+                    category: routeComp,
+                    singleChargeReqKm: Math.round(dist * 1.5)
+                }))
+            };
+
+            dataset.routes.push(newRouteObj);
+            routesAddedCount++;
+            timetablesAddedCount += finalTimetables.length;
+            schedulesAddedCount += newRouteObj.schedules.length;
+
+            if (dataset.depots) {
+                let dObj = dataset.depots.find(d => String(d.id).trim() === dId);
+                if (!dObj) {
+                    dObj = { id: dId, name: targetDepotName || `Depot ${dId}`, routes: [] };
+                    dataset.depots.push(dObj);
+                }
+                if (!dObj.routes) dObj.routes = [];
+                if (!dObj.routes.includes(cleanCode)) dObj.routes.push(cleanCode);
+            }
+
+            updatedRoutesList.push(cleanCode);
+        }
+    });
+
+    currentState._routesDatabase = dataset;
+    saveRoutesDataset(dataset);
+    saveBusState(currentState);
+
+    cachedCorridorSchedules = null;
+    broadcastSyncEvent("routes-dataset-updated", { dataset });
+
+    return {
+        routesProcessed: routesMap.size,
+        routesAdded: routesAddedCount,
+        timetablesAdded: timetablesAddedCount,
+        schedulesAdded: schedulesAddedCount,
+        updatedRoutes: updatedRoutesList,
+        dataset
+    };
+}
+
     // ── POST /api/upload-dataset (Upload CSV or Excel spreadsheets to data/ & root) ──
     if (pathname === "/api/upload-dataset" && req.method === "POST") {
         readBody(req, body => {
@@ -5563,6 +6017,13 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                 const ingestResult = ingestUploadedFleetDataset(targetPath, safeName, targetDepot, targetDepotName);
                 const busesAdded = ingestResult.added.length;
 
+                // Ingest route details and departure time schedules into Master Route Dataset
+                const routeIngestResult = ingestUploadedRouteAndScheduleDataset(targetPath, safeName, targetDepot, targetDepotName);
+                const routesAdded = routeIngestResult.routesAdded;
+                const timetablesAdded = routeIngestResult.timetablesAdded;
+                const schedulesAdded = routeIngestResult.schedulesAdded;
+                const updatedRoutes = routeIngestResult.updatedRoutes;
+
                 // Update datasets manifest with depot association
                 try {
                     const manifestPath = path.join(dataDir, "datasets_manifest.json");
@@ -5577,6 +6038,9 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                         targetDepotName: targetDepotName,
                         size: fileBuffer.length,
                         busesAdded: busesAdded,
+                        routesAdded: routesAdded,
+                        timetablesAdded: timetablesAdded,
+                        schedulesAdded: schedulesAdded,
                         uploadedAt: new Date().toISOString()
                     });
                     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
@@ -5595,6 +6059,10 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     targetDepot: targetDepot,
                     targetDepotName: targetDepotName,
                     busesAdded: busesAdded,
+                    routesAdded: routesAdded,
+                    timetablesAdded: timetablesAdded,
+                    schedulesAdded: schedulesAdded,
+                    updatedRoutes: updatedRoutes,
                     timestamp: new Date().toISOString(),
                     datasetType
                 });
@@ -5607,12 +6075,25 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     });
                 }
 
+                if (routesAdded > 0 || timetablesAdded > 0 || updatedRoutes.length > 0) {
+                    broadcastSyncEvent("routes-dataset-updated", {
+                        dataset: routeIngestResult.dataset,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
                 // Calculate updated total fleet count
                 const finalState = loadBusState();
                 const totalFleetCount = Object.keys(finalState).filter(k => /^BM\d+$/i.test(k) && !finalState[k].deleted && !finalState[k].isDeleted).length;
 
-                const responseMsg = busesAdded > 0
-                    ? `Dataset "${safeName}" successfully uploaded: ${busesAdded} buses added and assigned to ${targetDepotName}. Total fleet updated to ${totalFleetCount} buses.`
+                const summaryParts = [];
+                if (busesAdded > 0) summaryParts.push(`${busesAdded} buses added to fleet`);
+                if (routesAdded > 0) summaryParts.push(`${routesAdded} new routes registered`);
+                if (timetablesAdded > 0) summaryParts.push(`${timetablesAdded} departure times updated`);
+                else if (updatedRoutes.length > 0 && routesAdded === 0) summaryParts.push(`${updatedRoutes.length} route timetables updated`);
+
+                const responseMsg = summaryParts.length > 0
+                    ? `Dataset "${safeName}" successfully uploaded: ${summaryParts.join(", ")}. Assigned to ${targetDepotName}. Total fleet: ${totalFleetCount} buses.`
                     : `Dataset spreadsheet "${safeName}" successfully added to ${targetDepotName} (${(fileBuffer.length / 1024).toFixed(1)} KB).`;
 
                 sendJson(res, {
@@ -5623,6 +6104,11 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     targetDepotName: targetDepotName,
                     busesAdded: busesAdded,
                     addedBuses: ingestResult.added,
+                    routesAdded: routesAdded,
+                    timetablesAdded: timetablesAdded,
+                    schedulesAdded: schedulesAdded,
+                    updatedRoutes: updatedRoutes,
+                    routesDataset: routeIngestResult.dataset,
                     totalFleetCount: totalFleetCount,
                     size: fileBuffer.length,
                     path: targetPath,
