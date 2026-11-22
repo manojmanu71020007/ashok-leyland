@@ -237,7 +237,7 @@ function getRouteBmMap() {
 
         "4": "BM086", "KBS3A": "BM086",
 
-        "5": "BM293", "KBS3F": "BM293",
+        "5": "BM293", "KBS3F": "BM293", "KBES3F": "BM293",
 
         "6": "BM153", "328H": "BM153",
 

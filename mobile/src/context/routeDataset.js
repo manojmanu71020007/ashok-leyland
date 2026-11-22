@@ -319,14 +319,15 @@ const INITIAL_MASTER_DATASET = {
     {
       code: 'KBS3F',
       depotId: '2',
-      name: 'Hoskote ➔ Kempegowda Bus Station (KBS3F)',
-      fullName: 'Hoskote ➔ Kempegowda Bus Station (KBS3F)',
+      name: 'Hoskote ➔ Kempegowda Bus Station (KBS3F / KBES3F)',
+      fullName: 'Hoskote ➔ Kempegowda Bus Station (KBS3F / KBES3F)',
       shortName: 'KBS3F',
+      aliases: ['KBES3F', 'KBS-3F', 'KBES-3F'],
       origin: 'Hoskote',
       destination: 'Kempegowda Bus Station',
       distance: 24.5,
       fullDutyKm: 50.0,
-      routeComplexity: 'Simple',
+      routeComplexity: 'Standard',
       category: 'Standard',
       requiredCat: 'B',
       drainSoc: 22,
@@ -466,7 +467,9 @@ export function getRouteFromDataset(routeCode, depotId) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
   return (masterDataset.routes || []).find((r) => {
-    const matchCode = String(r.code || r.id || '').toUpperCase().trim() === cleanCode;
+    const rCode = String(r.code || r.id || '').toUpperCase().trim();
+    const isAlias = Array.isArray(r.aliases) && r.aliases.some((a) => String(a).toUpperCase().trim() === cleanCode);
+    const matchCode = (rCode === cleanCode) || isAlias || (cleanCode === 'KBES3F' && rCode === 'KBS3F') || (cleanCode === 'KBS3F' && rCode === 'KBES3F');
     if (!matchCode) return false;
     if (dId) return String(r.depotId).trim() === dId;
     return true;
@@ -900,8 +903,8 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   }
   if (routeCode) {
     const dsRoute = getRouteFromDataset(routeCode, depotId);
-    if (dsRoute && (dsRoute.routeComplexity || dsRoute.category)) {
-      const sc = String(dsRoute.routeComplexity || dsRoute.category).toLowerCase();
+    if (dsRoute && (dsRoute.category || dsRoute.routeComplexity)) {
+      const sc = String(dsRoute.category || dsRoute.routeComplexity).toLowerCase();
       if (sc.includes('comp')) return 'complex';
       if (sc.includes('mod')) return 'moderate';
       if (sc.includes('stand')) return 'standard';
@@ -918,8 +921,8 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   }
   let routeObj = (distOrRoute && typeof distOrRoute === 'object') ? distOrRoute : null;
   let dist = (typeof distOrRoute === 'number') ? distOrRoute : (routeObj ? (routeObj.distance || routeObj.distKm) : 0);
-  if (routeObj && (routeObj.routeComplexity || routeObj.category)) {
-    const sc = String(routeObj.routeComplexity || routeObj.category).toLowerCase();
+  if (routeObj && (routeObj.category || routeObj.routeComplexity)) {
+    const sc = String(routeObj.category || routeObj.routeComplexity).toLowerCase();
     if (sc.includes('comp')) return 'complex';
     if (sc.includes('mod')) return 'moderate';
     if (sc.includes('stand')) return 'standard';

@@ -787,7 +787,8 @@ export function registerRouteDefinition(routeObj) {
 
 export function getRouteDefinition(code, depotId = null) {
   if (!code) return null;
-  const clean = String(code).trim().toUpperCase();
+  let clean = String(code).trim().toUpperCase();
+  if (clean === 'KBES3F') clean = 'KBS3F';
   const dsRoute = getRouteFromDataset(clean, depotId);
   if (dsRoute) return dsRoute;
   return dynamicRouteDefinitions[clean] || null;

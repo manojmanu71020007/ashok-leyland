@@ -232,12 +232,14 @@ const DEPOT_2_ROUTES = [
   {
     id: 'KBS3F',
     code: 'KBS3F',
-    name: 'Attibele ➔ Kempegowda Bus Station (KBS3F)',
+    name: 'Attibele ➔ Kempegowda Bus Station (KBS3F / KBES3F)',
     origin: 'Attibele',
-    destination: 'Kempegowda Bus Station (KBS3F)',
+    destination: 'Kempegowda Bus Station (KBS3F / KBES3F)',
     distance: 39.2,
     fullDutyKm: 76.0,
     category: 'Standard',
+    routeComplexity: 'Standard',
+    aliases: ['KBES3F', 'KBS-3F', 'KBES-3F'],
     requiredCat: 'B',
     drainSoc: 22,
     timetables: [
@@ -334,6 +336,7 @@ const ROUTE_DESIGNATED_BMS = {
   '500DC': ['BM240', 'BM255', 'BM274', 'BM283'],
   'KBS3A': ['BM086', 'BM268', 'BM259', 'BM210'],
   'KBS3F': ['BM293', 'BM250', 'BM275', 'BM082'],
+  'KBES3F': ['BM293', 'BM250', 'BM275', 'BM082'],
 };
 
 const parseTimeToMinutes = (t) => {
@@ -405,7 +408,8 @@ export default function SchedulingScreen() {
   const ALL_BASE_ROUTES = [...DEPOT_1_ROUTES, ...DEPOT_2_ROUTES];
 
   const resolveDepotRoute = useCallback((code) => {
-    const clean = String(code || '').toUpperCase().trim();
+    let clean = String(code || '').toUpperCase().trim();
+    if (clean === 'KBES3F') clean = 'KBS3F';
 
     // 1. Check Master Route & Schedule Dataset first
     const ds = getRouteFromDataset(clean, depotNum);
@@ -426,7 +430,7 @@ export default function SchedulingScreen() {
         energyEst: ds.energyEst || `${Math.round((Number(ds.distance) || 25.0) * 1.25)} kWh`,
         shift: ds.shift || 'General Shift',
         category: ds.category || ds.routeComplexity || 'Standard',
-        routeComplexity: ds.routeComplexity || ds.category || 'Standard',
+        routeComplexity: ds.category || ds.routeComplexity || 'Standard',
         requiredCat: ds.requiredCat || (ds.routeComplexity === 'Complex' ? 'A' : 'B'),
         drainSoc: ds.drainSoc || Math.min(95, Math.max(10, Math.round((Number(ds.distance) || 25.0) * 0.85))),
         timeComplexity: ds.timeComplexity || 'Normal',

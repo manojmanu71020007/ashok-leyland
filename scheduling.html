@@ -1956,7 +1956,7 @@
 
                             <option value="KBS3A">Chandapura ➔ Kempegowda Bus Station (KBS3A)</option>
 
-                            <option value="KBS3F">Attibele ➔ Kempegowda Bus Station (KBS3F)</option>
+                            <option value="KBS3F">Attibele ➔ Kempegowda Bus Station (KBS3F / KBES3F)</option>
 
                         </select>
 
@@ -2621,7 +2621,7 @@
 
             { id: "KBS3A", code: "KBS3A", routeId: "8", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 35.8, label: "Chandapura ➔ Kempegowda Bus Station (KBS3A)", trips: 8, depot: "1" },
 
-            { id: "KBS3F", code: "KBS3F", routeId: "9", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 39.2, label: "Attibele ➔ Kempegowda Bus Station (KBS3F)", trips: 8, depot: "2" }
+            { id: "KBS3F", code: "KBS3F", routeId: "9", origin: "Attibele", destination: "Kempegowda Bus Station", distKm: 39.2, label: "Attibele ➔ Kempegowda Bus Station (KBS3F / KBES3F)", trips: 8, depot: "2", category: "Standard", routeComplexity: "Standard", aliases: ["KBES3F"] }
 
         ];
 
@@ -3809,7 +3809,8 @@
 
             }
 
-            const rCode = String(routeObj?.code || routeObj?.routeCode || routeObj?.id || "").toUpperCase();
+            let rCode = String(routeObj?.code || routeObj?.routeCode || routeObj?.id || "").toUpperCase();
+            if (rCode === "KBES3F") rCode = "KBS3F";
 
             if (rCode && Array.isArray(datasetSchedules)) {
 
@@ -4833,7 +4834,9 @@
 
                 "KBS3A": ["BM086", "BM268", "BM259", "BM210"],
 
-                "KBS3F": ["BM293", "BM250", "BM275", "BM082"]
+                "KBS3F": ["BM293", "BM250", "BM275", "BM082"],
+
+                "KBES3F": ["BM293", "BM250", "BM275", "BM082"]
 
             };
 

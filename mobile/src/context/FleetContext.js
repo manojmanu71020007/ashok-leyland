@@ -421,9 +421,10 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
     routeCode = matchedSched.route;
   }
   if (routeCode) {
-    const dsRoute = getRouteFromDataset(routeCode, depotId);
-    if (dsRoute && (dsRoute.routeComplexity || dsRoute.category)) {
-      const sc = String(dsRoute.routeComplexity || dsRoute.category).toLowerCase();
+    const cleanRCode = (String(routeCode).toUpperCase().trim() === 'KBES3F') ? 'KBS3F' : routeCode;
+    const dsRoute = getRouteFromDataset(cleanRCode, depotId);
+    if (dsRoute && (dsRoute.category || dsRoute.routeComplexity)) {
+      const sc = String(dsRoute.category || dsRoute.routeComplexity).toLowerCase();
       if (sc.includes('comp')) return 'complex';
       if (sc.includes('mod')) return 'moderate';
       if (sc.includes('stand')) return 'standard';
@@ -440,8 +441,8 @@ export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   }
   let routeObj = (distOrRoute && typeof distOrRoute === 'object') ? distOrRoute : null;
   let dist = (typeof distOrRoute === 'number') ? distOrRoute : (routeObj ? (routeObj.distance || routeObj.distKm) : 0);
-  if (routeObj && (routeObj.routeComplexity || routeObj.category)) {
-    const sc = String(routeObj.routeComplexity || routeObj.category).toLowerCase();
+  if (routeObj && (routeObj.category || routeObj.routeComplexity)) {
+    const sc = String(routeObj.category || routeObj.routeComplexity).toLowerCase();
     if (sc.includes('comp')) return 'complex';
     if (sc.includes('mod')) return 'moderate';
     if (sc.includes('stand')) return 'standard';
