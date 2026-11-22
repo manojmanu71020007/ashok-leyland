@@ -3675,15 +3675,18 @@
 
             const key = String(bm || "").toUpperCase().trim();
 
-            if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
+            // BMTC Ashok Leyland Switch Mobility EiV12 Standard: ~200 km nominal full operating range
+            if (STATIC_BUS_RANGES[key]) {
+                return Math.round((STATIC_BUS_RANGES[key] / 115.0) * 200.0);
+            }
 
             const cat = getBusCategory(key);
 
-            if (cat === "A") return 130.0;
+            if (cat === "A") return 220.0;
 
-            if (cat === "C") return 80.0;
+            if (cat === "C") return 175.0;
 
-            return 110.0;
+            return 200.0;
 
         }
 
@@ -3731,7 +3734,7 @@
 
         function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
 
-            const busRangeKm = bm && typeof getBusActualRangeKm === 'function' ? getBusActualRangeKm(bm) : 110.0;
+            const busRangeKm = bm && typeof getBusActualRangeKm === 'function' ? getBusActualRangeKm(bm) : 200.0;
 
             const baseDrain = 100 / busRangeKm;
 

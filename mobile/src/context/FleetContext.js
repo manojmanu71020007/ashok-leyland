@@ -293,11 +293,18 @@ export const STATIC_BUS_RANGES = {
 
 export function getBusActualRangeKm(bm) {
   const key = String(bm || '').toUpperCase().trim();
-  if (STATIC_BUS_RANGES[key]) return STATIC_BUS_RANGES[key];
+  // BMTC Ashok Leyland Switch Mobility EiV12 Standard:
+  // 200 kWh battery pack delivers ~200 km nominal full operating range (1.0 kWh/km in Bengaluru city conditions).
+  // Cat A (High Battery Health): 220 km (~0.45% SOC/km)
+  // Cat B (Standard Healthy Pack): 200 km (~0.50% SOC/km)
+  // Cat C (Older / High Degradation): 175 km (~0.57% SOC/km)
+  if (STATIC_BUS_RANGES[key]) {
+    return Math.round((STATIC_BUS_RANGES[key] / 115.0) * 200.0);
+  }
   const cat = getBusCategory(key);
-  if (cat === 'A') return 130.0;
-  if (cat === 'C') return 80.0;
-  return 110.0;
+  if (cat === 'A') return 220.0;
+  if (cat === 'C') return 175.0;
+  return 200.0;
 }
 
 export function getTimeCategory(timeStr, routeObj = null) {
@@ -358,7 +365,7 @@ export function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
 }
 
 export function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
-  const busRangeKm = bm ? getBusActualRangeKm(bm) : 110.0;
+  const busRangeKm = bm ? getBusActualRangeKm(bm) : 200.0;
   const baseDrain = 100 / busRangeKm;
   const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
   return {
@@ -370,6 +377,13 @@ export function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
     timeCategory: drainInfo.timeCategory,
     pctNote: drainInfo.pctNote,
   };
+}
+
+// ── Pure Trip Battery Consumption (Excluding 15% Safety Reserve) ──
+export function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr) {
+  const drainInfo = getBusDrainRatePerKm(busBm, timeCategoryOrStr);
+  const d = Number(distKm) || 28.7;
+  return Math.min(100, Math.round(d * drainInfo.effectiveDrainPerKm));
 }
 
 export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr) {

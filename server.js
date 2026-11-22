@@ -5642,22 +5642,31 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 let headerIdx = -1;
                 let routeIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1;
                 let fixBmIdx = -1, swapBmIdx = -1, distIdx = -1, origIdx = -1, destIdx = -1;
+                let tripDistIdx = -1, dutyDistIdx = -1, nameIdx = -1, catIdx = -1, singleChargeIdx = -1;
 
                 for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
                     const row = rawRows[r];
                     if (!Array.isArray(row)) continue;
-                    let fRoute = -1, fSched = -1, fOut = -1, fIn = -1, fShift = -1, fFix = -1, fSwap = -1, fDist = -1, fOrig = -1, fDest = -1;
+                    let fRoute = -1, fSched = -1, fOut = -1, fIn = -1, fShift = -1, fFix = -1, fSwap = -1;
+                    let fTripDist = -1, fDist = -1, fDutyDist = -1, fName = -1, fCat = -1, fSingleCharge = -1, fOrig = -1, fDest = -1;
 
                     row.forEach((cell, cIdx) => {
                         const clean = String(cell || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-                        if (/^route(no|code|name)?$/i.test(clean) || clean === "route") fRoute = cIdx;
+                        if (/^route(no|code)?$/i.test(clean) || clean === "route") fRoute = cIdx;
+                        else if (/^(routefullname|fullname|routename)$/i.test(clean)) fName = cIdx;
                         else if (/^sched(ule)?(id|no|code)?$/i.test(clean) || clean === "schedule") fSched = cIdx;
                         else if (/^(outtime|departuretime|deptime|departure|cumtime|starttime|timetable|timetables)$/i.test(clean)) fOut = cIdx;
                         else if (/^(intime|arrivaltime|arrtime|arrival|endtime)$/i.test(clean)) fIn = cIdx;
                         else if (/^shift$/i.test(clean)) fShift = cIdx;
                         else if (/^(fixbm|fixedbm|bmno)$/i.test(clean)) fFix = cIdx;
                         else if (/^(swapbm|swap)$/i.test(clean)) fSwap = cIdx;
-                        else if (/^(distance|routelength|km|length|actualkm)$/i.test(clean)) fDist = cIdx;
+                        // One-way physical trip distance (Origin to Destination) - priority 1 for route distance
+                        else if (/^(totalkmorigintodestination|origintodestination|tripdistance|tripkm|onewaykm|routekm|totalkm)$/i.test(clean)) fTripDist = cIdx;
+                        else if (/^(distance|km|length)$/i.test(clean)) fDist = cIdx;
+                        // Cumulative shift duty distance / running km
+                        else if (/^(actualkm|routelengthschedule|routelength)$/i.test(clean)) fDutyDist = cIdx;
+                        else if (/^(singlechargeoperationrequiredasperform4|singlechargereqkm|singlecharge)$/i.test(clean)) fSingleCharge = cIdx;
+                        else if (/^(category|routecomplexity|complexity)$/i.test(clean)) fCat = cIdx;
                         else if (/^(origin|from|startpoint|startingpoint)$/i.test(clean)) fOrig = cIdx;
                         else if (/^(destination|dest|to|endpoint)$/i.test(clean)) fDest = cIdx;
                     });
@@ -5665,13 +5674,18 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     if (fRoute !== -1 || fSched !== -1 || fOut !== -1) {
                         headerIdx = r;
                         routeIdx = fRoute;
+                        nameIdx = fName;
                         schedIdx = fSched;
                         outTimeIdx = fOut;
                         inTimeIdx = fIn;
                         shiftIdx = fShift;
                         fixBmIdx = fFix;
                         swapBmIdx = fSwap;
+                        tripDistIdx = fTripDist;
                         distIdx = fDist;
+                        dutyDistIdx = fDutyDist;
+                        singleChargeIdx = fSingleCharge;
+                        catIdx = fCat;
                         origIdx = fOrig;
                         destIdx = fDest;
                         break;
@@ -5696,11 +5710,36 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         routeCode = fullStr.split("/")[0].trim();
                     }
 
+                    let parsedDist = null;
+                    if (tripDistIdx >= 0 && row[tripDistIdx] && !isNaN(parseFloat(row[tripDistIdx]))) {
+                        parsedDist = parseFloat(row[tripDistIdx]);
+                    } else if (distIdx >= 0 && row[distIdx] && !isNaN(parseFloat(row[distIdx]))) {
+                        parsedDist = parseFloat(row[distIdx]);
+                    } else if (dutyDistIdx >= 0 && row[dutyDistIdx] && !isNaN(parseFloat(row[dutyDistIdx]))) {
+                        parsedDist = parseFloat(row[dutyDistIdx]);
+                    }
+
+                    let parsedDutyKm = null;
+                    if (dutyDistIdx >= 0 && row[dutyDistIdx] && !isNaN(parseFloat(row[dutyDistIdx]))) {
+                        parsedDutyKm = parseFloat(row[dutyDistIdx]);
+                    }
+
+                    let parsedSingleCharge = null;
+                    if (singleChargeIdx >= 0 && row[singleChargeIdx] && !isNaN(parseFloat(row[singleChargeIdx]))) {
+                        parsedSingleCharge = parseFloat(row[singleChargeIdx]);
+                    }
+
+                    const parsedFullName = nameIdx >= 0 && row[nameIdx] ? String(row[nameIdx]).trim() : null;
+                    const parsedCategory = catIdx >= 0 && row[catIdx] ? String(row[catIdx]).trim() : null;
+
                     if (!routesMap.has(routeCode)) {
                         routesMap.set(routeCode, {
                             code: routeCode,
                             depotId: defaultDepot,
-                            distance: distIdx >= 0 && row[distIdx] && !isNaN(parseFloat(row[distIdx])) ? parseFloat(row[distIdx]) : null,
+                            distance: parsedDist,
+                            fullDutyKm: parsedDutyKm,
+                            fullName: parsedFullName,
+                            category: parsedCategory,
                             origin: origIdx >= 0 && row[origIdx] ? String(row[origIdx]).trim() : null,
                             destination: destIdx >= 0 && row[destIdx] ? String(row[destIdx]).trim() : null,
                             timetables: new Set(),
@@ -5725,7 +5764,10 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         outTime: outTime || "08:00 AM",
                         inTime: inTime || "04:00 PM",
                         fixBm,
-                        swapBm
+                        swapBm,
+                        category: parsedCategory || "Standard",
+                        singleChargeReqKm: parsedSingleCharge || (parsedDist ? Math.round(parsedDist * 1.5) : 45),
+                        actualKm: parsedDutyKm || undefined
                     });
                 }
             }
@@ -5741,16 +5783,22 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
             const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
             if (lines.length >= 2) {
                 const headers = parseCsvLine(lines[0]);
-                let routeIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1, distIdx = -1, origIdx = -1, destIdx = -1;
+                let routeIdx = -1, nameIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1;
+                let tripDistIdx = -1, distIdx = -1, dutyDistIdx = -1, singleChargeIdx = -1, catIdx = -1, origIdx = -1, destIdx = -1;
 
                 headers.forEach((h, idx) => {
                     const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
-                    if (/^route(no|code|name)?$/i.test(clean) || clean === "route") routeIdx = idx;
+                    if (/^route(no|code)?$/i.test(clean) || clean === "route") routeIdx = idx;
+                    else if (/^(routefullname|fullname|routename)$/i.test(clean)) nameIdx = idx;
                     else if (/^sched(ule)?(id|no|code)?$/i.test(clean) || clean === "schedule") schedIdx = idx;
                     else if (/^(outtime|departuretime|deptime|departure|cumtime|timetable|timetables)$/i.test(clean)) outTimeIdx = idx;
                     else if (/^(intime|arrivaltime|arrtime|arrival)$/i.test(clean)) inTimeIdx = idx;
                     else if (/^shift$/i.test(clean)) shiftIdx = idx;
-                    else if (/^(distance|routelength|km|length)$/i.test(clean)) distIdx = idx;
+                    else if (/^(totalkmorigintodestination|origintodestination|tripdistance|tripkm|onewaykm|routekm|totalkm)$/i.test(clean)) tripDistIdx = idx;
+                    else if (/^(distance|km|length)$/i.test(clean)) distIdx = idx;
+                    else if (/^(actualkm|routelengthschedule|routelength)$/i.test(clean)) dutyDistIdx = idx;
+                    else if (/^(singlechargeoperationrequiredasperform4|singlechargereqkm|singlecharge)$/i.test(clean)) singleChargeIdx = idx;
+                    else if (/^(category|routecomplexity|complexity)$/i.test(clean)) catIdx = idx;
                     else if (/^(origin|from)$/i.test(clean)) origIdx = idx;
                     else if (/^(destination|dest|to)$/i.test(clean)) destIdx = idx;
                 });
@@ -5766,11 +5814,36 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         const fullStr = String(rawRouteOrSched).trim().toUpperCase();
                         let routeCode = fullStr.includes("/") ? fullStr.split("/")[0].trim() : fullStr;
 
+                        let parsedDist = null;
+                        if (tripDistIdx >= 0 && parts[tripDistIdx] && !isNaN(parseFloat(parts[tripDistIdx]))) {
+                            parsedDist = parseFloat(parts[tripDistIdx]);
+                        } else if (distIdx >= 0 && parts[distIdx] && !isNaN(parseFloat(parts[distIdx]))) {
+                            parsedDist = parseFloat(parts[distIdx]);
+                        } else if (dutyDistIdx >= 0 && parts[dutyDistIdx] && !isNaN(parseFloat(parts[dutyDistIdx]))) {
+                            parsedDist = parseFloat(parts[dutyDistIdx]);
+                        }
+
+                        let parsedDutyKm = null;
+                        if (dutyDistIdx >= 0 && parts[dutyDistIdx] && !isNaN(parseFloat(parts[dutyDistIdx]))) {
+                            parsedDutyKm = parseFloat(parts[dutyDistIdx]);
+                        }
+
+                        let parsedSingleCharge = null;
+                        if (singleChargeIdx >= 0 && parts[singleChargeIdx] && !isNaN(parseFloat(parts[singleChargeIdx]))) {
+                            parsedSingleCharge = parseFloat(parts[singleChargeIdx]);
+                        }
+
+                        const parsedFullName = nameIdx >= 0 && parts[nameIdx] ? String(parts[nameIdx]).trim() : null;
+                        const parsedCategory = catIdx >= 0 && parts[catIdx] ? String(parts[catIdx]).trim() : null;
+
                         if (!routesMap.has(routeCode)) {
                             routesMap.set(routeCode, {
                                 code: routeCode,
                                 depotId: defaultDepot,
-                                distance: distIdx >= 0 && parts[distIdx] && !isNaN(parseFloat(parts[distIdx])) ? parseFloat(parts[distIdx]) : null,
+                                distance: parsedDist,
+                                fullDutyKm: parsedDutyKm,
+                                fullName: parsedFullName,
+                                category: parsedCategory,
                                 origin: origIdx >= 0 && parts[origIdx] ? String(parts[origIdx]).trim() : null,
                                 destination: destIdx >= 0 && parts[destIdx] ? String(parts[destIdx]).trim() : null,
                                 timetables: new Set(),
@@ -5788,7 +5861,10 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                             scheduleId: fullStr,
                             shift,
                             outTime: outTime || "08:00 AM",
-                            inTime: inTime || "04:00 PM"
+                            inTime: inTime || "04:00 PM",
+                            category: parsedCategory || "Standard",
+                            singleChargeReqKm: parsedSingleCharge || (parsedDist ? Math.round(parsedDist * 1.5) : 45),
+                            actualKm: parsedDutyKm || undefined
                         });
                     }
                 }
@@ -5870,9 +5946,21 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 }
             });
 
-            if (entry.distance && (!existingRoute.distance || existingRoute.distance === 25)) {
+            if (entry.distance) {
                 existingRoute.distance = entry.distance;
-                existingRoute.fullDutyKm = parseFloat((entry.distance * 2).toFixed(1));
+                existingRoute.fullDutyKm = entry.fullDutyKm || parseFloat((entry.distance * 2).toFixed(1));
+                existingRoute.drainSoc = Math.min(95, Math.max(12, Math.round(existingRoute.distance * 0.85)));
+            } else if (entry.fullDutyKm && !existingRoute.fullDutyKm) {
+                existingRoute.fullDutyKm = entry.fullDutyKm;
+            }
+            if (entry.fullName) {
+                existingRoute.fullName = entry.fullName;
+                existingRoute.name = entry.fullName;
+            }
+            if (entry.category) {
+                existingRoute.category = entry.category;
+                existingRoute.routeComplexity = entry.category;
+                existingRoute.requiredCat = entry.category === "Complex" ? "A" : "B";
             }
             if (entry.origin && !existingRoute.origin) existingRoute.origin = entry.origin;
             if (entry.destination && !existingRoute.destination) existingRoute.destination = entry.destination;
@@ -5896,9 +5984,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
             updatedRoutesList.push(cleanCode);
         } else {
             const dist = entry.distance || 28.7;
+            const dutyKm = entry.fullDutyKm || parseFloat((dist * 2).toFixed(1));
             const orig = entry.origin || `Depot ${dId} Terminal`;
             const dest = entry.destination || "Central Terminal";
-            let routeComp = dist > 35 ? "Complex" : (dist >= 30 ? "Moderate" : (dist < 25 ? "Simple" : "Standard"));
+            const routeFullName = entry.fullName || `${orig} ➔ ${dest} (${cleanCode})`;
+            let routeComp = entry.category || (dist > 35 ? "Complex" : (dist >= 30 ? "Moderate" : (dist < 25 ? "Simple" : "Standard")));
             const reqCat = routeComp === "Complex" ? "A" : (routeComp === "Moderate" ? "B" : "B");
             const finalTimetables = extractedTimes.length > 0 ? sortTimetables(extractedTimes) : ["06:30 AM", "08:00 AM", "01:10 PM", "03:00 PM", "06:45 PM"];
 
@@ -5921,12 +6011,12 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 id: cleanCode,
                 depotId: dId,
                 name: `${orig} ➔ ${dest} (${cleanCode})`,
-                fullName: `${orig} ➔ ${dest} (${cleanCode})`,
+                fullName: routeFullName,
                 shortName: cleanCode,
                 origin: orig,
                 destination: dest,
                 distance: dist,
-                fullDutyKm: parseFloat((dist * 2).toFixed(1)),
+                fullDutyKm: dutyKm,
                 routeComplexity: routeComp,
                 category: routeComp,
                 requiredCat: reqCat,
@@ -7125,7 +7215,115 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
 
     }
 
+    // ── Driver Management Endpoints: GET & POST /api/drivers, /api/drivers/add, /api/drivers/delete ──
+    const DEFAULT_SERVER_DRIVERS = [
+        { id: 'DRV-101', name: 'Ramesh Kumar (BMTC-4101)', depot: '1', phone: '+91 98450 11001', shift: 'General Shift', status: 'Active', category: 'A' },
+        { id: 'DRV-102', name: 'Suresh Gowda (BMTC-4102)', depot: '1', phone: '+91 98450 11002', shift: 'General Shift', status: 'Active', category: 'B' },
+        { id: 'DRV-103', name: 'Anand Murthy (BMTC-4103)', depot: '1', phone: '+91 98450 11003', shift: 'Shift B', status: 'Active', category: 'B' },
+        { id: 'DRV-104', name: 'Manjunath H. (BMTC-4104)', depot: '1', phone: '+91 98450 11004', shift: 'Shift B', status: 'Active', category: 'A' },
+        { id: 'DRV-105', name: 'Venkatesh P. (BMTC-4105)', depot: '1', phone: '+91 98450 11005', shift: 'Night Halt', status: 'Active', category: 'C' },
+        { id: 'DRV-106', name: 'Ravi Shankar (BMTC-4106)', depot: '1', phone: '+91 98450 11006', shift: 'General Shift', status: 'Active', category: 'B' },
+        { id: 'DRV-107', name: 'Kiran Kumar (BMTC-4107)', depot: '1', phone: '+91 98450 11007', shift: 'Shift B', status: 'Active', category: 'B' },
+        { id: 'DRV-108', name: 'Nagaraj V. (BMTC-4108)', depot: '1', phone: '+91 98450 11008', shift: 'Night Halt', status: 'Active', category: 'A' },
+        { id: 'DRV-201', name: 'Basavaraju K. (BMTC-4201)', depot: '2', phone: '+91 98450 22001', shift: 'General Shift', status: 'Active', category: 'A' },
+        { id: 'DRV-202', name: 'Prakash Nayak (BMTC-4202)', depot: '2', phone: '+91 98450 22002', shift: 'General Shift', status: 'Active', category: 'B' },
+        { id: 'DRV-203', name: 'Girish Reddy (BMTC-4203)', depot: '2', phone: '+91 98450 22003', shift: 'Shift B', status: 'Active', category: 'B' },
+        { id: 'DRV-204', name: 'Shanthakumar (BMTC-4204)', depot: '2', phone: '+91 98450 22004', shift: 'Shift B', status: 'Active', category: 'A' },
+        { id: 'DRV-205', name: 'Chandrashekar (BMTC-4205)', depot: '2', phone: '+91 98450 22005', shift: 'Night Halt', status: 'Active', category: 'C' },
+        { id: 'DRV-206', name: 'Harish Babu (BMTC-4206)', depot: '2', phone: '+91 98450 22006', shift: 'General Shift', status: 'Active', category: 'B' },
+        { id: 'DRV-301', name: 'Mahesh Gowda (BMTC-4301)', depot: '3', phone: '+91 98450 33001', shift: 'General Shift', status: 'Active', category: 'A' },
+        { id: 'DRV-302', name: 'Raghavendra Rao (BMTC-4302)', depot: '3', phone: '+91 98450 33002', shift: 'Shift B', status: 'Active', category: 'B' },
+        { id: 'DRV-303', name: 'Chethan Kumar (BMTC-4303)', depot: '3', phone: '+91 98450 33003', shift: 'Night Halt', status: 'Active', category: 'A' }
+    ];
 
+    if (pathname === "/api/drivers" && req.method === "GET") {
+        try {
+            const currentState = loadBusState();
+            const drivers = currentState._driversList || DEFAULT_SERVER_DRIVERS;
+            const auditLog = currentState._driverAuditLog || [];
+            sendJson(res, { ok: true, drivers, auditLog });
+        } catch (err) {
+            sendJson(res, { ok: false, error: err.message }, 500);
+        }
+        return;
+    }
+
+    if (pathname === "/api/drivers/add" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const { name, id, depot = "1", phone = "", shift = "General Shift", category = "B" } = payload;
+                if (!name || !name.trim()) throw new Error("Driver name is required");
+                const drvId = id && id.trim() ? id.trim() : `DRV-${Date.now().toString().slice(-4)}`;
+                const currentState = loadBusState();
+                if (!Array.isArray(currentState._driversList)) {
+                    currentState._driversList = [...DEFAULT_SERVER_DRIVERS];
+                }
+                const newDriver = {
+                    id: drvId,
+                    name: name.trim(),
+                    depot: String(depot),
+                    phone: phone.trim(),
+                    shift,
+                    category,
+                    status: "Active",
+                    createdAt: new Date().toISOString()
+                };
+                currentState._driversList.push(newDriver);
+                if (!Array.isArray(currentState._driverAuditLog)) currentState._driverAuditLog = [];
+                currentState._driverAuditLog.unshift({
+                    action: "DRIVER_ADDED",
+                    id: drvId,
+                    name: name.trim(),
+                    depot: String(depot),
+                    time: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+                    reason: "New Driver Induction"
+                });
+                saveBusState(currentState);
+                sendJson(res, { ok: true, message: `Driver ${name} added successfully`, driver: newDriver });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 400);
+            }
+        });
+        return;
+    }
+
+    if ((pathname === "/api/drivers/delete" || pathname === "/api/drivers/delete-batch") && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const ids = Array.isArray(payload.ids) ? payload.ids : (payload.id ? [payload.id] : []);
+                const reason = payload.reason || "Operational Restructuring";
+                if (ids.length === 0) throw new Error("At least one driver ID is required to delete");
+                const currentState = loadBusState();
+                if (!Array.isArray(currentState._driversList)) {
+                    currentState._driversList = [...DEFAULT_SERVER_DRIVERS];
+                }
+                const deletedNames = [];
+                currentState._driversList = currentState._driversList.filter(d => {
+                    if (ids.includes(d.id)) {
+                        deletedNames.push(d.name || d.id);
+                        return false;
+                    }
+                    return true;
+                });
+                if (!Array.isArray(currentState._driverAuditLog)) currentState._driverAuditLog = [];
+                ids.forEach(id => {
+                    currentState._driverAuditLog.unshift({
+                        action: "DRIVER_DECOMMISSIONED",
+                        id,
+                        reason,
+                        time: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                    });
+                });
+                saveBusState(currentState);
+                sendJson(res, { ok: true, message: `Deleted ${ids.length} driver(s) successfully`, deletedIds: ids, deletedNames });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 400);
+            }
+        });
+        return;
+    }
 
     // ── File Download Endpoints (Excel & PDF Reports) ──
   if ((pathname === "/api/export-excel" || pathname === "/api/download/excel") && req.method === "GET") {

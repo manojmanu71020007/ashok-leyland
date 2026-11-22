@@ -321,4 +321,21 @@ export const api = {
       body: JSON.stringify(payload),
     });
   },
+
+  // Driver Management Endpoints
+  getDrivers: async () => {
+    return apiRequest('/api/drivers');
+  },
+  addDriver: async (payload) => {
+    return apiRequest('/api/drivers/add', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
+  deleteDrivers: async (payload) => {
+    return apiRequest('/api/drivers/delete', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
 };
