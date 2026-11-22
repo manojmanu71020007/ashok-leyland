@@ -281,8 +281,8 @@ const INITIAL_MASTER_DATASET = {
     {
       code: '500DC',
       depotId: '2',
-      name: 'HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board)',
-      fullName: 'HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board)',
+      name: 'HBL ➔ TNF (500DC)',
+      fullName: 'HBL ➔ TNF (500DC)',
       shortName: '500DC',
       origin: 'HBL',
       destination: 'TNF',

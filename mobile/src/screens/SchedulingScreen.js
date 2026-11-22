@@ -218,7 +218,7 @@ const DEPOT_2_ROUTES = [
   {
     id: '500DC',
     code: '500DC',
-    name: 'HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board)',
+    name: 'HBL ➔ TNF (500DC)',
     origin: 'HBL',
     destination: 'TNF',
     via: 'CSB',
@@ -433,7 +433,7 @@ export default function SchedulingScreen() {
         shortName: ds.shortName || clean,
         origin: ds.origin || `${depotLabel} Terminal`,
         destination: ds.destination || 'Central Terminal',
-        via: ds.via || 'Direct Express',
+        via: (ds.via && ds.via !== 'Direct Express') ? ds.via : '',
         timetables: Array.isArray(ds.timetables) ? ds.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(ds.distance) || 25.0,
         fullDutyKm: ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
@@ -468,7 +468,7 @@ export default function SchedulingScreen() {
         shortName: dyn.shortName || clean,
         origin: dyn.origin || `${depotLabel} Terminal`,
         destination: dyn.destination || 'Central Terminal',
-        via: dyn.via || 'Direct Express',
+        via: (dyn.via && dyn.via !== 'Direct Express') ? dyn.via : '',
         timetables: Array.isArray(dyn.timetables) ? dyn.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(dyn.distance) || 25.0,
         fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
@@ -494,7 +494,7 @@ export default function SchedulingScreen() {
       shortName: clean,
       origin: `${depotLabel} Terminal`,
       destination: 'Central Terminal',
-      via: 'Direct Express',
+      via: '',
       timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
       distance: 25.0,
       fullDutyKm: 50.0,
@@ -1541,7 +1541,7 @@ export default function SchedulingScreen() {
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>Corridor Route</Text>
                 <Text style={styles.ruleVal}>
-                  {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'}{selectedRoute.via ? ` (via ${selectedRoute.via})` : ''}
+                  {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'}
                 </Text>
               </View>
               <View style={styles.ruleItem}>

@@ -701,7 +701,7 @@ function loadCorridorSchedules() {
 
         { code: "399C", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, routeId: "8", trips: 8 },
 
-        { code: "500DC", origin: "Anekal", destination: "Tin Factory via Dommasandra", distKm: 49.8, routeId: "9", trips: 8 }
+        { code: "500DC", origin: "HBL", destination: "TNF", distKm: 49.1, routeId: "9", trips: 8 }
 
     ];
 
@@ -4668,7 +4668,7 @@ function getBusTasks(busIdentifier, routeIdParam, scheduleIdParam) {
 
         ? corridor.destination
 
-        : (matchedSchedule && matchedSchedule.tasks && matchedSchedule.tasks.length > 3 ? matchedSchedule.tasks[3].toStop : "Tin Factory via Dommasandra");
+        : (matchedSchedule && matchedSchedule.tasks && matchedSchedule.tasks.length > 3 ? matchedSchedule.tasks[3].toStop : "TNF");
 
     const cleanDest = rawDest.replace(new RegExp(`\\s*\\(${effectiveRouteCode}\\)\\s*$`, "i"), "").trim();
 
