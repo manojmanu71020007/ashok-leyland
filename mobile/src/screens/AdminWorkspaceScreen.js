@@ -277,7 +277,7 @@ const DEPOT_2_ROUTES_DATA = [
   { id: '361C', code: '361C', name: 'Attibele ➔ Kempegowda Bus Station (361C)', distance: 38.5, fullDutyKm: 108.0, category: 'Complex', requiredCat: 'A', drainSoc: 36, timetables: ['07:30 AM', '09:00 AM', '01:10 PM', '03:00 PM', '05:50 AM'], shift: 'Night Halt' },
   { id: '399C', code: '399C', name: 'Hosakote ➔ Electronic City (399C)', distance: 34.0, fullDutyKm: 85.0, category: 'Complex', requiredCat: 'A', drainSoc: 32, timetables: ['07:45 AM', '09:15 AM', '01:10 PM', '03:30 PM'], shift: 'General Shift' },
   { id: '328H', code: '328H', name: 'Hoskote ➔ Kempegowda Bus Station (328H)', distance: 32.5, fullDutyKm: 95.0, category: 'Moderate', requiredCat: 'B', drainSoc: 30, timetables: ['01:10 PM', '01:45 PM', '01:50 PM', '07:00 AM', '10:30 AM'], shift: 'Night Halt' },
-  { id: '500DC', code: '500DC', name: 'Attibele ➔ Whitefield (500DC)', distance: 31.0, fullDutyKm: 101.1, category: 'Standard', requiredCat: 'A', drainSoc: 32, timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '01:10 PM'], shift: 'General Shift' },
+  { id: '500DC', code: '500DC', name: 'Attibele ➔ Whitefield (500DC)', distance: 33.2, fullDutyKm: 188.54, actualKm: 188.54, chargingOcc: 1, noChargingOcc: 1, splitDuty: true, singleChargeReqKm: 91.9, category: 'Standard', requiredCat: 'B', drainSoc: 28, timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '01:10 PM', '02:15 PM', '03:45 PM'], shift: 'General Shift' },
   { id: 'KBS3F', code: 'KBS3F', name: 'Attibele ➔ Kempegowda Bus Station (KBS3F)', distance: 39.2, fullDutyKm: 76.0, category: 'Standard', requiredCat: 'B', drainSoc: 22, timetables: ['05:45 AM', '07:15 AM', '08:45 AM', '01:10 PM', '02:30 PM'], shift: 'General shift' },
 ];
 
@@ -345,17 +345,15 @@ export const getRequiredOperatingSoc = (duty, rData = null) => {
   const routeObj = rData || (rCode ? ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode) : null);
   const depTime = duty?.departureTime || duty?.scheduledTime || '01:10 PM';
 
-  // Form 4 Single Charge Operation Transit Standard:
-  // Operating stretch for corridor duty schedules is capped at 65 km (matching admin.html exactly)
-  let targetKm = 65;
-  if (routeObj) {
-    const fullDist = Number(duty?.fullDutyKm || routeObj.fullDutyKm || (routeObj.distance * (duty?.tripCount || 4)) || 65);
-    targetKm = Math.min(65, fullDist > 30 ? 65 : (routeObj.distance || 28.7));
-  } else if (duty && (duty.routeDist || duty.distance)) {
-    const d = Number(duty.routeDist || duty.distance);
-    targetKm = Math.min(65, d > 30 ? 65 : d);
+  // Form 4 Transit Standard:
+  // Operating stretch for continuous single-charge operation is derived from singleChargeReqKm or split duty
+  let targetKm = duty?.singleChargeReqKm || routeObj?.singleChargeReqKm;
+  if (!targetKm) {
+    const fullDist = Number(duty?.fullDutyKm || routeObj?.fullDutyKm || (routeObj?.distance * (duty?.tripCount || 4)) || 100);
+    const chgOcc = Number(duty?.chargingOcc ?? routeObj?.chargingOcc ?? 0);
+    targetKm = chgOcc > 0 ? Math.ceil(fullDist / (chgOcc + 1)) : (routeObj?.distance || 28.7);
   }
-  return getRequiredSingleChargeSoc(targetKm, duty, bm, depTime);
+  return getRequiredSingleChargeSoc(targetKm, duty || routeObj, bm, depTime);
 };
 
 // ── Detailed Duty Tasks & Feasibility Generator (Matching Website i-Symbol Info Modal) ──
@@ -2190,13 +2188,33 @@ export default function AdminWorkspaceScreen() {
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime]);
 
+  const isSplitDutyRoute = Boolean(
+    (selectedRoute?.chargingOcc && selectedRoute.chargingOcc > 0) ||
+    (selectedRoute?.noChargingOcc && selectedRoute.noChargingOcc > 0) ||
+    selectedRoute?.splitDuty
+  );
+
+  // Uncharged Shift Duty Required SOC (includes 15% safety buffer).
+  // For 188.54 km, base drain is 94.27% + 15% = 109.3% (>100%), which mathematically requires split duty!
+  const unchargedDutyRequiredSoc = useMemo(() => {
+    if (!selectedRoute) return 0;
+    const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
+    const dutyDist = Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || 0);
+    if (!dutyDist) return 0;
+    const drainInfo = getBusDrainRatePerKm(null, depTime);
+    return Math.round(dutyDist * drainInfo.effectiveDrainPerKm + 15);
+  }, [selectedRoute, scheduledTime]);
+
   const routeRequiredSoc = useMemo(() => {
     if (!selectedRoute) return '—';
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
-    const dist = Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
-    const calculated = getRequiredSingleChargeSoc(dist, null, null, depTime);
+    // When route has split duty / mid-duty charge planned, dispatch required SOC is based on the continuous single-leg stretch:
+    const targetDist = (isSplitDutyRoute || selectedRoute.singleChargeReqKm || unchargedDutyRequiredSoc > 100)
+      ? Number(selectedRoute.singleChargeReqKm || (selectedRoute.fullDutyKm ? selectedRoute.fullDutyKm / 2 : 91.9))
+      : Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
+    const calculated = getRequiredSingleChargeSoc(targetDist, selectedRoute, null, depTime);
     return calculated > 0 ? `${calculated}%` : '—';
-  }, [selectedRoute, scheduledTime]);
+  }, [selectedRoute, scheduledTime, isSplitDutyRoute, unchargedDutyRequiredSoc]);
 
   // Duties allocated specifically to routeAllocatedModalRoute (independent of departure time, matching admin.html)
   const routeAllocatedDuties = useMemo(() => {
@@ -3298,8 +3316,28 @@ export default function AdminWorkspaceScreen() {
             </View>
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>Operation Mode</Text>
-              <Text style={[styles.ruleVal, { color: '#15803d', fontWeight: '800' }]}>Single Charge Operation</Text>
+              <Text style={[styles.ruleVal, { color: (isSplitDutyRoute || unchargedDutyRequiredSoc > 100) ? '#0284c7' : '#15803d', fontWeight: '800' }]}>
+                {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100)
+                  ? `⚡ Split Duty (${selectedRoute?.chargingOcc || 1} Mid-Duty Charge Scheduled)`
+                  : 'Single Charge Operation'}
+              </Text>
             </View>
+            {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100) && (
+              <>
+                <View style={styles.ruleItem}>
+                  <Text style={styles.ruleLabel}>Single Charge Leg (single_charge_req_km)</Text>
+                  <Text style={[styles.ruleVal, { color: '#0369a1', fontWeight: '700' }]}>
+                    {selectedRoute?.singleChargeReqKm ? `${selectedRoute.singleChargeReqKm} km` : `${(Number(selectedRoute?.fullDutyKm || selectedRoute?.actualKm || 188.54) / 2).toFixed(1)} km`}
+                  </Text>
+                </View>
+                <View style={styles.ruleItem}>
+                  <Text style={styles.ruleLabel}>Mid-Duty Charging Sessions</Text>
+                  <Text style={[styles.ruleVal, { color: '#d97706', fontWeight: '700' }]}>
+                    ⚡ {selectedRoute?.chargingOcc || selectedRoute?.noChargingOcc || 1} Session Planned per Form 4
+                  </Text>
+                </View>
+              </>
+            )}
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>One-Way Trip Distance</Text>
               <Text style={styles.ruleVal}>{selectedRoute.distance} km</Text>
@@ -3325,6 +3363,14 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.ruleVal}>Timetable Scheduled</Text>
             </View>
           </View>
+
+          {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100) && (
+            <View style={[styles.adminMonitoringNotice, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', marginTop: 10 }]}>
+              <Text style={[styles.adminMonitoringNoticeText, { color: '#0369a1', fontWeight: '600' }]}>
+                ⚡ Split Duty Planned: Shift duty mileage ({selectedRoute?.fullDutyKm || selectedRoute?.actualKm || 188.54} km) without charging would consume ~{unchargedDutyRequiredSoc}% SOC (&gt;100% capacity). The scheduler plans {selectedRoute?.chargingOcc || 1} mid-duty opportunity charging session during the shift break, capping continuous single-charge operating leg at {selectedRoute?.singleChargeReqKm || 91.9} km (~{routeRequiredSoc} required SOC for initial dispatch).
+              </Text>
+            </View>
+          )}
 
           {/* Admin Inspection Notice (No commit allocate button in admin part) */}
           <View style={styles.adminMonitoringNotice}>

@@ -397,9 +397,11 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
       targetKm = Number(match[1]);
     }
   }
-  // Standard Form 4 EV transit single continuous operating stretch cap
-  if (targetKm > 65) {
-    targetKm = 65;
+
+  // If charging occurrences are scheduled (e.g. 1 mid-duty charge / split duty) and singleChargeReqKm wasn't specified:
+  const chgOcc = Number(schedObj?.chargingOcc ?? schedObj?.noChargingOcc ?? schedObj?.charging_occ ?? 0);
+  if (chgOcc > 0 && (!schedObj || !schedObj.singleChargeReqKm)) {
+    targetKm = Math.ceil(targetKm / (chgOcc + 1));
   }
 
   const depTime = timeCategoryOrStr || (schedObj && (schedObj.outTime || schedObj.cum_time || schedObj.departureTime));

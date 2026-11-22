@@ -362,7 +362,12 @@
       "origin": "Attibele",
       "destination": "Whitefield",
       "distance": 33.2,
-      "fullDutyKm": 85.0,
+      "fullDutyKm": 188.54,
+      "actualKm": 188.54,
+      "chargingOcc": 1,
+      "noChargingOcc": 1,
+      "splitDuty": true,
+      "singleChargeReqKm": 91.9,
       "routeComplexity": "Moderate",
       "category": "Standard",
       "requiredCat": "B",
@@ -387,11 +392,11 @@
         "03:45 PM": "Peak"
       },
       "schedules": [
-        { "scheduleId": "500DC/12", "shift": "General Shift", "outTime": "07:45:00", "inTime": "14:45:00", "fixBm": "BM240", "swapBm": "BM255", "category": "Standard", "singleChargeReqKm": 85 },
-        { "scheduleId": "500DC/13", "shift": "General Shift", "outTime": "08:00:00", "inTime": "15:00:00", "fixBm": "BM255", "swapBm": "BM274", "category": "Standard", "singleChargeReqKm": 85 },
-        { "scheduleId": "500DC/14", "shift": "General Shift", "outTime": "08:15:00", "inTime": "15:15:00", "fixBm": "BM274", "swapBm": "BM240", "category": "Standard", "singleChargeReqKm": 85 },
-        { "scheduleId": "500DC/15", "shift": "General Shift", "outTime": "08:30:00", "inTime": "15:30:00", "fixBm": "BM240", "swapBm": "BM274", "category": "Standard", "singleChargeReqKm": 85 },
-        { "scheduleId": "500DC/1", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM255", "swapBm": "BM240", "category": "Standard", "singleChargeReqKm": 85 }
+        { "scheduleId": "500DC/12", "shift": "General Shift", "outTime": "07:45:00", "inTime": "14:45:00", "fixBm": "BM240", "swapBm": "BM255", "category": "Moderate", "actualKm": 188.54, "singleChargeReqKm": 116.5, "chargingOcc": 1, "noChargingOcc": 1, "splitDuty": true },
+        { "scheduleId": "500DC/13", "shift": "General Shift", "outTime": "08:00:00", "inTime": "15:00:00", "fixBm": "BM255", "swapBm": "BM274", "category": "Moderate", "actualKm": 188.54, "singleChargeReqKm": 116.5, "chargingOcc": 1, "noChargingOcc": 1, "splitDuty": true },
+        { "scheduleId": "500DC/14", "shift": "General Shift", "outTime": "08:15:00", "inTime": "15:15:00", "fixBm": "BM274", "swapBm": "BM240", "category": "Standard", "actualKm": 188.54, "singleChargeReqKm": 91.9, "chargingOcc": 1, "noChargingOcc": 1, "splitDuty": true },
+        { "scheduleId": "500DC/15", "shift": "General Shift", "outTime": "08:30:00", "inTime": "15:30:00", "fixBm": "BM240", "swapBm": "BM274", "category": "Standard", "actualKm": 188.54, "singleChargeReqKm": 91.9, "chargingOcc": 1, "noChargingOcc": 1, "splitDuty": true },
+        { "scheduleId": "500DC/1", "shift": "Shift B", "outTime": "13:10:00", "inTime": "21:10:00", "fixBm": "BM255", "swapBm": "BM240", "category": "Standard", "actualKm": 188.54, "singleChargeReqKm": 91.9, "chargingOcc": 1, "noChargingOcc": 1, "splitDuty": true }
       ]
     },
     {

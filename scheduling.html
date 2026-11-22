@@ -2187,6 +2187,8 @@
 
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
 
+                    <div class="rule"><span>Actual Shift Duty (actual_km)</span><strong id="actual-km-rule" style="color:#0284c7;">—</strong></div>
+
                     <div class="rule"><span>Full Duty Distance</span><strong id="full-duty-dist-rule">—</strong></div>
 
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
@@ -3516,65 +3518,32 @@
             let targetKm = Number(distKm) || 28.7;
 
             if (schedObj) {
-
                 const reqKm = Number(schedObj.single_charge_req_km ?? schedObj.singleChargeReqKm ?? 0);
-
+                const chgOcc = Number(schedObj.charging_occ ?? schedObj.chargingOcc ?? schedObj.no_charging_occ_per_sched ?? schedObj.noChargingOcc ?? 0);
                 if (reqKm > 0) {
-
                     targetKm = reqKm;
-
                 } else {
-
                     const actKm = Number(schedObj.actual_km ?? schedObj.actualKm ?? 0);
-
                     const deadKm = Number(schedObj.dead_km ?? schedObj.deadKm ?? 0);
-
                     if (actKm > 0) {
-
-                        targetKm = actKm + deadKm;
-
+                        const totalDuty = actKm + deadKm;
+                        targetKm = chgOcc > 0 ? Math.ceil(totalDuty / (chgOcc + 1)) : totalDuty;
                     }
-
                 }
-
             }
-
-
 
             // If the schedule specifies intermediate rest stops / opportunity charging in remarks (e.g. "1 rest stoop at HSK 65.7")
-
             if (schedObj && schedObj.remarks) {
-
                 const numbers = String(schedObj.remarks).match(/[0-9]+(?:\.[0-9]+)?/g);
-
                 if (numbers) {
-
                     for (const numStr of numbers) {
-
                         const n = Number(numStr);
-
                         if (n > 20 && n < targetKm) {
-
                             targetKm = n;
-
                             break;
-
                         }
-
                     }
-
                 }
-
-            }
-
-            // For multi-trip duties or long schedules, cap single continuous operating stretch at 65 km
-
-            // (Standard EV transit operating practice before opportunity charging / depot turn-in)
-
-            if (targetKm > 65) {
-
-                targetKm = 65;
-
             }
 
 
@@ -4229,54 +4198,34 @@
 
 
             let operatingKm = Number(routeDist) || 28.7;
-
             if (matchedSched) {
-
                 const reqKm = Number(matchedSched.single_charge_req_km ?? matchedSched.singleChargeReqKm ?? 0);
-
+                const chgOcc = Number(matchedSched.charging_occ ?? matchedSched.chargingOcc ?? matchedSched.no_charging_occ_per_sched ?? matchedSched.noChargingOcc ?? 0);
                 if (reqKm > 0) {
-
                     operatingKm = reqKm;
-
                 } else {
-
                     const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
-
                     const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
-
-                    if (actKm > 0) operatingKm = actKm + deadKm;
-
+                    if (actKm > 0) {
+                        const totalDuty = actKm + deadKm;
+                        operatingKm = chgOcc > 0 ? Math.ceil(totalDuty / (chgOcc + 1)) : totalDuty;
+                    }
                 }
 
                 // Check remarks for intermediate rest stops / opportunity charging
-
                 if (matchedSched.remarks) {
-
                     const numbers = String(matchedSched.remarks).match(/[0-9]+(?:\.[0-9]+)?/g);
-
                     if (numbers) {
-
                         for (const numStr of numbers) {
-
                             const n = Number(numStr);
-
                             if (n > 20 && n < operatingKm) {
-
                                 operatingKm = n;
-
                                 break;
-
                             }
-
                         }
-
                     }
-
                 }
-
             }
-
-            if (operatingKm > 65) operatingKm = 65;
 
 
 
@@ -6552,9 +6501,23 @@
 
                 if (currentSocRule) currentSocRule.textContent = "—";
 
+                const actualKmRule = document.getElementById("actual-km-rule");
+                if (actualKmRule) {
+                    const actKm = routeObj ? (routeObj.actualKm || routeObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKm ? `${actKm} km` : "—";
+                }
+
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
 
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(routeObj && ((routeObj.chargingOcc > 0) || (routeObj.noChargingOcc > 0) || routeObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = routeObj.chargingOcc || routeObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
 
                 if (rangeRule) rangeRule.textContent = "—";
 
@@ -6622,9 +6585,23 @@
 
                 if (currentSocRule) currentSocRule.textContent = "—";
 
+                const actualKmRule = document.getElementById("actual-km-rule");
+                if (actualKmRule) {
+                    const actKm = routeObj ? (routeObj.actualKm || routeObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKm ? `${actKm} km` : "—";
+                }
+
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
 
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(routeObj && ((routeObj.chargingOcc > 0) || (routeObj.noChargingOcc > 0) || routeObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = routeObj.chargingOcc || routeObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
 
                 if (rangeRule) rangeRule.textContent = "—";
 
@@ -6806,9 +6783,23 @@
 
                 if (currentSocRule) currentSocRule.textContent = "—";
 
+                const actualKmRule = document.getElementById("actual-km-rule");
+                if (actualKmRule) {
+                    const actKm = routeObj ? (routeObj.actualKm || routeObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKm ? `${actKm} km` : "—";
+                }
+
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
 
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(routeObj && ((routeObj.chargingOcc > 0) || (routeObj.noChargingOcc > 0) || routeObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = routeObj.chargingOcc || routeObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
 
                 if (rangeRule) rangeRule.textContent = routeCategoryLabel;
 
@@ -6948,9 +6939,23 @@
 
             if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
 
+            const actualKmRuleEl = document.getElementById("actual-km-rule");
+            if (actualKmRuleEl) {
+                const actDist = routeObj ? (routeObj.fullDutyKm || routeObj.actualKm) : null;
+                actualKmRuleEl.textContent = actDist ? `${actDist} km` : `${rangeValue} km`;
+            }
+
             if (fullDutyDistRule) fullDutyDistRule.textContent = `${rangeValue} km usable (${grossDutyDist} km gross)`;
 
-            if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+            const chgOcc = Number((matchedSched && (matchedSched.chargingOcc ?? matchedSched.noChargingOcc ?? matchedSched.charging_occ)) ?? (routeObj && (routeObj.chargingOcc ?? routeObj.noChargingOcc)) ?? 0);
+            const isSplitDuty = chgOcc > 0 || Boolean(routeObj && routeObj.splitDuty) || Boolean(matchedSched && matchedSched.splitDuty);
+            if (opStandardRule) {
+                if (isSplitDuty) {
+                    opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chgOcc || 1} Mid-Duty Charge Scheduled)</span>`;
+                } else {
+                    opStandardRule.textContent = "Single Charge Operation";
+                }
+            }
 
             if (rangeRule) rangeRule.textContent = routeCategoryLabel;
 

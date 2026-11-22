@@ -870,117 +870,67 @@ function loadCorridorSchedules() {
     // Ensure 500DC has timetable schedule slots from GTFS trips (General Shift & Shift B)
 
     const has500DC = schedules.some(s => s.route === "500DC");
-
     if (!has500DC) {
-
         schedules.push(
-
-            { scheduleId: "500DC/12", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM255", swapReg: "KA51AH5639", outTime: "07:45:00", inTime: "14:45:00" },
-
-            { scheduleId: "500DC/13", route: "500DC", shift: "General", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:00:00", inTime: "15:00:00" },
-
-            { scheduleId: "500DC/14", route: "500DC", shift: "General", fixBm: "BM274", fixReg: "KA51AH6236", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "08:15:00", inTime: "15:15:00" },
-
-            { scheduleId: "500DC/15", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:30:00", inTime: "15:30:00" },
-
-            { scheduleId: "500DC/1", route: "500DC", shift: "Shift B", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "13:10:00", inTime: "21:10:00" }
-
+            { scheduleId: "500DC/12", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM255", swapReg: "KA51AH5639", outTime: "07:45:00", inTime: "14:45:00", actualKm: 188.54, singleChargeReqKm: 116.5, chargingOcc: 1, noChargingOcc: 1, splitDuty: true },
+            { scheduleId: "500DC/13", route: "500DC", shift: "General", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:00:00", inTime: "15:00:00", actualKm: 188.54, singleChargeReqKm: 116.5, chargingOcc: 1, noChargingOcc: 1, splitDuty: true },
+            { scheduleId: "500DC/14", route: "500DC", shift: "General", fixBm: "BM274", fixReg: "KA51AH6236", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "08:15:00", inTime: "15:15:00", actualKm: 188.54, singleChargeReqKm: 91.9, chargingOcc: 1, noChargingOcc: 1, splitDuty: true },
+            { scheduleId: "500DC/15", route: "500DC", shift: "General", fixBm: "BM240", fixReg: "KA51AH7979", swapBm: "BM274", swapReg: "KA51AH6236", outTime: "08:30:00", inTime: "15:30:00", actualKm: 188.54, singleChargeReqKm: 91.9, chargingOcc: 1, noChargingOcc: 1, splitDuty: true },
+            { scheduleId: "500DC/1", route: "500DC", shift: "Shift B", fixBm: "BM255", fixReg: "KA51AH5639", swapBm: "BM240", swapReg: "KA51AH7979", outTime: "13:10:00", inTime: "21:10:00", actualKm: 188.54, singleChargeReqKm: 91.9, chargingOcc: 1, noChargingOcc: 1, splitDuty: true }
         );
-
     }
 
-
-
     // Enrich with schedule_categories.json metadata (130 Form 4 operational schedules)
-
     try {
-
         const catPath = path.join(BASE_DIR, "vehicles", "schedule_categories.json");
-
         if (fs.existsSync(catPath)) {
-
             const catList = JSON.parse(fs.readFileSync(catPath, "utf8"));
-
             const catMap = new Map();
-
             catList.forEach(c => catMap.set(c.schedule_id.toLowerCase(), c));
 
-
-
             // Attach to existing schedules
-
             schedules.forEach(s => {
-
                 const meta = catMap.get(s.scheduleId.toLowerCase());
-
                 if (meta) {
-
                     s.category = meta.category;
-
                     s.singleChargeReqKm = meta.single_charge_req_km;
-
                     s.actualKm = meta.actual_km;
-
                     s.deadKm = meta.dead_km;
-
                     s.remarks = meta.remarks;
-
                     s.noOfRest = meta.no_of_rest;
-
                     s.cumTime = meta.cum_time;
-
+                    s.chargingOcc = meta.charging_occ ?? (meta.no_charging_occ_per_sched || 0);
+                    s.noChargingOcc = meta.no_charging_occ_per_sched ?? (meta.charging_occ || 0);
+                    s.splitDuty = Boolean((s.chargingOcc && s.chargingOcc > 0) || (s.noChargingOcc && s.noChargingOcc > 0));
                 }
-
             });
 
-
-
             // Also add any missing schedules from catList
-
             const existingSchedIds = new Set(schedules.map(s => s.scheduleId.toLowerCase()));
-
             catList.forEach(c => {
-
                 if (!existingSchedIds.has(c.schedule_id.toLowerCase())) {
-
                     schedules.push({
-
                         scheduleId: c.schedule_id,
-
                         route: c.route,
-
                         shift: c.shift,
-
                         fixBm: "",
-
                         fixReg: "",
-
                         swapBm: "",
-
                         swapReg: "",
-
                         outTime: c.cum_time || "08:00:00",
-
                         inTime: "16:00:00",
-
                         category: c.category,
-
                         singleChargeReqKm: c.single_charge_req_km,
-
                         actualKm: c.actual_km,
-
                         deadKm: c.dead_km,
-
                         remarks: c.remarks,
-
                         noOfRest: c.no_of_rest,
-
-                        cumTime: c.cum_time
-
+                        cumTime: c.cum_time,
+                        chargingOcc: c.charging_occ ?? (c.no_charging_occ_per_sched || 0),
+                        noChargingOcc: c.no_charging_occ_per_sched ?? (c.charging_occ || 0),
+                        splitDuty: Boolean(((c.charging_occ || 0) > 0) || ((c.no_charging_occ_per_sched || 0) > 0))
                     });
-
                 }
-
             });
 
 
@@ -5642,13 +5592,13 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 let headerIdx = -1;
                 let routeIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1;
                 let fixBmIdx = -1, swapBmIdx = -1, distIdx = -1, origIdx = -1, destIdx = -1;
-                let tripDistIdx = -1, dutyDistIdx = -1, nameIdx = -1, catIdx = -1, singleChargeIdx = -1;
+                let tripDistIdx = -1, dutyDistIdx = -1, nameIdx = -1, catIdx = -1, singleChargeIdx = -1, chargingOccIdx = -1;
 
                 for (let r = 0; r < Math.min(rawRows.length, 10); r++) {
                     const row = rawRows[r];
                     if (!Array.isArray(row)) continue;
                     let fRoute = -1, fSched = -1, fOut = -1, fIn = -1, fShift = -1, fFix = -1, fSwap = -1;
-                    let fTripDist = -1, fDist = -1, fDutyDist = -1, fName = -1, fCat = -1, fSingleCharge = -1, fOrig = -1, fDest = -1;
+                    let fTripDist = -1, fDist = -1, fDutyDist = -1, fName = -1, fCat = -1, fSingleCharge = -1, fChargingOcc = -1, fOrig = -1, fDest = -1;
 
                     row.forEach((cell, cIdx) => {
                         const clean = String(cell || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -5666,6 +5616,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         // Cumulative shift duty distance / running km
                         else if (/^(actualkm|routelengthschedule|routelength)$/i.test(clean)) fDutyDist = cIdx;
                         else if (/^(singlechargeoperationrequiredasperform4|singlechargereqkm|singlecharge)$/i.test(clean)) fSingleCharge = cIdx;
+                        else if (/^(chargingocc|chargingoccurrence|chargingoccurrences|nochargeingoccschedule|nochargingoccschedule|nochargingocc|chargingtimes|noofchargingtimes|midchargerequired|splitduty)$/i.test(clean)) fChargingOcc = cIdx;
                         else if (/^(category|routecomplexity|complexity)$/i.test(clean)) fCat = cIdx;
                         else if (/^(origin|from|startpoint|startingpoint)$/i.test(clean)) fOrig = cIdx;
                         else if (/^(destination|dest|to|endpoint)$/i.test(clean)) fDest = cIdx;
@@ -5685,6 +5636,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         distIdx = fDist;
                         dutyDistIdx = fDutyDist;
                         singleChargeIdx = fSingleCharge;
+                        chargingOccIdx = fChargingOcc;
                         catIdx = fCat;
                         origIdx = fOrig;
                         destIdx = fDest;
@@ -5729,6 +5681,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         parsedSingleCharge = parseFloat(row[singleChargeIdx]);
                     }
 
+                    let parsedChargingOcc = null;
+                    if (chargingOccIdx >= 0 && row[chargingOccIdx] !== undefined && row[chargingOccIdx] !== null && !isNaN(parseInt(row[chargingOccIdx], 10))) {
+                        parsedChargingOcc = parseInt(row[chargingOccIdx], 10);
+                    }
+
                     const parsedFullName = nameIdx >= 0 && row[nameIdx] ? String(row[nameIdx]).trim() : null;
                     const parsedCategory = catIdx >= 0 && row[catIdx] ? String(row[catIdx]).trim() : null;
 
@@ -5738,6 +5695,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                             depotId: defaultDepot,
                             distance: parsedDist,
                             fullDutyKm: parsedDutyKm,
+                            actualKm: parsedDutyKm,
+                            chargingOcc: parsedChargingOcc ?? 0,
+                            noChargingOcc: parsedChargingOcc ?? 0,
+                            splitDuty: Boolean(parsedChargingOcc && parsedChargingOcc > 0),
+                            singleChargeReqKm: parsedSingleCharge,
                             fullName: parsedFullName,
                             category: parsedCategory,
                             origin: origIdx >= 0 && row[origIdx] ? String(row[origIdx]).trim() : null,
@@ -5748,6 +5710,15 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     }
 
                     const rObj = routesMap.get(routeCode);
+                    if (parsedDutyKm && !rObj.fullDutyKm) rObj.fullDutyKm = parsedDutyKm;
+                    if (parsedDutyKm && !rObj.actualKm) rObj.actualKm = parsedDutyKm;
+                    if (parsedChargingOcc !== null && !rObj.chargingOcc) {
+                        rObj.chargingOcc = parsedChargingOcc;
+                        rObj.noChargingOcc = parsedChargingOcc;
+                        rObj.splitDuty = parsedChargingOcc > 0;
+                    }
+                    if (parsedSingleCharge && !rObj.singleChargeReqKm) rObj.singleChargeReqKm = parsedSingleCharge;
+
                     const outTime = outTimeIdx >= 0 ? formatSpreadsheetTime(row[outTimeIdx]) : null;
                     const inTime = inTimeIdx >= 0 ? formatSpreadsheetTime(row[inTimeIdx]) : null;
                     const shift = shiftIdx >= 0 && row[shiftIdx] ? String(row[shiftIdx]).trim() : "General Shift";
@@ -5767,7 +5738,10 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         swapBm,
                         category: parsedCategory || "Standard",
                         singleChargeReqKm: parsedSingleCharge || (parsedDist ? Math.round(parsedDist * 1.5) : 45),
-                        actualKm: parsedDutyKm || undefined
+                        actualKm: parsedDutyKm || undefined,
+                        chargingOcc: parsedChargingOcc ?? (rObj.chargingOcc || 0),
+                        noChargingOcc: parsedChargingOcc ?? (rObj.noChargingOcc || 0),
+                        splitDuty: Boolean((parsedChargingOcc && parsedChargingOcc > 0) || rObj.splitDuty)
                     });
                 }
             }
@@ -5784,7 +5758,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
             if (lines.length >= 2) {
                 const headers = parseCsvLine(lines[0]);
                 let routeIdx = -1, nameIdx = -1, schedIdx = -1, outTimeIdx = -1, inTimeIdx = -1, shiftIdx = -1;
-                let tripDistIdx = -1, distIdx = -1, dutyDistIdx = -1, singleChargeIdx = -1, catIdx = -1, origIdx = -1, destIdx = -1;
+                let tripDistIdx = -1, distIdx = -1, dutyDistIdx = -1, singleChargeIdx = -1, chargingOccIdx = -1, catIdx = -1, origIdx = -1, destIdx = -1;
 
                 headers.forEach((h, idx) => {
                     const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -5798,6 +5772,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     else if (/^(distance|km|length)$/i.test(clean)) distIdx = idx;
                     else if (/^(actualkm|routelengthschedule|routelength)$/i.test(clean)) dutyDistIdx = idx;
                     else if (/^(singlechargeoperationrequiredasperform4|singlechargereqkm|singlecharge)$/i.test(clean)) singleChargeIdx = idx;
+                    else if (/^(chargingocc|chargingoccurrence|chargingoccurrences|nochargeingoccschedule|nochargingoccschedule|nochargingocc|chargingtimes|noofchargingtimes|midchargerequired|splitduty)$/i.test(clean)) chargingOccIdx = idx;
                     else if (/^(category|routecomplexity|complexity)$/i.test(clean)) catIdx = idx;
                     else if (/^(origin|from)$/i.test(clean)) origIdx = idx;
                     else if (/^(destination|dest|to)$/i.test(clean)) destIdx = idx;
@@ -5833,6 +5808,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                             parsedSingleCharge = parseFloat(parts[singleChargeIdx]);
                         }
 
+                        let parsedChargingOcc = null;
+                        if (chargingOccIdx >= 0 && parts[chargingOccIdx] !== undefined && parts[chargingOccIdx] !== null && !isNaN(parseInt(parts[chargingOccIdx], 10))) {
+                            parsedChargingOcc = parseInt(parts[chargingOccIdx], 10);
+                        }
+
                         const parsedFullName = nameIdx >= 0 && parts[nameIdx] ? String(parts[nameIdx]).trim() : null;
                         const parsedCategory = catIdx >= 0 && parts[catIdx] ? String(parts[catIdx]).trim() : null;
 
@@ -5842,6 +5822,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                                 depotId: defaultDepot,
                                 distance: parsedDist,
                                 fullDutyKm: parsedDutyKm,
+                                actualKm: parsedDutyKm,
+                                chargingOcc: parsedChargingOcc ?? 0,
+                                noChargingOcc: parsedChargingOcc ?? 0,
+                                splitDuty: Boolean(parsedChargingOcc && parsedChargingOcc > 0),
+                                singleChargeReqKm: parsedSingleCharge,
                                 fullName: parsedFullName,
                                 category: parsedCategory,
                                 origin: origIdx >= 0 && parts[origIdx] ? String(parts[origIdx]).trim() : null,
@@ -5852,6 +5837,15 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         }
 
                         const rObj = routesMap.get(routeCode);
+                        if (parsedDutyKm && !rObj.fullDutyKm) rObj.fullDutyKm = parsedDutyKm;
+                        if (parsedDutyKm && !rObj.actualKm) rObj.actualKm = parsedDutyKm;
+                        if (parsedChargingOcc !== null && !rObj.chargingOcc) {
+                            rObj.chargingOcc = parsedChargingOcc;
+                            rObj.noChargingOcc = parsedChargingOcc;
+                            rObj.splitDuty = parsedChargingOcc > 0;
+                        }
+                        if (parsedSingleCharge && !rObj.singleChargeReqKm) rObj.singleChargeReqKm = parsedSingleCharge;
+
                         const outTime = outTimeIdx >= 0 ? formatSpreadsheetTime(parts[outTimeIdx]) : null;
                         const inTime = inTimeIdx >= 0 ? formatSpreadsheetTime(parts[inTimeIdx]) : null;
                         const shift = shiftIdx >= 0 && parts[shiftIdx] ? String(parts[shiftIdx]).trim() : "General Shift";
@@ -5864,7 +5858,10 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                             inTime: inTime || "04:00 PM",
                             category: parsedCategory || "Standard",
                             singleChargeReqKm: parsedSingleCharge || (parsedDist ? Math.round(parsedDist * 1.5) : 45),
-                            actualKm: parsedDutyKm || undefined
+                            actualKm: parsedDutyKm || undefined,
+                            chargingOcc: parsedChargingOcc ?? (rObj.chargingOcc || 0),
+                            noChargingOcc: parsedChargingOcc ?? (rObj.noChargingOcc || 0),
+                            splitDuty: Boolean((parsedChargingOcc && parsedChargingOcc > 0) || rObj.splitDuty)
                         });
                     }
                 }
@@ -5946,12 +5943,22 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 }
             });
 
+            if (entry.fullDutyKm) {
+                existingRoute.fullDutyKm = entry.fullDutyKm;
+                existingRoute.actualKm = entry.fullDutyKm;
+            }
+            if (entry.chargingOcc !== undefined && entry.chargingOcc !== null) {
+                existingRoute.chargingOcc = entry.chargingOcc;
+                existingRoute.noChargingOcc = entry.chargingOcc;
+                existingRoute.splitDuty = entry.chargingOcc > 0;
+            }
+            if (entry.singleChargeReqKm) {
+                existingRoute.singleChargeReqKm = entry.singleChargeReqKm;
+            }
             if (entry.distance) {
                 existingRoute.distance = entry.distance;
-                existingRoute.fullDutyKm = entry.fullDutyKm || parseFloat((entry.distance * 2).toFixed(1));
+                if (!existingRoute.fullDutyKm) existingRoute.fullDutyKm = parseFloat((entry.distance * 2).toFixed(1));
                 existingRoute.drainSoc = Math.min(95, Math.max(12, Math.round(existingRoute.distance * 0.85)));
-            } else if (entry.fullDutyKm && !existingRoute.fullDutyKm) {
-                existingRoute.fullDutyKm = entry.fullDutyKm;
             }
             if (entry.fullName) {
                 existingRoute.fullName = entry.fullName;
@@ -6017,6 +6024,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 destination: dest,
                 distance: dist,
                 fullDutyKm: dutyKm,
+                actualKm: entry.actualKm || dutyKm,
+                chargingOcc: entry.chargingOcc || 0,
+                noChargingOcc: entry.chargingOcc || 0,
+                splitDuty: Boolean(entry.chargingOcc && entry.chargingOcc > 0),
+                singleChargeReqKm: entry.singleChargeReqKm || undefined,
                 routeComplexity: routeComp,
                 category: routeComp,
                 requiredCat: reqCat,

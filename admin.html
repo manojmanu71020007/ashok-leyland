@@ -3418,14 +3418,15 @@ let busCategoriesMap = new Map();
                     targetKm = Number(match[1]);
                 }
             }
-            // For multi-trip schedules with rest breaks, cap single operating stretch at 95 km
-            // For multi-trip duties or long schedules, cap single continuous operating stretch at 65 km
-            if (targetKm > 65) {
-                targetKm = 65;
+
+            // If schedule or route has mid-duty charging occurrences scheduled (Split Duty per Form 4) and singleChargeReqKm wasn't specified:
+            const chgOcc = Number(schedObj?.chargingOcc ?? schedObj?.noChargingOcc ?? schedObj?.charging_occ ?? 0);
+            if (chgOcc > 0 && (!schedObj || !schedObj.singleChargeReqKm)) {
+                targetKm = Math.ceil(targetKm / (chgOcc + 1));
             }
 
             // Vehicle-specific range & Time Category drain rate model:
-            // 1. Base drain rate per km = 100 / busActualRangeKm
+            // 1. Base drain rate per km = 100 / busActualRangeKm (BMTC EiV12 ~0.50%/km)
             // 2. Time Category drain rate factor:
             //    - Extreme Peak: High drain rate (1.30x)
             //    - Peak: Moderate drain rate (1.15x)
@@ -5459,12 +5460,16 @@ let busCategoriesMap = new Map();
             let operatingKm = Number(routeDist) || 28.7;
             if (matchedSched) {
                 const reqKm = Number(matchedSched.single_charge_req_km ?? matchedSched.singleChargeReqKm ?? 0);
+                const chgOcc = Number(matchedSched.charging_occ ?? matchedSched.chargingOcc ?? matchedSched.no_charging_occ_per_sched ?? 0);
                 if (reqKm > 0) {
                     operatingKm = reqKm;
                 } else {
                     const actKm = Number(matchedSched.actual_km ?? matchedSched.actualKm ?? 0);
                     const deadKm = Number(matchedSched.dead_km ?? matchedSched.deadKm ?? 0);
-                    if (actKm > 0) operatingKm = actKm + deadKm;
+                    if (actKm > 0) {
+                        const totalDuty = actKm + deadKm;
+                        operatingKm = chgOcc > 0 ? Math.ceil(totalDuty / (chgOcc + 1)) : totalDuty;
+                    }
                 }
                 // Check remarks for intermediate rest stops / opportunity charging
                 if (matchedSched.remarks) {
@@ -5480,7 +5485,6 @@ let busCategoriesMap = new Map();
                     }
                 }
             }
-            if (operatingKm > 65) operatingKm = 65;
 
             if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
                 return {
@@ -6379,7 +6383,8 @@ let busCategoriesMap = new Map();
                 if (currentlyAllocatedBus && currentlyAllocatedBus.reqSoc && (!currentlyAllocatedBus.routeCode || normalizeRoute(currentlyAllocatedBus.routeCode) === normalizeRoute(routeCodeVal))) {
                     calculatedReqSoc = currentlyAllocatedBus.reqSoc;
                 } else if (typeof getRequiredSingleChargeSoc === "function") {
-                    calculatedReqSoc = getRequiredSingleChargeSoc(routeDist, currentScheduleMatch, null, depTimeVal);
+                    const schedCandidate = currentScheduleMatch || (routeObj && routeObj.schedules && routeObj.schedules[0]) || routeObj;
+                    calculatedReqSoc = getRequiredSingleChargeSoc(routeDist, schedCandidate, null, depTimeVal);
                 }
 
                 if (calculatedReqSoc > 0) {
@@ -8580,9 +8585,20 @@ let busCategoriesMap = new Map();
                 if (rangeKpi) rangeKpi.style.opacity = "0.6";
                 if (currentSocRule) currentSocRule.textContent = "—";
                 const actualKmRule = document.getElementById("actual-km-rule");
-                if (actualKmRule) actualKmRule.textContent = "—";
+                if (actualKmRule) {
+                    const actKmVal = selectedRouteObj ? (selectedRouteObj.actualKm || selectedRouteObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKmVal ? `${actKmVal} km` : "—";
+                }
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(selectedRouteObj && ((selectedRouteObj.chargingOcc > 0) || (selectedRouteObj.noChargingOcc > 0) || selectedRouteObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = selectedRouteObj.chargingOcc || selectedRouteObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
                 const depTimeRuleEl = document.getElementById("departure-time-rule");
@@ -8614,9 +8630,20 @@ let busCategoriesMap = new Map();
                 if (rangeKpi) rangeKpi.style.opacity = "0.6";
                 if (currentSocRule) currentSocRule.textContent = "—";
                 const actualKmRule = document.getElementById("actual-km-rule");
-                if (actualKmRule) actualKmRule.textContent = "—";
+                if (actualKmRule) {
+                    const actKmVal = selectedRouteObj ? (selectedRouteObj.actualKm || selectedRouteObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKmVal ? `${actKmVal} km` : "—";
+                }
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(selectedRouteObj && ((selectedRouteObj.chargingOcc > 0) || (selectedRouteObj.noChargingOcc > 0) || selectedRouteObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = selectedRouteObj.chargingOcc || selectedRouteObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
                 if (rangeRule) rangeRule.textContent = "—";
                 if (timeRule) timeRule.textContent = "—";
                 const depTimeRuleEl = document.getElementById("departure-time-rule");
@@ -8735,9 +8762,20 @@ let busCategoriesMap = new Map();
                 if (rangeKpi) rangeKpi.style.opacity = "0.6";
                 if (currentSocRule) currentSocRule.textContent = "—";
                 const actualKmRule = document.getElementById("actual-km-rule");
-                if (actualKmRule) actualKmRule.textContent = "—";
+                if (actualKmRule) {
+                    const actKmVal = selectedRouteObj ? (selectedRouteObj.actualKm || selectedRouteObj.fullDutyKm) : null;
+                    actualKmRule.textContent = actKmVal ? `${actKmVal} km` : "—";
+                }
                 if (fullDutyDistRule) fullDutyDistRule.textContent = "—";
-                if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+                const isSplitEarly = Boolean(selectedRouteObj && ((selectedRouteObj.chargingOcc > 0) || (selectedRouteObj.noChargingOcc > 0) || selectedRouteObj.splitDuty));
+                if (opStandardRule) {
+                    if (isSplitEarly) {
+                        const chg = selectedRouteObj.chargingOcc || selectedRouteObj.noChargingOcc || 1;
+                        opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chg} Mid-Duty Charge Scheduled)</span>`;
+                    } else {
+                        opStandardRule.textContent = "Single Charge Operation";
+                    }
+                }
                 if (rangeRule) rangeRule.textContent = routeCategoryLabel;
                 if (timeRule) timeRule.textContent = timeCategoryLabel;
                 const totalDistanceRuleEl = document.getElementById("route-distance-rule");
@@ -8797,7 +8835,15 @@ let busCategoriesMap = new Map();
                 actualKmRuleEl.textContent = actDist ? `${actDist} km` : `${rangeValue} km`;
             }
             if (fullDutyDistRule) fullDutyDistRule.textContent = `${rangeValue} km usable (${grossDutyDist} km gross)`;
-            if (opStandardRule) opStandardRule.textContent = "Single Charge Operation";
+            const chgOcc = Number((currentScheduleMatch && (currentScheduleMatch.chargingOcc ?? currentScheduleMatch.noChargingOcc ?? currentScheduleMatch.charging_occ)) ?? (selectedRouteObj && (selectedRouteObj.chargingOcc ?? selectedRouteObj.noChargingOcc)) ?? 0);
+            const isSplitDuty = chgOcc > 0 || Boolean(selectedRouteObj && selectedRouteObj.splitDuty) || Boolean(currentScheduleMatch && currentScheduleMatch.splitDuty);
+            if (opStandardRule) {
+                if (isSplitDuty) {
+                    opStandardRule.innerHTML = `<span style="color:#0284c7;font-weight:700;">⚡ Split Duty (${chgOcc || 1} Mid-Duty Charge Scheduled)</span>`;
+                } else {
+                    opStandardRule.textContent = "Single Charge Operation";
+                }
+            }
             if (rangeRule) rangeRule.textContent = routeCategoryLabel;
             if (timeRule) timeRule.textContent = timeCategoryLabel;
 
