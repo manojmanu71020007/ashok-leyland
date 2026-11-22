@@ -489,7 +489,7 @@ export const DEFAULT_DEPOTS = [
   {
     id: '1',
     number: '1',
-    name: 'Depot 1 (Chandapura)',
+    name: 'Chandra Layout Depot',
     shortName: 'Depot 1',
     location: 'Chandapura (BMT-32)',
     routes: ['356Z', '360K', '600F', 'KBS3A'],
@@ -498,7 +498,7 @@ export const DEFAULT_DEPOTS = [
   {
     id: '2',
     number: '2',
-    name: 'Depot 2 (Attibele / Hoskote)',
+    name: 'Attibele Depot',
     shortName: 'Depot 2',
     location: 'Attibele / Hoskote',
     routes: ['361C', '399C', '328H', '500DC', 'KBS3F'],

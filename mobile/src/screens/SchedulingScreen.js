@@ -393,6 +393,14 @@ export default function SchedulingScreen() {
   const depotNum = String(selectedDepot || '1');
   const depotLabel = getDepotDisplayName(depotNum);
 
+  const depotNameClean = useMemo(() => {
+    const name = String(depotLabel || `Depot ${depotNum}`).trim();
+    if (depotNum === '3' || name.toLowerCase().includes('peenya')) return 'Peenya Depot';
+    if (depotNum === '2') return 'Attibele Depot';
+    if (depotNum === '1') return 'Chandra Layout Depot';
+    return name.toLowerCase().includes('depot') ? name : `${name} Depot`;
+  }, [depotLabel, depotNum]);
+
   const assignedRouteCodes = getRoutesForDepot(depotNum);
   const ALL_BASE_ROUTES = [...DEPOT_1_ROUTES, ...DEPOT_2_ROUTES];
 
@@ -1043,9 +1051,9 @@ export default function SchedulingScreen() {
       {/* ── TOPBAR ── */}
       <View style={styles.topbar}>
         <View style={styles.topbarCenter}>
-          <Text style={styles.eyebrow}>{t('smart_allocation_subtitle', 'AI ENERGY & FLEET SCHEDULING')}</Text>
+          <Text style={styles.eyebrow}>{depotNameClean.toUpperCase()}</Text>
           <Text style={styles.topbarTitle}>{t('smart_allocation_title', 'Bus Scheduling & Dispatch')}</Text>
-          <Text style={styles.topbarSub}>Depot {depotNum} • {depotLabel}</Text>
+          <Text style={styles.topbarSub}>{depotNameClean}</Text>
         </View>
         <View style={styles.topbarActions}>
           <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />
@@ -1179,20 +1187,20 @@ export default function SchedulingScreen() {
           {/* ── CANDIDATE BUSES SECTION (2 to 3 Buses Ready) ── */}
           <View style={styles.candidateSection}>
             <View style={styles.candidateHeader}>
-              <View style={styles.candidateTitleWrap}>
-                <Text style={styles.candidateTitleIcon}>🚌</Text>
-                <View>
+              <View style={styles.candidateHeaderTopRow}>
+                <View style={styles.candidateTitleWrap}>
+                  <Text style={styles.candidateTitleIcon}>🚌</Text>
                   <Text style={styles.candidateTitle}>{t('candidate_buses_ready', 'Candidate Buses For This Route & Time')}</Text>
-                  <Text style={styles.candidateSub}>
-                    Select one of the {candidateBuses.length} eligible candidate buses for this departure
+                </View>
+                <View style={styles.candidateCountBadge}>
+                  <Text style={styles.candidateCountBadgeText}>
+                    {candidateBuses.length} Candidates Ready
                   </Text>
                 </View>
               </View>
-              <View style={styles.candidateCountBadge}>
-                <Text style={styles.candidateCountBadgeText}>
-                  {candidateBuses.length} Candidates Ready
-                </Text>
-              </View>
+              <Text style={styles.candidateSub}>
+                Select one of the {candidateBuses.length} eligible candidate buses for this departure
+              </Text>
             </View>
 
             {/* Candidate Cards Grid */}
@@ -2062,10 +2070,15 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   candidateHeader: {
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f5f9',
+  },
+  candidateHeaderTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
     flexWrap: 'wrap',
     gap: 8,
   },
@@ -2074,28 +2087,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     flex: 1,
+    minWidth: 180,
   },
   candidateTitleIcon: {
     fontSize: 22,
   },
   candidateTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     color: '#0f172a',
+    flex: 1,
+    flexWrap: 'wrap',
   },
   candidateSub: {
-    fontSize: 12.5,
+    fontSize: 12,
     color: '#64748b',
-    marginTop: 2,
+    marginTop: 6,
+    lineHeight: 16,
   },
   candidateCountBadge: {
     backgroundColor: '#ede9fe',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#ddd6fe',
   },
   candidateCountBadgeText: {
-    fontSize: 12,
+    fontSize: 11.5,
     fontWeight: '800',
     color: '#6d28d9',
   },

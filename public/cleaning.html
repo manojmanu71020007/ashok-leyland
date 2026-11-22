@@ -622,7 +622,7 @@
   <div class="header-icon">🧹</div>
   <div>
     <h1 id="cleaningPageTitle">Cleaning <span id="cleaningDepotNum">1</span> Log</h1>
-    <p id="cleaningPageSub">Record bus cleaning status — Depot <span id="cleaningDepotSubNum">1</span> (<span id="cleaningDepotFleetCount">61</span> Active Buses)</p>
+    <p id="cleaningPageSub">Chandra Layout Depot</p>
   </div>
 </div>
 
@@ -863,6 +863,18 @@
     updateDepotUI();
   }
 
+  
+    function getOperatingDepotName(dId) {
+        const s = String(dId || '1').trim();
+        if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAllDepots === 'function') {
+            const found = window.DepotSyncEngine.getAllDepots().find(d => String(d.id) === s || String(d.number) === s);
+            if (found && found.name) return found.name.toLowerCase().includes('depot') ? found.name : `${found.name} Depot`;
+        }
+        if (s === '3' || s.toLowerCase().includes('peenya')) return 'Peenya Depot';
+        if (s === '2') return 'Attibele Depot';
+        return 'Chandra Layout Depot';
+    }
+
   function updateDepotUI() {
     const activeCount = (currentOperatingDepot === '2') ? depotCounts.depot2Count : depotCounts.depot1Count;
 
@@ -875,7 +887,7 @@
     const clnTitle = document.getElementById('cleaningPageTitle');
     if (clnTitle) clnTitle.innerHTML = `Cleaning <span id="cleaningDepotNum">${currentOperatingDepot}</span> Log`;
     const clnSub = document.getElementById('cleaningPageSub');
-    if (clnSub) clnSub.innerHTML = `Record bus cleaning status — Depot <span id="cleaningDepotSubNum">${currentOperatingDepot}</span> (<span id="cleaningDepotFleetCount">${activeCount}</span> Active Buses)`;
+    if (clnSub) clnSub.textContent = getOperatingDepotName(currentOperatingDepot);
   }
 
   window.switchOperatingDepot = function(num) {

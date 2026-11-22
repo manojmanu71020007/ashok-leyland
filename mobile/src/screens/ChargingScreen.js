@@ -237,7 +237,13 @@ export default function ChargingScreen() {
       <View style={styles.topBar}>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>{t('nav_charging', 'CHARGING')} {depotNum} {t('history_btn', 'LOG')}</Text>
-          <Text style={styles.headerSub}>{depotName}</Text>
+          <Text style={styles.headerSub}>{(function(d, id) {
+            const s = String(id || '').trim();
+            if (s === '3' || d.toLowerCase().includes('peenya')) return 'Peenya Depot';
+            if (s === '2') return 'Attibele Depot';
+            if (s === '1') return 'Chandra Layout Depot';
+            return d.toLowerCase().includes('depot') ? d : `${d} Depot`;
+          })(depotName, depotNum)}</Text>
         </View>
         <View style={styles.topbarActions}>
           <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />

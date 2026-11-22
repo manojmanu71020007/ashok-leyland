@@ -807,83 +807,58 @@
         }
 
         .candidate-buses-header {
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            flex-wrap: wrap;
-
-            gap: 10px;
-
             margin-bottom: 14px;
-
             padding-bottom: 10px;
-
             border-bottom: 1px solid #edf2f5;
+        }
 
+        .candidate-buses-header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .candidate-buses-title-wrap {
-
             display: flex;
-
             align-items: center;
-
-            gap: 10px;
-
+            gap: 8px;
+            flex: 1;
+            min-width: 180px;
         }
 
         .candidate-title-icon {
-
             font-size: 1.4rem;
-
             line-height: 1;
-
         }
 
         .candidate-buses-title {
-
             margin: 0;
-
             font-size: 0.95rem;
-
             font-weight: 800;
-
             color: #0f172a;
-
             letter-spacing: -0.01em;
-
         }
 
         .candidate-buses-sub {
-
-            margin: 2px 0 0;
-
-            font-size: 0.75rem;
-
+            margin: 6px 0 0;
+            font-size: 0.76rem;
             color: #64748b;
-
+            line-height: 1.4;
         }
 
         .candidate-count-badge {
-
             background: #e0f2fe;
-
             color: #0284c7;
-
             font-size: 0.74rem;
-
             font-weight: 700;
-
-            padding: 3px 10px;
-
+            padding: 4px 10px;
             border-radius: 12px;
-
             border: 1px solid #bae6fd;
-
+            font-family: inherit;
+            white-space: nowrap;
+            align-self: center;
         }
 
         .candidate-buses-grid {
@@ -1914,11 +1889,11 @@
 
             <div>
 
-                <div class="eyebrow" id="schedulingEyebrow" data-i18n="depot_chandapura_eyebrow">BMTC Depot 32 • Chandapura (Depot 1)</div>
+                <div class="eyebrow" id="schedulingEyebrow">Chandra Layout Depot</div>
 
                 <h1 id="schedulingPageTitle" data-i18n="smart_allocation_title">Smart Bus Allocation – Scheduling <span id="schedulingDepotNum">1</span></h1>
 
-                <p class="subtitle" id="schedulingPageSubtitle" data-i18n="smart_allocation_subtitle">Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC.</p>
+                <p class="subtitle" id="schedulingPageSubtitle">Chandra Layout Depot</p>
 
             </div>
 
@@ -2099,21 +2074,21 @@
 
                     <div class="candidate-buses-header">
 
-                        <div class="candidate-buses-title-wrap">
+                        <div class="candidate-buses-header-top">
 
-                            <span class="candidate-title-icon">🚌</span>
+                            <div class="candidate-buses-title-wrap">
 
-                            <div>
+                                <span class="candidate-title-icon">🚌</span>
 
                                 <h3 class="candidate-buses-title" id="candidate-buses-title" data-i18n="candidate_buses_title">Candidate Buses For This Route &amp; Time</h3>
 
-                                <p class="candidate-buses-sub" id="candidate-buses-sub" data-i18n="candidate_buses_sub">Select one of the 2–3 eligible candidate buses for this departure</p>
-
                             </div>
+
+                            <span class="candidate-count-badge" id="candidate-count-badge">3 Candidates Ready</span>
 
                         </div>
 
-                        <span class="candidate-count-badge" id="candidate-count-badge">3 Candidates Ready</span>
+                        <p class="candidate-buses-sub" id="candidate-buses-sub" data-i18n="candidate_buses_sub">Select one of the 2–3 eligible candidate buses for this departure</p>
 
                     </div>
 
@@ -2467,9 +2442,22 @@
 
 
 
-            const pageSub = document.getElementById('schedulingPageSubtitle');
+            const depotCleanName = (function(dId) {
+                const s = String(dId || '1').trim();
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getAllDepots === 'function') {
+                    const found = window.DepotSyncEngine.getAllDepots().find(d => String(d.id) === s || String(d.number) === s);
+                    if (found && found.name) return found.name.toLowerCase().includes('depot') ? found.name : `${found.name} Depot`;
+                }
+                if (s === '3' || s.toLowerCase().includes('peenya')) return 'Peenya Depot';
+                if (s === '2') return 'Attibele Depot';
+                return 'Chandra Layout Depot';
+            })(currentOperatingDepot);
 
-            if (pageSub) pageSub.textContent = `Automatic battery-based vehicle allocation matching route length, shift timetable, and manually confirmed bus SOC for Depot ${currentOperatingDepot} (${activeCount} Active Buses • ${depotCorridor}).`;
+            const eyebrow = document.getElementById('schedulingEyebrow');
+            if (eyebrow) eyebrow.textContent = `🏢 ${depotCleanName}`;
+
+            const pageSub = document.getElementById('schedulingPageSubtitle');
+            if (pageSub) pageSub.textContent = depotCleanName;
 
 
 

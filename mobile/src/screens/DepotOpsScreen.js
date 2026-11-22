@@ -268,7 +268,13 @@ export default function DepotOpsScreen() {
           <View style={styles.topbarCenter}>
             <Text style={styles.eyebrow}>{t('depot_operations_title', 'DEPOT OPERATIONS')}</Text>
             <Text style={styles.topbarTitle}>{t('depot', 'Depot')} {depotNum} {t('title_depot_operations', 'Operations')}</Text>
-            <Text style={styles.topbarSub}>{depotName} • Ashok Leyland EV Fleet</Text>
+            <Text style={styles.topbarSub}>{(function(d, id) {
+              const s = String(id || '').trim();
+              if (s === '3' || d.toLowerCase().includes('peenya')) return 'Peenya Depot';
+              if (s === '2') return 'Attibele Depot';
+              if (s === '1') return 'Chandra Layout Depot';
+              return d.toLowerCase().includes('depot') ? d : `${d} Depot`;
+            })(depotName, depotNum)}</Text>
           </View>
 
           <View style={styles.topbarActions}>
