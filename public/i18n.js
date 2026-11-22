@@ -15,6 +15,27 @@
     ];
 
     const TRANSLATIONS = {
+  "time_category": {
+    en: "Time category",
+    kn: "ಸಮಯದ ವರ್ಗ",
+    hi: "समय श्रेणी",
+    te: "సమయ వర్గం",
+    ta: "நேர வகை"
+  },
+  "split_duty": {
+    en: "Split Duty",
+    kn: "ಸ್ಪ್ಲಿಟ್ ಕರ್ತವ್ಯ",
+    hi: "स्प्लिट ड्यूटी",
+    te: "స్ప్లిట్ డ్యూటీ",
+    ta: "ஸ்ப்ளிட் டியூட்டி"
+  },
+  "manual_override": {
+    en: "Manual Override",
+    kn: "ಹಸ್ತಚಾಲಿತ ಬದಲಾವಣೆ",
+    hi: "मैन्युअल ओवरराइड",
+    te: "మాన్యువల్ ఓవర్‌రైడ్",
+    ta: "மேனுவல் மேலெழுத்து"
+  },
         "admin_btn_add_delete_buses": {
             en: "Add / Delete Buses",
             kn: "ಬಸ್ಸುಗಳನ್ನು ಸೇರಿಸಿ / ತೆಗೆದುಹಾಕಿ",

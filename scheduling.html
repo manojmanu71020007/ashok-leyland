@@ -6712,7 +6712,11 @@
 
             const isPeakTime = timeCatInfo.isPeak;
 
-            if (timeRule) timeRule.textContent = timeCategoryLabel;
+            if (timeRule) {
+                timeRule.innerHTML = isPeakTime
+                    ? `<span style="color:#b45309;font-weight:700;">🕒 ${escapeHtml(timeCategoryLabel)}</span>`
+                    : `<span style="color:#0369a1;font-weight:700;">🕒 ${escapeHtml(timeCategoryLabel)}</span>`;
+            }
 
 
 
@@ -6808,7 +6812,7 @@
 
                         busCatRule.style.color = "#16a34a";
 
-                    } else if (isStandardRoute) {
+                    } else if (isStandardRoute || isModerateRoute) {
 
                         busCatRule.textContent = "Category B (Primary) / A (Fallback)";
 
@@ -6817,12 +6821,6 @@
                     } else if (isSimpleRoute) {
 
                         busCatRule.textContent = "Category B/C (Primary) / A (Fallback)";
-
-                        busCatRule.style.color = "#2563eb";
-
-                    } else if (isModerateRoute) {
-
-                        busCatRule.textContent = "Category B (Moderate Route - Normal Time)";
 
                         busCatRule.style.color = "#2563eb";
 
@@ -6950,7 +6948,11 @@
 
             if (rangeRule) rangeRule.textContent = routeCategoryLabel;
 
-            if (timeRule) timeRule.textContent = timeCategoryLabel;
+            if (timeRule) {
+                timeRule.innerHTML = isPeakTime
+                    ? `<span style="color:#b45309;font-weight:700;">🕒 ${escapeHtml(timeCategoryLabel)}</span>`
+                    : `<span style="color:#0369a1;font-weight:700;">🕒 ${escapeHtml(timeCategoryLabel)}</span>`;
+            }
 
 
 

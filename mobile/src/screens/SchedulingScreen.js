@@ -222,7 +222,12 @@ const DEPOT_2_ROUTES = [
     origin: 'Attibele',
     destination: 'Whitefield',
     distance: 31.0,
-    fullDutyKm: 101.1,
+    fullDutyKm: 188.54,
+    actualKm: 188.54,
+    chargingOcc: 1,
+    noChargingOcc: 1,
+    splitDuty: true,
+    singleChargeReqKm: 91.9,
     category: 'Standard',
     requiredCat: 'A',
     drainSoc: 32,
@@ -426,6 +431,11 @@ export default function SchedulingScreen() {
         timetables: Array.isArray(ds.timetables) ? ds.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(ds.distance) || 25.0,
         fullDutyKm: ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
+        actualKm: ds.actualKm || ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
+        chargingOcc: Number(ds.chargingOcc || 0),
+        noChargingOcc: Number(ds.noChargingOcc || 0),
+        splitDuty: Boolean(ds.splitDuty || ds.chargingOcc > 0 || ds.noChargingOcc > 0),
+        singleChargeReqKm: ds.singleChargeReqKm,
         duration: ds.duration || '50 mins',
         energyEst: ds.energyEst || `${Math.round((Number(ds.distance) || 25.0) * 1.25)} kWh`,
         shift: ds.shift || 'General Shift',
@@ -456,6 +466,11 @@ export default function SchedulingScreen() {
         timetables: Array.isArray(dyn.timetables) ? dyn.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(dyn.distance) || 25.0,
         fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
+        actualKm: dyn.actualKm || dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
+        chargingOcc: Number(dyn.chargingOcc || 0),
+        noChargingOcc: Number(dyn.noChargingOcc || 0),
+        splitDuty: Boolean(dyn.splitDuty || dyn.chargingOcc > 0 || dyn.noChargingOcc > 0),
+        singleChargeReqKm: dyn.singleChargeReqKm,
         duration: dyn.duration || '50 mins',
         energyEst: dyn.energyEst || `${Math.round((Number(dyn.distance) || 25.0) * 1.25)} kWh`,
         shift: dyn.shift || 'General Shift',
@@ -595,6 +610,19 @@ export default function SchedulingScreen() {
   const timeCatInfo = getTimeCategory(scheduledTime, selectedRoute);
   const isPeak = Boolean(timeCatInfo && timeCatInfo.isPeak);
   const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
+
+  // Split Duty evaluation directly from matched schedule and route dataset
+  const isSplitDuty = Boolean(
+    (matchedSched && (matchedSched.splitDuty || matchedSched.chargingOcc > 0 || matchedSched.noChargingOcc > 0)) ||
+    (selectedRoute && (selectedRoute.splitDuty || selectedRoute.chargingOcc > 0 || selectedRoute.noChargingOcc > 0))
+  );
+  const chargingOccCount = (
+    matchedSched?.chargingOcc ||
+    matchedSched?.noChargingOcc ||
+    selectedRoute?.chargingOcc ||
+    selectedRoute?.noChargingOcc ||
+    1
+  );
 
   // 3. Strict Feasibility Evaluation Engine (Exact 1:1 match with scheduling.html evaluateBusFeasibility)
   const evaluateBusFeasibility = useCallback((busOrBm, candidateRole, routeDist, depTimeShort, targetShift) => {
@@ -1354,7 +1382,7 @@ export default function SchedulingScreen() {
         {activeCandidate ? (
           <View style={[styles.panel, isManualOverride && styles.panelOverride]}>
             <View style={styles.panelHeaderWithAction}>
-              <View style={{ flex: 1, minWidth: 180 }}>
+              <View style={{ flex: 1, minWidth: 160 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                   <Text style={styles.panelTitle}>{t('allocation_result_of', 'Allocation result of')} {activeCandidate.bmNumber}</Text>
                   {isManualOverride ? (
@@ -1374,14 +1402,6 @@ export default function SchedulingScreen() {
                 </Text>
               </View>
 
-              <View style={[styles.allocCalloutBox, isManualOverride && styles.allocCalloutBoxOverride]}>
-                <Text style={styles.allocCalloutIcon}>{isManualOverride ? '⚠️' : '⭐'}</Text>
-                <Text style={[styles.allocCalloutText, isManualOverride && styles.allocCalloutTextOverride]}>
-                  {isManualOverride
-                    ? `Operator Override Active: Bus ${activeCandidate.bmNumber} (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC) was chosen by the operator instead of mandatory recommendation Bus ${mandatoryCandidate?.bmNumber} (${mandatoryCandidate?.soc}% SoC under Matrix Status ${matrixStatus}). This bus can be allocated with driver.`
-                    : `Mandatory Allocation: Bus ${activeCandidate.bmNumber} is recommended under Matrix Status ${matrixStatus} rules (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC). You may choose any alternate candidate bus above to allocate as an operator override.`}
-                </Text>
-              </View>
               <TouchableOpacity
                 style={styles.btnDownloadSchedule}
                 onPress={async () => {
@@ -1446,6 +1466,16 @@ export default function SchedulingScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Dedicated full-width Callout Box safely wrapping within the mobile frame */}
+            <View style={[styles.allocCalloutBox, isManualOverride && styles.allocCalloutBoxOverride]}>
+              <Text style={styles.allocCalloutIcon}>{isManualOverride ? '⚠️' : '⭐'}</Text>
+              <Text style={[styles.allocCalloutText, isManualOverride && styles.allocCalloutTextOverride]}>
+                {isManualOverride
+                  ? `Operator Override Active: Bus ${activeCandidate.bmNumber} (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC) was chosen by the operator instead of mandatory recommendation Bus ${mandatoryCandidate?.bmNumber} (${mandatoryCandidate?.soc}% SoC under Matrix Status ${matrixStatus}). This bus can be allocated with driver.`
+                  : `Mandatory Allocation: Bus ${activeCandidate.bmNumber} is recommended under Matrix Status ${matrixStatus} rules (Category ${activeCandidate.busCategory || 'A'}, ${activeCandidate.soc}% SoC). You may choose any alternate candidate bus above to allocate as an operator override.`}
+              </Text>
+            </View>
+
             {/* KPIs Grid */}
             <View style={styles.kpiGrid}>
               <View style={styles.kpiBox}>
@@ -1474,7 +1504,11 @@ export default function SchedulingScreen() {
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>
-                <Text style={[styles.ruleVal, { color: '#15803d', fontWeight: '800' }]}>{t('single_charge_operation', 'Single Charge Operation')}</Text>
+                <Text style={[styles.ruleVal, { color: isSplitDuty ? '#0284c7' : '#15803d', fontWeight: '800' }]}>
+                  {isSplitDuty
+                    ? `⚡ ${t('split_duty', 'Split Duty')} (${chargingOccCount} Mid-Duty Charge Scheduled)`
+                    : t('single_charge_operation', 'Single Charge Operation')}
+                </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('total_distance', 'Total distance')}</Text>
@@ -1482,7 +1516,15 @@ export default function SchedulingScreen() {
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('route_category', 'Route category')}</Text>
-                <Text style={styles.ruleVal}>{complexity.toUpperCase()}</Text>
+                <Text style={styles.ruleVal}>
+                  {(complexity === 'moderate' || complexity === 'standard') ? 'STANDARD / MODERATE' : complexity.toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.ruleItem}>
+                <Text style={styles.ruleLabel}>{t('time_category', 'Time category')}</Text>
+                <Text style={[styles.ruleVal, { color: timeCatInfo?.isPeak ? '#b45309' : '#0369a1', fontWeight: '800' }]}>
+                  🕒 {timeCatInfo?.label || 'Normal'}
+                </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('bus_category', 'Bus category')}</Text>
@@ -1506,7 +1548,9 @@ export default function SchedulingScreen() {
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('departure_mode', 'Departure Mode')}</Text>
-                <Text style={styles.ruleVal}>{t('timetable_scheduled', 'Timetable Scheduled')}</Text>
+                <Text style={[styles.ruleVal, isManualOverride ? { color: '#d97706', fontWeight: '800' } : { color: '#15803d', fontWeight: '800' }]}>
+                  {isManualOverride ? `⚠️ ${t('manual_override', 'Manual Override')}` : `✅ ${t('timetable_scheduled', 'Timetable Scheduled')}`}
+                </Text>
               </View>
             </View>
           </View>
@@ -2373,8 +2417,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   allocCalloutBox: {
-    marginTop: 10,
-    marginBottom: 12,
+    width: '100%',
+    maxWidth: '100%',
+    alignSelf: 'stretch',
+    boxSizing: 'border-box',
+    marginTop: 4,
+    marginBottom: 14,
     padding: 10,
     backgroundColor: '#f0f9ff',
     borderRadius: 8,
@@ -2394,6 +2442,7 @@ const styles = StyleSheet.create({
   },
   allocCalloutText: {
     flex: 1,
+    flexWrap: 'wrap',
     fontSize: 12,
     lineHeight: 18,
     color: '#0369a1',
