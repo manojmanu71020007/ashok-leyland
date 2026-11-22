@@ -4380,9 +4380,9 @@
 
 
 
-            // Rule 3: Moderate / Standard route + Peak time → STRICTLY Category A only
+            // Rule 3: Moderate / Standard route + Peak time → Category A preferred; Category B allowed as fallback; Category C rejected
 
-            if ((isModerate || isStandard) && isPeakOnly && page4Category !== "A") {
+            if ((isModerate || isStandard) && isPeakOnly && page4Category === "C") {
 
                 return {
 
@@ -4400,7 +4400,7 @@
 
                     reqSoc: constantMinReqSoc,
 
-                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) during Peak hours (${timeCatLabel}) strictly requires Category A bus. Bus ${key} is Category ${page4Category} (${coverableFullRangeKm} km range).`
+                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) during Peak hours (${timeCatLabel}) requires Category A (or Category B as fallback). Category C bus ${key} cannot be allocated.`
 
                 };
 
@@ -6748,11 +6748,11 @@
 
             const allowedMatrix = {
 
-                standard: { NORMAL: ["B", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                standard: { NORMAL: ["B", "A"], PEAK: ["A", "B"], EXTREME_PEAK: ["A"] },
 
-                simple: { NORMAL: ["B", "C", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                simple: { NORMAL: ["B", "C", "A"], PEAK: ["B", "A"], EXTREME_PEAK: ["A"] },
 
-                moderate: { NORMAL: ["B", "A"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
+                moderate: { NORMAL: ["B", "A"], PEAK: ["A", "B"], EXTREME_PEAK: ["A"] },
 
                 complex: { NORMAL: ["A"], PEAK: ["A"], EXTREME_PEAK: ["A"] }
 
@@ -6760,7 +6760,9 @@
 
             const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.standard)[timeCategoryKey] || ["A"];
 
-            const requiresCatA = isComplexRoute || isPeakTime;
+            const isExtPeakTime = (timeCategoryKey === "EXTREME_PEAK");
+
+            const requiresCatA = isComplexRoute || isExtPeakTime;
 
 
 
@@ -6806,11 +6808,17 @@
 
                         busCatRule.style.color = "#16a34a";
 
-                    } else if (isPeakTime) {
+                    } else if (isExtPeakTime) {
 
-                        busCatRule.textContent = "Category A (Required for Peak Hours)";
+                        busCatRule.textContent = "Category A (Required for Extreme Peak Hours)";
 
                         busCatRule.style.color = "#16a34a";
+
+                    } else if (isPeakTime) {
+
+                        busCatRule.textContent = "Category A (Primary) / B (Fallback)";
+
+                        busCatRule.style.color = "#2563eb";
 
                     } else if (isStandardRoute || isModerateRoute) {
 

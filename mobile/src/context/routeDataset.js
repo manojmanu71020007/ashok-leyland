@@ -953,10 +953,10 @@ export function getMatrixStatus(complexity, timeCatOrIsPeak) {
 
   if (c === 'complex') return 'A';
   if (isExtPeak) return 'A';
-  if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A';
-  if (c === 'moderate' && isNormal) return 'B';
-  if (c === 'standard' && isNormal) return 'C';
-  if (c === 'simple') return 'C';
+  if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A/B';
+  if ((c === 'moderate' || c === 'standard') && isNormal) return 'A/B';
+  if (c === 'simple' && isPeakOnly) return 'A/B';
+  if (c === 'simple' && isNormal) return 'A/B/C';
 
-  return 'B';
+  return 'A/B';
 }

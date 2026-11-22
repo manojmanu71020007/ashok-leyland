@@ -477,8 +477,8 @@ export function getMatrixStatus(complexity, timeCatOrIsPeak) {
   // Rule 2: Extreme Peak time -> Strictly Category A (whatever the route)
   if (isExtPeak) return 'A';
 
-  // Rule 3: Moderate / Standard route + Peak time -> Strictly Category A
-  if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A';
+  // Rule 3: Moderate / Standard route + Peak time -> Category A preferred; Category B as fallback (A/B)
+  if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A/B';
 
   // Rule 4: Moderate / Standard route + Normal time -> Category B first, then Category A (A/B)
   if ((c === 'moderate' || c === 'standard') && isNormal) return 'A/B';

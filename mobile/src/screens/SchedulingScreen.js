@@ -684,8 +684,8 @@ export default function SchedulingScreen() {
     if (isExtremePeak && page4Category !== 'A') {
       return { feasible: false, bm: key, reason: `Extreme Peak hours strictly require Category A bus. Bus ${key} is Category ${page4Category}.` };
     }
-    if ((isModerate || isStandard) && isPeakOnly && page4Category !== 'A') {
-      return { feasible: false, bm: key, reason: `Route during Peak hours strictly requires Category A bus. Bus ${key} is Category ${page4Category}.` };
+    if ((isModerate || isStandard) && isPeakOnly && page4Category === 'C') {
+      return { feasible: false, bm: key, reason: `Standard/Moderate route during Peak hours requires Category A (or Category B as fallback). Category C bus ${key} cannot be allocated.` };
     }
     if ((isModerate || isStandard) && isNormalTime && page4Category === 'C') {
       return { feasible: false, bm: key, reason: `Normal time requires Category B (or A). Category C bus ${key} cannot be allocated.` };
@@ -886,7 +886,7 @@ export default function SchedulingScreen() {
 
       let catPriority = { A: 0, B: 1, C: 2 };
       if (matrixStatus === 'A/B') {
-        catPriority = { B: 0, A: 1, C: 2 };
+        catPriority = isPeak ? { A: 0, B: 1, C: 2 } : { B: 0, A: 1, C: 2 };
       } else if (matrixStatus === 'A/B/C') {
         catPriority = { C: 0, B: 1, A: 2 };
       }
@@ -907,12 +907,22 @@ export default function SchedulingScreen() {
     // 7. Determine Mandatory Locked Candidate according to Matrix Status (exact match with scheduling.html)
     let lockedCand = null;
     if (matrixStatus === 'A/B') {
-      const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
-      if (bBuses.length > 0) {
-        lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
-      } else {
+      if (isPeak) {
         const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
-        lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
+        if (aBuses.length > 0) {
+          lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+        } else {
+          const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+          lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
+        }
+      } else {
+        const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+        if (bBuses.length > 0) {
+          lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+        } else {
+          const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
+          lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
+        }
       }
     } else if (matrixStatus === 'A/B/C') {
       const cBuses = recommendedPool.filter((c) => c.busCategory === 'C');
@@ -974,14 +984,15 @@ export default function SchedulingScreen() {
 
   // Allowed categories matrix matching scheduling.html
   const allowedMatrix = {
-    standard: { NORMAL: ['B', 'A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
-    simple: { NORMAL: ['B', 'C', 'A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
-    moderate: { NORMAL: ['B', 'A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
+    standard: { NORMAL: ['B', 'A'], PEAK: ['A', 'B'], EXTREME_PEAK: ['A'] },
+    simple: { NORMAL: ['B', 'C', 'A'], PEAK: ['B', 'A'], EXTREME_PEAK: ['A'] },
+    moderate: { NORMAL: ['B', 'A'], PEAK: ['A', 'B'], EXTREME_PEAK: ['A'] },
     complex: { NORMAL: ['A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
   };
   const timeKey = timeCatInfo.key || (isPeak ? 'PEAK' : 'NORMAL');
   const allowedCategories = (allowedMatrix[complexity.toLowerCase()] || allowedMatrix.standard)[timeKey] || ['A'];
-  const requiresCatA = complexity.toLowerCase() === 'complex' || isPeak;
+  const isExtremePeak = (timeCatInfo.key === 'EXTREME_PEAK');
+  const requiresCatA = complexity.toLowerCase() === 'complex' || isExtremePeak;
   const isMatrixCompliant = activeCandidate
     ? (requiresCatA ? activeCandidate.busCategory === 'A' : allowedCategories.includes(activeCandidate.busCategory || 'B'))
     : false;
