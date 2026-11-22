@@ -728,14 +728,14 @@ export default function AdminWorkspaceScreen() {
   const [addDeleteRoutesModalOpen, setAddDeleteRoutesModalOpen] = useState(false);
   const [addDeleteRoutesFullscreen, setAddDeleteRoutesFullscreen] = useState(true);
   const [routesTab, setRoutesTab] = useState('add'); // 'add' | 'delete' | 'directory'
-  const [routesSelectedDepot, setRoutesSelectedDepot] = useState('1'); // Dropdown menu for selecting depot
+  const [routesSelectedDepot, setRoutesSelectedDepot] = useState(''); // Dropdown menu for selecting depot (Mandatory selection)
   const [routesDepotPickerOpen, setRoutesDepotPickerOpen] = useState(false);
 
   // ── Modal 3D: Add / Delete Bus Drivers Modal State ──
   const [addDeleteDriversModalOpen, setAddDeleteDriversModalOpen] = useState(false);
   const [addDeleteDriversFullscreen, setAddDeleteDriversFullscreen] = useState(true);
   const [driversTab, setDriversTab] = useState('add'); // 'add' | 'delete' | 'directory'
-  const [driversSelectedDepot, setDriversSelectedDepot] = useState('all');
+  const [driversSelectedDepot, setDriversSelectedDepot] = useState(''); // Mandatory depot selection
   const [driversDepotPickerOpen, setDriversDepotPickerOpen] = useState(false);
 
   // Driver Form States
@@ -823,6 +823,7 @@ export default function AdminWorkspaceScreen() {
   const [selectedDepotsToDelete, setSelectedDepotsToDelete] = useState([]);
   const [delDepotReason, setDelDepotReason] = useState('Depot Consolidation');
   const [delDepotCustomReason, setDelDepotCustomReason] = useState('');
+  const [delDepotSearchQuery, setDelDepotSearchQuery] = useState('');
 
   // Subscribe to dynamic depot changes across the app
   React.useEffect(() => {
@@ -1633,6 +1634,15 @@ export default function AdminWorkspaceScreen() {
 
   // ── Handler: Add Route to Depot (With confirmation & translation) ──
   const handleAddRouteToDepot = () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    const activeDepot = routesSelectedDepot && routesSelectedDepot !== 'all' ? routesSelectedDepot : (depotTargetDepot && depotTargetDepot !== 'all' && depotTargetDepot !== 'custom' ? depotTargetDepot : '');
+    if (!activeDepot || activeDepot === 'all') {
+      Alert.alert(
+        t('depot_required_title', 'Operating Depot Required'),
+        t('depot_required_add_route_msg', 'Please select an operating depot from the drop-down menu before adding a route. The action cannot proceed without selecting a depot.')
+      );
+      return;
+    }
     if (!depotRouteFullName.trim()) {
       Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_fullname_msg', 'Please enter Route [Full Name].'));
       return;
@@ -1754,6 +1764,14 @@ export default function AdminWorkspaceScreen() {
 
   // ── Handler: Delete Route from Depot (With confirmation, batch multi-selection, & translation) ──
   const handleDeleteRouteFromDepot = () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    if (!routesSelectedDepot || routesSelectedDepot === 'all') {
+      Alert.alert(
+        t('depot_required_title', 'Operating Depot Required'),
+        t('depot_required_del_route_msg', 'Please select an operating depot from the drop-down menu before deleting routes. The action cannot proceed without selecting a depot.')
+      );
+      return;
+    }
     const targets = selectedRoutesToDelete.length > 0
       ? selectedRoutesToDelete
       : (delRouteSelectedCode ? [delRouteSelectedCode] : []);
@@ -1811,6 +1829,15 @@ export default function AdminWorkspaceScreen() {
 
   // ── Handlers: Driver Induction & Decommissioning ──
   const handleAddDriver = () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    const activeDriverDepot = driversSelectedDepot && driversSelectedDepot !== 'all' ? driversSelectedDepot : (newDriverDepot && newDriverDepot !== 'all' ? newDriverDepot : '');
+    if (!activeDriverDepot || activeDriverDepot === 'all') {
+      Alert.alert(
+        t('depot_required_title', 'Operating Depot Required'),
+        t('depot_required_add_driver_msg', 'Please select an operating depot from the drop-down menu before adding a bus driver. The action cannot proceed without selecting a depot.')
+      );
+      return;
+    }
     if (!newDriverName.trim()) {
       Alert.alert(t('missing_field', 'Missing Field'), 'Please enter Driver Full Name.');
       return;
@@ -1860,6 +1887,14 @@ export default function AdminWorkspaceScreen() {
   };
 
   const handleDeleteDrivers = () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    if (!driversSelectedDepot || driversSelectedDepot === 'all') {
+      Alert.alert(
+        t('depot_required_title', 'Operating Depot Required'),
+        t('depot_required_del_driver_msg', 'Please select an operating depot from the drop-down menu before withdrawing drivers. The action cannot proceed without selecting a depot.')
+      );
+      return;
+    }
     if (selectedDriversToDelete.length === 0) {
       Alert.alert(t('selection_required', 'Selection Required'), 'Please select at least one driver to delete / decommission.');
       return;
@@ -1940,6 +1975,7 @@ export default function AdminWorkspaceScreen() {
   const [addSoc, setAddSoc] = useState('100');
   const [addDepot, setAddDepot] = useState('');
   const [addDepotDropdownOpen, setAddDepotDropdownOpen] = useState(false);
+  const [addBusDepotSearchQuery, setAddBusDepotSearchQuery] = useState('');
   const [addReasonSelect, setAddReasonSelect] = useState('New Electric Bus Induction (Ashok Leyland EiV12)');
   const [addReasonDetail, setAddReasonDetail] = useState('');
 
@@ -1949,6 +1985,7 @@ export default function AdminWorkspaceScreen() {
   const [delReg, setDelReg] = useState('');
   const [delDepot, setDelDepot] = useState('');
   const [delDepotDropdownOpen, setDelDepotDropdownOpen] = useState(false);
+  const [delBusDepotSearchQuery, setDelBusDepotSearchQuery] = useState('');
   const [delReasonSelect, setDelReasonSelect] = useState('Major Breakdown / Motor Defect');
   const [delReasonDetail, setDelReasonDetail] = useState('');
 
@@ -2642,6 +2679,14 @@ export default function AdminWorkspaceScreen() {
   };
 
   const handleSubmitAdd = async () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    if (!addDepot || addDepot === '' || addDepot === 'all') {
+      Alert.alert(
+        'Depot Selection Required',
+        'Please select an operating depot from the drop-down menu before adding a bus. The action cannot proceed without selecting a depot.'
+      );
+      return;
+    }
     if (!addBm.trim()) {
       Alert.alert('Bus Number Required', 'Please enter a Bus Number (e.g. BM001 or BM305).');
       return;
@@ -2700,6 +2745,14 @@ export default function AdminWorkspaceScreen() {
   };
 
   const handleSubmitDelete = () => {
+    // ── GUARD: Mandatory Depot Selection ──
+    if (!delDepot || delDepot === '' || delDepot === 'all') {
+      Alert.alert(
+        'Depot Selection Required',
+        'Please select an operating depot from the drop-down menu before deleting a bus. The action cannot proceed without selecting a depot.'
+      );
+      return;
+    }
     const targets = selectedDelBms.length > 0
       ? selectedDelBms
       : (delSelectedBm.trim().toUpperCase() ? [delSelectedBm.trim().toUpperCase()] : []);
@@ -5623,54 +5676,102 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>{t('operating_depot_label', 'Operating Depot')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
+                  
+                  {/* Search box for selecting operating depot */}
+                  <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
+                    <Text style={{ fontSize: 13, marginRight: 6 }}>🔍</Text>
+                    <TextInput
+                      style={styles.modalSearchInput}
+                      placeholder={t('search_depot_del_bus_ph', 'Search depot by name or ID (e.g. Peenya, 1)...')}
+                      placeholderTextColor="#94a3b8"
+                      value={delBusDepotSearchQuery}
+                      onChangeText={(val) => {
+                        setDelBusDepotSearchQuery(val);
+                        if (!delDepotDropdownOpen) setDelDepotDropdownOpen(true);
+                      }}
+                    />
+                    {delBusDepotSearchQuery.length > 0 && (
+                      <TouchableOpacity onPress={() => setDelBusDepotSearchQuery('')} style={styles.modalClearSearch}>
+                        <Text style={styles.modalClearSearchText}>✕</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
                   <TouchableOpacity
-                    style={[styles.modalDropdownBtn, delDepotDropdownOpen && styles.modalDropdownBtnActive]}
+                    style={[
+                      styles.modalDropdownBtn,
+                      delDepotDropdownOpen && styles.modalDropdownBtnActive,
+                      !delDepot && { borderColor: '#f87171', backgroundColor: '#fef2f2' }
+                    ]}
                     onPress={() => setDelDepotDropdownOpen((prev) => !prev)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.modalDropdownBtnText, !delDepot && { color: '#94a3b8' }]}>
+                    <Text style={[styles.modalDropdownBtnText, !delDepot && { color: '#dc2626', fontWeight: '700' }]}>
                       {delDepot
-                        ? (depotsList.find((d) => String(d.id) === String(delDepot))?.name || `Depot ${delDepot}`)
-                        : t('select_depot', 'Select Depot')}
+                        ? `🏢 ${depotsList.find((d) => String(d.id) === String(delDepot))?.name || `Depot ${delDepot}`}`
+                        : `⚠️ ${t('select_depot_required', 'Select Operating Depot (Required) *')}`}
                     </Text>
-                    <Text style={{ fontSize: 12, color: '#64748b' }}>
-                      {delDepotDropdownOpen ? '▲' : '▼'}
+                    <Text style={{ fontSize: 12, color: delDepot ? '#64748b' : '#dc2626', fontWeight: '800' }}>
+                      {delDepotDropdownOpen ? '▲ Close' : '▼ Open Dropdown'}
                     </Text>
                   </TouchableOpacity>
 
+                  {!delDepot && (
+                    <Text style={{ color: '#dc2626', fontSize: 11.5, fontWeight: '700', marginTop: 3, marginBottom: 6 }}>
+                      ⚠️ {t('depot_must_be_selected_del_bus', 'Operating depot must be selected before deleting a bus.')}
+                    </Text>
+                  )}
+
                   {delDepotDropdownOpen && (
-                    <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
-                      <TouchableOpacity
-                        style={[styles.modalDropdownItem, !delDepot && styles.modalDropdownItemActive]}
-                        onPress={() => {
-                          setDelDepot('');
-                          setDelDepotDropdownOpen(false);
-                        }}
-                      >
-                        <Text style={[styles.modalDropdownItemText, !delDepot && styles.modalDropdownItemTextActive, { color: '#64748b' }]}>
-                          {t('select_depot', 'Select Depot')}
-                        </Text>
-                        {!delDepot && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                      </TouchableOpacity>
-                      {depotsList.map((d) => {
-                        const dNum = String(d.id);
-                        const isSelected = delDepot === dNum;
-                        return (
-                          <TouchableOpacity
-                            key={dNum}
-                            style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
-                            onPress={() => {
-                              setDelDepot(dNum);
-                              setDelDepotDropdownOpen(false);
-                            }}
-                          >
-                            <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
-                              🏢 {d.name || `Depot ${dNum}`}
-                            </Text>
-                            {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                          </TouchableOpacity>
-                        );
-                      })}
+                    <ScrollView style={[styles.modalDropdownMenu, { maxHeight: 180 }]} nestedScrollEnabled>
+                      {(() => {
+                        const filteredDepots = depotsList.filter((d) => {
+                          if (!delBusDepotSearchQuery.trim()) return true;
+                          const q = delBusDepotSearchQuery.trim().toLowerCase();
+                          return (
+                            String(d.id).toLowerCase().includes(q) ||
+                            String(d.name || '').toLowerCase().includes(q) ||
+                            String(d.location || '').toLowerCase().includes(q)
+                          );
+                        });
+
+                        if (filteredDepots.length === 0) {
+                          return (
+                            <View style={{ padding: 12 }}>
+                              <Text style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>
+                                No depots matching "{delBusDepotSearchQuery}".
+                              </Text>
+                            </View>
+                          );
+                        }
+
+                        return filteredDepots.map((d) => {
+                          const dNum = String(d.id);
+                          const isSelected = delDepot === dNum;
+                          return (
+                            <TouchableOpacity
+                              key={dNum}
+                              style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                              onPress={() => {
+                                setDelDepot(dNum);
+                                setDelDepotDropdownOpen(false);
+                              }}
+                            >
+                              <View style={{ flex: 1 }}>
+                                <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                                  🏢 {d.name || `Depot ${dNum}`} (ID: {d.id})
+                                </Text>
+                                {d.location && (
+                                  <Text style={{ fontSize: 10.5, color: '#64748b', marginTop: 1 }}>
+                                    📍 {d.location}
+                                  </Text>
+                                )}
+                              </View>
+                              {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓ Selected</Text>}
+                            </TouchableOpacity>
+                          );
+                        });
+                      })()}
                     </ScrollView>
                   )}
 
@@ -5754,54 +5855,103 @@ export default function AdminWorkspaceScreen() {
                   />
 
                   <Text style={styles.modalFieldLabel}>{t('operating_depot_label', 'Operating Depot')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
+                  
+                  {/* Search box for selecting operating depot */}
+                  <View style={[styles.modalSearchRow, { marginBottom: 8 }]}>
+                    <Text style={{ fontSize: 13, marginRight: 6 }}>🔍</Text>
+                    <TextInput
+                      style={styles.modalSearchInput}
+                      placeholder={t('search_depot_for_bus_ph', 'Search depot by name or ID (e.g. Chandra Layout, Peenya, 1)...')}
+                      placeholderTextColor="#94a3b8"
+                      value={addBusDepotSearchQuery}
+                      onChangeText={(val) => {
+                        setAddBusDepotSearchQuery(val);
+                        if (!addDepotDropdownOpen) setAddDepotDropdownOpen(true);
+                      }}
+                    />
+                    {addBusDepotSearchQuery.length > 0 && (
+                      <TouchableOpacity onPress={() => setAddBusDepotSearchQuery('')} style={styles.modalClearSearch}>
+                        <Text style={styles.modalClearSearchText}>✕</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {/* Drop-down menu for operating depot */}
                   <TouchableOpacity
-                    style={[styles.modalDropdownBtn, addDepotDropdownOpen && styles.modalDropdownBtnActive]}
+                    style={[
+                      styles.modalDropdownBtn,
+                      addDepotDropdownOpen && styles.modalDropdownBtnActive,
+                      !addDepot && { borderColor: '#f87171', backgroundColor: '#fef2f2' }
+                    ]}
                     onPress={() => setAddDepotDropdownOpen((prev) => !prev)}
                     activeOpacity={0.8}
                   >
-                    <Text style={[styles.modalDropdownBtnText, !addDepot && { color: '#94a3b8' }]}>
+                    <Text style={[styles.modalDropdownBtnText, !addDepot && { color: '#dc2626', fontWeight: '700' }]}>
                       {addDepot
-                        ? (depotsList.find((d) => String(d.id) === String(addDepot))?.name || `Depot ${addDepot}`)
-                        : t('select_depot', 'Select Depot')}
+                        ? `🏢 ${depotsList.find((d) => String(d.id) === String(addDepot))?.name || `Depot ${addDepot}`}`
+                        : `⚠️ ${t('select_depot_required', 'Select Operating Depot (Required) *')}`}
                     </Text>
-                    <Text style={{ fontSize: 12, color: '#64748b' }}>
-                      {addDepotDropdownOpen ? '▲' : '▼'}
+                    <Text style={{ fontSize: 12, color: addDepot ? '#64748b' : '#dc2626', fontWeight: '800' }}>
+                      {addDepotDropdownOpen ? '▲ Close' : '▼ Open Dropdown'}
                     </Text>
                   </TouchableOpacity>
 
+                  {!addDepot && (
+                    <Text style={{ color: '#dc2626', fontSize: 11.5, fontWeight: '700', marginTop: 3, marginBottom: 6 }}>
+                      ⚠️ {t('depot_must_be_selected_bus', 'Operating depot must be selected before adding a bus.')}
+                    </Text>
+                  )}
+
                   {addDepotDropdownOpen && (
-                    <ScrollView style={styles.modalDropdownMenu} nestedScrollEnabled>
-                      <TouchableOpacity
-                        style={[styles.modalDropdownItem, !addDepot && styles.modalDropdownItemActive]}
-                        onPress={() => {
-                          setAddDepot('');
-                          setAddDepotDropdownOpen(false);
-                        }}
-                      >
-                        <Text style={[styles.modalDropdownItemText, !addDepot && styles.modalDropdownItemTextActive, { color: '#64748b' }]}>
-                          {t('select_depot', 'Select Depot')}
-                        </Text>
-                        {!addDepot && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                      </TouchableOpacity>
-                      {depotsList.map((d) => {
-                        const dNum = String(d.id);
-                        const isSelected = addDepot === dNum;
-                        return (
-                          <TouchableOpacity
-                            key={dNum}
-                            style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
-                            onPress={() => {
-                              setAddDepot(dNum);
-                              setAddDepotDropdownOpen(false);
-                            }}
-                          >
-                            <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
-                              🏢 {d.name || `Depot ${dNum}`}
-                            </Text>
-                            {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓</Text>}
-                          </TouchableOpacity>
-                        );
-                      })}
+                    <ScrollView style={[styles.modalDropdownMenu, { maxHeight: 180 }]} nestedScrollEnabled>
+                      {(() => {
+                        const filteredDepots = depotsList.filter((d) => {
+                          if (!addBusDepotSearchQuery.trim()) return true;
+                          const q = addBusDepotSearchQuery.trim().toLowerCase();
+                          return (
+                            String(d.id).toLowerCase().includes(q) ||
+                            String(d.name || '').toLowerCase().includes(q) ||
+                            String(d.location || '').toLowerCase().includes(q)
+                          );
+                        });
+
+                        if (filteredDepots.length === 0) {
+                          return (
+                            <View style={{ padding: 12 }}>
+                              <Text style={{ fontSize: 12, color: '#94a3b8', fontStyle: 'italic', textAlign: 'center' }}>
+                                No depots matching "{addBusDepotSearchQuery}".
+                              </Text>
+                            </View>
+                          );
+                        }
+
+                        return filteredDepots.map((d) => {
+                          const dNum = String(d.id);
+                          const isSelected = addDepot === dNum;
+                          return (
+                            <TouchableOpacity
+                              key={dNum}
+                              style={[styles.modalDropdownItem, isSelected && styles.modalDropdownItemActive]}
+                              onPress={() => {
+                                setAddDepot(dNum);
+                                setAddDepotDropdownOpen(false);
+                              }}
+                            >
+                              <View style={{ flex: 1 }}>
+                                <Text style={[styles.modalDropdownItemText, isSelected && styles.modalDropdownItemTextActive]}>
+                                  🏢 {d.name || `Depot ${dNum}`} (ID: {d.id})
+                                </Text>
+                                {d.location && (
+                                  <Text style={{ fontSize: 10.5, color: '#64748b', marginTop: 1 }}>
+                                    📍 {d.location}
+                                  </Text>
+                                )}
+                              </View>
+                              {isSelected && <Text style={{ color: '#2563eb', fontWeight: '800' }}>✓ Selected</Text>}
+                            </TouchableOpacity>
+                          );
+                        });
+                      })()}
                     </ScrollView>
                   )}
 
@@ -6179,72 +6329,108 @@ export default function AdminWorkspaceScreen() {
                     {selectedDepotsToDelete.length > 0 ? ` (${selectedDepotsToDelete.length} Selected)` : ''}
                   </Text>
 
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#fee2e2', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
-                      onPress={() => setSelectedDepotsToDelete(depotsList.map((d) => String(d.id)))}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#b91c1c' }}>
-                        ✓ Select All Depots ({depotsList.length})
-                      </Text>
-                    </TouchableOpacity>
-                    {selectedDepotsToDelete.length > 0 && (
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
-                        onPress={() => { setSelectedDepotsToDelete([]); setSelectedDepotToDelete(''); }}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>
-                          ✕ Clear Selection
-                        </Text>
+                  {/* Real-time Depot Search Box (Search by ID or Depot Name) */}
+                  <View style={[styles.modalSearchRow, { marginBottom: 10 }]}>
+                    <Text style={{ fontSize: 13, marginRight: 6 }}>🔍</Text>
+                    <TextInput
+                      style={styles.modalSearchInput}
+                      placeholder={t('search_depot_del_ph', 'Search depot by ID or name (e.g. Peenya, 1, 2)...')}
+                      placeholderTextColor="#94a3b8"
+                      value={delDepotSearchQuery}
+                      onChangeText={setDelDepotSearchQuery}
+                      autoCapitalize="none"
+                    />
+                    {delDepotSearchQuery.length > 0 && (
+                      <TouchableOpacity onPress={() => setDelDepotSearchQuery('')} style={styles.modalClearSearch}>
+                        <Text style={styles.modalClearSearchText}>✕</Text>
                       </TouchableOpacity>
                     )}
                   </View>
 
-                  {depotsList.length === 0 ? (
-                    <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
-                      <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
-                        {t('no_depots_available', 'ℹ️ No operating depots available in the system. Create a new depot in the Add tab.')}
-                      </Text>
-                    </View>
-                  ) : (
-                    <ScrollView style={[styles.busSelectorBox, { maxHeight: 180 }]} nestedScrollEnabled>
-                      {depotsList.map((d) => {
-                        const dId = String(d.id);
-                        const isSelected = selectedDepotsToDelete.includes(dId) || selectedDepotToDelete === dId;
-                        return (
+                  {(() => {
+                    const filteredDepotsToDelete = depotsList.filter((d) => {
+                      if (!delDepotSearchQuery.trim()) return true;
+                      const q = delDepotSearchQuery.trim().toLowerCase();
+                      return (
+                        String(d.id).toLowerCase().includes(q) ||
+                        String(d.name || '').toLowerCase().includes(q) ||
+                        String(d.location || '').toLowerCase().includes(q)
+                      );
+                    });
+
+                    return (
+                      <>
+                        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8, alignItems: 'center' }}>
                           <TouchableOpacity
-                            key={d.id}
-                            style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
-                            onPress={() => {
-                              if (selectedDepotsToDelete.includes(dId)) {
-                                setSelectedDepotsToDelete((prev) => prev.filter((x) => x !== dId));
-                              } else {
-                                setSelectedDepotsToDelete((prev) => [...prev, dId]);
-                                setSelectedDepotToDelete(dId);
-                              }
-                            }}
+                            style={{ backgroundColor: '#fee2e2', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                            onPress={() => setSelectedDepotsToDelete(filteredDepotsToDelete.map((d) => String(d.id)))}
                           >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                              <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
-                                {isSelected ? '☑' : '☐'}
-                              </Text>
-                              <View style={{ flex: 1 }}>
-                                <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
-                                  🏢 {d.name} (ID: {d.id})
-                                </Text>
-                                <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                                  📍 {d.location} • {d.routes?.length || 0} {t('routes_attached', 'Routes Attached')}
-                                </Text>
-                              </View>
-                            </View>
-                            {isSelected && (
-                              <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
-                            )}
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#b91c1c' }}>
+                              ✓ Select All {delDepotSearchQuery.trim() ? `Filtered (${filteredDepotsToDelete.length})` : `Depots (${depotsList.length})`}
+                            </Text>
                           </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-                  )}
+                          {selectedDepotsToDelete.length > 0 && (
+                            <TouchableOpacity
+                              style={{ backgroundColor: '#f1f5f9', paddingVertical: 5, paddingHorizontal: 12, borderRadius: 6 }}
+                              onPress={() => { setSelectedDepotsToDelete([]); setSelectedDepotToDelete(''); }}
+                            >
+                              <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>
+                                ✕ Clear Selection
+                              </Text>
+                            </TouchableOpacity>
+                          )}
+                        </View>
+
+                        {filteredDepotsToDelete.length === 0 ? (
+                          <View style={{ backgroundColor: '#f8fafc', padding: 14, borderRadius: 10, borderWidth: 1, borderColor: '#cbd5e1', marginBottom: 12 }}>
+                            <Text style={{ fontSize: 13, color: '#64748b', fontStyle: 'italic', textAlign: 'center' }}>
+                              {delDepotSearchQuery.trim()
+                                ? `ℹ️ No depots found matching "${delDepotSearchQuery}".`
+                                : t('no_depots_available', 'ℹ️ No operating depots available in the system. Create a new depot in the Add tab.')}
+                            </Text>
+                          </View>
+                        ) : (
+                          <ScrollView style={[styles.busSelectorBox, { maxHeight: 180 }]} nestedScrollEnabled>
+                            {filteredDepotsToDelete.map((d) => {
+                              const dId = String(d.id);
+                              const isSelected = selectedDepotsToDelete.includes(dId) || selectedDepotToDelete === dId;
+                              return (
+                                <TouchableOpacity
+                                  key={d.id}
+                                  style={[styles.delBusOption, isSelected && styles.delBusOptionActive]}
+                                  onPress={() => {
+                                    if (selectedDepotsToDelete.includes(dId)) {
+                                      setSelectedDepotsToDelete((prev) => prev.filter((x) => x !== dId));
+                                    } else {
+                                      setSelectedDepotsToDelete((prev) => [...prev, dId]);
+                                      setSelectedDepotToDelete(dId);
+                                    }
+                                  }}
+                                >
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                    <Text style={{ fontSize: 16, fontWeight: '800', color: isSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
+                                      {isSelected ? '☑' : '☐'}
+                                    </Text>
+                                    <View style={{ flex: 1 }}>
+                                      <Text style={[styles.delBusOptionText, isSelected && { color: '#dc2626', fontWeight: '800' }]}>
+                                        🏢 {d.name} (ID: {d.id})
+                                      </Text>
+                                      <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                        📍 {d.location} • {d.routes?.length || 0} {t('routes_attached', 'Routes Attached')}
+                                      </Text>
+                                    </View>
+                                  </View>
+                                  {isSelected && (
+                                    <Text style={{ color: '#dc2626', fontWeight: '800', marginLeft: 8 }}>{t('selected_badge', '✓ Selected')}</Text>
+                                  )}
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </ScrollView>
+                        )}
+                      </>
+                    );
+                  })()}
 
                   <Text style={styles.modalFieldLabel}>
                     {t('decommission_reason_label', 'Decommission Reason')} <Text style={{ color: '#ef4444' }}>*</Text>
@@ -6408,12 +6594,12 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setRoutesDepotPickerOpen((prev) => !prev)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.routesDepotDropdownBtnText}>
-                  {routesSelectedDepot === 'all'
-                    ? `🌐 ${t('all_operating_depots', 'All Operating Depots')} (${depotsList.length})`
-                    : `🏢 ${depotsList.find((d) => String(d.id) === String(routesSelectedDepot))?.name || `Depot ${routesSelectedDepot}`}`}
+                <Text style={[styles.routesDepotDropdownBtnText, (!routesSelectedDepot || routesSelectedDepot === 'all') && { color: '#dc2626', fontWeight: '800' }]}>
+                  {routesSelectedDepot && routesSelectedDepot !== 'all'
+                    ? `🏢 ${depotsList.find((d) => String(d.id) === String(routesSelectedDepot))?.name || `Depot ${routesSelectedDepot}`}`
+                    : `⚠️ ${t('select_depot_required', 'Select Operating Depot (Required) *')}`}
                 </Text>
-                <Text style={{ fontSize: 13, color: '#15803d', fontWeight: '800' }}>
+                <Text style={{ fontSize: 13, color: routesSelectedDepot && routesSelectedDepot !== 'all' ? '#15803d' : '#dc2626', fontWeight: '800' }}>
                   {routesDepotPickerOpen ? '▲ Close' : '▼ Select Depot'}
                 </Text>
               </TouchableOpacity>
@@ -6494,6 +6680,13 @@ export default function AdminWorkspaceScreen() {
               {/* TAB 1: ADD ROUTE TO SELECTED DEPOT */}
               {routesTab === 'add' && (
                 <View style={styles.tabContentBox}>
+                  {(!routesSelectedDepot || routesSelectedDepot === 'all') && (
+                    <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                      <Text style={{ color: '#b91c1c', fontSize: 12.5, fontWeight: '800' }}>
+                        ⚠️ Operating Depot Required: Please select an operating depot in Step 1 above before adding a route. The action cannot proceed without selecting a depot.
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.depotInfoBanner}>
                     <Text style={styles.depotInfoText}>
                       <Text style={{ fontWeight: '800' }}>🛣️ {t('register_route_for', 'Register Route for')}: </Text>
@@ -6697,6 +6890,16 @@ export default function AdminWorkspaceScreen() {
               {/* TAB 2: DECOMMISSION ROUTE (FILTERED BY SELECTED DEPOT) */}
               {routesTab === 'delete' && (
                 <View style={styles.tabContentBox}>
+                  {(!routesSelectedDepot || routesSelectedDepot === 'all') && (
+                    <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 8, padding: 14, marginBottom: 14 }}>
+                      <Text style={{ color: '#b91c1c', fontSize: 13, fontWeight: '800', marginBottom: 4 }}>
+                        ⚠️ Operating Depot Selection Required
+                      </Text>
+                      <Text style={{ color: '#7f1d1d', fontSize: 12 }}>
+                        Please select an operating depot in Step 1 above to view and decommission its assigned routes. The action cannot proceed without selecting a depot.
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.delWarnBanner}>
                     <Text style={styles.delWarnText}>
                       <Text style={{ fontWeight: '800' }}>⚠️ {t('warning', 'Warning')}: </Text>
@@ -6986,13 +7189,13 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDriversDepotPickerOpen((prev) => !prev)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.driversDepotDropdownBtnText}>
-                  {driversSelectedDepot === 'all'
-                    ? `🌐 All Operating Depots (${depotsList.length})`
-                    : `🏢 ${depotsList.find((d) => String(d.id) === String(driversSelectedDepot))?.name || `Depot ${driversSelectedDepot}`}`}
+                <Text style={[styles.driversDepotDropdownBtnText, (!driversSelectedDepot || driversSelectedDepot === 'all') && { color: '#dc2626', fontWeight: '800' }]}>
+                  {driversSelectedDepot && driversSelectedDepot !== 'all'
+                    ? `🏢 ${depotsList.find((d) => String(d.id) === String(driversSelectedDepot))?.name || `Depot ${driversSelectedDepot}`}`
+                    : `⚠️ ${t('select_depot_required', 'Select Operating Depot (Required) *')}`}
                 </Text>
-                <Text style={{ fontSize: 13, color: '#1d4ed8', fontWeight: '800' }}>
-                  {driversDepotPickerOpen ? '▲ Close' : '▼ Filter Depot'}
+                <Text style={{ fontSize: 13, color: driversSelectedDepot && driversSelectedDepot !== 'all' ? '#1d4ed8' : '#dc2626', fontWeight: '800' }}>
+                  {driversDepotPickerOpen ? '▲ Close' : '▼ Select Depot'}
                 </Text>
               </TouchableOpacity>
 
@@ -7072,6 +7275,13 @@ export default function AdminWorkspaceScreen() {
               {/* TAB 1: INDUCT DRIVER */}
               {driversTab === 'add' && (
                 <View style={styles.tabContentBox}>
+                  {(!driversSelectedDepot || driversSelectedDepot === 'all') && (
+                    <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 8, padding: 12, marginBottom: 12 }}>
+                      <Text style={{ color: '#b91c1c', fontSize: 12.5, fontWeight: '800' }}>
+                        ⚠️ Operating Depot Required: Please select an operating depot from the dropdown above before inducting a driver. The action cannot proceed without selecting a depot.
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.depotInfoBanner}>
                     <Text style={styles.depotInfoText}>
                       <Text style={{ fontWeight: '800' }}>👨‍✈️ {t('induct_driver_banner', 'Induct Electric Bus Driver')}: </Text>
@@ -7191,6 +7401,16 @@ export default function AdminWorkspaceScreen() {
               {/* TAB 2: WITHDRAW / DECOMMISSION DRIVER */}
               {driversTab === 'delete' && (
                 <View style={styles.tabContentBox}>
+                  {(!driversSelectedDepot || driversSelectedDepot === 'all') && (
+                    <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 8, padding: 14, marginBottom: 14 }}>
+                      <Text style={{ color: '#b91c1c', fontSize: 13, fontWeight: '800', marginBottom: 4 }}>
+                        ⚠️ Operating Depot Selection Required
+                      </Text>
+                      <Text style={{ color: '#7f1d1d', fontSize: 12 }}>
+                        Please select an operating depot from the dropdown above to view and withdraw drivers for that specific depot. The action cannot proceed without selecting a depot.
+                      </Text>
+                    </View>
+                  )}
                   <View style={styles.delWarnBanner}>
                     <Text style={styles.delWarnText}>
                       <Text style={{ fontWeight: '800' }}>⚠️ {t('warning', 'Warning')}: </Text>

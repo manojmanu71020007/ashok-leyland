@@ -3104,9 +3104,14 @@
                                 <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
                                     Operating Depot <span style="color:#ef4444;">*</span>
                                 </label>
-                                <select id="del-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;">
-                                    <option value="1">Depot 1 — Chandapura (BMT-32)</option>
-                                    <option value="2">Depot 2 — Central Depot</option>
+                                <div style="position:relative; margin-bottom:6px;">
+                                    <input type="text" id="del-bus-depot-search" placeholder="🔍 Search depot by name or ID (e.g. Peenya, 1)..." style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.82rem; margin-bottom:4px;" oninput="filterDelBusDepots(this.value)" />
+                                </div>
+                                <select id="del-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" required>
+                                    <option value="" disabled selected>-- Select Operating Depot * --</option>
+                                    <option value="1">Depot 1 — Chandra Layout (Chandapura)</option>
+                                    <option value="2">Depot 2 — Attibele / Hoskote</option>
+                                    <option value="3">Peenya Depot (BMTC-3)</option>
                                 </select>
                             </div>
 
@@ -3179,12 +3184,20 @@
 
                             <div>
                                 <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
-                                    Operating Depot
+                                    Operating Depot <span style="color:#ef4444;">*</span>
                                 </label>
-                                <select id="add-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;">
-                                    <option value="1">Depot 1 — Chandapura (BMT-32)</option>
-                                    <option value="2">Depot 2 — Central Depot</option>
+                                <div style="position:relative; margin-bottom:6px;">
+                                    <input type="text" id="add-bus-depot-search" placeholder="🔍 Search depot by name or ID (e.g. Peenya, Chandra Layout, 1)..." style="width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:6px; font-size:0.82rem; margin-bottom:4px;" oninput="filterAddBusDepots(this.value)" />
+                                </div>
+                                <select id="add-bus-depot" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" required>
+                                    <option value="" disabled selected>-- Select Operating Depot * --</option>
+                                    <option value="1">Depot 1 — Chandra Layout (Chandapura)</option>
+                                    <option value="2">Depot 2 — Attibele / Hoskote</option>
+                                    <option value="3">Peenya Depot (BMTC-3)</option>
                                 </select>
+                                <div id="add-bus-depot-warn" style="color:#dc2626; font-size:0.75rem; font-weight:700; margin-top:3px; display:none;">
+                                    ⚠️ Please select an operating depot before adding a bus.
+                                </div>
                             </div>
 
                             <div>
@@ -9797,6 +9810,13 @@ let busCategoriesMap = new Map();
             const regNumber = (regInput ? regInput.value : "").trim().toUpperCase();
             const reasonVal = (reasonText && reasonText.value.trim()) ? reasonText.value.trim() : (reasonSelect ? reasonSelect.value : "Fleet Maintenance Off-road");
 
+            const depotSelect = document.getElementById("del-bus-depot");
+            const depot = depotSelect ? depotSelect.value : "";
+            if (!depot || depot === "" || depot === "all") {
+                alert("⚠️ Operating Depot Required!\n\nPlease select an operating depot from the drop-down menu before deleting a bus. The action cannot proceed without selecting a depot.");
+                if (depotSelect) depotSelect.focus();
+                return;
+            }
             if (!busNumber) {
                 alert("Please select or enter a Bus Number (e.g. BM001).");
                 if (bmInput) bmInput.focus();
@@ -9883,7 +9903,42 @@ let busCategoriesMap = new Map();
             }
         }
 
-        async function submitAddBus() {
+        async 
+        function filterAddBusDepots(query) {
+            const select = document.getElementById("add-bus-depot");
+            if (!select) return;
+            const q = (query || "").toLowerCase().trim();
+            for (let i = 0; i < select.options.length; i++) {
+                const opt = select.options[i];
+                if (opt.value === "") continue;
+                const text = opt.textContent.toLowerCase();
+                const val = opt.value.toLowerCase();
+                if (!q || text.includes(q) || val.includes(q)) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
+            }
+        }
+
+        function filterDelBusDepots(query) {
+            const select = document.getElementById("del-bus-depot");
+            if (!select) return;
+            const q = (query || "").toLowerCase().trim();
+            for (let i = 0; i < select.options.length; i++) {
+                const opt = select.options[i];
+                if (opt.value === "") continue;
+                const text = opt.textContent.toLowerCase();
+                const val = opt.value.toLowerCase();
+                if (!q || text.includes(q) || val.includes(q)) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
+            }
+        }
+
+        function submitAddBus() {
             const bmInput = document.getElementById("add-bus-bm");
             const regInput = document.getElementById("add-bus-reg");
             const reasonSelect = document.getElementById("add-bus-reason-select");
@@ -9896,7 +9951,13 @@ let busCategoriesMap = new Map();
             const busNumber = (bmInput ? bmInput.value : "").trim().toUpperCase();
             const regNumber = (regInput ? regInput.value : "").trim().toUpperCase();
             const reasonVal = (reasonText && reasonText.value.trim()) ? reasonText.value.trim() : (reasonSelect ? reasonSelect.value : "New Electric Bus Induction");
-            const depot = depotSelect ? depotSelect.value : "1";
+            const depot = depotSelect ? depotSelect.value : "";
+
+            if (!depot || depot === "" || depot === "all") {
+                alert("⚠️ Operating Depot Required!\n\nPlease select an operating depot from the drop-down menu before adding a bus. The action cannot proceed without selecting a depot.");
+                if (depotSelect) depotSelect.focus();
+                return;
+            }
             const busCategory = catSelect ? catSelect.value : "B";
             const soc = socInput ? Number(socInput.value) || 100 : 100;
 
