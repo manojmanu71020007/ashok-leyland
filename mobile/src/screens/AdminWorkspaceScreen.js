@@ -267,18 +267,18 @@ const I18N = {
 
 // ── DEPOT 1 & DEPOT 2 CORRIDOR ROUTES (Exact Match with admin.html & scheduling.html) ──
 const DEPOT_1_ROUTES_DATA = [
-  { id: '356Z', code: '356Z', name: 'Chandapura ➔ Anekal (356Z)', distance: 28.7, fullDutyKm: 55.0, category: 'Standard', requiredCat: 'C', drainSoc: 24, timetables: ['07:15 AM', '08:30 AM', '01:10 PM', '02:20 PM', '07:40 PM'], shift: 'General Shift' },
-  { id: '360K', code: '360K', name: 'Chandapura ➔ Kempegowda Bus Station (360K)', distance: 36.2, fullDutyKm: 78.4, category: 'Standard', requiredCat: 'B', drainSoc: 28, timetables: ['07:00 AM', '08:15 AM', '01:10 PM', '02:00 PM', '06:30 PM'], shift: 'General Shift' },
-  { id: '600F', code: '600F', name: 'Bommasandra Depot 32 ➔ Basavanagudi (600F)', distance: 27.8, fullDutyKm: 62.0, category: 'Standard', requiredCat: 'B', drainSoc: 25, timetables: ['06:45 AM', '08:00 AM', '01:10 PM', '02:30 PM', '07:15 PM'], shift: 'General Shift' },
-  { id: 'KBS3A', code: 'KBS3A', name: 'Chandapura ➔ Kempegowda Bus Station (KBS3A)', distance: 35.8, fullDutyKm: 72.0, category: 'Moderate', requiredCat: 'B', drainSoc: 26, timetables: ['07:00 AM', '08:30 AM', '01:10 PM', '02:15 PM', '06:00 PM'], shift: 'General Shift' },
+  { id: '356Z', code: '356Z', name: 'CPR ➔ ANK (356Z)', distance: 28.7, fullDutyKm: 55.0, category: 'Standard', requiredCat: 'C', drainSoc: 24, timetables: ['07:15 AM', '08:30 AM', '01:10 PM', '02:20 PM', '07:40 PM'], shift: 'General Shift' },
+  { id: '360K', code: '360K', name: 'ATB ➔ KBS (360K)', distance: 36.2, fullDutyKm: 78.4, category: 'Standard', requiredCat: 'B', drainSoc: 28, timetables: ['07:00 AM', '08:15 AM', '01:10 PM', '02:00 PM', '06:30 PM'], shift: 'General Shift' },
+  { id: '600F', code: '600F', name: 'BSK ➔ ATB (600F)', distance: 27.8, fullDutyKm: 62.0, category: 'Standard', requiredCat: 'B', drainSoc: 25, timetables: ['06:45 AM', '08:00 AM', '01:10 PM', '02:30 PM', '07:15 PM'], shift: 'General Shift' },
+  { id: 'KBS3A', code: 'KBS3A', name: 'ATB ➔ KBS (KBS3A)', distance: 35.8, fullDutyKm: 72.0, category: 'Moderate', requiredCat: 'B', drainSoc: 26, timetables: ['07:00 AM', '08:30 AM', '01:10 PM', '02:15 PM', '06:00 PM'], shift: 'General Shift' },
 ];
 
 const DEPOT_2_ROUTES_DATA = [
-  { id: '361C', code: '361C', name: 'Attibele ➔ Kempegowda Bus Station (361C)', distance: 38.5, fullDutyKm: 108.0, category: 'Complex', requiredCat: 'A', drainSoc: 36, timetables: ['07:30 AM', '09:00 AM', '01:10 PM', '03:00 PM', '05:50 AM'], shift: 'Night Halt' },
-  { id: '399C', code: '399C', name: 'Hosakote ➔ Electronic City (399C)', distance: 34.0, fullDutyKm: 85.0, category: 'Complex', requiredCat: 'A', drainSoc: 32, timetables: ['07:45 AM', '09:15 AM', '01:10 PM', '03:30 PM'], shift: 'General Shift' },
-  { id: '328H', code: '328H', name: 'Hoskote ➔ Kempegowda Bus Station (328H)', distance: 32.5, fullDutyKm: 95.0, category: 'Moderate', requiredCat: 'B', drainSoc: 30, timetables: ['01:10 PM', '01:45 PM', '01:50 PM', '07:00 AM', '10:30 AM'], shift: 'Night Halt' },
+  { id: '361C', code: '361C', name: 'ANK ➔ KMT (361C)', distance: 38.5, fullDutyKm: 108.0, category: 'Complex', requiredCat: 'A', drainSoc: 36, timetables: ['07:30 AM', '09:00 AM', '01:10 PM', '03:00 PM', '05:50 AM'], shift: 'Night Halt' },
+  { id: '399C', code: '399C', name: 'CTP ➔ ANK (399C)', distance: 34.0, fullDutyKm: 85.0, category: 'Complex', requiredCat: 'A', drainSoc: 32, timetables: ['07:45 AM', '09:15 AM', '01:10 PM', '03:30 PM'], shift: 'General Shift' },
+  { id: '328H', code: '328H', name: 'ATB ➔ HSK (328H)', distance: 32.5, fullDutyKm: 95.0, category: 'Moderate', requiredCat: 'B', drainSoc: 30, timetables: ['01:10 PM', '01:45 PM', '01:50 PM', '07:00 AM', '10:30 AM'], shift: 'Night Halt' },
   { id: '500DC', code: '500DC', name: 'HBL ➔ TNF (500DC)', origin: 'HBL', destination: 'TNF', via: 'CSB', distance: 49.1, fullDutyKm: 188.54, actualKm: 188.54, chargingOcc: 1, noChargingOcc: 1, splitDuty: true, singleChargeReqKm: 91.9, category: 'Standard', requiredCat: 'B', drainSoc: 28, timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '10:55 AM', '11:10 AM', '11:25 AM', '11:40 AM', '01:10 PM', '02:15 PM', '03:45 PM'], shift: 'General Shift' },
-  { id: 'KBS3F', code: 'KBS3F', name: 'Attibele ➔ Kempegowda Bus Station (KBS3F)', distance: 39.2, fullDutyKm: 76.0, category: 'Standard', requiredCat: 'B', drainSoc: 22, timetables: ['05:45 AM', '07:15 AM', '08:45 AM', '01:10 PM', '02:30 PM'], shift: 'General shift' },
+  { id: 'KBS3F', code: 'KBS3F', name: 'ATB ➔ KBS (KBS3F)', distance: 39.2, fullDutyKm: 76.0, category: 'Standard', requiredCat: 'B', drainSoc: 22, timetables: ['05:45 AM', '07:15 AM', '08:45 AM', '01:10 PM', '02:30 PM'], shift: 'General shift' },
 ];
 
 export const ALL_ROUTES_DATA = [...DEPOT_1_ROUTES_DATA, ...DEPOT_2_ROUTES_DATA];

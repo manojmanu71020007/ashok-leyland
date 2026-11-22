@@ -2650,14 +2650,14 @@
                             <select id="alloc-sort-route">
                                 <option value="all">All Routes (A → Z)</option>
                                 <option value="route-desc">Route (Z → A)</option>
-                                <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
-                                <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
-                                <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
-                                <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
-                                <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
-                                <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
-                                <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
-                                <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                                <option value="356Z">Route 356Z (CPR ⇔ ANK)</option>
+                                <option value="360K">Route 360K (ATB ⇔ KBS)</option>
+                                <option value="600F">Route 600F (BSK ⇔ ATB)</option>
+                                <option value="KBS3A">Route KBS3A (ATB ⇔ KBS)</option>
+                                <option value="KBS3F">Route KBS3F (ATB ⇔ KBS)</option>
+                                <option value="328H">Route 328H (ATB ⇔ HSK)</option>
+                                <option value="361C">Route 361C (ANK ⇔ KMT)</option>
+                                <option value="399C">Route 399C (CTP ⇔ ANK)</option>
                                 <option value="500DC">Route 500DC (HBL ⇔ TNF)</option>
                             </select>
                         </label>
@@ -2691,14 +2691,14 @@
                             <select id="not-alloc-sort-route">
                                 <option value="all">All Routes (A → Z)</option>
                                 <option value="route-desc">Route (Z → A)</option>
-                                <option value="356Z">Route 356Z (Chandapura ⇔ Anekal)</option>
-                                <option value="360K">Route 360K (Chandapura ⇔ KBS)</option>
-                                <option value="600F">Route 600F (Bommasandra Depot 32 ⇔ Basavanagudi)</option>
-                                <option value="KBS3A">Route KBS3A (KBS ⇔ Anekal Town)</option>
-                                <option value="KBS3F">Route KBS3F (KBS ⇔ Basavanagudi)</option>
-                                <option value="328H">Route 328H (Hoskote ⇔ KBS)</option>
-                                <option value="361C">Route 361C (Chandapura ⇔ Kengeri)</option>
-                                <option value="399C">Route 399C (Chandapura ⇔ Kanakapura)</option>
+                                <option value="356Z">Route 356Z (CPR ⇔ ANK)</option>
+                                <option value="360K">Route 360K (ATB ⇔ KBS)</option>
+                                <option value="600F">Route 600F (BSK ⇔ ATB)</option>
+                                <option value="KBS3A">Route KBS3A (ATB ⇔ KBS)</option>
+                                <option value="KBS3F">Route KBS3F (ATB ⇔ KBS)</option>
+                                <option value="328H">Route 328H (ATB ⇔ HSK)</option>
+                                <option value="361C">Route 361C (ANK ⇔ KMT)</option>
+                                <option value="399C">Route 399C (CTP ⇔ ANK)</option>
                                 <option value="500DC">Route 500DC (HBL ⇔ TNF)</option>
                             </select>
                         </label>
@@ -3299,14 +3299,14 @@
         const scheduledTimeSelect = document.getElementById("scheduled-time-select");
 
         const CORRIDOR_ROUTES = [
-            { id: "356Z", code: "356Z", routeId: "1", origin: "Chandapura", destination: "Anekal", distKm: 28.7, trips: 8, label: "Chandapura ⇔ Anekal (Route 356Z) — 28.7 km" },
+            { id: "356Z", code: "356Z", routeId: "1", origin: "Chandapura", destination: "Anekal", distKm: 28.7, trips: 8, label: "CPR ⇔ ANK (Route 356Z) — 28.7 km" },
             { id: "360K", code: "360K", routeId: "2", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, trips: 8, label: "Chandapura ⇔ Kempegowda Bus Station (Route 360K) — 36.2 km" },
-            { id: "600F", code: "600F", routeId: "3", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, trips: 12, label: "Bommasandra Depot 32 ⇔ Basavanagudi (Route 600F) — 27.8 km" },
+            { id: "600F", code: "600F", routeId: "3", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, trips: 12, label: "BSK ⇔ ATB (Route 600F) — 27.8 km" },
             { id: "KBS3A", code: "KBS3A", routeId: "4", origin: "Kempegowda Bus Station", destination: "Anekal Town Bus Stand", distKm: 41.5, trips: 8, label: "Kempegowda Bus Station ⇔ Anekal Town Bus Stand (Route KBS3A) — 41.5 km" },
             { id: "KBS3F", code: "KBS3F", routeId: "5", origin: "Kempegowda Bus Station", destination: "Basavanagudi", distKm: 12.4, trips: 8, label: "Kempegowda Bus Station ⇔ Basavanagudi (Route KBS3F) — 12.4 km" },
             { id: "328H", code: "328H", routeId: "6", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, trips: 12, label: "Hoskote ⇔ Kempegowda Bus Station (Route 328H) — 32.5 km" },
-            { id: "361C", code: "361C", routeId: "7", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, trips: 8, label: "Chandapura ⇔ Kengeri (Route 361C) — 38.0 km" },
-            { id: "399C", code: "399C", routeId: "8", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, trips: 8, label: "Chandapura ⇔ Kanakapura (Route 399C) — 44.0 km" },
+            { id: "361C", code: "361C", routeId: "7", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, trips: 8, label: "ANK ⇔ KMT (Route 361C) — 38.0 km" },
+            { id: "399C", code: "399C", routeId: "8", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, trips: 8, label: "CTP ⇔ ANK (Route 399C) — 44.0 km" },
             { id: "500DC", code: "500DC", routeId: "9", origin: "HBL", destination: "TNF", distKm: 49.1, trips: 8, label: "HBL ⇔ TNF (Route 500DC) — 49.1 km" }
         ];
 

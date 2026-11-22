@@ -3009,6 +3009,10 @@ function loadBusState() {
         if (!Array.isArray(masterBusState._deletedDepotIds)) {
             masterBusState._deletedDepotIds = [];
         }
+        const fileDataset = loadRoutesDataset();
+        if (fileDataset && Array.isArray(fileDataset.routes) && fileDataset.routes.length > 0) {
+            masterBusState._routesDatabase = fileDataset;
+        }
         if (historyMissing) {
             saveBusState(masterBusState);
         }
@@ -5151,7 +5155,8 @@ const server = http.createServer(async (req, res) => {
         if (req.method === "GET") {
             try {
                 const currentState = loadBusState();
-                const dataset = currentState._routesDatabase || loadRoutesDataset() || {};
+                const fileDataset = loadRoutesDataset();
+                const dataset = fileDataset || currentState._routesDatabase || {};
                 sendJson(res, { ok: true, dataset, version: stateVersion });
             } catch (err) {
                 sendJson(res, { ok: false, error: "Failed to load routes dataset", details: err.message }, 500);
