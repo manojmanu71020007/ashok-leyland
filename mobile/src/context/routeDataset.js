@@ -953,9 +953,12 @@ export function getMatrixStatus(complexity, timeCatOrIsPeak) {
 
   if (c === 'complex') return 'A';
   if (isExtPeak) return 'A';
+  // Standard and Moderate routes: Category C is strictly disallowed under ALL conditions
   if ((c === 'moderate' || c === 'standard') && isPeakOnly) return 'A/B';
   if ((c === 'moderate' || c === 'standard') && isNormal) return 'A/B';
-  if (c === 'simple' && isPeakOnly) return 'A/B';
+  // Simple route + Peak: Category B is Primary, Category C is 1st Fallback, Category A is 2nd Fallback
+  if (c === 'simple' && isPeakOnly) return 'B/C/A';
+  // Simple route + Normal: Category C is Primary, Category B is 1st Fallback, Category A is 2nd Fallback
   if (c === 'simple' && isNormal) return 'A/B/C';
 
   return 'A/B';

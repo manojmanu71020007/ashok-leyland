@@ -2182,10 +2182,24 @@ export default function AdminWorkspaceScreen() {
       // STRICT RULE: ONLY Category A buses are eligible! If none available, do NOT fallback to B or C
       sorted = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
     } else if (matrixStatus === 'A/B') {
-      // Category B prioritized first, then Category A fallback. Category C strictly excluded!
+      // Standard / Moderate routes: Category C strictly excluded under ALL conditions!
+      if (isPeak) {
+        // Peak: Category A primary, Category B fallback
+        const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
+        const catBBuses = candidatePool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
+        sorted = [...catABuses, ...catBBuses];
+      } else {
+        // Normal: Category B primary, Category A fallback
+        const catBBuses = candidatePool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
+        const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
+        sorted = [...catBBuses, ...catABuses];
+      }
+    } else if (matrixStatus === 'B/C/A' || (complexity === 'simple' && isPeak)) {
+      // Simple + Peak: Category B Primary, Category C 1st Fallback, Category A 2nd Fallback
       const catBBuses = candidatePool.filter((b) => b.busCategory === 'B').sort((a, b) => (b.soc || 0) - (a.soc || 0));
+      const catCBuses = candidatePool.filter((b) => b.busCategory === 'C').sort((a, b) => (b.soc || 0) - (a.soc || 0));
       const catABuses = candidatePool.filter((b) => b.busCategory === 'A').sort((a, b) => (b.soc || 0) - (a.soc || 0));
-      sorted = [...catBBuses, ...catABuses];
+      sorted = [...catBBuses, ...catCBuses, ...catABuses];
     } else {
       // Simple + Normal: Category C prioritized first, then Category B, then A
       const catCBuses = candidatePool.filter((b) => b.busCategory === 'C').sort((a, b) => (b.soc || 0) - (a.soc || 0));

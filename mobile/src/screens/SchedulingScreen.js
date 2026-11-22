@@ -684,15 +684,11 @@ export default function SchedulingScreen() {
     if (isExtremePeak && page4Category !== 'A') {
       return { feasible: false, bm: key, reason: `Extreme Peak hours strictly require Category A bus. Bus ${key} is Category ${page4Category}.` };
     }
-    if ((isModerate || isStandard) && isPeakOnly && page4Category === 'C') {
-      return { feasible: false, bm: key, reason: `Standard/Moderate route during Peak hours requires Category A (or Category B as fallback). Category C bus ${key} cannot be allocated.` };
+    // Standard and Moderate routes: Category C is strictly disallowed under ALL conditions
+    if ((isModerate || isStandard) && page4Category === 'C') {
+      return { feasible: false, bm: key, reason: `Standard/Moderate route strictly disallows Category C buses in all conditions. Bus ${key} is Category C.` };
     }
-    if ((isModerate || isStandard) && isNormalTime && page4Category === 'C') {
-      return { feasible: false, bm: key, reason: `Normal time requires Category B (or A). Category C bus ${key} cannot be allocated.` };
-    }
-    if (isSimple && isPeakOnly && page4Category === 'C') {
-      return { feasible: false, bm: key, reason: `Simple route during Peak requires Category B (or A). Category C bus ${key} cannot be allocated.` };
-    }
+    // Simple route during Peak: Category B is Primary, Category C is 1st Fallback, Category A is 2nd Fallback (all A, B, C are eligible)
 
     return {
       feasible: true,
@@ -820,8 +816,13 @@ export default function SchedulingScreen() {
       if (matrixStatus === 'A') {
         searchPasses = [aKeys];
       } else if (matrixStatus === 'A/B') {
-        searchPasses = [bKeys, aKeys];
+        // Standard / Moderate routes: only A and B, never C
+        searchPasses = isPeak ? [aKeys, bKeys] : [bKeys, aKeys];
+      } else if (matrixStatus === 'B/C/A' || (complexity.toLowerCase() === 'simple' && isPeak)) {
+        // Simple route + Peak: B Primary, C 1st Fallback, A 2nd Fallback
+        searchPasses = [bKeys, cKeys, aKeys];
       } else {
+        // Simple route + Normal: C Primary, B 1st Fallback, A 2nd Fallback
         searchPasses = [cKeys, bKeys, aKeys];
       }
 
@@ -887,7 +888,10 @@ export default function SchedulingScreen() {
       let catPriority = { A: 0, B: 1, C: 2 };
       if (matrixStatus === 'A/B') {
         catPriority = isPeak ? { A: 0, B: 1, C: 2 } : { B: 0, A: 1, C: 2 };
-      } else if (matrixStatus === 'A/B/C') {
+      } else if (matrixStatus === 'B/C/A' || (complexity.toLowerCase() === 'simple' && isPeak)) {
+        // Simple route + Peak: Category B Primary, Category C 1st Fallback, Category A 2nd Fallback
+        catPriority = { B: 0, C: 1, A: 2 };
+      } else if (matrixStatus === 'A/B/C' || matrixStatus === 'C/B/A') {
         catPriority = { C: 0, B: 1, A: 2 };
       }
 
@@ -924,7 +928,19 @@ export default function SchedulingScreen() {
           lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
         }
       }
-    } else if (matrixStatus === 'A/B/C') {
+    } else if (matrixStatus === 'B/C/A' || (complexity.toLowerCase() === 'simple' && isPeak)) {
+      // Simple + Peak: Category B is Primary, Category C is 1st Fallback, Category A is 2nd Fallback
+      const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
+      const cBuses = recommendedPool.filter((c) => c.busCategory === 'C');
+      const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
+      if (bBuses.length > 0) {
+        lockedCand = bBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+      } else if (cBuses.length > 0) {
+        lockedCand = cBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0];
+      } else {
+        lockedCand = aBuses.slice().sort((a, b) => (b.liveSoc ?? 0) - (a.liveSoc ?? 0))[0] || recommendedPool[0];
+      }
+    } else if (matrixStatus === 'A/B/C' || matrixStatus === 'C/B/A') {
       const cBuses = recommendedPool.filter((c) => c.busCategory === 'C');
       const bBuses = recommendedPool.filter((c) => c.busCategory === 'B');
       const aBuses = recommendedPool.filter((c) => c.busCategory === 'A');
@@ -985,7 +1001,7 @@ export default function SchedulingScreen() {
   // Allowed categories matrix matching scheduling.html
   const allowedMatrix = {
     standard: { NORMAL: ['B', 'A'], PEAK: ['A', 'B'], EXTREME_PEAK: ['A'] },
-    simple: { NORMAL: ['B', 'C', 'A'], PEAK: ['B', 'A'], EXTREME_PEAK: ['A'] },
+    simple: { NORMAL: ['C', 'B', 'A'], PEAK: ['B', 'C', 'A'], EXTREME_PEAK: ['A'] },
     moderate: { NORMAL: ['B', 'A'], PEAK: ['A', 'B'], EXTREME_PEAK: ['A'] },
     complex: { NORMAL: ['A'], PEAK: ['A'], EXTREME_PEAK: ['A'] },
   };
@@ -996,8 +1012,7 @@ export default function SchedulingScreen() {
   const isMatrixCompliant = activeCandidate
     ? (requiresCatA ? activeCandidate.busCategory === 'A' : allowedCategories.includes(activeCandidate.busCategory || 'B'))
     : false;
-  const sortedCats = allowedCategories.slice().sort().join('/');
-  const catDisplay = requiresCatA ? 'A' : sortedCats;
+  const catDisplay = requiresCatA ? 'A' : allowedCategories.join('/');
 
   // Change route
   const handleSelectRoute = (r) => {

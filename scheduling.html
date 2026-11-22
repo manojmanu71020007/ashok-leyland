@@ -4380,37 +4380,9 @@
 
 
 
-            // Rule 3: Moderate / Standard route + Peak time → Category A preferred; Category B allowed as fallback; Category C rejected
+            // Rule 3 & 4: Moderate / Standard routes → Category C is strictly disallowed in all conditions!
 
-            if ((isModerate || isStandard) && isPeakOnly && page4Category === "C") {
-
-                return {
-
-                    feasible: false,
-
-                    bm: key,
-
-                    liveSoc,
-
-                    fullDutyKm: usableCoverableKm,
-
-                    actualRangeKm: busRangeKm,
-
-                    busCategory: page4Category,
-
-                    reqSoc: constantMinReqSoc,
-
-                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) during Peak hours (${timeCatLabel}) requires Category A (or Category B as fallback). Category C bus ${key} cannot be allocated.`
-
-                };
-
-            }
-
-
-
-            // Rule 4: Moderate / Standard route + Normal time → Category B preferred; Category A allowed; Category C rejected
-
-            if ((isModerate || isStandard) && isNormalTime && page4Category === "C") {
+            if ((isModerate || isStandard) && page4Category === "C") {
 
                 return {
 
@@ -4428,7 +4400,7 @@
 
                     reqSoc: constantMinReqSoc,
 
-                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} route (${curRoute}) in Normal time requires Category B (or A as fallback). Category C bus ${key} (<100 km range) cannot be allocated.`
+                    reason: `${complexity.charAt(0).toUpperCase() + complexity.slice(1)} routes strictly disallow Category C buses in all conditions. Bus ${key} is Category C.`
 
                 };
 
@@ -4436,31 +4408,7 @@
 
 
 
-            // Rule 5: Simple route + Peak time → Category B preferred; Category A as fallback; Category C rejected
-
-            if (isSimple && isPeakOnly && page4Category === "C") {
-
-                return {
-
-                    feasible: false,
-
-                    bm: key,
-
-                    liveSoc,
-
-                    fullDutyKm: usableCoverableKm,
-
-                    actualRangeKm: busRangeKm,
-
-                    busCategory: page4Category,
-
-                    reqSoc: constantMinReqSoc,
-
-                    reason: `Simple route (${curRoute}) during Peak hours (${timeCatLabel}) requires Category B (or A as fallback). Category C bus ${key} (<100 km range) cannot be allocated.`
-
-                };
-
-            }
+            // Rule 5: Simple route + Peak time → Category B Primary, Category C 1st Fallback, Category A 2nd Fallback (Category C is allowed)
 
 
 
@@ -4867,11 +4815,11 @@
             if (isComplexRoute || isExtremePeak) {
                 matrixStatusType = "A";
             } else if ((complexity === "moderate" || complexity === "standard") && isPeakOnly) {
-                matrixStatusType = "A";
+                matrixStatusType = "A/B";
             } else if ((complexity === "moderate" || complexity === "standard") && isNormalTime) {
                 matrixStatusType = "A/B";
             } else if (isSimpleRoute && isPeakOnly) {
-                matrixStatusType = "A/B";
+                matrixStatusType = "B/C/A";
             } else if (isSimpleRoute && isNormalTime) {
                 matrixStatusType = "A/B/C";
             }
@@ -4918,7 +4866,11 @@
 
                 } else if (matrixStatusType === "A/B") {
 
-                    searchPasses = [bKeys, aKeys];
+                    searchPasses = isPeakOnly ? [aKeys, bKeys] : [bKeys, aKeys];
+
+                } else if (matrixStatusType === "B/C/A" || (isSimpleRoute && isPeakOnly)) {
+
+                    searchPasses = [bKeys, cKeys, aKeys];
 
                 } else {
 
@@ -4968,7 +4920,11 @@
 
                 if (matrixStatusType === "A/B") {
 
-                    catPriority = { "B": 0, "A": 1, "C": 2 };
+                    catPriority = isPeakOnly ? { "A": 0, "B": 1, "C": 2 } : { "B": 0, "A": 1, "C": 2 };
+
+                } else if (matrixStatusType === "B/C/A" || (isSimpleRoute && isPeakOnly)) {
+
+                    catPriority = { "B": 0, "C": 1, "A": 2 };
 
                 } else if (matrixStatusType === "A/B/C") {
 
@@ -5032,15 +4988,61 @@
 
             if (matrixStatusType === "A/B") {
 
+                if (isPeakOnly) {
+
+                    const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+
+                    if (aBuses.length > 0) {
+
+                        lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+
+                    } else {
+
+                        const bBuses = recommendedPool.filter(c => c.busCategory === "B");
+
+                        lockedCand = bBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+
+                    }
+
+                } else {
+
+                    const bBuses = recommendedPool.filter(c => c.busCategory === "B");
+
+                    if (bBuses.length > 0) {
+
+                        lockedCand = bBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+
+                    } else {
+
+                        const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+
+                        lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+
+                    }
+
+                }
+
+            } else if (matrixStatusType === "B/C/A" || (isSimpleRoute && isPeakOnly)) {
+
+                // Simple + Peak: Category B Primary, Category C 1st Fallback, Category A 2nd Fallback
+
                 const bBuses = recommendedPool.filter(c => c.busCategory === "B");
+
+                const cBuses = recommendedPool.filter(c => c.busCategory === "C");
+
+                const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+
+
 
                 if (bBuses.length > 0) {
 
                     lockedCand = bBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
 
-                } else {
+                } else if (cBuses.length > 0) {
 
-                    const aBuses = recommendedPool.filter(c => c.busCategory === "A");
+                    lockedCand = cBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
+
+                } else {
 
                     lockedCand = aBuses.slice().sort((a, b) => b.liveSoc - a.liveSoc)[0];
 
@@ -6750,7 +6752,7 @@
 
                 standard: { NORMAL: ["B", "A"], PEAK: ["A", "B"], EXTREME_PEAK: ["A"] },
 
-                simple: { NORMAL: ["B", "C", "A"], PEAK: ["B", "A"], EXTREME_PEAK: ["A"] },
+                simple: { NORMAL: ["C", "B", "A"], PEAK: ["B", "C", "A"], EXTREME_PEAK: ["A"] },
 
                 moderate: { NORMAL: ["B", "A"], PEAK: ["A", "B"], EXTREME_PEAK: ["A"] },
 
@@ -6816,7 +6818,15 @@
 
                     } else if (isPeakTime) {
 
-                        busCatRule.textContent = "Category A (Primary) / B (Fallback)";
+                        if (isSimpleRoute) {
+
+                            busCatRule.textContent = "Category B (Primary) / C (1st Fallback) / A (2nd Fallback)";
+
+                        } else {
+
+                            busCatRule.textContent = "Category A (Primary) / B (Fallback)";
+
+                        }
 
                         busCatRule.style.color = "#2563eb";
 
@@ -6828,7 +6838,7 @@
 
                     } else if (isSimpleRoute) {
 
-                        busCatRule.textContent = "Category B/C (Primary) / A (Fallback)";
+                        busCatRule.textContent = "Category C (Primary) / B (1st Fallback) / A (2nd Fallback)";
 
                         busCatRule.style.color = "#2563eb";
 
@@ -6844,9 +6854,9 @@
 
                 if (matrixStatusRule) {
 
-                    matrixStatusRule.textContent = (isComplexRoute || isPeakTime) ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
+                    matrixStatusRule.textContent = requiresCatA ? "⚠️ Select an available Category A bus" : `Select an available bus (Cat ${allowedCategories.join('/')})`;
 
-                    matrixStatusRule.style.color = (isComplexRoute || isPeakTime) ? "#b45309" : "#64748b";
+                    matrixStatusRule.style.color = requiresCatA ? "#b45309" : "#64748b";
 
                 }
 
@@ -6986,9 +6996,7 @@
 
             if (matrixStatusRule) {
 
-                const sortedCats = allowedCategories.slice().sort().join('/');
-
-                const catDisplay = requiresCatA ? 'A' : (sortedCats === 'A/B/C' ? 'A/B/C' : (sortedCats === 'A/B' ? 'A/B' : sortedCats));
+                const catDisplay = requiresCatA ? 'A' : allowedCategories.join('/');
 
                 if (isCandOverride) {
 
