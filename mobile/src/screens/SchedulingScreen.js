@@ -218,10 +218,12 @@ const DEPOT_2_ROUTES = [
   {
     id: '500DC',
     code: '500DC',
-    name: 'Attibele ➔ Whitefield (500DC)',
-    origin: 'Attibele',
-    destination: 'Whitefield',
-    distance: 31.0,
+    name: 'HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board)',
+    origin: 'HBL',
+    destination: 'TNF',
+    via: 'CSB',
+    depotBase: 'BMT-32',
+    distance: 49.1,
     fullDutyKm: 188.54,
     actualKm: 188.54,
     chargingOcc: 1,
@@ -229,9 +231,9 @@ const DEPOT_2_ROUTES = [
     splitDuty: true,
     singleChargeReqKm: 91.9,
     category: 'Standard',
-    requiredCat: 'A',
-    drainSoc: 32,
-    timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '01:10 PM'],
+    requiredCat: 'B',
+    drainSoc: 28,
+    timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '10:55 AM', '11:10 AM', '11:25 AM', '11:40 AM', '01:10 PM', '02:15 PM', '03:45 PM'],
     shift: 'General Shift',
   },
   {
@@ -316,11 +318,15 @@ const DEFAULT_DATASET_SCHEDULES = [
   { scheduleId: '328H/1', route: '328H', shift: 'Night Halt', fixBm: 'BM279', swapBm: 'BM294', outTime: '13:10:00', inTime: '10:30:00', category: 'Complex', singleChargeReqKm: 145.7 },
   { scheduleId: '328H/10', route: '328H', shift: 'Night Halt', fixBm: 'BM294', swapBm: 'BM279', outTime: '13:45:00', inTime: '11:45:00', category: 'Moderate', singleChargeReqKm: 110 },
   { scheduleId: '328H/12', route: '328H', shift: 'Night Halt', fixBm: 'BM279', swapBm: 'BM294', outTime: '13:50:00', inTime: '11:10:00', category: 'Complex', singleChargeReqKm: 145.7 },
-  { scheduleId: '500DC/12', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM255', outTime: '07:45:00', inTime: '14:45:00', category: 'Standard', singleChargeReqKm: 85 },
-  { scheduleId: '500DC/13', route: '500DC', shift: 'General Shift', fixBm: 'BM255', swapBm: 'BM274', outTime: '08:00:00', inTime: '15:00:00', category: 'Standard', singleChargeReqKm: 85 },
-  { scheduleId: '500DC/14', route: '500DC', shift: 'General Shift', fixBm: 'BM274', swapBm: 'BM240', outTime: '08:15:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 85 },
-  { scheduleId: '500DC/15', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM274', outTime: '08:30:00', inTime: '15:30:00', category: 'Standard', singleChargeReqKm: 85 },
-  { scheduleId: '500DC/1', route: '500DC', shift: 'Shift B', fixBm: 'BM255', swapBm: 'BM240', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 85 },
+  { scheduleId: '500DC/12', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM255', outTime: '07:45:00', inTime: '14:45:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/12', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM255', outTime: '10:55:00', inTime: '14:45:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/13', route: '500DC', shift: 'General Shift', fixBm: 'BM255', swapBm: 'BM274', outTime: '08:00:00', inTime: '15:00:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/13', route: '500DC', shift: 'General Shift', fixBm: 'BM255', swapBm: 'BM274', outTime: '11:10:00', inTime: '15:00:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/14', route: '500DC', shift: 'General Shift', fixBm: 'BM274', swapBm: 'BM240', outTime: '08:15:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/14', route: '500DC', shift: 'General Shift', fixBm: 'BM274', swapBm: 'BM240', outTime: '11:25:00', inTime: '15:15:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/15', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM274', outTime: '08:30:00', inTime: '15:30:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/15', route: '500DC', shift: 'General Shift', fixBm: 'BM240', swapBm: 'BM274', outTime: '11:40:00', inTime: '15:30:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
+  { scheduleId: '500DC/1', route: '500DC', shift: 'Shift B', fixBm: 'BM255', swapBm: 'BM240', outTime: '13:10:00', inTime: '21:10:00', category: 'Standard', singleChargeReqKm: 85, origin: 'HBL', destination: 'TNF', via: 'CSB' },
   { scheduleId: 'KBS3A/1', route: 'KBS3A', shift: 'General Shift', fixBm: 'BM086', swapBm: 'BM268', outTime: '07:00:00', inTime: '15:00:00', category: 'Moderate', singleChargeReqKm: 55 },
   { scheduleId: 'KBS3A/2', route: 'KBS3A', shift: 'General Shift', fixBm: 'BM268', swapBm: 'BM081', outTime: '08:30:00', inTime: '16:30:00', category: 'Moderate', singleChargeReqKm: 55 },
   { scheduleId: 'KBS3A/3', route: 'KBS3A', shift: 'Shift B', fixBm: 'BM259', swapBm: 'BM210', outTime: '13:10:00', inTime: '21:10:00', category: 'Moderate', singleChargeReqKm: 55 },
@@ -1524,6 +1530,20 @@ export default function SchedulingScreen() {
 
             {/* Transparent Rules Breakdown */}
             <View style={styles.rulesList}>
+              {matchedSched?.scheduleId ? (
+                <View style={styles.ruleItem}>
+                  <Text style={styles.ruleLabel}>Form 4 Schedule</Text>
+                  <Text style={[styles.ruleVal, { color: '#0369a1', fontWeight: '800' }]}>
+                    {matchedSched.scheduleId} ({matchedSched.shift || selectedRoute.shift || 'General Shift'})
+                  </Text>
+                </View>
+              ) : null}
+              <View style={styles.ruleItem}>
+                <Text style={styles.ruleLabel}>Corridor Route</Text>
+                <Text style={styles.ruleVal}>
+                  {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'}{selectedRoute.via ? ` (via ${selectedRoute.via})` : ''}
+                </Text>
+              </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('full_duty_distance', 'Full Duty Distance')}</Text>
                 <Text style={styles.ruleVal}>{activeCandidate.fullDutyKm} km</Text>

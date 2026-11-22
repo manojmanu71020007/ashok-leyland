@@ -1952,7 +1952,7 @@
 
                             <option value="328H">Hoskote ➔ Kempegowda Bus Station (328H)</option>
 
-                            <option value="500DC">Attibele ➔ Whitefield (500DC)</option>
+                            <option value="500DC">HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board — 500DC)</option>
 
                             <option value="KBS3A">Chandapura ➔ Kempegowda Bus Station (KBS3A)</option>
 
@@ -2159,6 +2159,10 @@
                 </div>
 
                 <div class="rules">
+
+                    <div class="rule"><span>Form 4 Schedule</span><strong id="schedule-id-rule" style="color:#0369a1;">—</strong></div>
+
+                    <div class="rule"><span>Corridor Endpoints</span><strong id="corridor-endpoints-rule">—</strong></div>
 
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
 
@@ -2617,7 +2621,7 @@
 
             { id: "328H", code: "328H", routeId: "6", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, label: "Hoskote ➔ Kempegowda Bus Station (328H)", trips: 12, depot: "2" },
 
-            { id: "500DC", code: "500DC", routeId: "7", origin: "Attibele", destination: "Whitefield", distKm: 31.0, label: "Attibele ➔ Whitefield (500DC)", trips: 8, depot: "2" },
+            { id: "500DC", code: "500DC", routeId: "7", origin: "HBL", destination: "TNF", via: "CSB", depotBase: "BMT-32", distKm: 49.1, label: "HBL ➔ TNF (Hebbal ➔ Tin Factory via Silk Board — 500DC)", trips: 8, depot: "2", actualKm: 188.54, fullDutyKm: 188.54, chargingOcc: 1, splitDuty: true },
 
             { id: "KBS3A", code: "KBS3A", routeId: "8", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 35.8, label: "Chandapura ➔ Kempegowda Bus Station (KBS3A)", trips: 8, depot: "1" },
 
@@ -6492,6 +6496,22 @@
 
                 if (rangeKpi) rangeKpi.style.opacity = "0.4";
 
+                const schedIdRule = document.getElementById("schedule-id-rule");
+
+                if (schedIdRule) {
+
+                    schedIdRule.textContent = matchedSched ? `${matchedSched.scheduleId} (${matchedSched.shift || 'General Shift'})` : "—";
+
+                }
+
+                const corridorRule = document.getElementById("corridor-endpoints-rule");
+
+                if (corridorRule) {
+
+                    corridorRule.textContent = routeObj ? `${routeObj.origin || 'HBL'} ➔ ${routeObj.destination || 'TNF'}${routeObj.via ? ' (via ' + routeObj.via + ')' : ''}` : "—";
+
+                }
+
                 if (currentSocRule) currentSocRule.textContent = "—";
 
                 const actualKmRule = document.getElementById("actual-km-rule");
@@ -6575,6 +6595,22 @@
                 if (socKpi) socKpi.style.opacity = "0.4";
 
                 if (rangeKpi) rangeKpi.style.opacity = "0.4";
+
+                const schedIdRule = document.getElementById("schedule-id-rule");
+
+                if (schedIdRule) {
+
+                    schedIdRule.textContent = matchedSched ? `${matchedSched.scheduleId} (${matchedSched.shift || 'General Shift'})` : "—";
+
+                }
+
+                const corridorRule = document.getElementById("corridor-endpoints-rule");
+
+                if (corridorRule) {
+
+                    corridorRule.textContent = routeObj ? `${routeObj.origin || 'HBL'} ➔ ${routeObj.destination || 'TNF'}${routeObj.via ? ' (via ' + routeObj.via + ')' : ''}` : "—";
+
+                }
 
                 if (currentSocRule) currentSocRule.textContent = "—";
 
@@ -6780,6 +6816,22 @@
 
                 if (rangeKpi) rangeKpi.style.opacity = "0.4";
 
+                const schedIdRule = document.getElementById("schedule-id-rule");
+
+                if (schedIdRule) {
+
+                    schedIdRule.textContent = matchedSched ? `${matchedSched.scheduleId} (${matchedSched.shift || 'General Shift'})` : "—";
+
+                }
+
+                const corridorRule = document.getElementById("corridor-endpoints-rule");
+
+                if (corridorRule) {
+
+                    corridorRule.textContent = routeObj ? `${routeObj.origin || 'HBL'} ➔ ${routeObj.destination || 'TNF'}${routeObj.via ? ' (via ' + routeObj.via + ')' : ''}` : "—";
+
+                }
+
                 if (currentSocRule) currentSocRule.textContent = "—";
 
                 const actualKmRule = document.getElementById("actual-km-rule");
@@ -6943,6 +6995,22 @@
             if (socResult) socResult.textContent = `${liveSoc}%`;
 
             if (rangeResult) rangeResult.textContent = `${rangeValue} km`;
+
+            const schedIdRuleEl = document.getElementById("schedule-id-rule");
+
+            if (schedIdRuleEl) {
+
+                schedIdRuleEl.textContent = matchedSched ? `${matchedSched.scheduleId} (${matchedSched.shift || 'General Shift'})` : "—";
+
+            }
+
+            const corridorRuleEl = document.getElementById("corridor-endpoints-rule");
+
+            if (corridorRuleEl) {
+
+                corridorRuleEl.textContent = routeObj ? `${routeObj.origin || 'HBL'} ➔ ${routeObj.destination || 'TNF'}${routeObj.via ? ' (via ' + routeObj.via + ')' : ''}` : "—";
+
+            }
 
             if (currentSocRule) currentSocRule.textContent = `${liveSoc}%`;
 
