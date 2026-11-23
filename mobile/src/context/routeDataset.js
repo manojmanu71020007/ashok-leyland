@@ -17,7 +17,7 @@ const DATASET_DELETED_DEPOTS_KEY = 'depot_app_dataset_deleted_depots';
 
 // ── Default Base Master Dataset (Depot 1 & Depot 2) ──
 const INITIAL_MASTER_DATASET = {
-  version: '3.0',
+  version: '4.0',
   name: 'Ashok Leyland EV Fleet - Master Route & Schedule Database',
   lastUpdated: new Date().toISOString(),
   depots: [
@@ -51,13 +51,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "ANK",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 11.2,
+        "distance": 112.0,
         "fullDutyKm": 126.28,
         "actualKm": 126.28,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 24,
+        "drainSoc": 64,
         "timeComplexity": "Normal",
         "timetables": [
             "07:15 AM",
@@ -87,7 +87,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM278",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             },
             {
                 "scheduleId": "356Z/2",
@@ -98,7 +98,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM256",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             },
             {
                 "scheduleId": "356Z/3",
@@ -109,7 +109,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM205",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             },
             {
                 "scheduleId": "356Z/4",
@@ -120,7 +120,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM238",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             },
             {
                 "scheduleId": "356Z/6",
@@ -131,7 +131,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM303",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             },
             {
                 "scheduleId": "356Z/7",
@@ -142,9 +142,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM278",
                 "category": "Standard",
                 "actualKm": 126.28,
-                "singleChargeReqKm": 45
+                "singleChargeReqKm": 126.28
             }
-        ]
+        ],
+        "revenueKm": 112.0,
+        "corridorDistance": 11.2,
+        "singleChargeReqKm": 126.28
     },
     {
         "code": "360K",
@@ -156,13 +159,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "KBS",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 35.8,
+        "distance": 143.2,
         "fullDutyKm": 180.18,
         "actualKm": 180.18,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 28,
+        "drainSoc": 82,
         "timeComplexity": "Peak",
         "timetables": [
             "07:00 AM",
@@ -202,7 +205,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM264",
                 "category": "Standard",
                 "actualKm": 180.18,
-                "singleChargeReqKm": 55
+                "singleChargeReqKm": 180.18
             },
             {
                 "scheduleId": "360K/11",
@@ -213,7 +216,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM056",
                 "category": "Standard",
                 "actualKm": 180.18,
-                "singleChargeReqKm": 55
+                "singleChargeReqKm": 180.18
             },
             {
                 "scheduleId": "360K/12",
@@ -224,7 +227,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM198",
                 "category": "Standard",
                 "actualKm": 180.18,
-                "singleChargeReqKm": 55
+                "singleChargeReqKm": 180.18
             },
             {
                 "scheduleId": "360K/20",
@@ -235,7 +238,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM005",
                 "category": "Standard",
                 "actualKm": 180.18,
-                "singleChargeReqKm": 55
+                "singleChargeReqKm": 180.18
             },
             {
                 "scheduleId": "360K/5",
@@ -246,9 +249,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM080",
                 "category": "Standard",
                 "actualKm": 180.18,
-                "singleChargeReqKm": 55
+                "singleChargeReqKm": 180.18
             }
-        ]
+        ],
+        "revenueKm": 143.2,
+        "corridorDistance": 35.8,
+        "singleChargeReqKm": 180.18
     },
     {
         "code": "600F",
@@ -260,13 +266,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "ATB",
         "via": "CPR",
         "depotBase": "BMT-32",
-        "distance": 28.8,
+        "distance": 98.6,
         "fullDutyKm": 157.96,
         "actualKm": 157.96,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 25,
+        "drainSoc": 57,
         "timeComplexity": "Peak",
         "timetables": [
             "06:05 AM",
@@ -314,7 +320,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM009",
                 "category": "Standard",
                 "actualKm": 157.96,
-                "singleChargeReqKm": 100.6
+                "singleChargeReqKm": 157.96
             },
             {
                 "scheduleId": "600F/17",
@@ -325,7 +331,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM216",
                 "category": "Standard",
                 "actualKm": 157.96,
-                "singleChargeReqKm": 100.6
+                "singleChargeReqKm": 157.96
             },
             {
                 "scheduleId": "600F/21",
@@ -336,7 +342,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM218",
                 "category": "Standard",
                 "actualKm": 157.96,
-                "singleChargeReqKm": 100.6
+                "singleChargeReqKm": 157.96
             },
             {
                 "scheduleId": "600F/26",
@@ -347,7 +353,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM228",
                 "category": "Standard",
                 "actualKm": 157.96,
-                "singleChargeReqKm": 100.6
+                "singleChargeReqKm": 157.96
             },
             {
                 "scheduleId": "600F/3",
@@ -358,9 +364,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM057",
                 "category": "Standard",
                 "actualKm": 157.96,
-                "singleChargeReqKm": 100.6
+                "singleChargeReqKm": 157.96
             }
-        ]
+        ],
+        "revenueKm": 98.6,
+        "corridorDistance": 28.8,
+        "singleChargeReqKm": 157.96
     },
     {
         "code": "KBS3A",
@@ -372,13 +381,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "KBS",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 35.2,
+        "distance": 140.8,
         "fullDutyKm": 127.49,
         "actualKm": 127.49,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 26,
+        "drainSoc": 81,
         "timeComplexity": "Moderate",
         "timetables": [
             "06:35 AM",
@@ -414,7 +423,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM292",
                 "category": "Standard",
                 "actualKm": 127.49,
-                "singleChargeReqKm": 45.5
+                "singleChargeReqKm": 127.49
             },
             {
                 "scheduleId": "KBS3A/34",
@@ -425,7 +434,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM233",
                 "category": "Standard",
                 "actualKm": 127.49,
-                "singleChargeReqKm": 45.5
+                "singleChargeReqKm": 127.49
             },
             {
                 "scheduleId": "KBS3A/2",
@@ -436,9 +445,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM233",
                 "category": "Standard",
                 "actualKm": 127.49,
-                "singleChargeReqKm": 45.5
+                "singleChargeReqKm": 127.49
             }
-        ]
+        ],
+        "revenueKm": 140.8,
+        "corridorDistance": 35.2,
+        "singleChargeReqKm": 127.49
     },
     {
         "code": "361C",
@@ -450,13 +462,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "KMT",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 38.0,
+        "distance": 253.8,
         "fullDutyKm": 141.79,
         "actualKm": 141.79,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 28,
+        "drainSoc": 74,
         "timeComplexity": "Peak",
         "timetables": [
             "01:10 PM",
@@ -490,7 +502,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM101",
                 "category": "Standard",
                 "actualKm": 141.79,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 141.79
             },
             {
                 "scheduleId": "361C/6",
@@ -501,7 +513,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM288",
                 "category": "Standard",
                 "actualKm": 141.79,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 141.79
             },
             {
                 "scheduleId": "361C/11",
@@ -512,9 +524,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM101",
                 "category": "Standard",
                 "actualKm": 141.79,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 141.79
             }
-        ]
+        ],
+        "revenueKm": 253.8,
+        "corridorDistance": 38.0,
+        "singleChargeReqKm": 141.79
     },
     {
         "code": "399C",
@@ -526,13 +541,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "ANK",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 34.5,
+        "distance": 143.0,
         "fullDutyKm": 146.03,
         "actualKm": 146.03,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 26,
+        "drainSoc": 82,
         "timeComplexity": "Peak",
         "timetables": [
             "01:15 PM",
@@ -556,7 +571,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM291",
                 "category": "Standard",
                 "actualKm": 146.03,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 146.03
             },
             {
                 "scheduleId": "399C/4",
@@ -567,7 +582,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM198",
                 "category": "Standard",
                 "actualKm": 146.03,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 146.03
             },
             {
                 "scheduleId": "399C/5",
@@ -578,9 +593,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM291",
                 "category": "Standard",
                 "actualKm": 146.03,
-                "singleChargeReqKm": 65
+                "singleChargeReqKm": 146.03
             }
-        ]
+        ],
+        "revenueKm": 143.0,
+        "corridorDistance": 34.5,
+        "singleChargeReqKm": 146.03
     },
     {
         "code": "328H",
@@ -592,13 +610,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "HSK",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 40.0,
+        "distance": 269.4,
         "fullDutyKm": 159.5,
         "actualKm": 159.5,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 30,
+        "drainSoc": 78,
         "timeComplexity": "Peak",
         "timetables": [
             "01:00 PM",
@@ -638,7 +656,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM294",
                 "category": "Standard",
                 "actualKm": 159.5,
-                "singleChargeReqKm": 60
+                "singleChargeReqKm": 159.5
             },
             {
                 "scheduleId": "328H/2",
@@ -649,7 +667,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM279",
                 "category": "Standard",
                 "actualKm": 159.5,
-                "singleChargeReqKm": 60
+                "singleChargeReqKm": 159.5
             },
             {
                 "scheduleId": "328H/10",
@@ -660,9 +678,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM294",
                 "category": "Standard",
                 "actualKm": 159.5,
-                "singleChargeReqKm": 60
+                "singleChargeReqKm": 159.5
             }
-        ]
+        ],
+        "revenueKm": 269.4,
+        "corridorDistance": 40.0,
+        "singleChargeReqKm": 159.5
     },
     {
         "code": "500DC",
@@ -674,17 +695,17 @@ const INITIAL_MASTER_DATASET = {
         "destination": "TNF",
         "via": "CSB",
         "depotBase": "BMT-32",
-        "distance": 49.1,
+        "distance": 86.1,
         "fullDutyKm": 188.54,
         "actualKm": 188.54,
         "chargingOcc": 1,
         "noChargingOcc": 1,
         "splitDuty": true,
-        "singleChargeReqKm": 91.9,
+        "singleChargeReqKm": 188.54,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 28,
+        "drainSoc": 50,
         "timeComplexity": "Peak",
         "timetables": [
             "07:45 AM",
@@ -722,7 +743,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM255",
                 "category": "Standard",
                 "actualKm": 188.54,
-                "singleChargeReqKm": 116.5,
+                "singleChargeReqKm": 188.54,
                 "chargingOcc": 1,
                 "noChargingOcc": 1,
                 "splitDuty": true
@@ -736,7 +757,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM274",
                 "category": "Standard",
                 "actualKm": 188.54,
-                "singleChargeReqKm": 116.5,
+                "singleChargeReqKm": 188.54,
                 "chargingOcc": 1,
                 "noChargingOcc": 1,
                 "splitDuty": true
@@ -750,7 +771,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM240",
                 "category": "Standard",
                 "actualKm": 188.54,
-                "singleChargeReqKm": 91.9,
+                "singleChargeReqKm": 188.54,
                 "chargingOcc": 1,
                 "noChargingOcc": 1,
                 "splitDuty": true
@@ -764,7 +785,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM274",
                 "category": "Standard",
                 "actualKm": 188.54,
-                "singleChargeReqKm": 91.9,
+                "singleChargeReqKm": 188.54,
                 "chargingOcc": 1,
                 "noChargingOcc": 1,
                 "splitDuty": true
@@ -778,12 +799,14 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM240",
                 "category": "Standard",
                 "actualKm": 188.54,
-                "singleChargeReqKm": 91.9,
+                "singleChargeReqKm": 188.54,
                 "chargingOcc": 1,
                 "noChargingOcc": 1,
                 "splitDuty": true
             }
-        ]
+        ],
+        "revenueKm": 86.1,
+        "corridorDistance": 49.1
     },
     {
         "code": "KBS3F",
@@ -800,13 +823,13 @@ const INITIAL_MASTER_DATASET = {
         "destination": "KBS",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 35.2,
+        "distance": 128.4,
         "fullDutyKm": 209.88,
         "actualKm": 209.88,
         "routeComplexity": "Standard",
         "category": "Standard",
         "requiredCat": "B",
-        "drainSoc": 22,
+        "drainSoc": 74,
         "timeComplexity": "Normal",
         "timetables": [
             "07:15 AM",
@@ -844,7 +867,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM250",
                 "category": "Standard",
                 "actualKm": 209.88,
-                "singleChargeReqKm": 35
+                "singleChargeReqKm": 209.88
             },
             {
                 "scheduleId": "KBS3F/12",
@@ -855,7 +878,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM275",
                 "category": "Standard",
                 "actualKm": 209.88,
-                "singleChargeReqKm": 35
+                "singleChargeReqKm": 209.88
             },
             {
                 "scheduleId": "KBS3F/13",
@@ -866,7 +889,7 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM082",
                 "category": "Standard",
                 "actualKm": 209.88,
-                "singleChargeReqKm": 35
+                "singleChargeReqKm": 209.88
             },
             {
                 "scheduleId": "KBS3F/14",
@@ -877,9 +900,12 @@ const INITIAL_MASTER_DATASET = {
                 "swapBm": "BM293",
                 "category": "Standard",
                 "actualKm": 209.88,
-                "singleChargeReqKm": 35
+                "singleChargeReqKm": 209.88
             }
-        ]
+        ],
+        "revenueKm": 128.4,
+        "corridorDistance": 35.2,
+        "singleChargeReqKm": 209.88
     }
 ],
   timeComplexityConfig: {
@@ -929,14 +955,14 @@ try {
       const parsed = JSON.parse(savedData);
       if (parsed && Array.isArray(parsed.depots) && Array.isArray(parsed.routes)) {
         const coreCodes = ['356Z', '360K', '600F', 'KBS3A', '361C', '399C', '328H', '500DC', 'KBS3F'];
-        const hasLegacy = parsed.version !== '3.0' || (parsed.routes || []).some((r) => 
+        const hasLegacy = parsed.version !== '4.0' || (parsed.routes || []).some((r) => 
           (r.name && (r.name.includes('Hebbal') || r.name.includes('Whitefield') || r.name.includes('Tin Factory') || r.name.includes('Direct Express') || r.name.includes('Chandapura ➔') || r.name.includes('Attibele ➔') || r.name.includes('Kempegowda')))
         );
         if (hasLegacy) {
           const customRoutes = (parsed.routes || []).filter((r) => !coreCodes.includes(String(r.code).toUpperCase().trim()));
           masterDataset = {
             ...INITIAL_MASTER_DATASET,
-            version: '3.0',
+            version: '4.0',
             depots: parsed.depots ? parsed.depots.filter((d) => !deletedDepotIds.has(String(d.id))) : INITIAL_MASTER_DATASET.depots,
             routes: [...INITIAL_MASTER_DATASET.routes, ...customRoutes].filter((r) => !deletedDepotIds.has(String(r.depotId))),
           };

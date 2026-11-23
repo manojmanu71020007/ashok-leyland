@@ -3299,15 +3299,15 @@
         const scheduledTimeSelect = document.getElementById("scheduled-time-select");
 
         const CORRIDOR_ROUTES = [
-            { id: "356Z", code: "356Z", routeId: "1", origin: "Chandapura", destination: "Anekal", distKm: 28.7, trips: 8, label: "CPR ⇔ ANK (Route 356Z) — 28.7 km" },
-            { id: "360K", code: "360K", routeId: "2", origin: "Chandapura", destination: "Kempegowda Bus Station", distKm: 36.2, trips: 8, label: "Chandapura ⇔ Kempegowda Bus Station (Route 360K) — 36.2 km" },
-            { id: "600F", code: "600F", routeId: "3", origin: "Bommasandra Depot 32", destination: "Basavanagudi", distKm: 27.8, trips: 12, label: "BSK ⇔ ATB (Route 600F) — 27.8 km" },
-            { id: "KBS3A", code: "KBS3A", routeId: "4", origin: "Kempegowda Bus Station", destination: "Anekal Town Bus Stand", distKm: 41.5, trips: 8, label: "Kempegowda Bus Station ⇔ Anekal Town Bus Stand (Route KBS3A) — 41.5 km" },
-            { id: "KBS3F", code: "KBS3F", routeId: "5", origin: "Kempegowda Bus Station", destination: "Basavanagudi", distKm: 12.4, trips: 8, label: "Kempegowda Bus Station ⇔ Basavanagudi (Route KBS3F) — 12.4 km" },
-            { id: "328H", code: "328H", routeId: "6", origin: "Hoskote", destination: "Kempegowda Bus Station", distKm: 32.5, trips: 12, label: "Hoskote ⇔ Kempegowda Bus Station (Route 328H) — 32.5 km" },
-            { id: "361C", code: "361C", routeId: "7", origin: "Chandapura", destination: "Kengeri", distKm: 38.0, trips: 8, label: "ANK ⇔ KMT (Route 361C) — 38.0 km" },
-            { id: "399C", code: "399C", routeId: "8", origin: "Chandapura", destination: "Kanakapura", distKm: 44.0, trips: 8, label: "CTP ⇔ ANK (Route 399C) — 44.0 km" },
-            { id: "500DC", code: "500DC", routeId: "9", origin: "HBL", destination: "TNF", distKm: 49.1, trips: 8, label: "HBL ⇔ TNF (Route 500DC) — 49.1 km" }
+            { id: "356Z", code: "356Z", routeId: "1", origin: "CPR", destination: "ANK", distKm: 112.0, revenueKm: 112.0, corridorDistance: 11.2, actualKm: 126.28, fullDutyKm: 126.28, trips: 8, label: "CPR ⇔ ANK (Route 356Z) — 112.0 km" },
+            { id: "360K", code: "360K", routeId: "2", origin: "ATB", destination: "KBS", distKm: 143.2, revenueKm: 143.2, corridorDistance: 35.8, actualKm: 180.18, fullDutyKm: 180.18, trips: 8, label: "ATB ⇔ KBS (Route 360K) — 143.2 km" },
+            { id: "600F", code: "600F", routeId: "3", origin: "BSK", destination: "ATB", distKm: 98.6, revenueKm: 98.6, corridorDistance: 28.8, actualKm: 157.96, fullDutyKm: 157.96, trips: 12, label: "BSK ⇔ ATB (Route 600F) — 98.6 km" },
+            { id: "KBS3A", code: "KBS3A", routeId: "4", origin: "ATB", destination: "KBS", distKm: 140.8, revenueKm: 140.8, corridorDistance: 35.2, actualKm: 127.49, fullDutyKm: 127.49, trips: 8, label: "ATB ⇔ KBS (Route KBS3A) — 140.8 km" },
+            { id: "KBS3F", code: "KBS3F", routeId: "5", origin: "ATB", destination: "KBS", distKm: 128.4, revenueKm: 128.4, corridorDistance: 35.2, actualKm: 209.88, fullDutyKm: 209.88, trips: 8, label: "ATB ⇔ KBS (Route KBS3F) — 128.4 km" },
+            { id: "328H", code: "328H", routeId: "6", origin: "ATB", destination: "HSK", distKm: 269.4, revenueKm: 269.4, corridorDistance: 40.0, actualKm: 159.50, fullDutyKm: 159.50, trips: 12, label: "ATB ⇔ HSK (Route 328H) — 269.4 km" },
+            { id: "361C", code: "361C", routeId: "7", origin: "ANK", destination: "KMT", distKm: 253.8, revenueKm: 253.8, corridorDistance: 38.0, actualKm: 141.79, fullDutyKm: 141.79, trips: 8, label: "ANK ⇔ KMT (Route 361C) — 253.8 km" },
+            { id: "399C", code: "399C", routeId: "8", origin: "CTP", destination: "ANK", distKm: 143.0, revenueKm: 143.0, corridorDistance: 34.5, actualKm: 146.03, fullDutyKm: 146.03, trips: 8, label: "CTP ⇔ ANK (Route 399C) — 143.0 km" },
+            { id: "500DC", code: "500DC", routeId: "9", origin: "HBL", destination: "TNF", via: "CSB", depotBase: "BMT-32", distKm: 86.1, revenueKm: 86.1, corridorDistance: 49.1, actualKm: 188.54, fullDutyKm: 188.54, trips: 8, label: "HBL ⇔ TNF (Route 500DC) — 86.1 km" }
         ];
 
         let directionalRoutes = [...CORRIDOR_ROUTES];
@@ -3419,7 +3419,7 @@ let busCategoriesMap = new Map();
         }
 
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
-        function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr) {
+        function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride) {
             let targetKm = (schedObj && schedObj.singleChargeReqKm)
                 ? Number(schedObj.singleChargeReqKm)
                 : (Number(distKm) || 28.7);

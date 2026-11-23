@@ -386,10 +386,14 @@ export function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr) {
   return Math.min(100, Math.round(d * drainInfo.effectiveDrainPerKm));
 }
 
-export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr) {
-  let targetKm = (schedObj && schedObj.singleChargeReqKm)
-    ? Number(schedObj.singleChargeReqKm)
-    : (Number(distKm) || 28.7);
+export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride = null) {
+  let targetKm = actualKmOverride
+    ? Number(actualKmOverride)
+    : (schedObj && (schedObj.actualKm || schedObj.fullDutyKm))
+      ? Number(schedObj.actualKm || schedObj.fullDutyKm)
+      : (schedObj && schedObj.singleChargeReqKm)
+        ? Number(schedObj.singleChargeReqKm)
+        : (Number(distKm) || 28.7);
 
   if (schedObj && schedObj.remarks) {
     const match = String(schedObj.remarks).match(/([0-9]+(?:\.[0-9]+)?)/);

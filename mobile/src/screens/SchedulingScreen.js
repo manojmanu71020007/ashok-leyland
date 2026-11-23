@@ -45,7 +45,9 @@ const DEPOT_1_ROUTES = [
     "destination": "ANK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 11.2,
+    "distance": 112.0,
+    "revenueKm": 112.0,
+    "corridorDistance": 11.2,
     "fullDutyKm": 126.28,
     "actualKm": 126.28,
     "routeComplexity": "Standard",
@@ -150,7 +152,9 @@ const DEPOT_1_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 35.8,
+    "distance": 143.2,
+    "revenueKm": 143.2,
+    "corridorDistance": 35.8,
     "fullDutyKm": 180.18,
     "actualKm": 180.18,
     "routeComplexity": "Standard",
@@ -254,7 +258,9 @@ const DEPOT_1_ROUTES = [
     "destination": "ATB",
     "via": "CPR",
     "depotBase": "BMT-32",
-    "distance": 28.8,
+    "distance": 98.6,
+    "revenueKm": 98.6,
+    "corridorDistance": 28.8,
     "fullDutyKm": 157.96,
     "actualKm": 157.96,
     "routeComplexity": "Standard",
@@ -366,7 +372,9 @@ const DEPOT_1_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 35.2,
+    "distance": 140.8,
+    "revenueKm": 140.8,
+    "corridorDistance": 35.2,
     "fullDutyKm": 127.49,
     "actualKm": 127.49,
     "routeComplexity": "Standard",
@@ -447,7 +455,9 @@ const DEPOT_2_ROUTES = [
     "destination": "KMT",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 38.0,
+    "distance": 253.8,
+    "revenueKm": 253.8,
+    "corridorDistance": 38.0,
     "fullDutyKm": 141.79,
     "actualKm": 141.79,
     "routeComplexity": "Standard",
@@ -523,7 +533,9 @@ const DEPOT_2_ROUTES = [
     "destination": "ANK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 34.5,
+    "distance": 143.0,
+    "revenueKm": 143.0,
+    "corridorDistance": 34.5,
     "fullDutyKm": 146.03,
     "actualKm": 146.03,
     "routeComplexity": "Standard",
@@ -589,7 +601,9 @@ const DEPOT_2_ROUTES = [
     "destination": "HSK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 40.0,
+    "distance": 269.4,
+    "revenueKm": 269.4,
+    "corridorDistance": 40.0,
     "fullDutyKm": 159.5,
     "actualKm": 159.5,
     "routeComplexity": "Standard",
@@ -671,7 +685,9 @@ const DEPOT_2_ROUTES = [
     "destination": "TNF",
     "via": "CSB",
     "depotBase": "BMT-32",
-    "distance": 49.1,
+    "distance": 86.1,
+    "revenueKm": 86.1,
+    "corridorDistance": 49.1,
     "fullDutyKm": 188.54,
     "actualKm": 188.54,
     "chargingOcc": 1,
@@ -797,7 +813,9 @@ const DEPOT_2_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 35.2,
+    "distance": 128.4,
+    "revenueKm": 128.4,
+    "corridorDistance": 35.2,
     "fullDutyKm": 209.88,
     "actualKm": 209.88,
     "routeComplexity": "Standard",
@@ -1053,6 +1071,8 @@ export default function SchedulingScreen() {
         via: (ds.via && ds.via !== '') ? ds.via : '',
         timetables: Array.isArray(ds.timetables) ? ds.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(ds.distance) || 25.0,
+        revenueKm: Number(ds.revenueKm || ds.distance) || 25.0,
+        corridorDistance: Number(ds.corridorDistance || ds.distance) || 25.0,
         fullDutyKm: ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
         actualKm: ds.actualKm || ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
         chargingOcc: Number(ds.chargingOcc || 0),
@@ -1273,7 +1293,8 @@ export default function SchedulingScreen() {
     }
 
     const liveSoc = Number(busObj?.soc ?? 80);
-    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort);
+    const actualKmVal = Number(selectedRoute?.actualKm || selectedRoute?.fullDutyKm || (matchedSched && (matchedSched.actualKm || matchedSched.fullDutyKm)) || 188.54);
+    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort, actualKmVal);
     const minAllowedSoc = constantMinReqSoc - 2;
     if (liveSoc < minAllowedSoc) {
       return { feasible: false, bm: key, liveSoc, reqSoc: constantMinReqSoc, reason: `Bus ${key} battery at ${liveSoc}% does not match minimum required SoC (${constantMinReqSoc}%).` };
@@ -2136,7 +2157,7 @@ export default function SchedulingScreen() {
                 <Text style={styles.kpiLbl}>{t('selected_bus_soc', 'Selected bus SOC')}</Text>
               </View>
               <View style={styles.kpiBox}>
-                <Text style={[styles.kpiVal, { color: '#0284c7' }]}>{activeCandidate.fullDutyKm} km</Text>
+                <Text style={[styles.kpiVal, { color: '#0284c7' }]}>{selectedRoute.actualKm || selectedRoute.fullDutyKm || activeCandidate.fullDutyKm} km</Text>
                 <Text style={styles.kpiLbl}>{t('full_duty_distance', 'Full Duty Distance')} ({t('single_charge_ready', 'Single Charge Ready')})</Text>
               </View>
               <View style={styles.kpiBox}>
@@ -2158,12 +2179,12 @@ export default function SchedulingScreen() {
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>Corridor Route</Text>
                 <Text style={styles.ruleVal}>
-                  {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'}
+                  {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'} ({selectedRoute.corridorDistance || selectedRoute.distance} km)
                 </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('full_duty_distance', 'Full Duty Distance')}</Text>
-                <Text style={styles.ruleVal}>{activeCandidate.fullDutyKm} km</Text>
+                <Text style={styles.ruleVal}>{selectedRoute.actualKm || selectedRoute.fullDutyKm || activeCandidate.fullDutyKm} km</Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>
