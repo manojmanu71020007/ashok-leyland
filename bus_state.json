@@ -22248,11 +22248,117 @@
       "isTransferred": false
     }
   ],
-  "_customDepots": [],
-  "_customAccounts": {},
-  "_deletedDepotIds": [
-    "3"
+  "_customDepots": [
+    {
+      "id": "3",
+      "number": "3",
+      "name": "peenya",
+      "shortName": "Depot 3",
+      "location": "bangalore",
+      "routes": [],
+      "isDefault": false,
+      "createdAt": "2026-11-23T16:46:38.814Z"
+    }
   ],
+  "_customAccounts": {
+    "es-depot-3": {
+      "username": "ES-DEPOT-3",
+      "password": "Test@123",
+      "role": "Electrical Supervisor (Depot 3)",
+      "name": "Charging Lead - Depot 3",
+      "depot": "3",
+      "targetScreen": "CHARGING",
+      "pageName": "Charging Operations (peenya)",
+      "email": "es_depot3@ashokleyland.com",
+      "operation": "Charging",
+      "icon": "⚡"
+    },
+    "for_charging_depot_3": {
+      "username": "ES-DEPOT-3",
+      "password": "Test@123",
+      "role": "Electrical Supervisor (Depot 3)",
+      "name": "Charging Lead - Depot 3",
+      "depot": "3",
+      "targetScreen": "CHARGING",
+      "pageName": "Charging Operations (peenya)",
+      "email": "es_depot3@ashokleyland.com",
+      "operation": "Charging",
+      "icon": "⚡"
+    },
+    "insp-depot-3-01": {
+      "username": "INSP-DEPOT-3-01",
+      "password": "Test@123",
+      "role": "Sanitization Inspector (Depot 3)",
+      "name": "Inspector - Depot 3",
+      "depot": "3",
+      "targetScreen": "CLEANING",
+      "pageName": "Cleaning & Sanitization (peenya)",
+      "email": "insp_depot3_01@ashokleyland.com",
+      "operation": "Cleaning",
+      "icon": "🧹"
+    },
+    "for_cleaning_depot_3": {
+      "username": "INSP-DEPOT-3-01",
+      "password": "Test@123",
+      "role": "Sanitization Inspector (Depot 3)",
+      "name": "Inspector - Depot 3",
+      "depot": "3",
+      "targetScreen": "CLEANING",
+      "pageName": "Cleaning & Sanitization (peenya)",
+      "email": "insp_depot3_01@ashokleyland.com",
+      "operation": "Cleaning",
+      "icon": "🧹"
+    },
+    "is-depot-3": {
+      "username": "IS-DEPOT-3",
+      "password": "Test@123",
+      "role": "Scheduling In-Charge (Depot 3)",
+      "name": "Scheduling Planner - Depot 3",
+      "depot": "3",
+      "targetScreen": "SCHEDULING",
+      "pageName": "Smart Bus Scheduling - peenya",
+      "email": "is_depot3@ashokleyland.com",
+      "operation": "Scheduling",
+      "icon": "📅"
+    },
+    "for_scheduling_depot_3": {
+      "username": "IS-DEPOT-3",
+      "password": "Test@123",
+      "role": "Scheduling In-Charge (Depot 3)",
+      "name": "Scheduling Planner - Depot 3",
+      "depot": "3",
+      "targetScreen": "SCHEDULING",
+      "pageName": "Smart Bus Scheduling - peenya",
+      "email": "is_depot3@ashokleyland.com",
+      "operation": "Scheduling",
+      "icon": "📅"
+    },
+    "dm-depot-3": {
+      "username": "DM-DEPOT-3",
+      "password": "Test@123",
+      "role": "Depot 3 Manager",
+      "name": "Depot 3 Manager",
+      "depot": "3",
+      "targetScreen": "DEPOT_OPS",
+      "pageName": "peenya Operations Wing",
+      "email": "dm_depot3@ashokleyland.com",
+      "operation": "Depot Operations",
+      "icon": "🏢"
+    },
+    "for_depot_operations_depot_3": {
+      "username": "DM-DEPOT-3",
+      "password": "Test@123",
+      "role": "Depot 3 Manager",
+      "name": "Depot 3 Manager",
+      "depot": "3",
+      "targetScreen": "DEPOT_OPS",
+      "pageName": "peenya Operations Wing",
+      "email": "dm_depot3@ashokleyland.com",
+      "operation": "Depot Operations",
+      "icon": "🏢"
+    }
+  },
+  "_deletedDepotIds": [],
   "BM1570": {
     "status": "On Time",
     "rawStatus": "On Time",
@@ -22306,7 +22412,7 @@
   "_routesDatabase": {
     "version": "5.1",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-23T16:30:22.140Z",
+    "lastUpdated": "2026-11-23T16:46:41.550Z",
     "depots": [
       {
         "id": "1",
@@ -22336,6 +22442,15 @@
           "500DC",
           "KBS3F"
         ]
+      },
+      {
+        "id": "3",
+        "number": "3",
+        "name": "peenya",
+        "shortName": "Depot 3",
+        "location": "bangalore",
+        "routes": [],
+        "isDefault": false
       }
     ],
     "routes": [
