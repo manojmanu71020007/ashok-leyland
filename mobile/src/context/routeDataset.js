@@ -159,7 +159,7 @@ const INITIAL_MASTER_DATASET = {
         "destination": "KBS",
         "via": "",
         "depotBase": "BMT-32",
-        "distance": 143.2,
+        "distance": 71.6,
         "fullDutyKm": 180.18,
         "actualKm": 180.18,
         "routeComplexity": "Standard",
@@ -252,7 +252,7 @@ const INITIAL_MASTER_DATASET = {
                 "singleChargeReqKm": 180.18
             }
         ],
-        "revenueKm": 143.2,
+        "revenueKm": 71.6,
         "corridorDistance": 35.8,
         "singleChargeReqKm": 180.18
     },
