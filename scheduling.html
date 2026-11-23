@@ -6107,7 +6107,7 @@
 
             const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === String(curRoute).toUpperCase());
 
-            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depTimeShort);
+            let matchedSched = routeSchedules.find(s => (s.outTime && s.outTime.substring(0, 5) === depTimeShort) || (s.departureTime && s.departureTime.trim().toLowerCase() === depTimeShort.trim().toLowerCase()) || (s.departureTime && s.departureTime.trim().toLowerCase().startsWith(depTimeShort.trim().toLowerCase())));
 
             if (!matchedSched && routeSchedules.length > 0) {
 
@@ -6507,7 +6507,7 @@
 
             const routeSchedules = (datasetSchedules || []).filter(s => String(s.route || "").toUpperCase() === routeCode.toUpperCase());
 
-            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+            let matchedSched = routeSchedules.find(s => (s.outTime && s.outTime.substring(0, 5) === depShort) || (s.departureTime && s.departureTime.trim().toLowerCase() === depTimeClean.trim().toLowerCase()) || (s.departureTime && s.departureTime.trim().toLowerCase().startsWith(depTimeClean.trim().toLowerCase())));
 
             if (!matchedSched && routeSchedules.length > 0) {
 
@@ -9515,7 +9515,12 @@
 
                     html += sortedTimes.map(([timeStr, sched]) => {
 
-                        return `<option value="${sched.departureTime || timeStr}">${sched.departureTime || timeStr} [Sub-Route: ${sched.scheduleId}] (${sched.totalGroupDistance || sched.distance} km - ${sched.shift})</option>`;
+                        let displayTime = sched.departureTime || timeStr;
+                        if (sched.departureTime && timeStr && !sched.departureTime.includes(timeStr)) {
+                            displayTime = `${sched.departureTime} (${timeStr})`;
+                        }
+
+                        return `<option value="${sched.departureTime || timeStr}">${displayTime} [Sub-Route: ${sched.scheduleId}] (${sched.totalGroupDistance || sched.distance} km - ${sched.shift})</option>`;
 
                     }).join("");
 

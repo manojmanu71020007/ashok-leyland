@@ -2938,6 +2938,32 @@ const parseTimeToMinutes = (t) => {
   return (parts[0] || 0) * 60 + (parts[1] || 0);
 };
 
+const formatDualTime = (tStr) => {
+  if (!tStr) return '';
+  const s = String(tStr).trim();
+  const isAmPm = /am|pm/i.test(s);
+  if (isAmPm) {
+    const parts = s.split(' ');
+    const [hStr, mStr] = parts[0].split(':');
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10) || 0;
+    const isPm = /pm/i.test(parts[1]);
+    if (isPm && h < 12) h += 12;
+    if (!isPm && h === 12) h = 0;
+    const h24 = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    return `${s} (${h24})`;
+  } else if (s.includes(':')) {
+    const [hStr, mStr] = s.split(':');
+    let h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10) || 0;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    const t12 = `${String(h12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${ampm}`;
+    return `${t12} (${s.substring(0, 5)})`;
+  }
+  return s;
+};
+
 const adjustTimeStr = (timeStr, deltaMinutes) => {
   try {
     const isAmPm = /am|pm/i.test(timeStr);
@@ -3785,7 +3811,7 @@ export default function SchedulingScreen() {
             activeOpacity={0.8}
           >
             <Text style={styles.selectBoxText}>
-              🕒 {scheduledTime || (selectedRoute.timetables && selectedRoute.timetables[0]) || 'Choose a departure time'}
+              🕒 {formatDualTime(scheduledTime || (selectedRoute.timetables && selectedRoute.timetables[0])) || 'Choose a departure time'}
               {matchedSched?.scheduleId ? ` [${matchedSched.scheduleId}]` : ''}
             </Text>
             <Text style={styles.caret}>▼</Text>
@@ -4259,7 +4285,7 @@ export default function SchedulingScreen() {
                     activeOpacity={0.7}
                   >
                     <View style={{ flex: 1, paddingVertical: 2 }}>
-                      <Text style={styles.pickerItemTitle}>🕒 {t}</Text>
+                      <Text style={styles.pickerItemTitle}>🕒 {formatDualTime(t)}</Text>
                       {sched ? (
                         <Text style={{ fontSize: 11.5, color: '#0284c7', fontWeight: '700', marginTop: 2 }}>
                           Sub-Route: {sched.scheduleId} ({sched.totalGroupDistance || sched.distance} km • {sched.shift})
