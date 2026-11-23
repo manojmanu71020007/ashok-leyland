@@ -1964,13 +1964,26 @@
 
                     <label>
 
-                        <span data-i18n="label_time_slot">Scheduled Departure Time (from dataset)</span>
+                        <span data-i18n="label_time_slot">Scheduled Departure Time (from BMT-32)</span>
 
                         <select id="scheduled-time-select">
 
                             <option value="" selected data-i18n="option_choose_departure_time">Choose a departure time</option>
 
                         </select>
+
+                        <div id="sub-route-badge-container" style="display:none;margin-top:8px;padding:8px 12px;background:#f0f9ff;border:1.5px solid #0284c7;border-radius:8px;align-items:center;justify-content:space-between;">
+                            <div>
+                                <span style="font-weight:800;color:#0369a1;font-size:0.85rem;" id="sub-route-id-badge">🏷️ Sub-Route: —</span>
+                                <span style="font-size:0.75rem;background:#e0f2fe;color:#0284c7;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;" id="sub-route-shift-badge">Shift</span>
+                                <div style="font-size:0.78rem;color:#475569;margin-top:2px;">Origin: <strong>BMT-32</strong> at <strong id="sub-route-time-badge" style="color:#0284c7;">—</strong></div>
+                            </div>
+                            <div style="text-align:right;border-left:1px solid #bae6fd;padding-left:10px;">
+                                <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;">Group Total</div>
+                                <div style="font-size:0.95rem;font-weight:800;color:#0284c7;" id="sub-route-dist-badge">— km</div>
+                                <div style="font-size:0.65rem;color:#64748b;">(BMT-32 ➔ BMT-32)</div>
+                            </div>
+                        </div>
 
                     </label>
 
@@ -2172,7 +2185,7 @@
 
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
 
-                    <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
+                    <div class="rule"><span>Total distance (BMT-32 ➔ BMT-32)</span><strong id="route-distance-rule">0.00 km</strong></div>
 
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
 
@@ -2642,86 +2655,2087 @@
 
 
         const DEFAULT_DATASET_SCHEDULES = [
-
-            { scheduleId: "356Z/1", route: "356Z", shift: "General Shift", fixBm: "BM238", swapBm: "BM278", outTime: "07:15:00", inTime: "15:15:00", category: "Standard", singleChargeReqKm: 45 },
-
-            { scheduleId: "356Z/2", route: "356Z", shift: "General Shift", fixBm: "BM217", swapBm: "BM256", outTime: "08:30:00", inTime: "16:30:00", category: "Standard", singleChargeReqKm: 45 },
-
-            { scheduleId: "356Z/3", route: "356Z", shift: "Shift B", fixBm: "BM256", swapBm: "BM205", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 45 },
-
-            { scheduleId: "356Z/4", route: "356Z", shift: "Shift B", fixBm: "BM217", swapBm: "BM238", outTime: "14:20:00", inTime: "22:20:00", category: "Standard", singleChargeReqKm: 45 },
-
-            { scheduleId: "356Z/5", route: "356Z", shift: "Night Halt", fixBm: "BM218", swapBm: "BM303", outTime: "19:40:00", inTime: "06:00:00", category: "Standard", singleChargeReqKm: 45 },
-
-            { scheduleId: "360K/1", route: "360K", shift: "General Shift", fixBm: "BM291", swapBm: "BM264", outTime: "07:00:00", inTime: "15:00:00", category: "Standard", singleChargeReqKm: 55 },
-
-            { scheduleId: "360K/2", route: "360K", shift: "General Shift", fixBm: "BM205", swapBm: "BM056", outTime: "08:15:00", inTime: "16:15:00", category: "Standard", singleChargeReqKm: 55 },
-
-            { scheduleId: "360K/3", route: "360K", shift: "Shift B", fixBm: "BM292", swapBm: "BM198", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 55 },
-
-            { scheduleId: "360K/4", route: "360K", shift: "Shift B", fixBm: "BM199", swapBm: "BM005", outTime: "14:00:00", inTime: "22:00:00", category: "Standard", singleChargeReqKm: 55 },
-
-            { scheduleId: "360K/5", route: "360K", shift: "Night Halt", fixBm: "BM282", swapBm: "BM080", outTime: "18:30:00", inTime: "06:30:00", category: "Standard", singleChargeReqKm: 55 },
-
-            { scheduleId: "600F/1", route: "600F", shift: "General Shift", fixBm: "BM003", swapBm: "BM277", outTime: "06:45:00", inTime: "14:45:00", category: "Standard", singleChargeReqKm: 42 },
-
-            { scheduleId: "600F/2", route: "600F", shift: "General Shift", fixBm: "BM258", swapBm: "BM273", outTime: "08:00:00", inTime: "16:00:00", category: "Standard", singleChargeReqKm: 42 },
-
-            { scheduleId: "600F/3", route: "600F", shift: "Shift B", fixBm: "BM249", swapBm: "BM203", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 42 },
-
-            { scheduleId: "600F/4", route: "600F", shift: "Shift B", fixBm: "BM265", swapBm: "BM264", outTime: "14:30:00", inTime: "22:30:00", category: "Standard", singleChargeReqKm: 42 },
-
-            { scheduleId: "600F/5", route: "600F", shift: "Night Halt", fixBm: "BM255", swapBm: "BM274", outTime: "19:15:00", inTime: "06:15:00", category: "Standard", singleChargeReqKm: 42 },
-
-            { scheduleId: "361C/1", route: "361C", shift: "General Shift", fixBm: "BM299", swapBm: "BM280", outTime: "07:30:00", inTime: "15:30:00", category: "Complex", singleChargeReqKm: 60 },
-
-            { scheduleId: "361C/2", route: "361C", shift: "General Shift", fixBm: "BM054", swapBm: "BM303", outTime: "09:00:00", inTime: "17:00:00", category: "Complex", singleChargeReqKm: 60 },
-
-            { scheduleId: "361C/3", route: "361C", shift: "Shift B", fixBm: "BM289", swapBm: "BM020", outTime: "13:10:00", inTime: "21:10:00", category: "Complex", singleChargeReqKm: 60 },
-
-            { scheduleId: "361C/4", route: "361C", shift: "Shift B", fixBm: "BM174", swapBm: "BM225", outTime: "15:00:00", inTime: "23:00:00", category: "Complex", singleChargeReqKm: 60 },
-
-            { scheduleId: "399C/1", route: "399C", shift: "General Shift", fixBm: "BM216", swapBm: "BM282", outTime: "07:45:00", inTime: "15:45:00", category: "Complex", singleChargeReqKm: 55 },
-
-            { scheduleId: "399C/2", route: "399C", shift: "General Shift", fixBm: "BM272", swapBm: "BM286", outTime: "09:15:00", inTime: "17:15:00", category: "Complex", singleChargeReqKm: 55 },
-
-            { scheduleId: "399C/3", route: "399C", shift: "Shift B", fixBm: "BM216", swapBm: "BM088", outTime: "13:10:00", inTime: "21:10:00", category: "Complex", singleChargeReqKm: 55 },
-
-            { scheduleId: "399C/4", route: "399C", shift: "Shift B", fixBm: "BM282", swapBm: "BM272", outTime: "15:30:00", inTime: "23:30:00", category: "Complex", singleChargeReqKm: 55 },
-
-            { scheduleId: "328H/1", route: "328H", shift: "Night Halt", fixBm: "BM279", swapBm: "BM294", outTime: "13:10:00", inTime: "10:30:00", category: "Complex", singleChargeReqKm: 145.7, remarks: "1 rest stoop at HSK 65.7" },
-
-            { scheduleId: "328H/10", route: "328H", shift: "Night Halt", fixBm: "BM294", swapBm: "BM279", outTime: "13:45:00", inTime: "11:45:00", category: "Moderate", singleChargeReqKm: 110 },
-
-            { scheduleId: "328H/12", route: "328H", shift: "Night Halt", fixBm: "BM279", swapBm: "BM294", outTime: "13:50:00", inTime: "11:10:00", category: "Complex", singleChargeReqKm: 145.7, remarks: "1 rest stoop at HSK 65.7" },
-
-            { scheduleId: "500DC/12", route: "500DC", shift: "General Shift", fixBm: "BM240", swapBm: "BM255", outTime: "07:45:00", inTime: "14:45:00", category: "Standard", singleChargeReqKm: 85 },
-
-            { scheduleId: "500DC/13", route: "500DC", shift: "General Shift", fixBm: "BM255", swapBm: "BM274", outTime: "08:00:00", inTime: "15:00:00", category: "Standard", singleChargeReqKm: 85 },
-
-            { scheduleId: "500DC/14", route: "500DC", shift: "General Shift", fixBm: "BM274", swapBm: "BM240", outTime: "08:15:00", inTime: "15:15:00", category: "Standard", singleChargeReqKm: 85 },
-
-            { scheduleId: "500DC/15", route: "500DC", shift: "General Shift", fixBm: "BM240", swapBm: "BM274", outTime: "08:30:00", inTime: "15:30:00", category: "Standard", singleChargeReqKm: 85 },
-
-            { scheduleId: "500DC/1", route: "500DC", shift: "Shift B", fixBm: "BM255", swapBm: "BM240", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 85 },
-
-            { scheduleId: "KBS3A/1", route: "KBS3A", shift: "General Shift", fixBm: "BM086", swapBm: "BM268", outTime: "07:00:00", inTime: "15:00:00", category: "Moderate", singleChargeReqKm: 55 },
-
-            { scheduleId: "KBS3A/2", route: "KBS3A", shift: "General Shift", fixBm: "BM268", swapBm: "BM081", outTime: "08:30:00", inTime: "16:30:00", category: "Moderate", singleChargeReqKm: 55 },
-
-            { scheduleId: "KBS3A/3", route: "KBS3A", shift: "Shift B", fixBm: "BM259", swapBm: "BM210", outTime: "13:10:00", inTime: "21:10:00", category: "Moderate", singleChargeReqKm: 55 },
-
-            { scheduleId: "KBS3A/4", route: "KBS3A", shift: "Shift B", fixBm: "BM210", swapBm: "BM209", outTime: "14:15:00", inTime: "22:15:00", category: "Moderate", singleChargeReqKm: 55 },
-
-            { scheduleId: "KBS3F/1", route: "KBS3F", shift: "General Shift", fixBm: "BM293", swapBm: "BM250", outTime: "07:15:00", inTime: "15:15:00", category: "Standard", singleChargeReqKm: 30 },
-
-            { scheduleId: "KBS3F/2", route: "KBS3F", shift: "General Shift", fixBm: "BM250", swapBm: "BM275", outTime: "08:45:00", inTime: "16:45:00", category: "Standard", singleChargeReqKm: 30 },
-
-            { scheduleId: "KBS3F/3", route: "KBS3F", shift: "Shift B", fixBm: "BM293", swapBm: "BM082", outTime: "13:10:00", inTime: "21:10:00", category: "Standard", singleChargeReqKm: 30 },
-
-            { scheduleId: "KBS3F/4", route: "KBS3F", shift: "Shift B", fixBm: "BM275", swapBm: "BM293", outTime: "14:30:00", inTime: "22:30:00", category: "Standard", singleChargeReqKm: 30 }
-
-        ];
+  {
+    "scheduleId": "356Z/7",
+    "route": "356Z",
+    "shift": "Shift A",
+    "outTime": "06:00 AM",
+    "departureTime": "06:00 AM",
+    "inTime": "01:00 PM",
+    "totalGroupDistance": 114.8,
+    "distance": 114.8,
+    "actualKm": 114.8,
+    "singleChargeReqKm": 114.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "356Z/6",
+    "route": "356Z",
+    "shift": "Shift A",
+    "outTime": "06:15 AM",
+    "departureTime": "06:15 AM",
+    "inTime": "01:15 PM",
+    "totalGroupDistance": 114.8,
+    "distance": 114.8,
+    "actualKm": 114.8,
+    "singleChargeReqKm": 114.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "356Z/7",
+    "route": "356Z",
+    "shift": "Shift B",
+    "outTime": "01:45 PM",
+    "departureTime": "01:45 PM",
+    "inTime": "09:35 PM",
+    "totalGroupDistance": 137.2,
+    "distance": 137.2,
+    "actualKm": 137.2,
+    "singleChargeReqKm": 137.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "356Z/6",
+    "route": "356Z",
+    "shift": "Shift B",
+    "outTime": "02:00 PM",
+    "departureTime": "02:00 PM",
+    "inTime": "09:40 PM",
+    "totalGroupDistance": 137.2,
+    "distance": 137.2,
+    "actualKm": 137.2,
+    "singleChargeReqKm": 137.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "356Z/3",
+    "route": "356Z",
+    "shift": "Night Hault",
+    "outTime": "02:25 PM",
+    "departureTime": "02:25 PM",
+    "inTime": "12:10 PM",
+    "totalGroupDistance": 252.0,
+    "distance": 252.0,
+    "actualKm": 252.0,
+    "singleChargeReqKm": 252.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "356Z/8",
+    "route": "356Z",
+    "shift": "Night Hault",
+    "outTime": "02:35 PM",
+    "departureTime": "02:35 PM",
+    "inTime": "12:20 PM",
+    "totalGroupDistance": 252.0,
+    "distance": 252.0,
+    "actualKm": 252.0,
+    "singleChargeReqKm": 252.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/3",
+    "route": "360K",
+    "shift": "Shift A",
+    "outTime": "06:00 AM",
+    "departureTime": "06:00 AM",
+    "inTime": "01:20 PM",
+    "totalGroupDistance": 133.6,
+    "distance": 133.6,
+    "actualKm": 133.6,
+    "singleChargeReqKm": 133.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/4",
+    "route": "360K",
+    "shift": "Shift A",
+    "outTime": "06:10 AM",
+    "departureTime": "06:10 AM",
+    "inTime": "01:30 PM",
+    "totalGroupDistance": 133.6,
+    "distance": 133.6,
+    "actualKm": 133.6,
+    "singleChargeReqKm": 133.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/15",
+    "route": "360K",
+    "shift": "Shift A",
+    "outTime": "06:20 AM",
+    "departureTime": "06:20 AM",
+    "inTime": "01:40 PM",
+    "totalGroupDistance": 133.6,
+    "distance": 133.6,
+    "actualKm": 133.6,
+    "singleChargeReqKm": 133.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/30",
+    "route": "360K",
+    "shift": "Shift A",
+    "outTime": "06:30 AM",
+    "departureTime": "06:30 AM",
+    "inTime": "01:50 PM",
+    "totalGroupDistance": 133.6,
+    "distance": 133.6,
+    "actualKm": 133.6,
+    "singleChargeReqKm": 133.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/38",
+    "route": "360K",
+    "shift": "Shift A",
+    "outTime": "06:40 AM",
+    "departureTime": "06:40 AM",
+    "inTime": "02:00 PM",
+    "totalGroupDistance": 133.6,
+    "distance": 133.6,
+    "actualKm": 133.6,
+    "singleChargeReqKm": 133.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/11",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "06:55 AM",
+    "departureTime": "06:55 AM",
+    "inTime": "05:40 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/12",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:05 AM",
+    "departureTime": "07:05 AM",
+    "inTime": "05:50 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/5",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:15 AM",
+    "departureTime": "07:15 AM",
+    "inTime": "06:00 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/10",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:25 AM",
+    "departureTime": "07:25 AM",
+    "inTime": "06:10 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/20",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:35 AM",
+    "departureTime": "07:35 AM",
+    "inTime": "06:20 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/26",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:45 AM",
+    "departureTime": "07:45 AM",
+    "inTime": "06:30 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/33",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "07:55 AM",
+    "departureTime": "07:55 AM",
+    "inTime": "06:40 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/34",
+    "route": "360K",
+    "shift": "General",
+    "outTime": "08:05 AM",
+    "departureTime": "08:05 AM",
+    "inTime": "06:50 PM",
+    "totalGroupDistance": 163.8,
+    "distance": 163.8,
+    "actualKm": 163.8,
+    "singleChargeReqKm": 163.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/3",
+    "route": "360K",
+    "shift": "Shift B",
+    "outTime": "02:05 PM",
+    "departureTime": "02:05 PM",
+    "inTime": "09:20 PM",
+    "totalGroupDistance": 120.0,
+    "distance": 120.0,
+    "actualKm": 120.0,
+    "singleChargeReqKm": 120.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/4",
+    "route": "360K",
+    "shift": "Shift B",
+    "outTime": "02:15 PM",
+    "departureTime": "02:15 PM",
+    "inTime": "09:30 PM",
+    "totalGroupDistance": 120.0,
+    "distance": 120.0,
+    "actualKm": 120.0,
+    "singleChargeReqKm": 120.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/15",
+    "route": "360K",
+    "shift": "Shift B",
+    "outTime": "02:25 PM",
+    "departureTime": "02:25 PM",
+    "inTime": "09:40 PM",
+    "totalGroupDistance": 120.0,
+    "distance": 120.0,
+    "actualKm": 120.0,
+    "singleChargeReqKm": 120.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360K/30",
+    "route": "360K",
+    "shift": "Shift B",
+    "outTime": "02:35 PM",
+    "departureTime": "02:35 PM",
+    "inTime": "09:50 PM",
+    "totalGroupDistance": 120.0,
+    "distance": 120.0,
+    "actualKm": 120.0,
+    "singleChargeReqKm": 120.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "360k/38",
+    "route": "360K",
+    "shift": "Shift B",
+    "outTime": "02:45 PM",
+    "departureTime": "02:45 PM",
+    "inTime": "10:00 PM",
+    "totalGroupDistance": 120.0,
+    "distance": 120.0,
+    "actualKm": 120.0,
+    "singleChargeReqKm": 120.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/80",
+    "route": "600F",
+    "shift": "Shift A",
+    "outTime": "06:05 AM",
+    "departureTime": "06:05 AM",
+    "inTime": "01:35 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/53",
+    "route": "600F",
+    "shift": "Shift A",
+    "outTime": "06:15 AM",
+    "departureTime": "06:15 AM",
+    "inTime": "01:45 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/66",
+    "route": "600F",
+    "shift": "Shift A",
+    "outTime": "06:25 AM",
+    "departureTime": "06:25 AM",
+    "inTime": "01:55 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/21",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "07:25 AM",
+    "departureTime": "07:25 AM",
+    "inTime": "06:10 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/16",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "07:35 AM",
+    "departureTime": "07:35 AM",
+    "inTime": "06:20 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/17",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "07:45 AM",
+    "departureTime": "07:45 AM",
+    "inTime": "06:30 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/26",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "07:55 AM",
+    "departureTime": "07:55 AM",
+    "inTime": "06:40 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/27",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:05 AM",
+    "departureTime": "08:05 AM",
+    "inTime": "06:50 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/3",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:15 AM",
+    "departureTime": "08:15 AM",
+    "inTime": "07:00 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/31",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:25 AM",
+    "departureTime": "08:25 AM",
+    "inTime": "07:10 PM",
+    "totalGroupDistance": 151.6,
+    "distance": 151.6,
+    "actualKm": 151.6,
+    "singleChargeReqKm": 151.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/42",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:35 AM",
+    "departureTime": "08:35 AM",
+    "inTime": "07:20 PM",
+    "totalGroupDistance": 373.6,
+    "distance": 373.6,
+    "actualKm": 373.6,
+    "singleChargeReqKm": 373.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/43",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:45 AM",
+    "departureTime": "08:45 AM",
+    "inTime": "07:30 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/45",
+    "route": "600F",
+    "shift": "General",
+    "outTime": "08:55 AM",
+    "departureTime": "08:55 AM",
+    "inTime": "07:40 PM",
+    "totalGroupDistance": 143.6,
+    "distance": 143.6,
+    "actualKm": 143.6,
+    "singleChargeReqKm": 143.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/91",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "12:30 PM",
+    "departureTime": "12:30 PM",
+    "inTime": "10:45 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/92",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "12:40 PM",
+    "departureTime": "12:40 PM",
+    "inTime": "10:55 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/93",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "12:50 PM",
+    "departureTime": "12:50 PM",
+    "inTime": "11:05 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/94",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:00 PM",
+    "departureTime": "01:00 PM",
+    "inTime": "11:15 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/95",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:10 PM",
+    "departureTime": "01:10 PM",
+    "inTime": "11:25 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/52",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:15 PM",
+    "departureTime": "01:15 PM",
+    "inTime": "11:45 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/57",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:25 PM",
+    "departureTime": "01:25 PM",
+    "inTime": "11:55 AM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/49",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:35 PM",
+    "departureTime": "01:35 PM",
+    "inTime": "12:05 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/51",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:45 PM",
+    "departureTime": "01:45 PM",
+    "inTime": "12:15 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/5",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "01:55 PM",
+    "departureTime": "01:55 PM",
+    "inTime": "12:25 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/6",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:05 PM",
+    "departureTime": "02:05 PM",
+    "inTime": "12:35 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/80",
+    "route": "600F",
+    "shift": "Shift B",
+    "outTime": "02:15 PM",
+    "departureTime": "02:15 PM",
+    "inTime": "09:30 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/72",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:15 PM",
+    "departureTime": "02:15 PM",
+    "inTime": "12:45 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/8",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:25 PM",
+    "departureTime": "02:25 PM",
+    "inTime": "12:55 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/53",
+    "route": "600F",
+    "shift": "Shift B",
+    "outTime": "02:30 PM",
+    "departureTime": "02:30 PM",
+    "inTime": "09:45 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/74",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:35 PM",
+    "departureTime": "02:35 PM",
+    "inTime": "01:05 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/66",
+    "route": "600F",
+    "shift": "Shift B",
+    "outTime": "02:40 PM",
+    "departureTime": "02:40 PM",
+    "inTime": "09:45 PM",
+    "totalGroupDistance": 119.2,
+    "distance": 119.2,
+    "actualKm": 119.2,
+    "singleChargeReqKm": 119.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/75",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:45 PM",
+    "departureTime": "02:45 PM",
+    "inTime": "01:15 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/79",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "02:55 PM",
+    "departureTime": "02:55 PM",
+    "inTime": "01:25 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/67",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "03:35 PM",
+    "departureTime": "03:35 PM",
+    "inTime": "02:05 PM",
+    "totalGroupDistance": 215.9,
+    "distance": 215.9,
+    "actualKm": 215.9,
+    "singleChargeReqKm": 215.9,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/68",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "03:45 PM",
+    "departureTime": "03:45 PM",
+    "inTime": "02:15 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/69",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "03:55 PM",
+    "departureTime": "03:55 PM",
+    "inTime": "02:25 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/78",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "04:05 PM",
+    "departureTime": "04:05 PM",
+    "inTime": "02:35 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/81",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "04:15 PM",
+    "departureTime": "04:15 PM",
+    "inTime": "02:45 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "600F/32",
+    "route": "600F",
+    "shift": "Night Hault",
+    "outTime": "04:25 PM",
+    "departureTime": "04:25 PM",
+    "inTime": "02:55 PM",
+    "totalGroupDistance": 238.4,
+    "distance": 238.4,
+    "actualKm": 238.4,
+    "singleChargeReqKm": 238.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/32",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "06:35 AM",
+    "departureTime": "06:35 AM",
+    "inTime": "05:20 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/34",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "06:45 AM",
+    "departureTime": "06:45 AM",
+    "inTime": "04:55 PM",
+    "totalGroupDistance": 151.1,
+    "distance": 151.1,
+    "actualKm": 151.1,
+    "singleChargeReqKm": 151.1,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/35",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "06:55 AM",
+    "departureTime": "06:55 AM",
+    "inTime": "05:40 PM",
+    "totalGroupDistance": 171.7,
+    "distance": 171.7,
+    "actualKm": 171.7,
+    "singleChargeReqKm": 171.7,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/36",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "07:05 AM",
+    "departureTime": "07:05 AM",
+    "inTime": "05:50 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/40",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "07:15 AM",
+    "departureTime": "07:15 AM",
+    "inTime": "06:00 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/43",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "07:25 AM",
+    "departureTime": "07:25 AM",
+    "inTime": "06:10 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/46",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "07:35 AM",
+    "departureTime": "07:35 AM",
+    "inTime": "06:20 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/61",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "07:45 AM",
+    "departureTime": "07:45 AM",
+    "inTime": "04:25 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/73",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "08:15 AM",
+    "departureTime": "08:15 AM",
+    "inTime": "07:00 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/66",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "08:45 AM",
+    "departureTime": "08:45 AM",
+    "inTime": "07:30 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/25",
+    "route": "KBS3A",
+    "shift": "General",
+    "outTime": "08:55 AM",
+    "departureTime": "08:55 AM",
+    "inTime": "07:40 PM",
+    "totalGroupDistance": 161.4,
+    "distance": 161.4,
+    "actualKm": 161.4,
+    "singleChargeReqKm": 161.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/2",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "01:35 PM",
+    "departureTime": "01:35 PM",
+    "inTime": "10:35 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/20",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "01:45 PM",
+    "departureTime": "01:45 PM",
+    "inTime": "10:45 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/23",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "01:55 PM",
+    "departureTime": "01:55 PM",
+    "inTime": "10:55 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/26",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:05 PM",
+    "departureTime": "02:05 PM",
+    "inTime": "11:05 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/8",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:15 PM",
+    "departureTime": "02:15 PM",
+    "inTime": "11:15 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/9",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:25 PM",
+    "departureTime": "02:25 PM",
+    "inTime": "11:25 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/77",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:35 PM",
+    "departureTime": "02:35 PM",
+    "inTime": "11:35 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/78",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:45 PM",
+    "departureTime": "02:45 PM",
+    "inTime": "11:45 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/79",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "02:55 PM",
+    "departureTime": "02:55 PM",
+    "inTime": "11:55 AM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3A/80",
+    "route": "KBS3A",
+    "shift": "Night Hault",
+    "outTime": "03:05 PM",
+    "departureTime": "03:05 PM",
+    "inTime": "12:05 PM",
+    "totalGroupDistance": 231.8,
+    "distance": 231.8,
+    "actualKm": 231.8,
+    "singleChargeReqKm": 231.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/1",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "01:10 PM",
+    "departureTime": "01:10 PM",
+    "inTime": "11:40 AM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/2",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "01:30 PM",
+    "departureTime": "01:30 PM",
+    "inTime": "12:00 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/3",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "01:50 PM",
+    "departureTime": "01:50 PM",
+    "inTime": "12:20 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/4",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "02:10 PM",
+    "departureTime": "02:10 PM",
+    "inTime": "12:40 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/11",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "02:30 PM",
+    "departureTime": "02:30 PM",
+    "inTime": "01:00 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/6",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "02:50 PM",
+    "departureTime": "02:50 PM",
+    "inTime": "01:20 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/7",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "03:10 PM",
+    "departureTime": "03:10 PM",
+    "inTime": "01:40 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/8",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "03:30 PM",
+    "departureTime": "03:30 PM",
+    "inTime": "02:00 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "361C/9",
+    "route": "361C",
+    "shift": "Night Hault",
+    "outTime": "03:50 PM",
+    "departureTime": "03:50 PM",
+    "inTime": "02:20 PM",
+    "totalGroupDistance": 257.8,
+    "distance": 257.8,
+    "actualKm": 257.8,
+    "singleChargeReqKm": 257.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "399C/3",
+    "route": "399C",
+    "shift": "Night Hault",
+    "outTime": "01:15 PM",
+    "departureTime": "01:15 PM",
+    "inTime": "11:10 AM",
+    "totalGroupDistance": 283.8,
+    "distance": 283.8,
+    "actualKm": 283.8,
+    "singleChargeReqKm": 283.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "399C/4",
+    "route": "399C",
+    "shift": "Night Hault",
+    "outTime": "02:00 PM",
+    "departureTime": "02:00 PM",
+    "inTime": "12:25 PM",
+    "totalGroupDistance": 283.8,
+    "distance": 283.8,
+    "actualKm": 283.8,
+    "singleChargeReqKm": 283.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "399C/5",
+    "route": "399C",
+    "shift": "Night Hault",
+    "outTime": "02:40 PM",
+    "departureTime": "02:40 PM",
+    "inTime": "01:15 PM",
+    "totalGroupDistance": 265.5,
+    "distance": 265.5,
+    "actualKm": 265.5,
+    "singleChargeReqKm": 265.5,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "399C/6",
+    "route": "399C",
+    "shift": "Night Hault",
+    "outTime": "03:35 PM",
+    "departureTime": "03:35 PM",
+    "inTime": "01:45 PM",
+    "totalGroupDistance": 265.5,
+    "distance": 265.5,
+    "actualKm": 265.5,
+    "singleChargeReqKm": 265.5,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/2",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:00 PM",
+    "departureTime": "01:00 PM",
+    "inTime": "10:45 AM",
+    "totalGroupDistance": 290.0,
+    "distance": 290.0,
+    "actualKm": 290.0,
+    "singleChargeReqKm": 290.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/1",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:10 PM",
+    "departureTime": "01:10 PM",
+    "inTime": "08:45 PM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/3",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:20 PM",
+    "departureTime": "01:20 PM",
+    "inTime": "10:40 AM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/6",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:20 PM",
+    "departureTime": "01:20 PM",
+    "inTime": "11:25 AM",
+    "totalGroupDistance": 290.0,
+    "distance": 290.0,
+    "actualKm": 290.0,
+    "singleChargeReqKm": 290.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/9",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:30 PM",
+    "departureTime": "01:30 PM",
+    "inTime": "10:40 AM",
+    "totalGroupDistance": 289.4,
+    "distance": 289.4,
+    "actualKm": 289.4,
+    "singleChargeReqKm": 289.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/10",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:45 PM",
+    "departureTime": "01:45 PM",
+    "inTime": "11:30 AM",
+    "totalGroupDistance": 300.6,
+    "distance": 300.6,
+    "actualKm": 300.6,
+    "singleChargeReqKm": 300.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/12",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "01:50 PM",
+    "departureTime": "01:50 PM",
+    "inTime": "11:10 AM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/13",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:00 PM",
+    "departureTime": "02:00 PM",
+    "inTime": "12:00 PM",
+    "totalGroupDistance": 298.8,
+    "distance": 298.8,
+    "actualKm": 298.8,
+    "singleChargeReqKm": 298.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/14",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:00 PM",
+    "departureTime": "02:00 PM",
+    "inTime": "11:20 AM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/19",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:10 PM",
+    "departureTime": "02:10 PM",
+    "inTime": "11:30 AM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/16",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:15 PM",
+    "departureTime": "02:15 PM",
+    "inTime": "12:00 PM",
+    "totalGroupDistance": 300.6,
+    "distance": 300.6,
+    "actualKm": 300.6,
+    "singleChargeReqKm": 300.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/20",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:30 PM",
+    "departureTime": "02:30 PM",
+    "inTime": "12:30 PM",
+    "totalGroupDistance": 298.8,
+    "distance": 298.8,
+    "actualKm": 298.8,
+    "singleChargeReqKm": 298.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/23",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "02:45 PM",
+    "departureTime": "02:45 PM",
+    "inTime": "12:30 PM",
+    "totalGroupDistance": 300.6,
+    "distance": 300.6,
+    "actualKm": 300.6,
+    "singleChargeReqKm": 300.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/22",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:00 PM",
+    "departureTime": "03:00 PM",
+    "inTime": "12:45 PM",
+    "totalGroupDistance": 300.6,
+    "distance": 300.6,
+    "actualKm": 300.6,
+    "singleChargeReqKm": 300.6,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/8",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:10 PM",
+    "departureTime": "03:10 PM",
+    "inTime": "01:10 PM",
+    "totalGroupDistance": 290.0,
+    "distance": 290.0,
+    "actualKm": 290.0,
+    "singleChargeReqKm": 290.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/21",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:20 PM",
+    "departureTime": "03:20 PM",
+    "inTime": "11:50 AM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/7",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:30 PM",
+    "departureTime": "03:30 PM",
+    "inTime": "01:30 PM",
+    "totalGroupDistance": 290.0,
+    "distance": 290.0,
+    "actualKm": 290.0,
+    "singleChargeReqKm": 290.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/28",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:40 PM",
+    "departureTime": "03:40 PM",
+    "inTime": "12:00 PM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/4",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "03:50 PM",
+    "departureTime": "03:50 PM",
+    "inTime": "01:50 PM",
+    "totalGroupDistance": 290.0,
+    "distance": 290.0,
+    "actualKm": 290.0,
+    "singleChargeReqKm": 290.0,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "328H/25",
+    "route": "328H",
+    "shift": "Night Hault",
+    "outTime": "04:00 PM",
+    "departureTime": "04:00 PM",
+    "inTime": "12:20 PM",
+    "totalGroupDistance": 291.4,
+    "distance": 291.4,
+    "actualKm": 291.4,
+    "singleChargeReqKm": 291.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "500DC/12",
+    "route": "500DC",
+    "shift": "General",
+    "outTime": "07:45 AM",
+    "departureTime": "07:45 AM",
+    "inTime": "07:00 PM",
+    "totalGroupDistance": 171.4,
+    "distance": 171.4,
+    "actualKm": 171.4,
+    "singleChargeReqKm": 171.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "500DC/13",
+    "route": "500DC",
+    "shift": "General",
+    "outTime": "08:00 AM",
+    "departureTime": "08:00 AM",
+    "inTime": "07:15 PM",
+    "totalGroupDistance": 171.4,
+    "distance": 171.4,
+    "actualKm": 171.4,
+    "singleChargeReqKm": 171.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "500DC/14",
+    "route": "500DC",
+    "shift": "General",
+    "outTime": "08:15 AM",
+    "departureTime": "08:15 AM",
+    "inTime": "07:30 PM",
+    "totalGroupDistance": 171.4,
+    "distance": 171.4,
+    "actualKm": 171.4,
+    "singleChargeReqKm": 171.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "500DC/15",
+    "route": "500DC",
+    "shift": "General",
+    "outTime": "08:30 AM",
+    "departureTime": "08:30 AM",
+    "inTime": "07:45 PM",
+    "totalGroupDistance": 171.4,
+    "distance": 171.4,
+    "actualKm": 171.4,
+    "singleChargeReqKm": 171.4,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/7",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "07:30 AM",
+    "departureTime": "07:30 AM",
+    "inTime": "06:30 PM",
+    "totalGroupDistance": 203.2,
+    "distance": 203.2,
+    "actualKm": 203.2,
+    "singleChargeReqKm": 203.2,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/8",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "07:50 AM",
+    "departureTime": "07:50 AM",
+    "inTime": "06:50 PM",
+    "totalGroupDistance": 190.8,
+    "distance": 190.8,
+    "actualKm": 190.8,
+    "singleChargeReqKm": 190.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/11",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "08:10 AM",
+    "departureTime": "08:10 AM",
+    "inTime": "07:10 PM",
+    "totalGroupDistance": 190.8,
+    "distance": 190.8,
+    "actualKm": 190.8,
+    "singleChargeReqKm": 190.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/12",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "08:30 AM",
+    "departureTime": "08:30 AM",
+    "inTime": "07:30 PM",
+    "totalGroupDistance": 190.8,
+    "distance": 190.8,
+    "actualKm": 190.8,
+    "singleChargeReqKm": 190.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/13",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "08:50 AM",
+    "departureTime": "08:50 AM",
+    "inTime": "07:50 PM",
+    "totalGroupDistance": 190.8,
+    "distance": 190.8,
+    "actualKm": 190.8,
+    "singleChargeReqKm": 190.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/14",
+    "route": "KBS3F",
+    "shift": "General",
+    "outTime": "09:10 AM",
+    "departureTime": "09:10 AM",
+    "inTime": "08:10 PM",
+    "totalGroupDistance": 190.8,
+    "distance": 190.8,
+    "actualKm": 190.8,
+    "singleChargeReqKm": 190.8,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/16",
+    "route": "KBS3F",
+    "shift": "Night Hault",
+    "outTime": "01:50 PM",
+    "departureTime": "01:50 PM",
+    "inTime": "11:40 AM",
+    "totalGroupDistance": 279.3,
+    "distance": 279.3,
+    "actualKm": 279.3,
+    "singleChargeReqKm": 279.3,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/15",
+    "route": "KBS3F",
+    "shift": "Night Hault",
+    "outTime": "02:10 PM",
+    "departureTime": "02:10 PM",
+    "inTime": "12:00 PM",
+    "totalGroupDistance": 279.3,
+    "distance": 279.3,
+    "actualKm": 279.3,
+    "singleChargeReqKm": 279.3,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/17",
+    "route": "KBS3F",
+    "shift": "Night Hault",
+    "outTime": "03:45 PM",
+    "departureTime": "03:45 PM",
+    "inTime": "12:50 PM",
+    "totalGroupDistance": 279.3,
+    "distance": 279.3,
+    "actualKm": 279.3,
+    "singleChargeReqKm": 279.3,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  },
+  {
+    "scheduleId": "KBS3F/18",
+    "route": "KBS3F",
+    "shift": "Night Hault",
+    "outTime": "04:00 PM",
+    "departureTime": "04:00 PM",
+    "inTime": "01:05 PM",
+    "totalGroupDistance": 279.3,
+    "distance": 279.3,
+    "actualKm": 279.3,
+    "singleChargeReqKm": 279.3,
+    "category": "Standard",
+    "routeComplexity": "Standard",
+    "origin": "BMT-32",
+    "destination": "BMT-32"
+  }
+];
 
 
 
@@ -3447,9 +5461,25 @@
 
             if (!tStr) return 720;
 
-            const p = tStr.split(":");
+            const str = String(tStr).trim();
 
-            return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+            const isPM = /pm$/i.test(str);
+
+            const isAM = /am$/i.test(str);
+
+            const clean = str.replace(/[^\d:]/g, "");
+
+            const p = clean.split(":");
+
+            let hours = parseInt(p[0], 10) || 0;
+
+            const mins = parseInt(p[1], 10) || 0;
+
+            if (isPM && hours < 12) hours += 12;
+
+            if (isAM && hours === 12) hours = 0;
+
+            return hours * 60 + mins;
 
         }
 
@@ -5742,27 +7772,28 @@
 
             const routeCode = routeObj ? (routeObj.code || "356Z") : "356Z";
 
-            const routeDist = Number(routeObj ? (routeObj.distKm || 28.7) : 28.7);
-
             const depTimeClean = (departureTime || "13:10").trim();
 
-            const depShort = depTimeClean.substring(0, 5);
-
-            const depMin = timeToMinutes(depShort);
+            const depMin = timeToMinutes(depTimeClean);
 
 
 
             const routeSchedules = datasetSchedules.filter(s => s.route === routeCode);
 
-            let matchedSched = routeSchedules.find(s => s.outTime && s.outTime.substring(0, 5) === depShort);
+            let matchedSched = routeSchedules.find(s => {
+                const sDep = (s.departureTime || s.outTime || '').trim();
+                return sDep.toLowerCase() === depTimeClean.toLowerCase() ||
+                       (depTimeClean && sDep.toLowerCase().startsWith(depTimeClean.toLowerCase())) ||
+                       (sDep && depTimeClean.toLowerCase().startsWith(sDep.toLowerCase()));
+            });
 
             if (!matchedSched && routeSchedules.length > 0) {
 
                 matchedSched = routeSchedules.slice().sort((a, b) => {
 
-                    const diffA = Math.abs(timeToMinutes(a.outTime || "12:00") - depMin);
+                    const diffA = Math.abs(timeToMinutes(a.departureTime || a.outTime || "12:00") - depMin);
 
-                    const diffB = Math.abs(timeToMinutes(b.outTime || "12:00") - depMin);
+                    const diffB = Math.abs(timeToMinutes(b.departureTime || b.outTime || "12:00") - depMin);
 
                     return diffA - diffB;
 
@@ -5770,9 +7801,11 @@
 
             }
 
+            const routeDist = Number((matchedSched && (matchedSched.totalGroupDistance || matchedSched.distance)) || (routeObj ? (routeObj.distKm || 28.7) : 28.7));
 
 
-            const complexity = getRouteComplexity(routeObj, matchedSched, depShort);
+
+            const complexity = getRouteComplexity(routeObj, matchedSched, depTimeClean);
 
             const isComplexRoute = (complexity === "complex");
 
@@ -6084,7 +8117,13 @@
 
             const routeObj = getSelectedRouteObj();
 
+            const matchedSc = (result && result.matchedSched) || currentScheduleMatch;
+
             const routeDistVal = (() => {
+
+                if (matchedSc && (matchedSc.totalGroupDistance || matchedSc.distance)) {
+                    return `${Number(matchedSc.totalGroupDistance || matchedSc.distance).toFixed(1)} km`;
+                }
 
                 return routeObj ? `${(Number(routeObj.distKm || routeObj.distanceKm) || 28.7).toFixed(1)} km` : "28.7 km";
 
@@ -6466,6 +8505,8 @@
 
             const departure = depVal || schedVal;
 
+            const matchedSched = currentScheduleMatch;
+
 
 
             if (!routeObj) {
@@ -6671,13 +8712,10 @@
 
 
             const routeDistance = Number(
-
+                (matchedSched && (matchedSched.totalGroupDistance || matchedSched.distance)) ||
                 selectedRouteDistance || 
-
                 (routeObj ? routeObj.distKm : 0) || 
-
                 28.7
-
             );
 
             const kpiRouteDist = document.getElementById("kpi-route-dist");
@@ -7152,6 +9190,8 @@
 
                 const departure = depVal || schedVal;
 
+            const matchedSched = currentScheduleMatch;
+
                 if (!routeObj) {
 
                     recBtn.textContent = "⚡ Choose Route & Departure Time";
@@ -7264,6 +9304,8 @@
 
             const departure = depVal || schedVal;
 
+            const matchedSched = currentScheduleMatch;
+
 
 
             if (!selectedRouteObj) {
@@ -7353,6 +9395,32 @@
         function updateSelectedRouteDistance() {
 
             const routeObj = getSelectedRouteObj();
+            const schedTimeVal = ((scheduledTimeSelect ? scheduledTimeSelect.value : "") || "").trim();
+            const routeCode = String(routeObj?.code || routeObj?.id || "").toUpperCase().trim();
+            const matchedSc = Array.isArray(datasetSchedules) ? datasetSchedules.find(s => {
+                const sRoute = String(s.route || "").toUpperCase().trim();
+                if (sRoute !== routeCode) return false;
+                const sDep = String(s.departureTime || s.outTime || "").trim();
+                return sDep.toLowerCase() === schedTimeVal.toLowerCase() ||
+                       (schedTimeVal && sDep.toLowerCase().startsWith(schedTimeVal.toLowerCase())) ||
+                       (sDep && schedTimeVal.toLowerCase().startsWith(sDep.toLowerCase()));
+            }) : null;
+
+            const subRouteContainer = document.getElementById("sub-route-badge-container");
+            const subRouteIdBadge = document.getElementById("sub-route-id-badge");
+            const subRouteShiftBadge = document.getElementById("sub-route-shift-badge");
+            const subRouteTimeBadge = document.getElementById("sub-route-time-badge");
+            const subRouteDistBadge = document.getElementById("sub-route-dist-badge");
+
+            if (matchedSc && subRouteContainer) {
+                subRouteContainer.style.display = "flex";
+                if (subRouteIdBadge) subRouteIdBadge.textContent = `🏷️ Sub-Route: ${matchedSc.scheduleId}`;
+                if (subRouteShiftBadge) subRouteShiftBadge.textContent = matchedSc.shift || "Shift";
+                if (subRouteTimeBadge) subRouteTimeBadge.textContent = matchedSc.departureTime || schedTimeVal;
+                if (subRouteDistBadge) subRouteDistBadge.textContent = `${matchedSc.totalGroupDistance || matchedSc.distance} km`;
+            } else if (subRouteContainer) {
+                subRouteContainer.style.display = "none";
+            }
 
             if (!routeObj) {
 
@@ -7364,13 +9432,17 @@
 
                 if (totalDistanceEl) totalDistanceEl.textContent = "—";
 
+                const kpiRouteDist = document.getElementById("kpi-route-dist");
+
+                if (kpiRouteDist) kpiRouteDist.textContent = "—";
+
                 return;
 
             }
 
 
 
-            const distKm = Number(routeObj.distKm || routeObj.distanceKm) || 28.7;
+            const distKm = matchedSc ? (Number(matchedSc.totalGroupDistance || matchedSc.distance) || Number(routeObj.distKm || 28.7)) : (Number(routeObj.distKm || routeObj.distanceKm) || 28.7);
 
             selectedRouteDistance = distKm;
 
@@ -7381,6 +9453,14 @@
             const totalDistanceEl = document.getElementById("route-distance-rule");
 
             if (totalDistanceEl) totalDistanceEl.textContent = `${distKm.toFixed(2)} km`;
+
+            const kpiRouteDist = document.getElementById("kpi-route-dist");
+
+            if (kpiRouteDist) kpiRouteDist.textContent = `${distKm.toFixed(1)} km`;
+
+            const allocRouteDist = document.getElementById("alloc-route-dist");
+
+            if (allocRouteDist) allocRouteDist.textContent = `${distKm.toFixed(1)} km`;
 
         }
 
@@ -7464,7 +9544,7 @@
 
                     html += sortedTimes.map(([timeStr, sched]) => {
 
-                        return `<option value="${timeStr}">${sched.outTime || timeStr} (${sched.scheduleId} - ${sched.shift})</option>`;
+                        return `<option value="${sched.departureTime || timeStr}">${sched.departureTime || timeStr} [Sub-Route: ${sched.scheduleId}] (${sched.totalGroupDistance || sched.distance} km - ${sched.shift})</option>`;
 
                     }).join("");
 
@@ -7715,6 +9795,8 @@
                     }
 
                     isManualOverride = false;
+
+                    updateSelectedRouteDistance();
 
                     updateManualOverrideUI();
 

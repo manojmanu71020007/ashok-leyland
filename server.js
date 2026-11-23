@@ -1036,10 +1036,14 @@ function loadCorridorSchedules() {
                                 fixReg: s.fixReg || "",
                                 swapBm: s.swapBm || "",
                                 swapReg: s.swapReg || "",
-                                outTime: s.outTime || "08:00:00",
+                                outTime: s.outTime || s.departureTime || "08:00:00",
+                                departureTime: s.departureTime || s.outTime || "08:00:00",
                                 inTime: s.inTime || "16:00:00",
                                 category: s.category || r.routeComplexity || "Standard",
-                                singleChargeReqKm: s.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5)
+                                singleChargeReqKm: s.singleChargeReqKm || s.totalGroupDistance || Math.round((Number(r.distance) || 25) * 1.5),
+                                totalGroupDistance: s.totalGroupDistance || s.distance || 0,
+                                distance: s.distance || s.totalGroupDistance || 0,
+                                actualKm: s.actualKm || s.totalGroupDistance || 0
                             });
                         }
                     });
