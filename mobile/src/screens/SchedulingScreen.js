@@ -3777,7 +3777,7 @@ export default function SchedulingScreen() {
 
           {/* 2. {t('label_departure_time', 'Scheduled Departure Time')} */}
           <Text style={styles.fieldLabel}>
-            {t('label_scheduled_departure_time', 'Scheduled Departure Time (from BMT-32)')} <Text style={{ color: '#dc2626' }}>*</Text>
+            {t('label_scheduled_departure_time', 'Scheduled Departure Time')} <Text style={{ color: '#dc2626' }}>*</Text>
           </Text>
           <TouchableOpacity
             style={styles.selectBox}
@@ -3791,52 +3791,11 @@ export default function SchedulingScreen() {
             <Text style={styles.caret}>▼</Text>
           </TouchableOpacity>
 
-          {/* Sub-Route & Group Distance from BMT-32 Banner */}
-          {matchedSched?.scheduleId ? (
-            <View style={{
-              backgroundColor: '#f0f9ff',
-              borderColor: '#0284c7',
-              borderWidth: 1.5,
-              borderRadius: 10,
-              padding: 12,
-              marginTop: 6,
-              marginBottom: 12,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <View style={{ flex: 1, paddingRight: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-                  <Text style={{ fontSize: 13, fontWeight: '800', color: '#0369a1' }}>
-                    🏷️ Sub-Route: {matchedSched.scheduleId}
-                  </Text>
-                  <View style={{ backgroundColor: '#e0f2fe', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>
-                      {matchedSched.shift || 'Shift'}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={{ fontSize: 11.5, color: '#475569', marginTop: 4 }}>
-                  Depot Origin: <Text style={{ fontWeight: '700', color: '#0f172a' }}>BMT-32</Text> at <Text style={{ fontWeight: '700', color: '#0284c7' }}>{matchedSched.departureTime || scheduledTime}</Text>
-                </Text>
-              </View>
-              <View style={{ alignItems: 'flex-end', borderLeftWidth: 1, borderLeftColor: '#bae6fd', paddingLeft: 10 }}>
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#64748b', textTransform: 'uppercase' }}>
-                  Total Distance
-                </Text>
-                <Text style={{ fontSize: 14, fontWeight: '800', color: '#0284c7' }}>
-                  {matchedSched.totalGroupDistance || matchedSched.distance || selectedRoute.distance} km
-                </Text>
-                <Text style={{ fontSize: 9.5, color: '#64748b' }}>(BMT-32 ➔ BMT-32)</Text>
-              </View>
-            </View>
-          ) : null}
-
           {/* 4. Schedule distance */}
-          <Text style={styles.fieldLabel}>{t('schedule_distance', 'Total Group Distance (BMT-32 ➔ BMT-32)')}</Text>
+          <Text style={styles.fieldLabel}>{t('schedule_distance', 'Total Route Distance (km)')}</Text>
           <View style={styles.readonlyInput}>
             <Text style={[styles.readonlyInputText, { fontWeight: '700', color: '#0284c7' }]}>
-              {matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km (BMT-32 to BMT-32)
+              {matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km
             </Text>
           </View>
 
@@ -4183,7 +4142,7 @@ export default function SchedulingScreen() {
                 </Text>
               </View>
               <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>{t('total_distance', 'Total distance')} (BMT-32 ➔ BMT-32)</Text>
+                <Text style={styles.ruleLabel}>{t('total_distance', 'Total distance')}</Text>
                 <Text style={[styles.ruleVal, { color: '#0284c7', fontWeight: '800' }]}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km</Text>
               </View>
               <View style={styles.ruleItem}>

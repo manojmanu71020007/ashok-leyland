@@ -17,7 +17,7 @@ const DATASET_DELETED_DEPOTS_KEY = 'depot_app_dataset_deleted_depots';
 
 // ── Default Base Master Dataset (Depot 1 & Depot 2) ──
 const INITIAL_MASTER_DATASET = {
-  "version": "5.0",
+  "version": "5.1",
   "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
   "lastUpdated": "2026-11-14T15:18:00.000Z",
   "depots": [
@@ -58,8 +58,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "CPR \u2794 ANK (356Z)",
       "fullName": "CPR \u2794 ANK (356Z)",
       "shortName": "356Z",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "CPR",
+      "destination": "ANK",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 114.8,
@@ -815,8 +815,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "ATB \u2794 KBS (360K)",
       "fullName": "ATB \u2794 KBS (360K)",
       "shortName": "360K",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "ATB",
+      "destination": "KBS",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 133.6,
@@ -1721,8 +1721,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "BSK \u2794 ATB (600F)",
       "fullName": "BSK \u2794 ATB (600F)",
       "shortName": "600F",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "BSK",
+      "destination": "ATB",
       "via": "CPR",
       "depotBase": "BMT-32",
       "distance": 119.2,
@@ -4289,8 +4289,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "ATB \u2794 KBS (KBS3A)",
       "fullName": "ATB \u2794 KBS (KBS3A)",
       "shortName": "KBS3A",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "ATB",
+      "destination": "KBS",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 161.4,
@@ -5607,8 +5607,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "ANK \u2794 KMT (361C)",
       "fullName": "ANK \u2794 KMT (361C)",
       "shortName": "361C",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "ANK",
+      "destination": "KMT",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 257.8,
@@ -6330,8 +6330,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "CTP \u2794 ANK (399C)",
       "fullName": "CTP \u2794 ANK (399C)",
       "shortName": "399C",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "CTP",
+      "destination": "ANK",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 283.8,
@@ -6620,8 +6620,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "ATB \u2794 HSK (328H)",
       "fullName": "ATB \u2794 HSK (328H)",
       "shortName": "328H",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "ATB",
+      "destination": "HSK",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 290.0,
@@ -8266,8 +8266,8 @@ const INITIAL_MASTER_DATASET = {
       "name": "HBL \u2794 TNF (500DC)",
       "fullName": "HBL \u2794 TNF (500DC)",
       "shortName": "500DC",
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "HBL",
+      "destination": "TNF",
       "via": "CSB",
       "depotBase": "BMT-32",
       "distance": 171.4,
@@ -8547,8 +8547,8 @@ const INITIAL_MASTER_DATASET = {
         "KBS-3F",
         "KBES-3F"
       ],
-      "origin": "BMT-32",
-      "destination": "BMT-32",
+      "origin": "ATB",
+      "destination": "KBS",
       "via": "",
       "depotBase": "BMT-32",
       "distance": 203.2,
@@ -9267,14 +9267,14 @@ try {
       const parsed = JSON.parse(savedData);
       if (parsed && Array.isArray(parsed.depots) && Array.isArray(parsed.routes)) {
         const coreCodes = ['356Z', '360K', '600F', 'KBS3A', '361C', '399C', '328H', '500DC', 'KBS3F'];
-        const hasLegacy = parsed.version !== '5.0' || (parsed.routes || []).some((r) => 
+        const hasLegacy = parseFloat(parsed.version || '0') < 5.1 || (parsed.routes || []).some((r) => 
           (r.name && (r.name.includes('Hebbal') || r.name.includes('Whitefield') || r.name.includes('Tin Factory') || r.name.includes('Direct Express') || r.name.includes('Chandapura ➔') || r.name.includes('Attibele ➔') || r.name.includes('Kempegowda')))
         );
         if (hasLegacy) {
           const customRoutes = (parsed.routes || []).filter((r) => !coreCodes.includes(String(r.code).toUpperCase().trim()));
           masterDataset = {
             ...INITIAL_MASTER_DATASET,
-            version: '4.0',
+            version: '5.1',
             depots: parsed.depots ? parsed.depots.filter((d) => !deletedDepotIds.has(String(d.id))) : INITIAL_MASTER_DATASET.depots,
             routes: [...INITIAL_MASTER_DATASET.routes, ...customRoutes].filter((r) => !deletedDepotIds.has(String(r.depotId))),
           };

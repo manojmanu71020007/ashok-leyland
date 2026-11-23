@@ -1964,26 +1964,13 @@
 
                     <label>
 
-                        <span data-i18n="label_time_slot">Scheduled Departure Time (from BMT-32)</span>
+                        <span data-i18n="label_time_slot">Scheduled Departure Time</span>
 
                         <select id="scheduled-time-select">
 
                             <option value="" selected data-i18n="option_choose_departure_time">Choose a departure time</option>
 
                         </select>
-
-                        <div id="sub-route-badge-container" style="display:none;margin-top:8px;padding:8px 12px;background:#f0f9ff;border:1.5px solid #0284c7;border-radius:8px;align-items:center;justify-content:space-between;">
-                            <div>
-                                <span style="font-weight:800;color:#0369a1;font-size:0.85rem;" id="sub-route-id-badge">🏷️ Sub-Route: —</span>
-                                <span style="font-size:0.75rem;background:#e0f2fe;color:#0284c7;padding:2px 6px;border-radius:4px;font-weight:700;margin-left:6px;" id="sub-route-shift-badge">Shift</span>
-                                <div style="font-size:0.78rem;color:#475569;margin-top:2px;">Origin: <strong>BMT-32</strong> at <strong id="sub-route-time-badge" style="color:#0284c7;">—</strong></div>
-                            </div>
-                            <div style="text-align:right;border-left:1px solid #bae6fd;padding-left:10px;">
-                                <div style="font-size:0.7rem;font-weight:700;color:#64748b;text-transform:uppercase;">Group Total</div>
-                                <div style="font-size:0.95rem;font-weight:800;color:#0284c7;" id="sub-route-dist-badge">— km</div>
-                                <div style="font-size:0.65rem;color:#64748b;">(BMT-32 ➔ BMT-32)</div>
-                            </div>
-                        </div>
 
                     </label>
 
@@ -2185,7 +2172,7 @@
 
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
 
-                    <div class="rule"><span>Total distance (BMT-32 ➔ BMT-32)</span><strong id="route-distance-rule">0.00 km</strong></div>
+                    <div class="rule"><span>Total distance</span><strong id="route-distance-rule">0.00 km</strong></div>
 
                     <div class="rule"><span>Route category</span><strong id="range-rule">—</strong></div>
 
@@ -9405,22 +9392,6 @@
                        (schedTimeVal && sDep.toLowerCase().startsWith(schedTimeVal.toLowerCase())) ||
                        (sDep && schedTimeVal.toLowerCase().startsWith(sDep.toLowerCase()));
             }) : null;
-
-            const subRouteContainer = document.getElementById("sub-route-badge-container");
-            const subRouteIdBadge = document.getElementById("sub-route-id-badge");
-            const subRouteShiftBadge = document.getElementById("sub-route-shift-badge");
-            const subRouteTimeBadge = document.getElementById("sub-route-time-badge");
-            const subRouteDistBadge = document.getElementById("sub-route-dist-badge");
-
-            if (matchedSc && subRouteContainer) {
-                subRouteContainer.style.display = "flex";
-                if (subRouteIdBadge) subRouteIdBadge.textContent = `🏷️ Sub-Route: ${matchedSc.scheduleId}`;
-                if (subRouteShiftBadge) subRouteShiftBadge.textContent = matchedSc.shift || "Shift";
-                if (subRouteTimeBadge) subRouteTimeBadge.textContent = matchedSc.departureTime || schedTimeVal;
-                if (subRouteDistBadge) subRouteDistBadge.textContent = `${matchedSc.totalGroupDistance || matchedSc.distance} km`;
-            } else if (subRouteContainer) {
-                subRouteContainer.style.display = "none";
-            }
 
             if (!routeObj) {
 
