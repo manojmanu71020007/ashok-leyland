@@ -269,7 +269,7 @@ const I18N = {
 const DEPOT_1_ROUTES_DATA = [
   { id: '356Z', code: '356Z', name: 'CPR ➔ ANK (356Z)', origin: 'CPR', destination: 'ANK', distance: 112.0, revenueKm: 112.0, corridorDistance: 11.2, fullDutyKm: 126.28, actualKm: 126.28, category: 'Standard', requiredCat: 'B', drainSoc: 64, timetables: ['07:15 AM', '08:30 AM', '01:10 PM', '02:20 PM', '07:40 PM'], shift: 'General Shift' },
   { id: '360K', code: '360K', name: 'ATB ➔ KBS (360K)', origin: 'ATB', destination: 'KBS', distance: 143.2, revenueKm: 143.2, corridorDistance: 35.8, fullDutyKm: 180.18, actualKm: 180.18, category: 'Standard', requiredCat: 'B', drainSoc: 82, timetables: ['07:00 AM', '08:15 AM', '01:10 PM', '02:00 PM', '06:30 PM'], shift: 'General Shift' },
-  { id: '600F', code: '600F', name: 'BSK ➔ ATB (600F)', origin: 'BSK', destination: 'ATB', distance: 98.6, revenueKm: 98.6, corridorDistance: 28.8, fullDutyKm: 157.96, actualKm: 157.96, category: 'Standard', requiredCat: 'B', drainSoc: 57, timetables: ['06:45 AM', '08:00 AM', '01:10 PM', '02:30 PM', '07:15 PM'], shift: 'General Shift' },
+  { id: '600F', code: '600F', name: 'BSK ➔ ATB (600F)', origin: 'BSK', destination: 'ATB', distance: 86.4, revenueKm: 86.4, corridorDistance: 28.8, fullDutyKm: 157.96, actualKm: 157.96, category: 'Standard', requiredCat: 'B', drainSoc: 57, timetables: ['06:45 AM', '08:00 AM', '01:10 PM', '02:30 PM', '07:15 PM'], shift: 'General Shift' },
   { id: 'KBS3A', code: 'KBS3A', name: 'ATB ➔ KBS (KBS3A)', origin: 'ATB', destination: 'KBS', distance: 140.8, revenueKm: 140.8, corridorDistance: 35.2, fullDutyKm: 127.49, actualKm: 127.49, category: 'Moderate', requiredCat: 'B', drainSoc: 81, timetables: ['07:00 AM', '08:30 AM', '01:10 PM', '02:15 PM', '06:00 PM'], shift: 'General Shift' },
 ];
 

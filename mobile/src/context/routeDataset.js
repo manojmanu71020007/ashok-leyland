@@ -266,7 +266,7 @@ const INITIAL_MASTER_DATASET = {
         "destination": "ATB",
         "via": "CPR",
         "depotBase": "BMT-32",
-        "distance": 98.6,
+        "distance": 86.4,
         "fullDutyKm": 157.96,
         "actualKm": 157.96,
         "routeComplexity": "Standard",
@@ -367,7 +367,7 @@ const INITIAL_MASTER_DATASET = {
                 "singleChargeReqKm": 157.96
             }
         ],
-        "revenueKm": 98.6,
+        "revenueKm": 86.4,
         "corridorDistance": 28.8,
         "singleChargeReqKm": 157.96
     },
