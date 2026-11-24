@@ -12058,6 +12058,31 @@ let busCategoriesMap = new Map();
                 return;
             }
 
+            // ── DUPLICATE CHECK: Verify if bus already exists in any depot ──
+            const cleanBm = busNumber.startsWith("BM") ? busNumber : "BM" + busNumber;
+            const cleanReg = regNumber.replace(/[^A-Z0-9]/g, "");
+
+            let existingBusInfo = null;
+            if (Array.isArray(allFleetKeys)) {
+                for (const key of allFleetKeys) {
+                    const bKey = String(key).toUpperCase();
+                    const bState = busStates[bKey] || {};
+                    const bReg = String(bState.regNo || (typeof getBusRegNo === "function" ? getBusRegNo(bKey) : "") || "").replace(/[^A-Z0-9]/g, "");
+                    if (bKey === cleanBm || (cleanReg && bReg === cleanReg)) {
+                        const dId = String((typeof getBusDepot === "function" ? getBusDepot(bKey) : bState.depot) || "1");
+                        const dName = dId === "2" ? "Depot 2 (Attibele / Hoskote)" : (dId === "1" ? "Depot 1 (Chandapura / BMT-32)" : `Depot ${dId}`);
+                        existingBusInfo = { bm: bKey, reg: bState.regNo || cleanReg, depotName: dName };
+                        break;
+                    }
+                }
+            }
+
+            if (existingBusInfo) {
+                alert(`⚠️ Bus Already Exists!\n\nBus ${existingBusInfo.bm} (${existingBusInfo.reg}) already exists in ${existingBusInfo.depotName}!\n\nDuplicate bus additions are not permitted.`);
+                if (bmInput) bmInput.focus();
+                return;
+            }
+
             if (btn) {
                 btn.disabled = true;
                 btn.textContent = "⏳ Adding Bus...";

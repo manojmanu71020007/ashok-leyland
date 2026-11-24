@@ -3065,7 +3065,40 @@ function saveBusState(state) {
 
 
 
-// ── Fleet Bus Management (Add / Delete Buses with Reason Tracking) ──
+// ── Fleet Bus Management (Add / Delete Buses with Reason Tracking & Duplicate Checks) ──
+
+function findExistingBus(bm, regNo, state = null) {
+    const currentState = state || loadBusState();
+    const cleanBm = bm ? String(bm).toUpperCase().trim() : '';
+    const cleanReg = regNo ? String(regNo).replace(/[^A-Z0-9]/g, '').toUpperCase() : '';
+
+    for (const [key, val] of Object.entries(currentState)) {
+        if (!val || typeof val !== 'object' || val.deleted || val.isDeleted) continue;
+        const curBm = String(val.bm || val.bmNumber || key).toUpperCase().trim();
+        const curReg = String(val.regNo || val.reg_no || val.registrationNo || '').replace(/[^A-Z0-9]/g, '').toUpperCase();
+
+        const bmMatches = cleanBm && (curBm === cleanBm || `BM${cleanBm.replace(/^BM/i, '')}` === curBm);
+        const regMatches = cleanReg && curReg === cleanReg;
+
+        if (bmMatches || regMatches) {
+            const depotId = String(currentState._depotAssignments?.[curBm] || val.depot || '1').trim();
+            let depotName = `Depot ${depotId}`;
+            if (depotId === '1') depotName = 'Depot 1 (Chandapura / BMT-32)';
+            else if (depotId === '2') depotName = 'Depot 2 (Attibele / Hoskote)';
+            else if (currentState._customDepots && currentState._customDepots[depotId]) {
+                depotName = currentState._customDepots[depotId].name || `Depot ${depotId}`;
+            }
+            return {
+                exists: true,
+                bm: curBm,
+                regNo: val.regNo || val.reg_no || cleanReg,
+                depotId: depotId,
+                depotName: depotName
+            };
+        }
+    }
+    return null;
+}
 
 function addFleetBus(params) {
 
@@ -3079,7 +3112,7 @@ function addFleetBus(params) {
 
     const depotNum = String(params.depot || "1").trim();
 
-    const depotName = depotNum === "2" ? "Depot 2 (Central)" : "Chandapura (BMT-32)";
+    const depotName = depotNum === "2" ? "Depot 2 (Attibele / Hoskote)" : "Chandapura (BMT-32)";
 
     const category = String(params.category || params.busCategory || "A").toUpperCase().trim();
 
@@ -3095,6 +3128,14 @@ function addFleetBus(params) {
 
         throw new Error("Bus Number, Registration Number, and Reason are all mandatory.");
 
+    }
+
+    // ── DUPLICATE CHECK: Verify if bus already exists in any depot ──
+    if (!params.skipDuplicateCheck) {
+        const existing = findExistingBus(bm, regNo);
+        if (existing) {
+            throw new Error(`⚠️ Bus ${existing.bm} (${existing.regNo}) already exists in ${existing.depotName}! Duplicate bus additions are not permitted.`);
+        }
     }
 
 
@@ -5473,9 +5514,29 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
         return { busesProcessed: 0, added: [] };
     }
 
-    const addedList = [];
-
     const state = loadBusState();
+
+    // ── DUPLICATE CHECK: Verify if any bus in dataset already exists in fleet ──
+    const duplicates = [];
+    for (const row of rows) {
+        const rReg = String(row.regNo || "").replace(/[^A-Z0-9]/g, "").toUpperCase();
+        let rBm = String(row.bm || "").toUpperCase().trim();
+        if (rBm && !rBm.startsWith("BM")) rBm = "BM" + rBm;
+        const existing = findExistingBus(rBm, rReg, state);
+        if (existing) {
+            duplicates.push(existing);
+        }
+    }
+
+    if (duplicates.length > 0) {
+        return {
+            busesProcessed: 0,
+            added: [],
+            duplicateError: `Bus ${duplicates[0].bm} (${duplicates[0].regNo}) already exists in ${duplicates[0].depotName}!`
+        };
+    }
+
+    const addedList = [];
     const usedBms = new Set();
     Object.keys(state).forEach(k => {
         if (/^BM\d+$/i.test(k)) usedBms.add(k.toUpperCase());
@@ -6146,8 +6207,8 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                             hasBmNo = true;
                             if (sampleMatches.length < 3) sampleMatches.push(`Bus Number: ${cellStr}`);
                         }
-                        // Check for bus category like CAT... (e.g. CAT-1, CAT-2, CAT-3, CAT A, CAT B, Category)
-                        if (/\bCAT[-\s]?[123ABC]\b/i.test(cellStr) || /^CAT\s*[:\-_]?\s*[123ABC]/i.test(cellStr) || /^CATEGORY\s*[:\-_]?\s*[123ABC]/i.test(cellStr)) {
+                        // Check for bus category like CAT... (e.g. CAT A, CAT B, CAT C, Category A, Category B, Category C)
+                        if (/\bCAT[-\s]?[ABC]\b/i.test(cellStr) || /^CAT\s*[:\-_]?\s*[ABC]/i.test(cellStr) || /^CATEGORY\s*[:\-_]?\s*[ABC]/i.test(cellStr) || /^CAT\b/i.test(cellStr)) {
                             hasBusCat = true;
                             if (sampleMatches.length < 3) sampleMatches.push(`Category: ${cellStr}`);
                         }
@@ -6168,7 +6229,7 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                 const uLine = line.toUpperCase();
                 if (/\bKA\s*[\d-]{1,3}[A-Z]{1,3}\d{1,4}\b/i.test(uLine) || /\bKA\d{2}/i.test(uLine)) hasRegKA = true;
                 if (/^BM[-\s]?\d{1,5}\b/i.test(uLine) || /\bBM\d{2,5}\b/i.test(uLine)) hasBmNo = true;
-                if (/\bCAT[-\s]?[123ABC]\b/i.test(uLine) || /\bCATEGORY\b/i.test(uLine)) hasBusCat = true;
+                if (/\bCAT[-\s]?[ABC]\b/i.test(uLine) || /\bCATEGORY\s*[:\-_]?\s*[ABC]\b/i.test(uLine)) hasBusCat = true;
             }
         } catch (e) {}
     }
@@ -6200,12 +6261,12 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
 
                 const fileBuffer = Buffer.from(base64Data, "base64");
 
-                // ── STRICT VALIDATION: Bus Details Only (Registration Numbers KA..., Bus Numbers BM..., Category CAT...) ──
+                // ── STRICT VALIDATION: Bus Details Only (Registration Numbers KA..., Bus Numbers BM..., Category CAT A/B/C) ──
                 const validation = validateBusDetailsDataset(fileBuffer, fileName);
                 if (!validation.isValidBusDataset) {
                     sendJson(res, {
                         ok: false,
-                        error: `⚠️ Irrelevant Dataset Rejected: Only Bus Details spreadsheets are accepted!\n\nThe uploaded file "${fileName}" does not contain required bus details:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT-1, CAT-2, CAT-3)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
+                        error: `⚠️ Irrelevant Dataset Rejected: Only Bus Details spreadsheets are accepted!\n\nThe uploaded file "${fileName}" does not contain required bus details:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT A, CAT B, CAT C)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
                     }, 400);
                     return;
                 }
@@ -6228,13 +6289,24 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
 
                 // Ingest buses from dataset into fleet
                 const ingestResult = ingestUploadedFleetDataset(targetPath, safeName, targetDepot, targetDepotName);
+
+                // ── DUPLICATE BUS IN DATASET CHECK ──
+                if (ingestResult.duplicateError) {
+                    if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
+                    sendJson(res, {
+                        ok: false,
+                        error: `⚠️ Bus Already Exists!\n\n${ingestResult.duplicateError}\n\nDuplicate buses cannot be added.`
+                    }, 400);
+                    return;
+                }
+
                 const busesAdded = ingestResult.added.length;
 
                 if (busesAdded === 0 && ingestResult.busesProcessed === 0) {
                     if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
                     sendJson(res, {
                         ok: false,
-                        error: `⚠️ Irrelevant Dataset Rejected: No valid bus records found in "${safeName}".\n\nPlease ensure the spreadsheet contains valid bus rows with Registration Numbers (KA...), Bus Numbers (BM...), and Bus Categories (CAT...).`
+                        error: `⚠️ Irrelevant Dataset Rejected: No valid bus records found in "${safeName}".\n\nPlease ensure the spreadsheet contains valid bus rows with Registration Numbers (KA...), Bus Numbers (BM...), and Bus Categories (CAT A, CAT B, CAT C).`
                     }, 400);
                     return;
                 }

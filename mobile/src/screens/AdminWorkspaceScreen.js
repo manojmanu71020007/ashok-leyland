@@ -1292,8 +1292,10 @@ export default function AdminWorkspaceScreen() {
       return;
     }
 
-    if (cleanId === '1' || cleanId === '2') {
-      Alert.alert(t('protected_master_facility', 'Protected Master Facility'), `Depot ${cleanId} ${t('core_depot_exists_msg', 'is a core operational depot and already exists.')}`);
+    if (cleanId === '1' || cleanId === '2' || depotsList.some((d) => String(d.id).trim().toLowerCase() === cleanId.toLowerCase() || String(d.name).trim().toLowerCase() === newDepotName.trim().toLowerCase())) {
+      const existingDepot = depotsList.find((d) => String(d.id).trim().toLowerCase() === cleanId.toLowerCase() || String(d.name).trim().toLowerCase() === newDepotName.trim().toLowerCase());
+      const exName = existingDepot ? existingDepot.name : (cleanId === '1' ? 'Depot 1 (Chandapura / BMT-32)' : 'Depot 2 (Attibele / Hoskote)');
+      Alert.alert('⚠️ Depot Already Exists', `Depot (ID: ${cleanId}) already exists as "${exName}"!\n\nDuplicate depot creation is not permitted.`);
       return;
     }
 
@@ -1509,11 +1511,11 @@ export default function AdminWorkspaceScreen() {
                 const text = atob(base64Data);
                 const hasKA = /\bKA\s*[\d-]{1,3}[A-Z]{1,3}\d{1,4}\b/i.test(text) || /\bKA\d{2}/i.test(text);
                 const hasBM = /^BM[-\s]?\d{1,5}\b/im.test(text) || /\bBM\d{2,5}\b/i.test(text);
-                const hasCAT = /\bCAT[-\s]?[123ABC]\b/i.test(text) || /\bCATEGORY\b/i.test(text);
+                const hasCAT = /\bCAT[-\s]?[ABC]\b/i.test(text) || /\bCATEGORY\s*[:\-_]?\s*[ABC]\b/i.test(text) || /\bCATEGORY\b/i.test(text);
                 if (!hasKA && !hasBM && !hasCAT) {
                   Alert.alert(
                     '⚠️ Irrelevant Dataset Rejected',
-                    `Invalid File: "${file.name}" does not contain required bus details!\n\nOnly Bus Details spreadsheets are accepted here. Valid files must contain:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT-1, CAT-2, CAT-3)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
+                    `Invalid File: "${file.name}" does not contain required bus details!\n\nOnly Bus Details spreadsheets are accepted here. Valid files must contain:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT A, CAT B, CAT C)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
                   );
                   setSelectedDatasetFile(null);
                   return;
@@ -1686,9 +1688,12 @@ export default function AdminWorkspaceScreen() {
     }
 
     const cleanCode = depotRouteShortName.trim().toUpperCase().replace(/\s+/g, '');
-    const alreadyExists = allAvailableRoutes.some((r) => r.code === cleanCode || r.id === cleanCode);
-    if (alreadyExists) {
-      Alert.alert(t('route_exists', 'Route Exists'), `Route "${cleanCode}" ${t('route_already_active_msg', 'is already active in the depot network.')}`);
+    const existingRoute = allAvailableRoutes.find((r) => r.code === cleanCode || r.id === cleanCode);
+    if (existingRoute) {
+      const exDepotId = String(existingRoute.depot || resolvedDepotId || '1');
+      const exDepotObj = depotsList.find((d) => String(d.id) === exDepotId);
+      const exDepotName = exDepotObj ? exDepotObj.name : `Depot ${exDepotId}`;
+      Alert.alert('⚠️ Route Already Exists', `Route "${cleanCode}" already exists in ${exDepotName}!\n\nDuplicate route additions are not permitted.`);
       return;
     }
 
@@ -2735,6 +2740,28 @@ export default function AdminWorkspaceScreen() {
     }
     const cleanBm = addBm.trim().toUpperCase();
     const cleanReg = addReg.trim().toUpperCase();
+
+    // ── DUPLICATE CHECK: Verify if bus already exists in any depot ──
+    const cleanBmNorm = cleanBm.replace(/[^A-Z0-9]/g, '');
+    const cleanRegNorm = cleanReg.replace(/[^A-Z0-9]/g, '');
+    const existingBus = (resolvedAll || buses || []).find((b) => {
+      const bBm = String(b.bmNumber || b.bm || b.id || '').toUpperCase().trim().replace(/[^A-Z0-9]/g, '');
+      const bReg = String(b.regNo || b.regNumber || '').replace(/[^A-Z0-9]/g, '');
+      return (bBm && cleanBmNorm && bBm === cleanBmNorm) ||
+             (bReg && cleanRegNorm && bReg === cleanRegNorm);
+    });
+
+    if (existingBus) {
+      const exDepotId = String(existingBus.depot || '1').replace(/^DEPOT\s*/i, '').trim();
+      const exDepotObj = depotsList.find((d) => String(d.id) === exDepotId);
+      const exDepotName = exDepotObj ? exDepotObj.name : (exDepotId === '2' ? 'Depot 2 (Attibele / Hoskote)' : 'Depot 1 (Chandapura / BMT-32)');
+      Alert.alert(
+        '⚠️ Bus Already Exists',
+        `Bus ${cleanBm} (${cleanReg}) already exists in ${exDepotName}!\n\nDuplicate bus additions are not permitted.`
+      );
+      return;
+    }
+
     const reasonVal = addReasonDetail.trim() || addReasonSelect || 'New Electric Bus Induction';
     const socVal = Math.min(100, Math.max(10, parseInt(addSoc, 10) || 100));
 
