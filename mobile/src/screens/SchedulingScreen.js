@@ -3772,7 +3772,34 @@ export default function SchedulingScreen() {
       );
       return;
     }
-// Numbers and names allowed in driver part
+
+    // ── GUARD: A driver should NOT be allocated when he is already assigned to some other route ──
+    const cleanDriver = trimmedDriver.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const conflictDuty = (allocatedDuties || []).find((d) => {
+      const dDriver = String(d.driver || d.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+      if (!dDriver || !cleanDriver) return false;
+      const isSame = dDriver === cleanDriver || dDriver.includes(cleanDriver) || cleanDriver.includes(dDriver);
+      if (!isSame) return false;
+
+      const dRoute = String(d.routeCode || d.busNumber || d.routeId || '').trim();
+      const curRoute = String(selectedRoute?.code || selectedRoute?.id || '').trim();
+      const dBm = String(d.bm || d.bmNumber || '').toUpperCase().trim();
+      const curBm = String(activeCandidate?.bmNumber || '').toUpperCase().trim();
+
+      // Conflicting if assigned to another route OR different bus
+      return (dRoute && curRoute && dRoute.toUpperCase() !== curRoute.toUpperCase()) || (dBm && curBm && dBm !== curBm);
+    });
+
+    if (conflictDuty) {
+      const cRoute = conflictDuty.routeCode || conflictDuty.busNumber || conflictDuty.routeName || 'another route';
+      const cBus = conflictDuty.bm || conflictDuty.bmNumber || 'Bus';
+      const cTime = conflictDuty.departureTime ? ` at ${conflictDuty.departureTime}` : '';
+      Alert.alert(
+        '⚠️ Driver Already Assigned',
+        `Driver "${trimmedDriver}" is already assigned to Route ${cRoute} on Bus ${cBus}${cTime}!\n\nA driver cannot be allocated when already assigned to some other route. Please choose an available driver.`
+      );
+      return;
+    }
 
     const finalDriverName = trimmedDriver;
 
@@ -4459,11 +4486,27 @@ export default function SchedulingScreen() {
             <ScrollView style={{ maxHeight: 400 }}>
               {availableDrivers.map((drv) => {
                 const isSelected = selectedDriver.id === drv.id || driverNameInput.trim().toLowerCase() === drv.name.toLowerCase();
+                const drvNorm = drv.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const assignedDuty = (allocatedDuties || []).find((d) => {
+                  const dDriver = String(d.driver || d.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                  return dDriver && drvNorm && (dDriver === drvNorm || dDriver.includes(drvNorm) || drvNorm.includes(dDriver));
+                });
                 return (
                   <TouchableOpacity
                     key={drv.id}
-                    style={[styles.pickerItem, isSelected && styles.pickerItemActive]}
+                    style={[
+                      styles.pickerItem,
+                      isSelected && styles.pickerItemActive,
+                      assignedDuty && { backgroundColor: '#fef2f2', borderColor: '#fca5a5' }
+                    ]}
                     onPress={() => {
+                      if (assignedDuty) {
+                        Alert.alert(
+                          '⚠️ Driver Unavailable',
+                          `Driver "${drv.name}" is already assigned to Route ${assignedDuty.routeCode || assignedDuty.busNumber} on Bus ${assignedDuty.bm || assignedDuty.bmNumber}.\n\nA driver cannot be allocated when already assigned to some other route. Please choose an available driver.`
+                        );
+                        return;
+                      }
                       setSelectedDriver(drv);
                       setDriverNameInput(drv.name);
                       setDriverError('');
@@ -4471,7 +4514,14 @@ export default function SchedulingScreen() {
                     }}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.pickerItemTitle}>👤 {drv.name}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.pickerItemTitle, assignedDuty && { color: '#991b1b' }]}>👤 {drv.name}</Text>
+                      {assignedDuty && (
+                        <Text style={{ fontSize: 11, color: '#dc2626', fontWeight: '700', marginTop: 2 }}>
+                          ⚠️ Assigned to Route {assignedDuty.routeCode || assignedDuty.busNumber}
+                        </Text>
+                      )}
+                    </View>
                     {isSelected && <Text style={styles.pickerCheck}>✓</Text>}
                   </TouchableOpacity>
                 );

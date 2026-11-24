@@ -6113,6 +6113,75 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
     };
 }
 
+function validateBusDetailsDataset(fileBuffer, safeName) {
+    let hasRegKA = false;
+    let hasBmNo = false;
+    let hasBusCat = false;
+    let sampleMatches = [];
+
+    // 1. SheetJS parser for Excel & CSV
+    if (XLSX) {
+        try {
+            const workbook = XLSX.read(fileBuffer, { type: "buffer" });
+            for (const sheetName of workbook.SheetNames) {
+                const sheet = workbook.Sheets[sheetName];
+                if (!sheet) continue;
+                const rawRows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+                if (!rawRows || rawRows.length === 0) continue;
+
+                for (let r = 0; r < Math.min(rawRows.length, 250); r++) {
+                    const row = rawRows[r];
+                    if (!Array.isArray(row)) continue;
+                    for (const cell of row) {
+                        const cellStr = String(cell || "").trim().toUpperCase();
+                        if (!cellStr) continue;
+
+                        // Check for registration numbers like KA....... (e.g. KA51AH1234, KA01F1234, KA-51...)
+                        if (/\bKA\s*[\d-]{1,3}[A-Z]{1,3}\d{1,4}\b/i.test(cellStr) || /^KA\d{2}[A-Z0-9]/i.test(cellStr.replace(/[^A-Z0-9]/g, '')) || /^KA\d{2}/i.test(cellStr)) {
+                            hasRegKA = true;
+                            if (sampleMatches.length < 3) sampleMatches.push(`Registration: ${cellStr}`);
+                        }
+                        // Check for bus numbers like BM.... (e.g. BM001, BM-102, BM214)
+                        if (/^BM[-\s]?\d{1,5}\b/i.test(cellStr) || /\bBM\d{2,5}\b/i.test(cellStr)) {
+                            hasBmNo = true;
+                            if (sampleMatches.length < 3) sampleMatches.push(`Bus Number: ${cellStr}`);
+                        }
+                        // Check for bus category like CAT... (e.g. CAT-1, CAT-2, CAT-3, CAT A, CAT B, Category)
+                        if (/\bCAT[-\s]?[123ABC]\b/i.test(cellStr) || /^CAT\s*[:\-_]?\s*[123ABC]/i.test(cellStr) || /^CATEGORY\s*[:\-_]?\s*[123ABC]/i.test(cellStr)) {
+                            hasBusCat = true;
+                            if (sampleMatches.length < 3) sampleMatches.push(`Category: ${cellStr}`);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("[WARN] SheetJS inspection warning in validateBusDetailsDataset:", e.message);
+        }
+    }
+
+    // 2. Fallback text/CSV check
+    if (!hasRegKA && !hasBmNo && !hasBusCat) {
+        try {
+            const text = fileBuffer.toString("utf8");
+            const lines = text.split(/\r?\n/).slice(0, 250);
+            for (const line of lines) {
+                const uLine = line.toUpperCase();
+                if (/\bKA\s*[\d-]{1,3}[A-Z]{1,3}\d{1,4}\b/i.test(uLine) || /\bKA\d{2}/i.test(uLine)) hasRegKA = true;
+                if (/^BM[-\s]?\d{1,5}\b/i.test(uLine) || /\bBM\d{2,5}\b/i.test(uLine)) hasBmNo = true;
+                if (/\bCAT[-\s]?[123ABC]\b/i.test(uLine) || /\bCATEGORY\b/i.test(uLine)) hasBusCat = true;
+            }
+        } catch (e) {}
+    }
+
+    return {
+        isValidBusDataset: hasRegKA || hasBmNo || hasBusCat,
+        hasRegKA,
+        hasBmNo,
+        hasBusCat,
+        sampleMatches
+    };
+}
+
     // ── POST /api/upload-dataset (Upload CSV or Excel spreadsheets to data/ & root) ──
     if (pathname === "/api/upload-dataset" && req.method === "POST") {
         readBody(req, body => {
@@ -6129,6 +6198,18 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     return;
                 }
 
+                const fileBuffer = Buffer.from(base64Data, "base64");
+
+                // ── STRICT VALIDATION: Bus Details Only (Registration Numbers KA..., Bus Numbers BM..., Category CAT...) ──
+                const validation = validateBusDetailsDataset(fileBuffer, fileName);
+                if (!validation.isValidBusDataset) {
+                    sendJson(res, {
+                        ok: false,
+                        error: `⚠️ Irrelevant Dataset Rejected: Only Bus Details spreadsheets are accepted!\n\nThe uploaded file "${fileName}" does not contain required bus details:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT-1, CAT-2, CAT-3)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
+                    }, 400);
+                    return;
+                }
+
                 // Sanitize file name
                 const safeName = path.basename(fileName);
                 const dataDir = path.join(BASE_DIR, "data");
@@ -6137,7 +6218,6 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                 }
 
                 const targetPath = path.join(dataDir, safeName);
-                const fileBuffer = Buffer.from(base64Data, "base64");
                 fs.writeFileSync(targetPath, fileBuffer);
 
                 // If this file also resides in the root directory, update it as well
@@ -6146,16 +6226,18 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     fs.writeFileSync(rootCandidate, fileBuffer);
                 }
 
-                // Ingest buses from dataset into fleet if fleet data exists
+                // Ingest buses from dataset into fleet
                 const ingestResult = ingestUploadedFleetDataset(targetPath, safeName, targetDepot, targetDepotName);
                 const busesAdded = ingestResult.added.length;
 
-                // Ingest route details and departure time schedules into Master Route Dataset
-                const routeIngestResult = ingestUploadedRouteAndScheduleDataset(targetPath, safeName, targetDepot, targetDepotName);
-                const routesAdded = routeIngestResult.routesAdded;
-                const timetablesAdded = routeIngestResult.timetablesAdded;
-                const schedulesAdded = routeIngestResult.schedulesAdded;
-                const updatedRoutes = routeIngestResult.updatedRoutes;
+                if (busesAdded === 0 && ingestResult.busesProcessed === 0) {
+                    if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
+                    sendJson(res, {
+                        ok: false,
+                        error: `⚠️ Irrelevant Dataset Rejected: No valid bus records found in "${safeName}".\n\nPlease ensure the spreadsheet contains valid bus rows with Registration Numbers (KA...), Bus Numbers (BM...), and Bus Categories (CAT...).`
+                    }, 400);
+                    return;
+                }
 
                 // Update datasets manifest with depot association
                 try {
@@ -6171,19 +6253,15 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                         targetDepotName: targetDepotName,
                         size: fileBuffer.length,
                         busesAdded: busesAdded,
-                        routesAdded: routesAdded,
-                        timetablesAdded: timetablesAdded,
-                        schedulesAdded: schedulesAdded,
+                        routesAdded: 0,
+                        timetablesAdded: 0,
+                        schedulesAdded: 0,
                         uploadedAt: new Date().toISOString()
                     });
                     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
                 } catch (e) {
                     console.warn("Could not write datasets manifest:", e.message);
                 }
-
-                // Invalidate cached corridor schedules
-                cachedCorridorSchedules = null;
-                detailedSchedulesCache = null;
 
                 stateVersion = Date.now();
                 broadcastSyncEvent("dataset-updated", {
@@ -6192,10 +6270,9 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     targetDepot: targetDepot,
                     targetDepotName: targetDepotName,
                     busesAdded: busesAdded,
-                    routesAdded: routesAdded,
-                    timetablesAdded: timetablesAdded,
-                    schedulesAdded: schedulesAdded,
-                    updatedRoutes: updatedRoutes,
+                    routesAdded: 0,
+                    timetablesAdded: 0,
+                    schedulesAdded: 0,
                     timestamp: new Date().toISOString(),
                     datasetType
                 });
@@ -6208,26 +6285,11 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     });
                 }
 
-                if (routesAdded > 0 || timetablesAdded > 0 || updatedRoutes.length > 0) {
-                    broadcastSyncEvent("routes-dataset-updated", {
-                        dataset: routeIngestResult.dataset,
-                        timestamp: new Date().toISOString()
-                    });
-                }
-
                 // Calculate updated total fleet count
                 const finalState = loadBusState();
                 const totalFleetCount = Object.keys(finalState).filter(k => /^BM\d+$/i.test(k) && !finalState[k].deleted && !finalState[k].isDeleted).length;
 
-                const summaryParts = [];
-                if (busesAdded > 0) summaryParts.push(`${busesAdded} buses added to fleet`);
-                if (routesAdded > 0) summaryParts.push(`${routesAdded} new routes registered`);
-                if (timetablesAdded > 0) summaryParts.push(`${timetablesAdded} departure times updated`);
-                else if (updatedRoutes.length > 0 && routesAdded === 0) summaryParts.push(`${updatedRoutes.length} route timetables updated`);
-
-                const responseMsg = summaryParts.length > 0
-                    ? `Dataset "${safeName}" successfully uploaded: ${summaryParts.join(", ")}. Assigned to ${targetDepotName}. Total fleet: ${totalFleetCount} buses.`
-                    : `Dataset spreadsheet "${safeName}" successfully added to ${targetDepotName} (${(fileBuffer.length / 1024).toFixed(1)} KB).`;
+                const responseMsg = `Bus details dataset "${safeName}" successfully uploaded: ${busesAdded} buses added/updated for ${targetDepotName}. Total fleet: ${totalFleetCount} buses.`;
 
                 sendJson(res, {
                     ok: true,
@@ -6237,11 +6299,9 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     targetDepotName: targetDepotName,
                     busesAdded: busesAdded,
                     addedBuses: ingestResult.added,
-                    routesAdded: routesAdded,
-                    timetablesAdded: timetablesAdded,
-                    schedulesAdded: schedulesAdded,
-                    updatedRoutes: updatedRoutes,
-                    routesDataset: routeIngestResult.dataset,
+                    routesAdded: 0,
+                    timetablesAdded: 0,
+                    schedulesAdded: 0,
                     totalFleetCount: totalFleetCount,
                     size: fileBuffer.length,
                     path: targetPath,

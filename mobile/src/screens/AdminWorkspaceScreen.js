@@ -1502,6 +1502,25 @@ export default function AdminWorkspaceScreen() {
           reader.onload = (event) => {
             const dataUrl = event.target.result;
             const base64Data = dataUrl.split(',')[1] || '';
+
+            // Quick client-side validation for CSV/text files
+            if (file.name.toLowerCase().endsWith('.csv')) {
+              try {
+                const text = atob(base64Data);
+                const hasKA = /\bKA\s*[\d-]{1,3}[A-Z]{1,3}\d{1,4}\b/i.test(text) || /\bKA\d{2}/i.test(text);
+                const hasBM = /^BM[-\s]?\d{1,5}\b/im.test(text) || /\bBM\d{2,5}\b/i.test(text);
+                const hasCAT = /\bCAT[-\s]?[123ABC]\b/i.test(text) || /\bCATEGORY\b/i.test(text);
+                if (!hasKA && !hasBM && !hasCAT) {
+                  Alert.alert(
+                    '⚠️ Irrelevant Dataset Rejected',
+                    `Invalid File: "${file.name}" does not contain required bus details!\n\nOnly Bus Details spreadsheets are accepted here. Valid files must contain:\n• Registration numbers like KA....... (e.g. KA51AH...)\n• Bus numbers like BM.... (e.g. BM001, BM012)\n• Bus categories like CAT... (e.g. CAT-1, CAT-2, CAT-3)\n\nFiles with route details, schedule timetables, or other non-bus data are strictly rejected.`
+                  );
+                  setSelectedDatasetFile(null);
+                  return;
+                }
+              } catch (_) {}
+            }
+
             setSelectedDatasetFile({
               name: file.name,
               size: file.size,
@@ -1599,34 +1618,35 @@ export default function AdminWorkspaceScreen() {
           const sampleList = data.addedBuses.slice(0, 5).map((b) => `• ${b.bm} (${b.regNo}) — Cat ${b.category}`).join('\n');
           const moreCount = data.addedBuses.length > 5 ? `\n• ...and ${data.addedBuses.length - 5} more` : '';
           Alert.alert(
-            `✅ Dataset Updated Successfully!`,
-            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\n` +
+            `✅ Bus Dataset Updated Successfully!`,
+            `Bus details dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\n` +
             (reportLines.length > 0 ? reportLines.join('\n') + '\n\n' : '') +
-            `Buses added to fleet:\n${sampleList}${moreCount}\n\nTotal fleet count is now updated (${data.totalFleetCount || ''} total buses).`
-          );
-        } else if (data.routesAdded > 0 || data.timetablesAdded > 0 || data.schedulesAdded > 0) {
-          Alert.alert(
-            `✅ Route & Timetable Dataset Updated!`,
-            `Dataset "${uploadedName}" was processed successfully for ${targetDepotDisplay}.\n\n` +
-            reportLines.join('\n') + '\n\n' +
-            `Active schedules and departure timetables are now available across all dispatch consoles.`
+            `Buses added/updated in fleet:\n${sampleList}${moreCount}\n\nTotal fleet count is now updated (${data.totalFleetCount || ''} total buses).`
           );
         } else {
           Alert.alert(
-            'Dataset Added Successfully',
-            `The spreadsheet "${uploadedName}" has been successfully added to ${targetDepotDisplay}.\n\nActive schedules, corridor routes, and allocation models are refreshed for this depot.`
+            'Bus Dataset Added Successfully',
+            `The bus details file "${uploadedName}" has been successfully added to ${targetDepotDisplay}.\n\nFleet records and battery benchmarks are refreshed.`
           );
         }
       } else {
-        throw new Error(data?.error || data?.details || 'Upload failed');
+        const errorMsg = data?.error || data?.details || 'Upload rejected by server';
+        setSelectedDatasetFile(null);
+        setDatasetUploadStatus({
+          isError: true,
+          message: errorMsg
+        });
+        Alert.alert('⚠️ Irrelevant Dataset Rejected', errorMsg);
+        return;
       }
     } catch (err) {
       console.error('Error uploading dataset:', err);
+      setSelectedDatasetFile(null);
       setDatasetUploadStatus({
         isError: true,
-        message: `⚠️ Upload failed: ${err.message}`
+        message: `⚠️ ${err.message}`
       });
-      Alert.alert('Upload Error', `Failed to upload dataset: ${err.message}`);
+      Alert.alert('⚠️ Irrelevant Dataset Rejected', err.message || 'The uploaded file does not contain valid bus details.');
     } finally {
       setIsUploadingDataset(false);
     }
@@ -4376,37 +4396,37 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* ── 📊 DATASET / SPREADSHEET UPDATE CARD ── */}
+            {/* ── 📊 BUS DETAILS DATASET / SPREADSHEET UPDATE CARD ── */}
             <View style={styles.profileCard}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Text style={{ fontSize: 20 }}>📊</Text>
-                  <Text style={styles.profileCardTitle}>{t('update_dataset_title', 'Update Dataset / Spreadsheet')}</Text>
+                  <Text style={{ fontSize: 20 }}>🚌</Text>
+                  <Text style={styles.profileCardTitle}>{t('update_dataset_title', 'Update Dataset / Spreadsheet (Bus Details Only)')}</Text>
                 </View>
                 <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#a7f3d0' }}>
                   <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#059669' }}>
-                    CSV / Excel (*.xlsx)
+                    Bus Details (*.xlsx, *.csv)
                   </Text>
                 </View>
               </View>
 
               <Text style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12, fontWeight: '500', lineHeight: 18 }}>
-                {t('update_dataset_desc', 'Upload or update dataset spreadsheets (e.g. SCH_DATA_NH_new__1_.xlsx, Form_4_Consolidation_-_Chandapura.xlsx, or CSV files) to refresh fleet allocation models, timetables, and bus battery benchmarks.')}
+                {t('update_dataset_desc', 'Upload bus details spreadsheet or CSV to update the fleet. Strictly accepts files containing Registration Numbers (KA...), Bus Numbers (BM...), or Bus Categories (CAT...). Files with route details, timetables, or other irrelevant data are rejected.')}
               </Text>
 
               {/* Dataset Quick Badges */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
-                <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 SCH_DATA_NH_new__1_.xlsx</Text>
+                <View style={{ backgroundColor: '#eff6ff', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#bfdbfe' }}>
+                  <Text style={{ fontSize: 11, color: '#1d4ed8', fontWeight: '700' }}>🚌 Bus Details Only</Text>
                 </View>
                 <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 Form_4_Consolidation_-_Chandapura.xlsx</Text>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📋 Registration No: KA.......</Text>
                 </View>
                 <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📄 Chandapura_Depot_Battery_Allocation.xlsx</Text>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>🏷️ Bus Number: BM....</Text>
                 </View>
                 <View style={{ backgroundColor: '#f1f5f9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, borderWidth: 1, borderColor: '#e2e8f0' }}>
-                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>📊 Fleet / Route CSV Files (*.csv)</Text>
+                  <Text style={{ fontSize: 11, color: '#334155', fontWeight: '600' }}>⚡ Category: CAT... (CAT-1/2/3)</Text>
                 </View>
               </View>
 

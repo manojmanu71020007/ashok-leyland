@@ -5047,71 +5047,82 @@
 
 
         function populateDriverDropdown() {
-
             const driverInput = document.getElementById("driver");
-
             const dataList = document.getElementById("driver-list");
-
             const quickSelect = document.getElementById("driver-quick-select");
-
             const badge = document.getElementById("driver-depot-badge");
 
-
-
             const drivers = getDepotDrivers(currentOperatingDepot);
+            const duties = Array.isArray(allocatedDuties) ? allocatedDuties : loadAllocatedDuties();
+
+            // Check which drivers are already assigned to active duties
+            const availableDrivers = drivers.filter(d => {
+                const dNorm = d.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                return !duties.some(duty => {
+                    const dutyDriver = String(duty.driver || duty.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                    return dutyDriver && dNorm && (dutyDriver === dNorm || dutyDriver.includes(dNorm) || dNorm.includes(dutyDriver));
+                });
+            });
 
             if (badge) {
-
-                badge.textContent = `Depot ${currentOperatingDepot} Drivers (${drivers.length} Available)`;
-
+                badge.textContent = `Depot ${currentOperatingDepot} Drivers (${availableDrivers.length} of ${drivers.length} Available)`;
             }
-
-
 
             if (dataList) {
-
-                dataList.innerHTML = drivers.map(d => `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)} (${escapeHtml(d.badge)}) - ${escapeHtml(d.shift)}</option>`).join("");
-
+                dataList.innerHTML = drivers.map(d => {
+                    const dNorm = d.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const assigned = duties.find(duty => {
+                        const dutyDriver = String(duty.driver || duty.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return dutyDriver && dNorm && (dutyDriver === dNorm || dutyDriver.includes(dNorm) || dNorm.includes(dutyDriver));
+                    });
+                    if (assigned) {
+                        return `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)} (${escapeHtml(d.badge)}) — [ASSIGNED: Route ${escapeHtml(assigned.routeCode || assigned.busNumber)}]</option>`;
+                    }
+                    return `<option value="${escapeHtml(d.name)}">${escapeHtml(d.name)} (${escapeHtml(d.badge)}) - ${escapeHtml(d.shift)}</option>`;
+                }).join("");
             }
-
-
 
             if (quickSelect) {
-
-                let qHtml = `<option value="">▼ Select</option>`;
-
+                let qHtml = `<option value="">▼ Select Driver</option>`;
                 qHtml += `<optgroup label="🏢 Depot ${currentOperatingDepot} Rostered Drivers">`;
-
                 drivers.forEach(d => {
-
-                    qHtml += `<option value="${escapeHtml(d.name)}">👤 ${escapeHtml(d.name)} (${escapeHtml(d.badge)})</option>`;
-
+                    const dNorm = d.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const assigned = duties.find(duty => {
+                        const dutyDriver = String(duty.driver || duty.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                        return dutyDriver && dNorm && (dutyDriver === dNorm || dutyDriver.includes(dNorm) || dNorm.includes(dutyDriver));
+                    });
+                    if (assigned) {
+                        qHtml += `<option value="${escapeHtml(d.name)}" style="color:#dc2626; background:#fef2f2;">⚠️ ${escapeHtml(d.name)} (${escapeHtml(d.badge)}) — Assigned: Route ${escapeHtml(assigned.routeCode || assigned.busNumber)}</option>`;
+                    } else {
+                        qHtml += `<option value="${escapeHtml(d.name)}">👤 ${escapeHtml(d.name)} (${escapeHtml(d.badge)}) — Available</option>`;
+                    }
                 });
-
                 qHtml += `</optgroup>`;
-
                 quickSelect.innerHTML = qHtml;
-
             }
-
         }
 
-
-
         window.selectDriverFromRoster = function(name) {
+            const duties = Array.isArray(allocatedDuties) ? allocatedDuties : loadAllocatedDuties();
+            const dNorm = String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const assigned = duties.find(duty => {
+                const dutyDriver = String(duty.driver || duty.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                return dutyDriver && dNorm && (dutyDriver === dNorm || dutyDriver.includes(dNorm) || dNorm.includes(dutyDriver));
+            });
 
-            const driverInput = document.getElementById("driver");
-
-            if (driverInput) {
-
-                driverInput.value = name;
-
-                driverInput.dispatchEvent(new Event("input", { bubbles: true }));
-
-                driverInput.dispatchEvent(new Event("change", { bubbles: true }));
-
+            if (assigned) {
+                const exRoute = assigned.routeCode || assigned.busNumber || assigned.route || 'another route';
+                const exBus = assigned.bm || assigned.busId || 'Bus';
+                alert(`⚠️ Driver Unavailable!\n\nDriver "${name}" is already assigned to Route ${exRoute} on ${exBus}.\n\nA driver cannot be allocated when already assigned to some other route. Please choose an available driver.`);
+                return;
             }
 
+            const driverInput = document.getElementById("driver");
+            if (driverInput) {
+                driverInput.value = name;
+                driverInput.dispatchEvent(new Event("input", { bubbles: true }));
+                driverInput.dispatchEvent(new Event("change", { bubbles: true }));
+            }
         };
 
 
@@ -10306,6 +10317,45 @@
 
                             }
 
+                        }
+
+                        // ── GUARD: A driver should NOT be allocated when he is already assigned to some other route ──
+                        const curRouteCode = normalizeRoute(routeObj.code);
+                        const driverNorm = String(selDriver.name || rawDriverVal).toLowerCase().replace(/[^a-z0-9]/g, '');
+                        const driverBadgeNorm = String(selDriver.badge || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
+                        const existingDriverDuty = (allocatedDuties || []).find(d => {
+                            const dDriver = String(d.driver || d.driverName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                            if (!dDriver || !driverNorm) return false;
+                            const isSame = (dDriver === driverNorm || dDriver.includes(driverNorm) || driverNorm.includes(dDriver) ||
+                                           (driverBadgeNorm && dDriver.includes(driverBadgeNorm)));
+                            if (!isSame) return false;
+
+                            const dRoute = normalizeRoute(d.routeCode || d.busNumber || d.route || '');
+                            const dBm = String(d.bm || d.busId || '').toUpperCase().trim();
+                            const curBm = String(alloc.bm || '').toUpperCase().trim();
+
+                            // Conflicting if assigned to another route OR a different bus
+                            return (dRoute && curRouteCode && dRoute !== curRouteCode) || (dBm && curBm && dBm !== curBm);
+                        });
+
+                        if (existingDriverDuty) {
+                            const exRoute = existingDriverDuty.routeCode || existingDriverDuty.busNumber || existingDriverDuty.route || 'another route';
+                            const exBus = existingDriverDuty.bm || existingDriverDuty.busId || 'Bus';
+                            const exTime = existingDriverDuty.departureTime ? ` at ${existingDriverDuty.departureTime}` : '';
+
+                            showAllocationToast(`⚠️ Driver "${rawDriverVal}" is already assigned to Route ${exRoute} on Bus ${exBus}${exTime}! A driver cannot be allocated to multiple routes simultaneously.`, "error");
+                            alert(`⚠️ Driver Already Assigned!\n\nDriver "${rawDriverVal}" is currently assigned to Route ${exRoute} on Bus ${exBus}${exTime}.\n\nA driver cannot be allocated when he is already assigned to some other route. Please choose an available driver.`);
+                            if (driverInput) {
+                                driverInput.focus();
+                                driverInput.style.borderColor = "#dc2626";
+                                driverInput.style.boxShadow = "0 0 0 3px rgba(220, 38, 38, 0.25)";
+                                setTimeout(() => {
+                                    driverInput.style.borderColor = "";
+                                    driverInput.style.boxShadow = "";
+                                }, 3500);
+                            }
+                            return;
                         }
 
 
