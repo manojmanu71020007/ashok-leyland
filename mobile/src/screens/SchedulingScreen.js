@@ -3167,51 +3167,36 @@ export default function SchedulingScreen() {
         serverPending = res.data.pendingRelayRoutes;
       }
 
-      // Check completed routes log
-      let compLog = [];
-      const compRes = await api.get('/api/completed-routes').catch(() => null);
-      if (compRes && compRes.data && Array.isArray(compRes.data.completedRoutesLog)) {
-        compLog = compRes.data.completedRoutesLog;
-      }
+      const curDepot = String(depotNum || '1').trim();
 
-      const merged = { ...serverPending };
-      compLog.forEach((item) => {
-        const rName = item.route || item.routeCode || '';
-        if (isNonSingleChargeRoute(rName)) {
-          const rCode = cleanRouteCode(rName);
-          const dDepot = String(item.depot || depotNum || '1').trim();
-          const firstBus = String(item.bm || item.bus || '').toUpperCase().trim();
+      // Only consider pending relays that were actively recorded on route completion for this depot
+      const filtered = {};
+      if (serverPending && typeof serverPending === 'object') {
+        for (const [rCode, info] of Object.entries(serverPending)) {
+          if (!info) continue;
+          const infoDepot = String(info.depot || '').trim();
+          if (infoDepot && curDepot && infoDepot.toLowerCase() !== curDepot.toLowerCase()) {
+            continue;
+          }
 
+          const firstBus = String(info.firstBus || '').toUpperCase().trim();
           const hasSecondBus = (allocatedDuties || []).some((d) => {
             const dRoute = cleanRouteCode(d.routeCode || d.route || '');
             const dDep = String(d.depot || '').trim();
-            const dBm = String(d.bm || d.bmNumber || '').toUpperCase().trim();
-            return dRoute === rCode && dDep === dDepot && dBm !== firstBus;
+            const dBm = String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim();
+            return dRoute === rCode && (!dDep || dDep.toLowerCase() === curDepot.toLowerCase()) && dBm && dBm !== firstBus;
           });
 
           if (!hasSecondBus) {
-            if (!merged[rCode]) {
-              merged[rCode] = {
-                route: rCode,
-                fullRouteName: rName,
-                depot: dDepot,
-                firstBus,
-                reg: item.reg || '',
-                driver: item.driver || '',
-                completedAt: item.completedAt || 'Recently',
-                isNonSingleCharge: true,
-              };
-            }
-          } else {
-            delete merged[rCode];
+            filtered[rCode] = info;
           }
         }
-      });
+      }
 
-      setPendingRelayRoutes(merged);
+      setPendingRelayRoutes(filtered);
 
       // Check 5-minute recurring popup condition
-      const items = Object.values(merged);
+      const items = Object.values(filtered);
       if (items.length > 0) {
         const now = Date.now();
         if (lastPopupTimeRef.current === 0 || (now - lastPopupTimeRef.current >= 5 * 60 * 1000)) {

@@ -10872,74 +10872,47 @@
 
         async function fetchAndSyncPendingRelays(stateObj = null) {
             try {
-                let serverPending = null;
+                let serverPending = {};
                 if (stateObj && stateObj._pendingRelayRoutes) {
                     serverPending = stateObj._pendingRelayRoutes;
                 } else {
                     const res = await fetch("/api/pending-relay-routes").catch(() => null);
                     if (res && res.ok) {
                         const json = await res.json();
-                        serverPending = json.pendingRelayRoutes;
+                        serverPending = json.pendingRelayRoutes || {};
                     }
                 }
 
-                if (serverPending && typeof serverPending === 'object') {
-                    pendingRelayRoutes = { ...serverPending };
-                }
-
-                // Also audit completedRoutesLog & allocatedDuties to catch any completed 1st bus
-                let compLog = [];
-                try {
-                    const logRes = await fetch("/api/completed-routes").catch(() => null);
-                    if (logRes && logRes.ok) {
-                        const json = await logRes.json();
-                        compLog = json.completedRoutesLog || [];
-                    }
-                } catch (_) {}
-
-                if (!compLog.length && typeof window.DepotSyncEngine !== 'undefined' && typeof window.DepotSyncEngine.getCompletedRoutes === 'function') {
-                    compLog = window.DepotSyncEngine.getCompletedRoutes() || [];
-                }
-
-                // Check active allocated duties
+                const curDepot = String(currentOperatingDepot || '1').trim();
                 const activeDuties = Array.isArray(allocatedDuties) ? allocatedDuties : loadAllocatedDuties();
 
-                compLog.forEach(item => {
-                    const rName = item.route || item.routeCode || '';
-                    if (isNonSingleChargeRoute(rName)) {
-                        const rCode = cleanRouteCode(rName);
-                        const depot = String(item.depot || currentOperatingDepot || '1').trim();
-                        const firstBus = String(item.bm || item.bus || '').toUpperCase().trim();
+                // Only consider pending relays that were actively recorded on route completion for this depot
+                const filtered = {};
+                if (serverPending && typeof serverPending === 'object') {
+                    for (const [rCode, info] of Object.entries(serverPending)) {
+                        if (!info) continue;
+                        const infoDepot = String(info.depot || '').trim();
+                        // Only match current operating depot
+                        if (infoDepot && curDepot && infoDepot.toLowerCase() !== curDepot.toLowerCase()) {
+                            continue;
+                        }
 
-                        // Check if another bus is already allocated from this depot for this route
+                        const firstBus = String(info.firstBus || '').toUpperCase().trim();
+                        // Check if a second bus from this depot has been allocated
                         const hasSecondBus = (activeDuties || []).some(d => {
                             const dRoute = cleanRouteCode(d.routeCode || d.route || '');
                             const dDepot = String(d.depot || '').trim();
-                            const dBm = String(d.bm || '').toUpperCase().trim();
-                            return dRoute === rCode && dDepot === depot && dBm !== firstBus;
+                            const dBm = String(d.bm || d.busId || '').toUpperCase().trim();
+                            return dRoute === rCode && (!dDepot || dDepot.toLowerCase() === curDepot.toLowerCase()) && dBm && dBm !== firstBus;
                         });
 
                         if (!hasSecondBus) {
-                            if (!pendingRelayRoutes[rCode]) {
-                                pendingRelayRoutes[rCode] = {
-                                    route: rCode,
-                                    fullRouteName: rName,
-                                    depot: depot,
-                                    firstBus: firstBus,
-                                    reg: item.reg || '',
-                                    driver: item.driver || '',
-                                    completedAt: item.completedAt || 'Recently',
-                                    completedTs: item.completedTs || Date.now(),
-                                    isNonSingleCharge: true,
-                                    reason: 'NOT Single Charge Operation (Mandatory Mid-route Charging or Physically Exceeding Range)'
-                                };
-                            }
-                        } else if (hasSecondBus && pendingRelayRoutes[rCode]) {
-                            delete pendingRelayRoutes[rCode];
+                            filtered[rCode] = info;
                         }
                     }
-                });
+                }
 
+                pendingRelayRoutes = filtered;
                 updateRelayBellUI();
                 evaluateRelayPopupTimer();
             } catch (err) {
