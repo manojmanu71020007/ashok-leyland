@@ -32,6 +32,7 @@ import { getDepotDisplayName, getRoutesForDepot, getRouteDefinition } from '../c
 import { getRouteFromDataset, subscribeDatasetChanges } from '../context/routeDataset';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
+import { api } from '../api/client';
 
 // ── DEPOT 1 ROUTES (Exact Match with Website scheduling.html) ──
 const DEPOT_1_ROUTES = [
@@ -2996,6 +2997,32 @@ const adjustTimeStr = (timeStr, deltaMinutes) => {
   }
 };
 
+const BellIcon = ({ color = '#1e293b', size = 20 }) => (
+  <View style={{ width: size + 4, height: size + 4, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: size * 0.72, height: size * 0.7, borderTopLeftRadius: size * 0.36, borderTopRightRadius: size * 0.36, borderWidth: 1.8, borderColor: color }} />
+    <View style={{ width: size * 0.95, height: 2, borderRadius: 1, backgroundColor: color, marginTop: -0.5 }} />
+    <View style={{ width: 3, height: 2, borderBottomLeftRadius: 1.5, borderBottomRightRadius: 1.5, backgroundColor: color, marginTop: 1 }} />
+  </View>
+);
+
+const NON_SINGLE_CHARGE_ROUTES = ['500DC', 'KBS3F', 'KBS3A', '328H', '360K', '361C', '399C'];
+
+function cleanRouteCode(rStr) {
+  if (!rStr) return '';
+  const s = String(rStr).trim().toUpperCase();
+  for (const code of NON_SINGLE_CHARGE_ROUTES) {
+    if (s.includes(code)) return code;
+  }
+  const match = s.match(/\b([A-Z0-9]+[A-Z0-9\/-]*)\b/);
+  return match ? match[1] : s;
+}
+
+function isNonSingleChargeRoute(rStr) {
+  if (!rStr) return false;
+  const s = String(rStr).trim().toUpperCase();
+  return NON_SINGLE_CHARGE_ROUTES.some((code) => s.includes(code));
+}
+
 export default function SchedulingScreen() {
   const { buses, allBuses, lockedBuses = [], allocatedDuties = [], allocateBusToRoute } = useFleet();
   const { selectedDepot, logout, returnToLogin } = useAuth();
@@ -3122,6 +3149,112 @@ export default function SchedulingScreen() {
   const [driverError, setDriverError] = useState('');
   const [selectedCandidateBm, setSelectedCandidateBm] = useState(null);
   const [langModalOpen, setLangModalOpen] = useState(false);
+
+  // ── Relay Alerts State & 5-minute Recurring Pop-up Alert ──
+  const [pendingRelayRoutes, setPendingRelayRoutes] = useState({});
+  const [relayModalOpen, setRelayModalOpen] = useState(false);
+  const [relayPopupOpen, setRelayPopupOpen] = useState(false);
+  const [activePopupItem, setActivePopupItem] = useState(null);
+  const lastPopupTimeRef = React.useRef(0);
+
+  const pendingRelayCount = Object.keys(pendingRelayRoutes).length;
+
+  const fetchAndSyncRelays = useCallback(async () => {
+    try {
+      let serverPending = {};
+      const res = await api.get('/api/pending-relay-routes').catch(() => null);
+      if (res && res.data && res.data.pendingRelayRoutes) {
+        serverPending = res.data.pendingRelayRoutes;
+      }
+
+      // Check completed routes log
+      let compLog = [];
+      const compRes = await api.get('/api/completed-routes').catch(() => null);
+      if (compRes && compRes.data && Array.isArray(compRes.data.completedRoutesLog)) {
+        compLog = compRes.data.completedRoutesLog;
+      }
+
+      const merged = { ...serverPending };
+      compLog.forEach((item) => {
+        const rName = item.route || item.routeCode || '';
+        if (isNonSingleChargeRoute(rName)) {
+          const rCode = cleanRouteCode(rName);
+          const dDepot = String(item.depot || depotNum || '1').trim();
+          const firstBus = String(item.bm || item.bus || '').toUpperCase().trim();
+
+          const hasSecondBus = (allocatedDuties || []).some((d) => {
+            const dRoute = cleanRouteCode(d.routeCode || d.route || '');
+            const dDep = String(d.depot || '').trim();
+            const dBm = String(d.bm || d.bmNumber || '').toUpperCase().trim();
+            return dRoute === rCode && dDep === dDepot && dBm !== firstBus;
+          });
+
+          if (!hasSecondBus) {
+            if (!merged[rCode]) {
+              merged[rCode] = {
+                route: rCode,
+                fullRouteName: rName,
+                depot: dDepot,
+                firstBus,
+                reg: item.reg || '',
+                driver: item.driver || '',
+                completedAt: item.completedAt || 'Recently',
+                isNonSingleCharge: true,
+              };
+            }
+          } else {
+            delete merged[rCode];
+          }
+        }
+      });
+
+      setPendingRelayRoutes(merged);
+
+      // Check 5-minute recurring popup condition
+      const items = Object.values(merged);
+      if (items.length > 0) {
+        const now = Date.now();
+        if (lastPopupTimeRef.current === 0 || (now - lastPopupTimeRef.current >= 5 * 60 * 1000)) {
+          setActivePopupItem(items[0]);
+          setRelayPopupOpen(true);
+        }
+      } else {
+        setRelayPopupOpen(false);
+      }
+    } catch (_) {}
+  }, [allocatedDuties, depotNum]);
+
+  useEffect(() => {
+    fetchAndSyncRelays();
+    const interval = setInterval(fetchAndSyncRelays, 10000);
+    return () => clearInterval(interval);
+  }, [fetchAndSyncRelays]);
+
+  const selectRelayRouteAndAllocate = (rCode, targetDepot) => {
+    setRelayModalOpen(false);
+    setRelayPopupOpen(false);
+    lastPopupTimeRef.current = Date.now();
+
+    const matched = availableRoutes.find((r) => cleanRouteCode(r.code || r.id) === rCode);
+    if (matched) {
+      setSelectedRoute(matched);
+      setScheduledTime(matched.timetables?.[0] || '08:00 AM');
+      setSelectedCandidateBm(null);
+    }
+  };
+
+  const resolveRelay = async (rCode, newAllocatedBm) => {
+    const cleanR = cleanRouteCode(rCode);
+    setPendingRelayRoutes((prev) => {
+      const copy = { ...prev };
+      delete copy[cleanR];
+      return copy;
+    });
+    setRelayPopupOpen(false);
+    try {
+      await api.post('/api/resolve-relay-route', { route: cleanR, newBm: newAllocatedBm }).catch(() => {});
+    } catch (_) {}
+  };
 
   // Sync route and driver when depot changes
   React.useEffect(() => {
@@ -3707,6 +3840,15 @@ export default function SchedulingScreen() {
 
             allocateBusToRoute(duty);
 
+            // Resolve relay if this fulfills a pending second bus requirement
+            const cleanR = cleanRouteCode(selectedRoute.code || selectedRoute.id || '');
+            if (pendingRelayRoutes && pendingRelayRoutes[cleanR]) {
+              const p = pendingRelayRoutes[cleanR];
+              if (String(activeCandidate.bmNumber).toUpperCase() !== String(p.firstBus).toUpperCase()) {
+                resolveRelay(cleanR, activeCandidate.bmNumber);
+              }
+            }
+
             Alert.alert(
               isManualOverride ? '⚠️ Committed Duty Allocation (Manual Over-ride)' : '⚡ Committed Duty Allocation',
               `Bus ${activeCandidate.bmNumber} (${activeCandidate.regNo}) assigned to Route ${selectedRoute.code} departing at ${scheduledTime} with Driver ${finalDriverName}${isManualOverride ? ` [MANUAL OVER-RIDE: Mandatory was ${mandatoryCandidate?.bmNumber}]` : ''}!\n\nThis allocation is now live in Admin Workspace and Depot Operations.`,
@@ -3728,6 +3870,24 @@ export default function SchedulingScreen() {
           <Text style={styles.topbarSub}>{depotNameClean}</Text>
         </View>
         <View style={styles.topbarActions}>
+          <TouchableOpacity
+            style={styles.headerBellBtn}
+            onPress={() => setRelayModalOpen(true)}
+            activeOpacity={0.8}
+            accessibilityLabel="Relay Alerts"
+          >
+            <BellIcon color="#1e293b" size={20} />
+            {pendingRelayCount > 0 && (
+              <>
+                <View style={styles.bellRedDot} pointerEvents="none" />
+                <View style={styles.bellNumberBadge} pointerEvents="none">
+                  <Text style={styles.bellNumberBadgeText}>
+                    {pendingRelayCount > 99 ? '99+' : pendingRelayCount}
+                  </Text>
+                </View>
+              </>
+            )}
+          </TouchableOpacity>
           <LanguagePickerPill onPress={() => setLangModalOpen(true)} style={{ marginRight: 8 }} />
           <TouchableOpacity
             style={styles.signOutBtn}
@@ -4337,6 +4497,115 @@ export default function SchedulingScreen() {
       </Modal>
           {/* ── LANGUAGE SELECTOR MODAL ── */}
       <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
+
+      {/* ── MODAL: RELAY ALERTS (BELL ICON DRAWER) ── */}
+      <Modal visible={relayModalOpen} transparent animationType="fade" onRequestClose={() => setRelayModalOpen(false)}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxWidth: 540 }]}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Text style={{ fontSize: 22 }}>🔔</Text>
+                <View>
+                  <Text style={styles.modalHeaderTitle}>Pending Second Bus Allocations</Text>
+                  <Text style={{ fontSize: 11, color: '#64748b' }}>Routes requiring relay bus (NOT Single Charge Operation)</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={() => setRelayModalOpen(false)}>
+                <Text style={styles.modalCloseText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ maxHeight: 420, padding: 14 }}>
+              {Object.keys(pendingRelayRoutes).length === 0 ? (
+                <View style={{ alignItems: 'center', paddingVertical: 32 }}>
+                  <Text style={{ fontSize: 32, marginBottom: 8 }}>✅</Text>
+                  <Text style={{ fontSize: 15, fontWeight: '800', color: '#1e293b' }}>All Routes Fully Serviced</Text>
+                  <Text style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>No routes are currently pending a second bus relay allocation.</Text>
+                </View>
+              ) : (
+                Object.values(pendingRelayRoutes).map((item) => (
+                  <View key={item.route} style={styles.relayCard}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#991b1b' }}>🚨 Route {item.route}</Text>
+                      <View style={{ backgroundColor: '#fee2e2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#991b1b' }}>NOT SINGLE CHARGE</Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 12, color: '#475569', lineHeight: 17, marginBottom: 8 }}>
+                      <Text style={{ fontWeight: '700' }}>1st Bus Completed:</Text> {item.firstBus} {item.reg ? `(${item.reg})` : ''} at {item.completedAt}.{'\n'}
+                      This route requires mandatory opportunity charging or exceeds single-charge range. A second bus from <Text style={{ fontWeight: '700' }}>Depot {item.depot}</Text> must be allocated to complete the schedule.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.relayAllocateBtn}
+                      onPress={() => selectRelayRouteAndAllocate(item.route, item.depot)}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={{ color: '#ffffff', fontSize: 12.5, fontWeight: '800' }}>🚌 Allocate 2nd Bus Now</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── MODAL: 5-MINUTE RECURRING POP-UP ALERT ── */}
+      <Modal visible={relayPopupOpen} transparent animationType="fade" onRequestClose={() => { setRelayPopupOpen(false); lastPopupTimeRef.current = Date.now(); }}>
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxWidth: 500, borderTopWidth: 6, borderTopColor: '#ef4444' }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' }}>
+                <Text style={{ fontSize: 22 }}>🚨</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 16, fontWeight: '800', color: '#991b1b' }}>Action Required: Second Bus Allocation</Text>
+                <Text style={{ fontSize: 10.5, fontWeight: '700', color: '#dc2626' }}>NOT SINGLE CHARGE OPERATION</Text>
+              </View>
+            </View>
+
+            {activePopupItem && (
+              <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 10, padding: 12, marginBottom: 14 }}>
+                <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a', marginBottom: 6 }}>
+                  Route {activePopupItem.route} in Depot {activePopupItem.depot} needs an immediate second bus!
+                </Text>
+                <Text style={{ fontSize: 11.5, color: '#991b1b', lineHeight: 16 }}>
+                  • 1st Bus Completed: {activePopupItem.firstBus} ({activePopupItem.reg || 'KA51'}) at {activePopupItem.completedAt}{'\n'}
+                  • Reason: Non-Single Charge Operation (Mandatory Mid-route Charging / Long Corridor){'\n'}
+                  • Action: Allocate another available bus from Depot {activePopupItem.depot} to complete the schedule.
+                </Text>
+              </View>
+            )}
+
+            <View style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fef3c7', borderRadius: 8, padding: 10, marginBottom: 16 }}>
+              <Text style={{ fontSize: 11, color: '#b45309', fontWeight: '600' }}>
+                ⏱️ This reminder will repeat <Text style={{ fontWeight: '800' }}>every 5 minutes</Text> until another bus from this depot is allocated to complete the schedule.
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+              <TouchableOpacity
+                style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#f1f5f9' }}
+                onPress={() => {
+                  setRelayPopupOpen(false);
+                  lastPopupTimeRef.current = Date.now();
+                }}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#475569' }}>⏱️ Remind in 5 Mins</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#0284c7' }}
+                onPress={() => {
+                  if (activePopupItem) {
+                    selectRelayRouteAndAllocate(activePopupItem.route, activePopupItem.depot);
+                  }
+                }}
+              >
+                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#ffffff' }}>🚌 Allocate 2nd Bus Now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -4418,6 +4687,78 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  headerBellBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+    position: 'relative',
+    marginRight: 2,
+  },
+  bellRedDot: {
+    position: 'absolute',
+    top: 3,
+    left: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: '#ef4444',
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+    zIndex: 10,
+  },
+  bellNumberBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: '#dc2626',
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.25,
+    shadowRadius: 2,
+    zIndex: 11,
+  },
+  bellNumberBadgeText: {
+    color: '#ffffff',
+    fontSize: 9.5,
+    fontWeight: '800',
+    lineHeight: 12,
+    textAlign: 'center',
+  },
+  relayCard: {
+    backgroundColor: '#fff5f5',
+    borderWidth: 1.5,
+    borderColor: '#fca5a5',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+  },
+  relayAllocateBtn: {
+    backgroundColor: '#dc2626',
+    borderRadius: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   langBtn: {
     paddingVertical: 6,

@@ -1827,7 +1827,190 @@
 
         }
 
+        /* ── Header Bell Notification Icon & Badges ── */
+        .header-bell-btn {
+            position: relative;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #ffffff;
+            color: #1e293b;
+            border: 1.5px solid #cbd5e1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .header-bell-btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+        .header-bell-btn.has-alerts {
+            border-color: #ef4444;
+            color: #b91c1c;
+            background: #fff5f5;
+            box-shadow: 0 2px 10px rgba(239, 68, 68, 0.25);
+            animation: bellRingPulse 2.5s infinite ease-in-out;
+        }
+        @keyframes bellRingPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            5% { transform: scale(1.08) rotate(14deg); }
+            10% { transform: scale(1.08) rotate(-14deg); }
+            15% { transform: scale(1.08) rotate(10deg); }
+            20% { transform: scale(1.08) rotate(-10deg); }
+            25% { transform: scale(1) rotate(0deg); }
+        }
+        .bell-red-dot {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            border: 1.5px solid #ffffff;
+            z-index: 10;
+        }
+        .bell-number-badge {
+            position: absolute;
+            top: -4px;
+            right: -5px;
+            background: #dc2626;
+            color: #ffffff;
+            font-size: 10px;
+            font-weight: 800;
+            min-width: 19px;
+            height: 19px;
+            border-radius: 10px;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px solid #ffffff;
+            box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
+            line-height: 1;
+            z-index: 11;
+        }
 
+        /* ── Relay Alerts Cards in Modal ── */
+        .relay-alert-card {
+            background: #ffffff;
+            border: 1.5px solid #fecaca;
+            border-left: 5px solid #ef4444;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .relay-alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .relay-alert-title {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #991b1b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .relay-alert-badge {
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 0.72rem;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #fca5a5;
+        }
+        .relay-alert-body {
+            font-size: 0.88rem;
+            color: #475569;
+            line-height: 1.5;
+        }
+        .relay-alert-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 0.82rem;
+            color: #475569;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        .relay-alert-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .btn-allocate-relay {
+            background: #0284c7;
+            color: #ffffff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.84rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+        .btn-allocate-relay:hover {
+            background: #0369a1;
+            transform: translateY(-1px);
+        }
+
+        /* ── 5-Minute Recurring Pop-Up Alert Modal ── */
+        #relay-popup-alert-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(15, 23, 42, 0.72);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeInPopup 0.25s ease-out;
+        }
+        .relay-popup-dialog {
+            background: #ffffff;
+            border-radius: 18px;
+            max-width: 580px;
+            width: 92%;
+            padding: 26px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+            border-top: 6px solid #ef4444;
+            animation: popScale 0.25s ease-out;
+            position: relative;
+        }
+        @keyframes fadeInPopup {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes popScale {
+            from { transform: scale(0.92); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
 
 </style>
 
@@ -1898,6 +2081,15 @@
             </div>
 
             <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                <!-- 🔔 Bell Icon Button for Non-Single Charge Relay Alerts -->
+                <button id="scheduling-bell-btn" class="header-bell-btn" type="button" title="Pending Relay Allocations (Non-Single Charge Operation)" onclick="openRelayAlertsModal()" aria-label="Relay Alerts">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span id="bell-red-dot" class="bell-red-dot" style="display:none;" pointer-events="none"></span>
+                    <span id="bell-alert-badge" class="bell-number-badge" style="display:none;" pointer-events="none">0</span>
+                </button>
                 <a href="/download-apk" download="Ashok_Leyland_Fleet.apk" class="download-apk-topbar-btn" title="Download Android App (.APK)" style="display:inline-flex;align-items:center;gap:6px;background:rgba(22,163,74,0.12);border:1px solid rgba(22,163,74,0.45);color:#16a34a;padding:6px 14px;border-radius:999px;font-size:0.82rem;font-weight:700;text-decoration:none;transition:all 0.2s;">
                     <span>📥</span>
                     <span>Download APK</span>
@@ -2205,6 +2397,58 @@
     <div id="allocation-toast" class="allocation-toast"></div>
 
 
+
+    <!-- ── MODAL: RELAY ALERTS (BELL ICON DRAWER) ── -->
+    <div id="relay-alerts-modal-backdrop" class="modal-backdrop" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15,23,42,0.65); backdrop-filter:blur(4px); z-index:9999; justify-content:center; align-items:center;" onclick="if(event.target===this)closeRelayAlertsModal()">
+        <div class="modal-dialog" style="max-width:640px; width:92%; max-height:85vh; background:#fff; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3);" role="dialog" aria-modal="true">
+            <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; padding:18px 24px; border-bottom:1px solid #e2e8f0; background:#f8fafc;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:1.4rem;">🔔</span>
+                    <div>
+                        <h2 style="margin:0; font-size:1.2rem; color:#0f172a; font-weight:800;">Pending Second Bus Allocations</h2>
+                        <p style="margin:2px 0 0; font-size:0.8rem; color:#64748b;">Routes requiring relay bus allocation (NOT Single Charge Operation)</p>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-btn" onclick="closeRelayAlertsModal()" style="background:none; border:none; font-size:1.4rem; cursor:pointer; color:#64748b;" aria-label="Close">✕</button>
+            </div>
+            <div id="relay-alerts-list" class="modal-body" style="padding:18px 24px; max-height:460px; overflow-y:auto;">
+                <!-- Rendered dynamically -->
+            </div>
+            <div class="modal-footer" style="padding:14px 24px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; background:#f8fafc;">
+                <button type="button" class="btn secondary" onclick="closeRelayAlertsModal()" style="padding:7px 16px; border-radius:8px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── 5-MINUTE RECURRING POP-UP ALERT MODAL ── -->
+    <div id="relay-popup-alert-backdrop" style="display:none;" role="dialog" aria-modal="true">
+        <div class="relay-popup-dialog">
+            <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                <div style="width:48px; height:48px; border-radius:24px; background:#fee2e2; color:#dc2626; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0;">
+                    🚨
+                </div>
+                <div>
+                    <h3 style="margin:0; font-size:1.25rem; color:#991b1b; font-weight:800;">Action Required: Second Bus Allocation</h3>
+                    <span style="font-size:0.75rem; font-weight:700; color:#dc2626; background:#fef2f2; border:1px solid #fecaca; padding:2px 8px; border-radius:999px;">NOT SINGLE CHARGE OPERATION</span>
+                </div>
+            </div>
+            <div id="relay-popup-content" style="color:#334155; font-size:0.92rem; line-height:1.55; margin-bottom:18px;">
+                <!-- Dynamic warning details -->
+            </div>
+            <div style="background:#fffbeb; border:1px solid #fef3c7; border-radius:8px; padding:10px 14px; font-size:0.82rem; color:#b45309; margin-bottom:20px; display:flex; align-items:center; gap:8px;">
+                <span>⏱️</span>
+                <span>This reminder will repeat <strong>every 5 minutes</strong> until another bus from this depot is allocated to complete the schedule.</span>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
+                <button type="button" id="relay-popup-remind-btn" class="btn secondary" onclick="dismissRelayPopupFor5Minutes()" style="padding:8px 16px; border-radius:8px; font-weight:700;">
+                    ⏱️ Remind in 5 Minutes
+                </button>
+                <button type="button" id="relay-popup-allocate-btn" class="btn primary" onclick="handleRelayPopupAllocateNow()" style="background:#0284c7; border-color:#0284c7; padding:8px 18px; font-weight:800; border-radius:8px;">
+                    🚌 Allocate 2nd Bus Now
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- ── Available Buses for Scheduling Modal Dialog ── -->
 
@@ -10258,6 +10502,17 @@
 
                         saveAllocatedDuties(allocatedDuties);
 
+                        // Check if newly allocated bus fulfills a pending relay for a Non-Single Charge route
+                        if (typeof resolveRelayRoute === 'function') {
+                            const cleanR = cleanRouteCode(routeObj.code || routeObj.id || '');
+                            if (pendingRelayRoutes && pendingRelayRoutes[cleanR]) {
+                                const p = pendingRelayRoutes[cleanR];
+                                if (String(alloc.bm).toUpperCase() !== String(p.firstBus).toUpperCase()) {
+                                    resolveRelayRoute(cleanR, alloc.bm);
+                                }
+                            }
+                        }
+
 
 
                         // Clear any post-route servicing flag for this newly allocated trip
@@ -10574,6 +10829,10 @@
 
                         }
 
+                        if (typeof fetchAndSyncPendingRelays === 'function') {
+                            fetchAndSyncPendingRelays(data.state);
+                        }
+
                     }
 
                 }
@@ -10587,6 +10846,299 @@
         // Silent 3-second polling ensures immediate reflection from Charging Portal
 
         setInterval(refreshBusStatesSilently, 3000);
+
+        // ── 🔔 NON-SINGLE CHARGE RELAY ALERTS & 5-MINUTE POP-UP ENGINE ──
+        const NON_SINGLE_CHARGE_ROUTES = ['500DC', 'KBS3F', 'KBS3A', '328H', '360K', '361C', '399C'];
+        let pendingRelayRoutes = {};
+        let relayPopupLastDismissedAt = 0;
+        const RELAY_POPUP_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes (300,000 ms)
+        let activeRelayPopupRouteCode = null;
+
+        function cleanRouteCode(rStr) {
+            if (!rStr) return '';
+            const s = String(rStr).trim().toUpperCase();
+            for (const code of NON_SINGLE_CHARGE_ROUTES) {
+                if (s.includes(code)) return code;
+            }
+            const match = s.match(/\b([A-Z0-9]+[A-Z0-9\/-]*)\b/);
+            return match ? match[1] : s;
+        }
+
+        function isNonSingleChargeRoute(rStr) {
+            if (!rStr) return false;
+            const s = String(rStr).trim().toUpperCase();
+            return NON_SINGLE_CHARGE_ROUTES.some(code => s.includes(code));
+        }
+
+        async function fetchAndSyncPendingRelays(stateObj = null) {
+            try {
+                let serverPending = null;
+                if (stateObj && stateObj._pendingRelayRoutes) {
+                    serverPending = stateObj._pendingRelayRoutes;
+                } else {
+                    const res = await fetch("/api/pending-relay-routes").catch(() => null);
+                    if (res && res.ok) {
+                        const json = await res.json();
+                        serverPending = json.pendingRelayRoutes;
+                    }
+                }
+
+                if (serverPending && typeof serverPending === 'object') {
+                    pendingRelayRoutes = { ...serverPending };
+                }
+
+                // Also audit completedRoutesLog & allocatedDuties to catch any completed 1st bus
+                let compLog = [];
+                try {
+                    const logRes = await fetch("/api/completed-routes").catch(() => null);
+                    if (logRes && logRes.ok) {
+                        const json = await logRes.json();
+                        compLog = json.completedRoutesLog || [];
+                    }
+                } catch (_) {}
+
+                if (!compLog.length && typeof window.DepotSyncEngine !== 'undefined' && typeof window.DepotSyncEngine.getCompletedRoutes === 'function') {
+                    compLog = window.DepotSyncEngine.getCompletedRoutes() || [];
+                }
+
+                // Check active allocated duties
+                const activeDuties = Array.isArray(allocatedDuties) ? allocatedDuties : loadAllocatedDuties();
+
+                compLog.forEach(item => {
+                    const rName = item.route || item.routeCode || '';
+                    if (isNonSingleChargeRoute(rName)) {
+                        const rCode = cleanRouteCode(rName);
+                        const depot = String(item.depot || currentOperatingDepot || '1').trim();
+                        const firstBus = String(item.bm || item.bus || '').toUpperCase().trim();
+
+                        // Check if another bus is already allocated from this depot for this route
+                        const hasSecondBus = (activeDuties || []).some(d => {
+                            const dRoute = cleanRouteCode(d.routeCode || d.route || '');
+                            const dDepot = String(d.depot || '').trim();
+                            const dBm = String(d.bm || '').toUpperCase().trim();
+                            return dRoute === rCode && dDepot === depot && dBm !== firstBus;
+                        });
+
+                        if (!hasSecondBus) {
+                            if (!pendingRelayRoutes[rCode]) {
+                                pendingRelayRoutes[rCode] = {
+                                    route: rCode,
+                                    fullRouteName: rName,
+                                    depot: depot,
+                                    firstBus: firstBus,
+                                    reg: item.reg || '',
+                                    driver: item.driver || '',
+                                    completedAt: item.completedAt || 'Recently',
+                                    completedTs: item.completedTs || Date.now(),
+                                    isNonSingleCharge: true,
+                                    reason: 'NOT Single Charge Operation (Mandatory Mid-route Charging or Physically Exceeding Range)'
+                                };
+                            }
+                        } else if (hasSecondBus && pendingRelayRoutes[rCode]) {
+                            delete pendingRelayRoutes[rCode];
+                        }
+                    }
+                });
+
+                updateRelayBellUI();
+                evaluateRelayPopupTimer();
+            } catch (err) {
+                console.warn("[RelaySync] Error syncing pending relays:", err);
+            }
+        }
+
+        function updateRelayBellUI() {
+            const bellBtn = document.getElementById("scheduling-bell-btn");
+            const redDot = document.getElementById("bell-red-dot");
+            const badge = document.getElementById("bell-alert-badge");
+            const keys = Object.keys(pendingRelayRoutes || {});
+            const count = keys.length;
+
+            if (bellBtn) {
+                if (count > 0) {
+                    bellBtn.classList.add("has-alerts");
+                    if (redDot) redDot.style.display = "block";
+                    if (badge) {
+                        badge.style.display = "flex";
+                        badge.textContent = count > 99 ? '99+' : count;
+                    }
+                } else {
+                    bellBtn.classList.remove("has-alerts");
+                    if (redDot) redDot.style.display = "none";
+                    if (badge) badge.style.display = "none";
+                }
+            }
+        }
+
+        function openRelayAlertsModal() {
+            const backdrop = document.getElementById("relay-alerts-modal-backdrop");
+            const listEl = document.getElementById("relay-alerts-list");
+            if (!backdrop || !listEl) return;
+
+            const items = Object.values(pendingRelayRoutes || {});
+            if (items.length === 0) {
+                listEl.innerHTML = `
+                    <div style="text-align:center; padding:32px 16px; color:#64748b;">
+                        <span style="font-size:2.4rem; display:block; margin-bottom:8px;">✅</span>
+                        <h3 style="margin:0 0 4px; color:#1e293b; font-size:1.1rem; font-weight:800;">All Routes Fully Serviced</h3>
+                        <p style="margin:0; font-size:0.85rem;">No routes are currently pending a second bus relay allocation.</p>
+                    </div>
+                `;
+            } else {
+                listEl.innerHTML = items.map(item => `
+                    <div class="relay-alert-card">
+                        <div class="relay-alert-header">
+                            <div class="relay-alert-title">
+                                <span>🚨</span>
+                                <span>Route ${item.route}</span>
+                            </div>
+                            <span class="relay-alert-badge">NOT Single Charge</span>
+                        </div>
+                        <div class="relay-alert-body">
+                            <strong>1st Bus Completed:</strong> ${item.firstBus} ${item.reg ? '(' + item.reg + ')' : ''} at ${item.completedAt}.<br/>
+                            This route requires mandatory opportunity charging or exceeds single-charge range. A second bus from <strong>Depot ${item.depot}</strong> must be allocated to complete the schedule.
+                        </div>
+                        <div class="relay-alert-meta">
+                            <span>🏢 <strong>Depot:</strong> ${item.depot}</span>
+                            <span>👤 <strong>1st Driver:</strong> ${item.driver || 'Assigned Driver'}</span>
+                            <span>⏱️ <strong>Completed:</strong> ${item.completedAt}</span>
+                        </div>
+                        <div class="relay-alert-actions">
+                            <button type="button" class="btn-allocate-relay" onclick="selectAndAllocateRelayRoute('${item.route}', '${item.depot}')">
+                                <span>🚌</span>
+                                <span>Allocate 2nd Bus Now</span>
+                            </button>
+                        </div>
+                    </div>
+                `).join("");
+            }
+
+            backdrop.style.display = "flex";
+        }
+
+        function closeRelayAlertsModal() {
+            const backdrop = document.getElementById("relay-alerts-modal-backdrop");
+            if (backdrop) backdrop.style.display = "none";
+        }
+
+        function evaluateRelayPopupTimer() {
+            const items = Object.values(pendingRelayRoutes || {});
+            if (items.length === 0) {
+                const popup = document.getElementById("relay-popup-alert-backdrop");
+                if (popup) popup.style.display = "none";
+                return;
+            }
+
+            const now = Date.now();
+            if (relayPopupLastDismissedAt === 0 || (now - relayPopupLastDismissedAt >= RELAY_POPUP_INTERVAL_MS)) {
+                showRelayPopupModal(items[0]);
+            }
+        }
+
+        function showRelayPopupModal(item) {
+            if (!item) return;
+            const popup = document.getElementById("relay-popup-alert-backdrop");
+            const content = document.getElementById("relay-popup-content");
+            if (!popup || !content) return;
+
+            activeRelayPopupRouteCode = item.route;
+
+            content.innerHTML = `
+                <p style="margin:0 0 10px; font-size:1rem; font-weight:700; color:#0f172a;">
+                    Route <span style="color:#0284c7; text-decoration:underline;">${item.route}</span> in Depot <span style="color:#0284c7;">${item.depot}</span> requires an immediate second bus allocation!
+                </p>
+                <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:10px; padding:12px; margin-bottom:12px;">
+                    <div style="font-size:0.86rem; color:#991b1b; margin-bottom:4px;">
+                        • <strong>1st Bus Completed:</strong> ${item.firstBus} ${item.reg ? '(' + item.reg + ')' : ''} at ${item.completedAt}
+                    </div>
+                    <div style="font-size:0.86rem; color:#991b1b; margin-bottom:4px;">
+                        • <strong>Reason:</strong> Non-Single Charge Operation (Mandatory Mid-route Charging / Long Corridor).
+                    </div>
+                    <div style="font-size:0.86rem; color:#991b1b;">
+                        • <strong>Required Action:</strong> Allocate another available bus from <strong>Depot ${item.depot}</strong> to complete the remainder of the route schedule.
+                    </div>
+                </div>
+            `;
+
+            popup.style.display = "flex";
+        }
+
+        function dismissRelayPopupFor5Minutes() {
+            const popup = document.getElementById("relay-popup-alert-backdrop");
+            if (popup) popup.style.display = "none";
+            relayPopupLastDismissedAt = Date.now();
+        }
+
+        function handleRelayPopupAllocateNow() {
+            dismissRelayPopupFor5Minutes();
+            if (activeRelayPopupRouteCode) {
+                const target = pendingRelayRoutes[activeRelayPopupRouteCode];
+                selectAndAllocateRelayRoute(activeRelayPopupRouteCode, target ? target.depot : currentOperatingDepot);
+            }
+        }
+
+        function selectAndAllocateRelayRoute(routeCode, depotId) {
+            closeRelayAlertsModal();
+            dismissRelayPopupFor5Minutes();
+
+            // 1. Select the route in the route dropdown
+            if (routeSelect) {
+                let matchedOpt = null;
+                for (let i = 0; i < routeSelect.options.length; i++) {
+                    const opt = routeSelect.options[i];
+                    if (cleanRouteCode(opt.value) === routeCode || opt.text.includes(routeCode)) {
+                        matchedOpt = opt;
+                        break;
+                    }
+                }
+                if (matchedOpt) {
+                    routeSelect.value = matchedOpt.value;
+                    routeSelect.dispatchEvent(new Event('change'));
+                }
+            }
+
+            // 2. Scroll smoothly to allocation section
+            const targetSection = document.getElementById("candidate-buses-section") || document.getElementById("allocation-card") || document.querySelector(".panel");
+            if (targetSection) {
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // 3. Show assistive toast
+            showAllocationToast(`⚡ Route ${routeCode} selected. Please choose departure time and click 'Allocate Bus' to assign the 2nd bus.`, "info");
+        }
+
+        async function resolveRelayRoute(routeCode, newAllocatedBm) {
+            if (!routeCode) return;
+            const cleanCode = cleanRouteCode(routeCode);
+            delete pendingRelayRoutes[cleanCode];
+            updateRelayBellUI();
+
+            const popup = document.getElementById("relay-popup-alert-backdrop");
+            if (popup && activeRelayPopupRouteCode === cleanCode) {
+                popup.style.display = "none";
+            }
+
+            try {
+                await fetch("/api/resolve-relay-route", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ route: cleanCode, newBm: newAllocatedBm })
+                });
+            } catch (_) {}
+
+            showAllocationToast(`✅ Second Bus (${newAllocatedBm}) allocated to Route ${cleanCode}! Route schedule is now fully complete.`, "success");
+        }
+
+        window.openRelayAlertsModal = openRelayAlertsModal;
+        window.closeRelayAlertsModal = closeRelayAlertsModal;
+        window.dismissRelayPopupFor5Minutes = dismissRelayPopupFor5Minutes;
+        window.handleRelayPopupAllocateNow = handleRelayPopupAllocateNow;
+        window.selectAndAllocateRelayRoute = selectAndAllocateRelayRoute;
+        window.resolveRelayRoute = resolveRelayRoute;
+
+        // Run initial check and set recurring 10-second check for the 5-minute popup timer
+        setTimeout(fetchAndSyncPendingRelays, 1500);
+        setInterval(evaluateRelayPopupTimer, 10000);
 
 
 

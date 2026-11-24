@@ -2953,6 +2953,25 @@ function getDefaultCompletedRoutesLog() {
     ];
 }
 
+// ── Non-Single Charge Routes Helper (Mandatory Mid-route Charging or Physically Exceeding Range) ──
+const NON_SINGLE_CHARGE_ROUTES = ['500DC', 'KBS3F', 'KBS3A', '328H', '360K', '361C', '399C'];
+
+function cleanRouteCode(rStr) {
+    if (!rStr) return '';
+    const s = String(rStr).trim().toUpperCase();
+    for (const code of NON_SINGLE_CHARGE_ROUTES) {
+        if (s.includes(code)) return code;
+    }
+    const match = s.match(/\b([A-Z0-9]+[A-Z0-9\/-]*)\b/);
+    return match ? match[1] : s;
+}
+
+function isNonSingleChargeRoute(rStr) {
+    if (!rStr) return false;
+    const s = String(rStr).trim().toUpperCase();
+    return NON_SINGLE_CHARGE_ROUTES.some(code => s.includes(code));
+}
+
 function loadBusState() {
 
     if (!masterBusState) {
@@ -3012,6 +3031,9 @@ function loadBusState() {
         }
         if (!Array.isArray(masterBusState._deletedDepotIds)) {
             masterBusState._deletedDepotIds = [];
+        }
+        if (!masterBusState._pendingRelayRoutes || typeof masterBusState._pendingRelayRoutes !== 'object') {
+            masterBusState._pendingRelayRoutes = {};
         }
         const fileDataset = loadRoutesDataset();
         if (fileDataset && Array.isArray(fileDataset.routes) && fileDataset.routes.length > 0) {
@@ -6666,11 +6688,30 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     status: 'Returned / Completed'
                 });
 
+                // 7. Track Non-Single Charge Relay requirement (2nd bus allocation from same depot)
+                if (isNonSingleChargeRoute(payload.route)) {
+                    const cCode = cleanRouteCode(payload.route);
+                    if (!currentState._pendingRelayRoutes) currentState._pendingRelayRoutes = {};
+                    currentState._pendingRelayRoutes[cCode] = {
+                        route: cCode,
+                        fullRouteName: payload.route || cCode,
+                        depot: targetDepot,
+                        firstBus: bmKey,
+                        reg: regNo,
+                        driver: payload.driver || 'Assigned Driver',
+                        completedAt: fullTs,
+                        completedTs: Date.now(),
+                        isNonSingleCharge: true,
+                        reason: 'NOT Single Charge Operation (Mandatory Mid-route Charging or Physically Exceeding Range). Second bus required from this depot to complete schedule.'
+                    };
+                }
+
                 saveBusState(currentState);
                 broadcastSyncEvent("route-completed", { bm: bmKey, depot: targetDepot, locked: true });
                 broadcastSyncEvent("locked-buses-updated", { lockedBuses: currentState._lockedBuses || [] });
                 broadcastSyncEvent("servicing-status-updated", { servicingStatus: currentState._servicingStatus || {} });
                 broadcastSyncEvent("allocated-duties-updated", { allocatedDuties: currentState._allocatedDuties || [] });
+                broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes || {} });
 
                 sendJson(res, {
                     ok: true,
@@ -6679,7 +6720,8 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     status: 'turnaround_charging',
                     depot: targetDepot,
                     lockedBuses: currentState._lockedBuses,
-                    servicingStatus: currentState._servicingStatus
+                    servicingStatus: currentState._servicingStatus,
+                    pendingRelayRoutes: currentState._pendingRelayRoutes || {}
                 });
             } catch (err) {
                 sendJson(res, { ok: false, error: "Failed to complete route", details: err.message }, 500);
@@ -7101,7 +7143,39 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
 
     }
 
+    // ── GET /api/pending-relay-routes & POST /api/resolve-relay-route ──
+    if (pathname === "/api/pending-relay-routes") {
+        const currentState = loadBusState();
+        sendJson(res, {
+            ok: true,
+            count: Object.keys(currentState._pendingRelayRoutes || {}).length,
+            pendingRelayRoutes: currentState._pendingRelayRoutes || {}
+        });
+        return;
+    }
 
+    if (pathname === "/api/resolve-relay-route" && req.method === "POST") {
+        readBody(req, body => {
+            try {
+                const payload = JSON.parse(body || "{}");
+                const routeCode = cleanRouteCode(payload.route || payload.routeCode || "");
+                const currentState = loadBusState();
+                if (currentState._pendingRelayRoutes && routeCode && currentState._pendingRelayRoutes[routeCode]) {
+                    delete currentState._pendingRelayRoutes[routeCode];
+                    saveBusState(currentState);
+                    broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes });
+                }
+                sendJson(res, {
+                    ok: true,
+                    message: `Relay resolved for route ${routeCode}`,
+                    pendingRelayRoutes: currentState._pendingRelayRoutes || {}
+                });
+            } catch (err) {
+                sendJson(res, { ok: false, error: err.message }, 500);
+            }
+        });
+        return;
+    }
 
     // ── Fleet Bus Management Endpoints (Add / Delete / Restore / Changes) ──
 
@@ -8602,6 +8676,26 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                     if (Array.isArray(payload.duties)) {
 
                         currentState._allocatedDuties = payload.duties;
+
+                        // Check if newly allocated duty resolves any pending relay route
+                        if (currentState._pendingRelayRoutes && typeof currentState._pendingRelayRoutes === 'object') {
+                            let relayChanged = false;
+                            payload.duties.forEach(duty => {
+                                const dRoute = cleanRouteCode(duty.routeCode || duty.route || '');
+                                const dDepot = String(duty.depot || duty.depotId || '').trim();
+                                const dBm = String(duty.bm || duty.bmNumber || '').toUpperCase().trim();
+                                if (dRoute && currentState._pendingRelayRoutes[dRoute]) {
+                                    const pending = currentState._pendingRelayRoutes[dRoute];
+                                    if (String(pending.depot) === dDepot && dBm !== String(pending.firstBus).toUpperCase()) {
+                                        delete currentState._pendingRelayRoutes[dRoute];
+                                        relayChanged = true;
+                                    }
+                                }
+                            });
+                            if (relayChanged) {
+                                broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes });
+                            }
+                        }
 
                         saveBusState(currentState);
 
