@@ -22441,7 +22441,7 @@
   "_routesDatabase": {
     "version": "5.1",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-25T07:12:36.784Z",
+    "lastUpdated": "2026-11-25T07:13:48.651Z",
     "depots": [
       {
         "id": "1",
@@ -31660,13 +31660,14 @@
         "drainSoc": 95,
         "timeComplexity": "Normal",
         "timetables": [
-          "06:30 AM",
-          "08:00 AM",
           "11pm",
           "12pm",
           "6pm",
+          "06:30 AM",
+          "08:00 AM",
           "01:10 PM",
           "03:00 PM",
+          "06:00 PM",
           "06:45 PM"
         ],
         "timeComplexitySlots": {
@@ -31677,7 +31678,8 @@
           "06:45 PM": "Extreme Peak",
           "11pm": "Normal",
           "12pm": "Normal",
-          "6pm": "Normal"
+          "6pm": "Normal",
+          "06:00 PM": "Peak"
         },
         "schedules": [
           {
@@ -31773,6 +31775,19 @@
             "distance": 120,
             "singleChargeReqKm": 180,
             "customSubRoute": true
+          },
+          {
+            "scheduleId": "MS30/T-1800",
+            "route": "MS30",
+            "shift": "Shift B",
+            "outTime": "18:00:00",
+            "departureTime": "06:00 PM",
+            "inTime": "16:00:00",
+            "category": "Simple",
+            "timeComplexity": "Peak",
+            "totalGroupDistance": 240,
+            "distance": 120,
+            "singleChargeReqKm": 180
           }
         ],
         "shift": "Morning Shift",
