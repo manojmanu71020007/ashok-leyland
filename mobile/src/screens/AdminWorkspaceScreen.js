@@ -931,7 +931,7 @@ export default function AdminWorkspaceScreen() {
   const [routeDepotDropdownOpen, setRouteDepotDropdownOpen] = useState(false);
   const [depotCustomName, setDepotCustomName] = useState('');
   const [depotRouteShift, setDepotRouteShift] = useState('General Shift');
-  const [depotRouteCategory, setDepotRouteCategory] = useState('Standard');
+  const [depotRouteCategory, setDepotRouteCategory] = useState('Moderate / Standard Route');
   const [depotRouteTimeComplexity, setDepotRouteTimeComplexity] = useState('Normal');
   const [depotRouteTimetables, setDepotRouteTimetables] = useState('06:30 AM, 08:00 AM, 01:10 PM, 03:00 PM, 06:45 PM');
   const [datasetVersionTick, setDatasetVersionTick] = useState(0);
@@ -1902,12 +1902,19 @@ export default function AdminWorkspaceScreen() {
     const subRoutePreviewIds = isSubRouteMode
       ? subAnalysis.newEntries.map((_, i) => `${cleanCode}/${subAnalysis.nextSubIndexStart + i}`).join(', ')
       : finalTimetables.map((_, i) => `${cleanCode}/${i + 1}`).join(', ');
+    const chosenComplexityLabel = depotRouteCategory || 'Moderate / Standard Route';
+    const chosenComplexityValue = chosenComplexityLabel.toLowerCase().includes('comp')
+      ? 'Complex'
+      : chosenComplexityLabel.toLowerCase().includes('simp')
+      ? 'Simple'
+      : 'Standard / Moderate';
+    const chosenRequiredCat = chosenComplexityValue === 'Complex' ? 'A' : 'B';
 
     Alert.alert(
       isSubRouteMode ? 'Confirm Add Sub-Route' : t('confirm_add_route_title', 'Confirm Add Route'),
       `${isSubRouteMode
         ? `Route ${cleanCode} already exists in ${resolvedDepotName}. Add this shift & timings as a Sub-Route?`
-        : t('confirm_add_route_msg', 'Are you sure you want to add this route?')}\n\n• Route Code: ${cleanCode}\n• ${isSubRouteMode ? 'New Sub-Route(s)' : 'Sub-Route IDs'}: ${subRoutePreviewIds}\n• Route Shift Type: ${chosenShift}\n• Timings: ${isSubRouteMode ? subAnalysis.newEntries.map((e) => e.ampmStr).join(', ') : finalTimetables.join(', ')}\n• Distance: ${distNum} km\n• Operating Depot: ${resolvedDepotName}`,
+        : t('confirm_add_route_msg', 'Are you sure you want to add this route?')}\n\n• Route Code: ${cleanCode}\n• ${isSubRouteMode ? 'New Sub-Route(s)' : 'Sub-Route IDs'}: ${subRoutePreviewIds}\n• Route Shift Type: ${chosenShift}\n• Route Complexity: ${chosenComplexityLabel}\n• Timings: ${isSubRouteMode ? subAnalysis.newEntries.map((e) => e.ampmStr).join(', ') : finalTimetables.join(', ')}\n• Distance: ${distNum} km\n• Operating Depot: ${resolvedDepotName}`,
       [
         { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
@@ -1924,9 +1931,9 @@ export default function AdminWorkspaceScreen() {
               distance: distNum,
               fullDutyKm: distNum,
               actualKm: distNum,
-              category: existingSameDepot?.category || 'Standard',
-              routeComplexity: existingSameDepot?.routeComplexity || 'Standard',
-              requiredCat: existingSameDepot?.requiredCat || 'B',
+              category: chosenComplexityValue,
+              routeComplexity: chosenComplexityValue,
+              requiredCat: chosenRequiredCat,
               drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
               timetables: isSubRouteMode ? subAnalysis.newEntries.map((e) => e.ampmStr) : finalTimetables,
               shift: chosenShift,
@@ -1951,7 +1958,7 @@ export default function AdminWorkspaceScreen() {
                 id: Date.now().toString(),
                 action: isSubRouteMode ? 'SUB_ROUTE_ADDED' : 'ADDED',
                 code: isSubRouteMode ? subRoutePreviewIds : cleanCode,
-                fullName: `${effectiveFullName} (${chosenShift})`,
+                fullName: `${effectiveFullName} (${chosenShift} • ${chosenComplexityLabel})`,
                 origin: effectiveOrigin,
                 destination: effectiveDest,
                 distance: distNum,
@@ -1966,13 +1973,14 @@ export default function AdminWorkspaceScreen() {
             setDepotRouteOrigin('');
             setDepotRouteDestination('');
             setDepotRouteDistance('');
+            setDepotRouteCategory('Moderate / Standard Route');
             setDepotCustomName('');
 
             Alert.alert(
               isSubRouteMode ? '✅ Sub-Route Added Successfully' : t('route_registered_success_title', 'Route Registered Successfully'),
               isSubRouteMode
-                ? `Sub-Route(s): ${subRoutePreviewIds}\nRoute: ${cleanCode}\nShift Type: ${chosenShift}\nAdded Timings: ${subAnalysis.newEntries.map((e) => e.ampmStr).join(', ')}\nOperating Depot: ${resolvedDepotName}\n\nNow selectable under Route ${cleanCode} in Scheduling.`
-                : `${t('route_short_name_label', 'Route')}: ${cleanCode}\nSub-Routes: ${subRoutePreviewIds}\nShift Type: ${chosenShift}\n${t('route_full_name_label', 'Full Name')}: ${newRoute.fullName}\n${t('route_origin_label', 'Origin')}: ${newRoute.origin} ➔ ${newRoute.destination}\n${t('route_distance_label', 'Total Distance')}: ${distNum} km\n${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
+                ? `Sub-Route(s): ${subRoutePreviewIds}\nRoute: ${cleanCode}\nShift Type: ${chosenShift}\nRoute Complexity: ${chosenComplexityLabel}\nAdded Timings: ${subAnalysis.newEntries.map((e) => e.ampmStr).join(', ')}\nOperating Depot: ${resolvedDepotName}\n\nNow selectable under Route ${cleanCode} in Scheduling.`
+                : `${t('route_short_name_label', 'Route')}: ${cleanCode}\nSub-Routes: ${subRoutePreviewIds}\nShift Type: ${chosenShift}\nRoute Complexity: ${chosenComplexityLabel}\n${t('route_full_name_label', 'Full Name')}: ${newRoute.fullName}\n${t('route_origin_label', 'Origin')}: ${newRoute.origin} ➔ ${newRoute.destination}\n${t('route_distance_label', 'Total Distance')}: ${distNum} km\n${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
               [{ text: t('tab_depot_audit_log', '📋 Depot Audit Log'), onPress: () => setDepotsTab('directory') }]
             );
           },
@@ -2528,7 +2536,6 @@ export default function AdminWorkspaceScreen() {
   const [addBm, setAddBm] = useState('');
   const [addReg, setAddReg] = useState('');
   const [addCat, setAddCat] = useState('B');
-  const [addRouteComplexity, setAddRouteComplexity] = useState('Moderate / Standard Route');
   const [addSoc, setAddSoc] = useState('100');
   const [addDepot, setAddDepot] = useState('');
   const [addDepotDropdownOpen, setAddDepotDropdownOpen] = useState(false);
@@ -3297,7 +3304,6 @@ export default function AdminWorkspaceScreen() {
       depot: String(addDepot || '1'),
       busCategory: addCat,
       category: addCat,
-      routeComplexity: addRouteComplexity,
       soc: socVal,
       reason: reasonVal,
       reasonVal,
@@ -3313,8 +3319,8 @@ export default function AdminWorkspaceScreen() {
       bm: cleanBm,
       reg: cleanReg,
       depot: String(addDepot || '1'),
-      reasonCategory: `${addReasonSelect} (${addRouteComplexity})`,
-      detail: `${reasonVal} • Route Compatibility: ${addRouteComplexity} (Cat ${addCat})`,
+      reasonCategory: addReasonSelect,
+      detail: reasonVal,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
       user: user?.email || 'admin@bmtc.gov.in',
     };
@@ -3322,7 +3328,7 @@ export default function AdminWorkspaceScreen() {
 
     Alert.alert(
       '✨ Bus Inducted',
-      `Bus ${cleanBm} (${cleanReg}) added to fleet successfully!\n\n• Fleet Category: Cat ${addCat}\n• Route Complexity: ${addRouteComplexity}\n\nIt is now active and marked as "✨ Newly Added Bus" across all system dashboards.`
+      `Bus ${cleanBm} (${cleanReg}) added to fleet successfully!\n\nIt is now active and marked as "✨ Newly Added Bus" across all system dashboards.`
     );
     setAddBm('');
     setAddReg('');
@@ -6521,54 +6527,24 @@ export default function AdminWorkspaceScreen() {
                     </ScrollView>
                   )}
 
-                      <Text style={styles.modalFieldLabel}>{t('fleet_range_category', 'Fleet Range Category')}</Text>
-                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-                        {[
-                          { cat: 'A', label: 'Category A — High Range (>150 km)' },
-                          { cat: 'B', label: 'Category B — Standard Range (100–150 km)' },
-                          { cat: 'C', label: 'Category C — Short Range (<100 km)' },
-                        ].map((item) => (
-                          <TouchableOpacity
-                            key={item.cat}
-                            style={[styles.modalCatBtn, addCat === item.cat && styles.modalCatBtnActive]}
-                            onPress={() => setAddCat(item.cat)}
-                          >
-                            <Text style={[styles.modalCatBtnText, addCat === item.cat && styles.modalCatBtnTextActive]}>
-                              Cat {item.cat}
-                            </Text>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-
-                      <Text style={styles.modalFieldLabel}>Route Complexity Compatibility (Single Choice)</Text>
-                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
-                        {[
-                          { id: 'Simple Route', label: 'Simple Route', suggestedCat: 'C' },
-                          { id: 'Moderate / Standard Route', label: 'Moderate / Standard Route', suggestedCat: 'B' },
-                          { id: 'Complex Route', label: 'Complex Route', suggestedCat: 'A' },
-                        ].map((item) => {
-                          const isSel = addRouteComplexity === item.id;
-                          return (
-                            <TouchableOpacity
-                              key={item.id}
-                              style={[
-                                styles.modalCatBtn,
-                                { minWidth: '30%', paddingHorizontal: 10 },
-                                isSel && styles.modalCatBtnActive,
-                              ]}
-                              onPress={() => {
-                                setAddRouteComplexity(item.id);
-                                setAddCat(item.suggestedCat);
-                              }}
-                              activeOpacity={0.8}
-                            >
-                              <Text style={[styles.modalCatBtnText, isSel && styles.modalCatBtnTextActive, { textAlign: 'center' }]}>
-                                {isSel ? '◉ ' : '○ '}{item.label}
-                              </Text>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
+                  <Text style={styles.modalFieldLabel}>{t('fleet_range_category', 'Fleet Range Category')}</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                    {[
+                      { cat: 'A', label: 'Category A — High Range (>150 km)' },
+                      { cat: 'B', label: 'Category B — Standard Range (100–150 km)' },
+                      { cat: 'C', label: 'Category C — Short Range (<100 km)' },
+                    ].map((item) => (
+                      <TouchableOpacity
+                        key={item.cat}
+                        style={[styles.modalCatBtn, addCat === item.cat && styles.modalCatBtnActive]}
+                        onPress={() => setAddCat(item.cat)}
+                      >
+                        <Text style={[styles.modalCatBtnText, addCat === item.cat && styles.modalCatBtnTextActive]}>
+                          Cat {item.cat}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
 
                   <Text style={styles.modalFieldLabel}>{t('initial_battery_soc', 'Initial Battery SoC (%)')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
                   <TextInput
@@ -7431,6 +7407,34 @@ export default function AdminWorkspaceScreen() {
                         </Text>
                       </TouchableOpacity>
                     ))}
+                  </View>
+
+                  {/* Route Complexity Compatibility (Single Choice — Simple, Moderate / Standard, Complex) */}
+                  <Text style={styles.modalFieldLabel}>Route Complexity (Select One)</Text>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                    {[
+                      { id: 'Simple Route', label: 'Simple Route' },
+                      { id: 'Moderate / Standard Route', label: 'Moderate / Standard Route' },
+                      { id: 'Complex Route', label: 'Complex Route' },
+                    ].map((item) => {
+                      const isSel = depotRouteCategory === item.id;
+                      return (
+                        <TouchableOpacity
+                          key={item.id}
+                          style={[
+                            styles.modalShiftBtn,
+                            { minWidth: '30%', paddingHorizontal: 10 },
+                            isSel && styles.modalShiftBtnActive,
+                          ]}
+                          onPress={() => setDepotRouteCategory(item.id)}
+                          activeOpacity={0.8}
+                        >
+                          <Text style={[styles.modalShiftBtnText, isSel && styles.modalShiftBtnTextActive, { textAlign: 'center' }]}>
+                            {isSel ? '◉ ' : '○ '}{item.label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
 
                   {/* Timetable Departures */}

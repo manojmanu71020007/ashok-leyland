@@ -3381,12 +3381,6 @@ function addFleetBus(params) {
 
     const category = String(params.category || params.busCategory || "A").toUpperCase().trim();
 
-    const routeComplexity = String(
-        params.routeComplexity ||
-        params.assignedRouteComplexity ||
-        (category === "A" ? "Complex Route" : category === "C" ? "Simple Route" : "Moderate / Standard Route")
-    ).trim();
-
     const soc = Number.isFinite(Number(params.soc)) ? Math.max(0, Math.min(100, Number(params.soc))) : 100;
 
     const model = String(params.model || "ELECTRIC BUS AC EiV12").trim();
@@ -3537,8 +3531,6 @@ function addFleetBus(params) {
 
         busCategory: category,
 
-        routeComplexity,
-
         soc,
 
         model,
@@ -3582,8 +3574,6 @@ function addFleetBus(params) {
         driver: "Driver Assigned",
 
         busCategory: category,
-
-        routeComplexity,
 
         isNewlyAdded: true,
 
@@ -4118,13 +4108,6 @@ function restoreFleetBus(params) {
 
     const category = String((params && (params.category || params.busCategory)) || (currentState[bm] && currentState[bm].busCategory) || "A").trim();
 
-    const routeComplexity = String(
-        (params && (params.routeComplexity || params.assignedRouteComplexity)) ||
-        deletedInfo.routeComplexity ||
-        (currentState[bm] && currentState[bm].routeComplexity) ||
-        (category === "A" ? "Complex Route" : category === "C" ? "Simple Route" : "Moderate / Standard Route")
-    ).trim();
-
     const soc = Number.isFinite(Number(params && params.soc)) ? Number(params.soc) : ((currentState[bm] && currentState[bm].soc) || 100);
 
     const model = String((params && params.model) || deletedInfo.model || (currentState[bm] && currentState[bm].model) || "ELECTRIC BUS AC EiV12").trim();
@@ -4150,8 +4133,6 @@ function restoreFleetBus(params) {
         category,
 
         busCategory: category,
-
-        routeComplexity,
 
         soc,
 

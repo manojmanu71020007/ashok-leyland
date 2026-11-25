@@ -946,7 +946,6 @@ export const FleetProvider = ({ children }) => {
         bmNumber: bm,
         regNo: item.regNo || addedMeta?.regNo || staticBusRegs[bm] || `KA51AH${bm.replace(/\D/g, '').padStart(4, '0')}`,
         busCategory: staticCats[bm] || addedMeta?.busCategory || addedMeta?.category || (item.busCategory || 'B').toUpperCase(),
-        routeComplexity: item.routeComplexity || addedMeta?.routeComplexity || '',
         actualRangeKm: staticRanges[bm] || item.actualRangeKm || 110,
         soc: Math.max(0, Math.min(100, soc)),
         depot: depot,
@@ -1320,11 +1319,6 @@ export const FleetProvider = ({ children }) => {
     const reasonVal = String(newBus.reason || newBus.reasonVal || newBus.notes || 'New Electric Bus Induction').trim();
     const depotVal = String(newBus.depot || '1').trim();
     const catVal = String(newBus.busCategory || newBus.category || 'B').toUpperCase().trim();
-    const routeComplexityVal = String(
-      newBus.routeComplexity ||
-      newBus.assignedRouteComplexity ||
-      (catVal === 'A' ? 'Complex Route' : catVal === 'C' ? 'Simple Route' : 'Moderate / Standard Route')
-    ).trim();
     const socVal = Number.isFinite(Number(newBus.soc)) ? Math.max(10, Math.min(100, Number(newBus.soc))) : 100;
 
     const nowIso = new Date().toISOString();
@@ -1340,7 +1334,6 @@ export const FleetProvider = ({ children }) => {
       depot: depotVal,
       busCategory: catVal,
       category: catVal,
-      routeComplexity: routeComplexityVal,
       soc: socVal,
       make: 'Ashok Leyland',
       model: 'ELECTRIC BUS AC EiV12',
@@ -1355,7 +1348,6 @@ export const FleetProvider = ({ children }) => {
       regNo: cleanReg,
       depot: depotVal,
       busCategory: catVal,
-      routeComplexity: routeComplexityVal,
       soc: socVal,
       status: 'Available',
       isCharging: false,

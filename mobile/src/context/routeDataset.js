@@ -9626,10 +9626,15 @@ export function addRouteToDataset(depotId, routeData) {
     else if (dist >= 30) routeComp = 'Moderate';
     else if (dist < 25) routeComp = 'Simple';
     else routeComp = 'Standard';
+  } else {
+    const lowComp = String(routeComp).toLowerCase();
+    if (lowComp.includes('comp')) routeComp = 'Complex';
+    else if (lowComp.includes('mod') || lowComp.includes('stand')) routeComp = 'Standard / Moderate';
+    else if (lowComp.includes('simp')) routeComp = 'Simple';
   }
 
   // Auto-evaluate required bus category based on route complexity
-  const reqCat = routeData.requiredCat || (routeComp === 'Complex' ? 'A' : 'B');
+  const reqCat = routeData.requiredCat || (String(routeComp).toLowerCase().includes('comp') ? 'A' : 'B');
 
   const rawTimetables = Array.isArray(routeData.timetables) && routeData.timetables.length > 0
     ? routeData.timetables
