@@ -5912,20 +5912,34 @@
       let lockedList = JSON.parse(localStorage.getItem(LOCKED_KEY) || '[]');
       lockedList = lockedList.filter(x => String(x.bm || x.bmNumber || '').toUpperCase().trim() !== bm.toUpperCase());
       localStorage.setItem(LOCKED_KEY, JSON.stringify(lockedList));
+      fetch('/api/complete-route', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bm: bm.toUpperCase(),
+          depot: targetDepot,
+          remarks: `Route completed at Depot ${targetDepot}.`,
+          route: allocEntry?.routeCode || allocEntry?.route || '',
+          driver: allocEntry?.driver || ''
+        })
+      }).then(r => r.ok ? r.json() : null).then(crData => {
+        if (crData && window.DepotSyncEngine && typeof window.DepotSyncEngine.syncNow === 'function') {
+          window.DepotSyncEngine.syncNow();
+        }
+        if (crData && crData.finalizedDeletions) {
+          const fin = crData.finalizedDeletions;
+          const finMsgs = [];
+          if (crData.finalizedBusDeleted) finMsgs.push(`Bus ${bm.toUpperCase()} has been permanently deleted as scheduled.`);
+          if (Array.isArray(fin.finalizedRoutes) && fin.finalizedRoutes.length > 0) finMsgs.push(`Pending deletion completed for route(s): ${fin.finalizedRoutes.map(r => r.code).join(', ')}.`);
+          if (Array.isArray(fin.finalizedDepots) && fin.finalizedDepots.length > 0) finMsgs.push(`Pending deletion completed for depot(s): ${fin.finalizedDepots.map(d => d.depotName || d.depotId).join(', ')}.`);
+          if (finMsgs.length > 0) {
+            alert(`✅ Route Completed & Scheduled Deletion Finalized\n\n${finMsgs.join('\n')}`);
+          }
+        }
+      }).catch(() => {});
       if (window.DepotSyncEngine && typeof window.DepotSyncEngine.saveLockedBuses === 'function') {
         window.DepotSyncEngine.saveLockedBuses(lockedList);
       } else {
-        fetch('/api/complete-route', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bm: bm.toUpperCase(),
-            depot: targetDepot,
-            remarks: `Route completed at Depot ${targetDepot}.`,
-            route: allocEntry?.route || '',
-            driver: allocEntry?.driver || ''
-          })
-        }).catch(() => {});
         fetch('/api/locked-buses', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

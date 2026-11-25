@@ -28,6 +28,8 @@ export default function DepotOpsScreen() {
     completeRoute,
     clearCompletedRoutesLog,
     refreshFleet,
+    pendingDeletions = { buses: {}, routes: {}, depots: {} },
+    isTargetPendingDeletion,
   } = useFleet();
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
@@ -141,11 +143,33 @@ export default function DepotOpsScreen() {
           text: isCrossDepot ? `Confirm Transfer to Depot ${depotNum}` : `Confirm — ${cleanBm} Returned`,
           style: 'default',
           onPress: async () => {
-            await completeRoute(cleanBm, '', depotNum);
-            setSuccessBanner({
-              title: isCrossDepot ? `🔄 Transferred to Depot ${depotNum}!` : 'Route completed!',
-              text: `Bus ${cleanBm} has returned to Depot ${depotNum} yard. Fleet counts updated.`,
-            });
+            const compResult = await completeRoute(cleanBm, '', depotNum);
+            const fin = (compResult && compResult.finalizedDeletions) || {};
+            const finalizedNotes = [];
+            if (compResult && compResult.finalizedBusDeleted) {
+              finalizedNotes.push(`Bus ${cleanBm} has now been permanently deleted as scheduled.`);
+            }
+            if (Array.isArray(fin.finalizedRoutes) && fin.finalizedRoutes.length > 0) {
+              finalizedNotes.push(`Pending deletion completed for route(s): ${fin.finalizedRoutes.map((r) => r.code).join(', ')}.`);
+            }
+            if (Array.isArray(fin.finalizedDepots) && fin.finalizedDepots.length > 0) {
+              finalizedNotes.push(`Pending deletion completed for depot(s): ${fin.finalizedDepots.map((d) => d.depotName || d.depotId).join(', ')}.`);
+            }
+            if (finalizedNotes.length > 0) {
+              setSuccessBanner({
+                title: '✅ Route Completed & Scheduled Deletion Finalized',
+                text: finalizedNotes.join(' '),
+              });
+              Alert.alert(
+                '✅ Scheduled Deletion Finalized',
+                `Route completed for Bus ${cleanBm}.\n\n${finalizedNotes.join('\n')}`
+              );
+            } else {
+              setSuccessBanner({
+                title: isCrossDepot ? `🔄 Transferred to Depot ${depotNum}!` : 'Route completed!',
+                text: `Bus ${cleanBm} has returned to Depot ${depotNum} yard. Fleet counts updated.`,
+              });
+            }
             setTimeout(() => {
               setSuccessBanner(null);
             }, 6000);
@@ -451,6 +475,28 @@ export default function DepotOpsScreen() {
                     </Text>
                   </View>
                 )}
+
+                {/* Pending Deletion Completion Notice */}
+                {(() => {
+                  const pdInfo = isTargetPendingDeletion
+                    ? isTargetPendingDeletion({
+                        depotId: selectedBusObj.depot || depotNum,
+                        routeCode: selectedBusDuty?.routeCode || selectedBusDuty?.route || selectedBusDuty?.busNumber,
+                        bm: selectedBusObj.bmNumber,
+                      })
+                    : { pending: false };
+                  if (!pdInfo.pending) return null;
+                  return (
+                    <View style={{ backgroundColor: '#fffbeb', borderWidth: 1.5, borderColor: '#f59e0b', borderRadius: 10, padding: 10, marginTop: 10 }}>
+                      <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#92400e', marginBottom: 2 }}>
+                        ⏳ Scheduled Deletion Waiting on Route Completion
+                      </Text>
+                      <Text style={{ fontSize: 11.5, color: '#78350f', lineHeight: 16 }}>
+                        Admin scheduled deletion for this {pdInfo.type}. Tap "Route Completed" below once this bus finishes its assigned schedule so the system can finalize deletion.
+                      </Text>
+                    </View>
+                  );
+                })()}
 
                 {/* Route Info Row (Shown when allocated) */}
                 {selectedBusDuty && (

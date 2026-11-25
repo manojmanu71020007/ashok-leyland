@@ -3560,203 +3560,282 @@ function addFleetBus(params) {
 
 
 
-function deleteFleetBus(params) {
-
-    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
-
-    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
-
-    const regNo = String(params.regNo || params.reg_no || params.registrationNo || params.regNumber || params.reg_number || "").toUpperCase().trim();
-
-    const reason = String(params.reason || params.reasonVal || "").trim();
-
-
-
-    if (!bm || !reason) {
-
-        throw new Error("Bus Number and Reason are mandatory for deleting a bus.");
-
+function ensurePendingDeletions(state) {
+    if (!state || typeof state !== "object") return { buses: {}, routes: {}, depots: {} };
+    if (!state._pendingDeletions || typeof state._pendingDeletions !== "object") {
+        state._pendingDeletions = { buses: {}, routes: {}, depots: {} };
     }
+    if (!state._pendingDeletions.buses || typeof state._pendingDeletions.buses !== "object") state._pendingDeletions.buses = {};
+    if (!state._pendingDeletions.routes || typeof state._pendingDeletions.routes !== "object") state._pendingDeletions.routes = {};
+    if (!state._pendingDeletions.depots || typeof state._pendingDeletions.depots !== "object") state._pendingDeletions.depots = {};
+    return state._pendingDeletions;
+}
 
+function normalizeCleanDepotId(val) {
+    return String(val || "").trim().replace(/^DEPOT\s*/i, "");
+}
 
+function getDutyRouteCode(duty) {
+    const raw = duty?.routeCode || duty?.route || duty?.busNumber || duty?.routeId || "";
+    const cleaned = typeof cleanRouteCode === "function" ? cleanRouteCode(raw) : String(raw || "").toUpperCase().trim();
+    return String(cleaned || raw || "").toUpperCase().trim();
+}
 
-    // 1. Update vehicles.txt and retrieve actual make & model
+function getDutyDepotId(state, duty) {
+    const bm = String(duty?.bm || duty?.bmNumber || duty?.busId || "").toUpperCase().trim();
+    const explicit = normalizeCleanDepotId(duty?.depot || duty?.depotId || "");
+    if (explicit) return explicit;
+    if (bm && state?._depotAssignments?.[bm]) {
+        return normalizeCleanDepotId(state._depotAssignments[bm]);
+    }
+    const rCode = getDutyRouteCode(duty);
+    if (rCode) {
+        if (["361C", "399C", "328H", "500DC", "KBS3F"].includes(rCode)) return "2";
+        if (["356Z", "360K", "600F", "KBS3A"].includes(rCode)) return "1";
+        const db = state?._routesDatabase;
+        if (db && Array.isArray(db.routes)) {
+            const mr = db.routes.find(r => String(r.code || r.id || "").toUpperCase().trim() === rCode);
+            if (mr && mr.depotId) return normalizeCleanDepotId(mr.depotId);
+        }
+    }
+    return "1";
+}
+
+function getAllocatedDutiesForBus(state, bmKey) {
+    const key = String(bmKey || "").toUpperCase().trim();
+    if (!key || !Array.isArray(state?._allocatedDuties)) return [];
+    return state._allocatedDuties.filter(d => String(d.bm || d.bmNumber || d.busId || "").toUpperCase().trim() === key);
+}
+
+function getAllocatedDutiesForRoute(state, routeCode, depotId = null) {
+    const cleanCode = String(routeCode || "").toUpperCase().trim();
+    const targetDep = depotId ? normalizeCleanDepotId(depotId) : null;
+    if (!cleanCode || !Array.isArray(state?._allocatedDuties)) return [];
+    return state._allocatedDuties.filter(d => {
+        const dCode = getDutyRouteCode(d);
+        if (dCode !== cleanCode) return false;
+        if (!targetDep) return true;
+        const dDep = getDutyDepotId(state, d);
+        return dDep === targetDep;
+    });
+}
+
+function getAllocatedDutiesForDepot(state, depotId) {
+    const targetDep = normalizeCleanDepotId(depotId);
+    if (!targetDep || !Array.isArray(state?._allocatedDuties)) return [];
+    const depotRouteSet = new Set();
+    if (Array.isArray(state._customDepots)) {
+        const cd = state._customDepots.find(x => normalizeCleanDepotId(x.id) === targetDep);
+        if (cd && Array.isArray(cd.routes)) {
+            cd.routes.forEach(c => depotRouteSet.add(String(c || "").toUpperCase().trim()));
+        }
+    }
+    const db = state._routesDatabase;
+    if (db && Array.isArray(db.routes)) {
+        db.routes.forEach(r => {
+            if (normalizeCleanDepotId(r.depotId) === targetDep) {
+                depotRouteSet.add(String(r.code || r.id || "").toUpperCase().trim());
+            }
+        });
+    }
+    return state._allocatedDuties.filter(d => {
+        const dDep = getDutyDepotId(state, d);
+        if (dDep === targetDep) return true;
+        const dCode = getDutyRouteCode(d);
+        return dCode && depotRouteSet.has(dCode);
+    });
+}
+
+function isDutyBlockedByPendingDeletion(state, duty) {
+    const pd = ensurePendingDeletions(state);
+    const bmKey = String(duty?.bm || duty?.bmNumber || duty?.busId || "").toUpperCase().trim();
+    const rCode = getDutyRouteCode(duty);
+    const dDep = getDutyDepotId(state, duty);
+
+    if (dDep && pd.depots[dDep]) {
+        const meta = pd.depots[dDep];
+        const depName = meta.depotName || `Depot ${dDep}`;
+        return {
+            blocked: true,
+            type: "depot",
+            target: dDep,
+            reason: `Depot "${depName}" is going to be deleted once all assigned buses complete their schedules, so no bus can be allocated for this depot.`
+        };
+    }
+    const routeKey = `${dDep}_${rCode}`;
+    const routeMatch = pd.routes[routeKey] || Object.values(pd.routes).find(r => r && String(r.code || "").toUpperCase().trim() === rCode && (!r.depotId || normalizeCleanDepotId(r.depotId) === dDep));
+    if (rCode && routeMatch) {
+        return {
+            blocked: true,
+            type: "route",
+            target: routeKey,
+            reason: `This route (${rCode}) is going to be deleted once active bus(es) finish their assigned route, so no bus can be allocated for this route.`
+        };
+    }
+    if (bmKey && pd.buses[bmKey]) {
+        return {
+            blocked: true,
+            type: "bus",
+            target: bmKey,
+            reason: `Bus ${bmKey} is scheduled to be deleted after completing its assigned route, so it is paused and cannot be allocated.`
+        };
+    }
+    return { blocked: false };
+}
+
+function finalizeRouteCascade(currentState, dataset, cleanCode, dId, delRouteSet) {
+    if (!cleanCode) return;
+    if (dId) {
+        delRouteSet.add(`${dId}_${cleanCode}`);
+    } else if (Array.isArray(dataset?.routes)) {
+        dataset.routes.forEach(r => {
+            if (String(r.code || r.id).toUpperCase().trim() === cleanCode) {
+                delRouteSet.add(`${String(r.depotId || "1").trim()}_${cleanCode}`);
+            }
+        });
+    }
+    if (dataset?.routes) {
+        dataset.routes = dataset.routes.filter(r => !(String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
+    }
+    if (dataset?.depots) {
+        dataset.depots.forEach(depotObj => {
+            if ((!dId || String(depotObj.id).trim() === dId) && Array.isArray(depotObj.routes)) {
+                depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+            }
+        });
+    }
+    if (Array.isArray(currentState._customDepots)) {
+        currentState._customDepots.forEach(cd => {
+            if ((!dId || String(cd.id).trim() === dId) && Array.isArray(cd.routes)) {
+                cd.routes = cd.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+            }
+        });
+    }
+    if (currentState._pendingRelayRoutes && currentState._pendingRelayRoutes[cleanCode]) {
+        delete currentState._pendingRelayRoutes[cleanCode];
+    }
+}
+
+function finalizeDepotCascade(currentState, cleanId) {
+    if (!cleanId) return;
+    if (!Array.isArray(currentState._deletedDepotIds)) currentState._deletedDepotIds = [];
+    if (!Array.isArray(currentState._deletedRoutes)) currentState._deletedRoutes = [];
+    if (!currentState._deletedDepotIds.includes(cleanId)) {
+        currentState._deletedDepotIds.push(cleanId);
+    }
+    if (Array.isArray(currentState._customDepots)) {
+        const targetDep = currentState._customDepots.find(d => String(d.id) === cleanId);
+        if (targetDep && Array.isArray(targetDep.routes)) {
+            targetDep.routes.forEach(rc => {
+                const rk = `${cleanId}_${String(rc || "").toUpperCase().trim()}`;
+                if (rk && !currentState._deletedRoutes.includes(rk)) currentState._deletedRoutes.push(rk);
+                const cCode = cleanRouteCode(rc);
+                if (currentState._pendingRelayRoutes && currentState._pendingRelayRoutes[cCode]) {
+                    delete currentState._pendingRelayRoutes[cCode];
+                }
+            });
+        }
+        currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
+    }
+    if (currentState._customAccounts && typeof currentState._customAccounts === "object") {
+        for (const k of Object.keys(currentState._customAccounts)) {
+            if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
+                delete currentState._customAccounts[k];
+            }
+        }
+    }
+    if (currentState._pendingRelayRoutes && typeof currentState._pendingRelayRoutes === "object") {
+        Object.keys(currentState._pendingRelayRoutes).forEach(rk => {
+            if (String(currentState._pendingRelayRoutes[rk]?.depot || "") === cleanId) {
+                delete currentState._pendingRelayRoutes[rk];
+            }
+        });
+    }
+    let db = currentState._routesDatabase || loadRoutesDataset();
+    if (db) {
+        if (Array.isArray(db.depots)) {
+            db.depots = db.depots.filter(d => String(d.id) !== cleanId);
+        }
+        if (Array.isArray(db.routes)) {
+            db.routes.forEach(r => {
+                if (String(r.depotId) === cleanId) {
+                    const rk = `${cleanId}_${String(r.code || r.id || "").toUpperCase().trim()}`;
+                    if (rk && !currentState._deletedRoutes.includes(rk)) currentState._deletedRoutes.push(rk);
+                }
+            });
+            db.routes = db.routes.filter(r => String(r.depotId) !== cleanId);
+        }
+        db.deletedRoutes = currentState._deletedRoutes;
+        currentState._routesDatabase = db;
+        saveRoutesDataset(db);
+    }
+}
+
+function applyBusDeletionToState(currentState, params) {
+    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+    const regNo = String(params.regNo || params.reg_no || params.registrationNo || params.regNumber || params.reg_number || "").toUpperCase().trim();
+    const reason = String(params.reason || params.reasonVal || "Fleet Maintenance Off-road").trim();
+    if (!bm) throw new Error("Bus Number is mandatory for deleting a bus.");
 
     let busReg = regNo;
-
     let busMake = String(params.make || "Ashok Leyland").trim();
-
     let busModel = String(params.model || "ELECTRIC BUS AC EiV12").trim();
-
-    const chosenDepotNum = String(params.depot || "1").trim();
-
-    let busDepot = chosenDepotNum === "2" ? "Depot 2 (Central)" : "Chandapura (BMT-32)";
+    const chosenDepotNum = String(params.depot || currentState._depotAssignments?.[bm] || "1").trim();
+    let busDepot = chosenDepotNum === "2" ? "Depot 2 (Central)" : (chosenDepotNum === "1" ? "Chandapura (BMT-32)" : `Depot ${chosenDepotNum}`);
 
     try {
-
         if (fs.existsSync(VEHICLES_FILE)) {
-
             const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
-
             const lines = raw.split(/\r?\n/).filter(Boolean);
-
             const newLines = lines.map((line, idx) => {
-
                 if (idx === 0) return line;
-
                 const parts = parseCsvLine(line);
-
                 if (parts[0] && parts[0].trim().toUpperCase() === bm) {
-
                     busReg = regNo || parts[2] || busReg;
-
                     busMake = parts[3] || busMake;
-
                     busModel = parts[4] || busModel;
-
                     busDepot = parts[5] || busDepot;
-
                     return `${bm},${bm},${busReg},${busMake},${busModel},${busDepot},Deleted`;
-
                 }
-
                 return line;
-
             });
-
             fs.writeFileSync(VEHICLES_FILE, newLines.join("\n") + "\n", "utf8");
-
         }
-
     } catch (e) {
-
-        console.warn("Could not update vehicles.txt in deleteFleetBus:", e.message);
-
+        console.warn("Could not update vehicles.txt in applyBusDeletionToState:", e.message);
     }
-
-
-
-    // 2. Update bus_state.json
-
-    const currentState = loadBusState();
 
     if (!currentState._deletedBuses) currentState._deletedBuses = {};
-
     if (!currentState._addedBuses) currentState._addedBuses = {};
-
-
-
     const regToUse = busReg || regNo || (currentState[bm] && (currentState[bm].regNo || currentState[bm].regNumber)) || "";
-
     delete currentState._addedBuses[bm];
 
-
-
     const deletedInfo = {
-
         bm,
-
         busNumber: bm,
-
         regNo: regToUse,
-
         regNumber: regToUse,
-
         model: busModel,
-
         make: busMake,
-
         depot: busDepot,
-
         reason,
-
         deletedAt: new Date().toISOString(),
-
         timestamp: Date.now()
-
     };
-
     currentState._deletedBuses[bm] = deletedInfo;
 
-
-
     if (currentState[bm]) {
-
         currentState[bm].status = "Deleted";
-
         currentState[bm].deleted = true;
-
         currentState[bm].isDeleted = true;
-
         currentState[bm].deletionReason = reason;
-
         currentState[bm].deletedAt = deletedInfo.deletedAt;
-
         currentState[bm].isNewlyAdded = false;
-
         currentState[bm].regNo = regToUse;
-
         currentState[bm].regNumber = regToUse;
-
         currentState[bm].model = busModel;
-
         currentState[bm].make = busMake;
-
-    } else {
-
-        currentState[bm] = {
-
-            uniqueId: bm,
-
-            bmNumber: bm,
-
-            busNumber: bm,
-
-            regNo: regToUse,
-
-            regNumber: regToUse,
-
-            model: busModel,
-
-            make: busMake,
-
-            status: "Deleted",
-
-            deleted: true,
-
-            isDeleted: true,
-
-            deletionReason: reason,
-
-            deletedAt: deletedInfo.deletedAt,
-
-            isNewlyAdded: false
-
-        };
-
-    }
-
-
-
-    if (Array.isArray(currentState._lockedBuses)) {
-
-        currentState._lockedBuses = currentState._lockedBuses.filter(x => String(x.bm || '').toUpperCase() !== bm);
-
-    }
-
-
-
-    if (Array.isArray(currentState._allocatedDuties)) {
-
-        currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.bm || '').toUpperCase() !== bm);
-    }
-    if (currentState._servicingStatus && currentState._servicingStatus[bm]) {
-        delete currentState._servicingStatus[bm];
-    }
-    if (Array.isArray(currentState._completedRoutesLog)) {
-        currentState._completedRoutesLog = currentState._completedRoutesLog.filter(x => String(x.bm || '').toUpperCase() !== bm);
-    }
-    if (currentState[bm]) {
         currentState[bm].isLocked = false;
         currentState[bm].isTurnaround = false;
         currentState[bm].needsCharging = false;
@@ -3764,61 +3843,152 @@ function deleteFleetBus(params) {
         currentState[bm].chargingCompleted = false;
         currentState[bm].cleaningCompleted = false;
         currentState[bm].postRouteServicingPending = false;
-
+    } else {
+        currentState[bm] = {
+            uniqueId: bm,
+            bmNumber: bm,
+            busNumber: bm,
+            regNo: regToUse,
+            regNumber: regToUse,
+            model: busModel,
+            make: busMake,
+            status: "Deleted",
+            deleted: true,
+            isDeleted: true,
+            deletionReason: reason,
+            deletedAt: deletedInfo.deletedAt,
+            isNewlyAdded: false
+        };
     }
 
-
-
-    saveBusState(currentState);
-
-
-
-    // 3. Invalidate routes cache
+    if (Array.isArray(currentState._lockedBuses)) {
+        currentState._lockedBuses = currentState._lockedBuses.filter(x => String(x.bm || "").toUpperCase() !== bm);
+    }
+    if (Array.isArray(currentState._allocatedDuties)) {
+        currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.bm || "").toUpperCase() !== bm);
+    }
+    if (currentState._servicingStatus && currentState._servicingStatus[bm]) {
+        delete currentState._servicingStatus[bm];
+    }
+    if (Array.isArray(currentState._completedRoutesLog)) {
+        currentState._completedRoutesLog = currentState._completedRoutesLog.filter(x => String(x.bm || "").toUpperCase() !== bm);
+    }
 
     cachedRoutes = null;
-
     cachedRouteBmMap = null;
+    return deletedInfo;
+}
 
+function resolvePendingDeletionsAfterCompletion(currentState, completedBm) {
+    const pd = ensurePendingDeletions(currentState);
+    const finalizedBuses = [];
+    const finalizedRoutes = [];
+    const finalizedDepots = [];
+    let pendingChanged = false;
 
+    const cleanBm = String(completedBm || "").toUpperCase().trim();
+    if (cleanBm && pd.buses[cleanBm]) {
+        const meta = pd.buses[cleanBm];
+        delete pd.buses[cleanBm];
+        pendingChanged = true;
+        try {
+            const info = applyBusDeletionToState(currentState, meta);
+            finalizedBuses.push(info);
+        } catch (e) {
+            console.warn("Failed finalizing pending bus deletion:", cleanBm, e.message);
+        }
+    }
 
-    // 4. Broadcast sync event
+    // Check pending route deletions
+    const pendingRouteEntries = Object.entries(pd.routes || {});
+    if (pendingRouteEntries.length > 0) {
+        let dataset = currentState._routesDatabase || loadRoutesDataset() || { version: "1.0", depots: [], routes: [] };
+        if (!Array.isArray(currentState._deletedRoutes)) currentState._deletedRoutes = [];
+        const delRouteSet = new Set(currentState._deletedRoutes.map(k => String(k || "").toUpperCase().trim()));
+        let routesMutated = false;
+
+        pendingRouteEntries.forEach(([rKey, meta]) => {
+            if (!meta) return;
+            const remaining = getAllocatedDutiesForRoute(currentState, meta.code, meta.depotId);
+            if (remaining.length === 0) {
+                finalizeRouteCascade(currentState, dataset, meta.code, meta.depotId, delRouteSet);
+                delete pd.routes[rKey];
+                finalizedRoutes.push({ key: rKey, code: meta.code, depotId: meta.depotId });
+                routesMutated = true;
+                pendingChanged = true;
+            } else {
+                const nextBms = remaining.map(d => String(d.bm || d.bmNumber || "").toUpperCase().trim()).filter(Boolean);
+                if (JSON.stringify(meta.activeBms || []) !== JSON.stringify(nextBms)) {
+                    meta.activeBms = nextBms;
+                    pendingChanged = true;
+                }
+            }
+        });
+
+        if (routesMutated) {
+            currentState._deletedRoutes = Array.from(delRouteSet);
+            dataset.deletedRoutes = currentState._deletedRoutes;
+            currentState._routesDatabase = dataset;
+            saveRoutesDataset(dataset);
+            cachedCorridorSchedules = null;
+        }
+    }
+
+    // Check pending depot deletions
+    const pendingDepotEntries = Object.entries(pd.depots || {});
+    if (pendingDepotEntries.length > 0) {
+        pendingDepotEntries.forEach(([dId, meta]) => {
+            if (!meta) return;
+            const remaining = getAllocatedDutiesForDepot(currentState, dId);
+            if (remaining.length === 0) {
+                finalizeDepotCascade(currentState, dId);
+                delete pd.depots[dId];
+                finalizedDepots.push({ depotId: dId, depotName: meta.depotName || `Depot ${dId}` });
+                cachedCorridorSchedules = null;
+                pendingChanged = true;
+            } else {
+                const nextBms = remaining.map(d => String(d.bm || d.bmNumber || "").toUpperCase().trim()).filter(Boolean);
+                if (JSON.stringify(meta.activeBms || []) !== JSON.stringify(nextBms)) {
+                    meta.activeBms = nextBms;
+                    pendingChanged = true;
+                }
+            }
+        });
+    }
+
+    return { finalizedBuses, finalizedRoutes, finalizedDepots, pendingChanged };
+}
+
+function deleteFleetBus(params) {
+    let bm = String(params.bm || params.busNumber || params.bmNumber || "").toUpperCase().trim();
+    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+    const reason = String(params.reason || params.reasonVal || "").trim();
+    if (!bm || !reason) {
+        throw new Error("Bus Number and Reason are mandatory for deleting a bus.");
+    }
+
+    const currentState = loadBusState();
+    const deletedInfo = applyBusDeletionToState(currentState, params);
+    saveBusState(currentState);
 
     broadcastSyncEvent("fleet-bus-deleted", {
-
         bm,
-
-        regNo: regToUse,
-
+        regNo: deletedInfo.regNo,
         reason,
-
         deletedInfo,
-
         addedBuses: currentState._addedBuses,
-
         deletedBuses: currentState._deletedBuses
-
     });
-
-
 
     const updatedCountsDel = getDepotCounts(currentState._depotAssignments, currentState);
-
     broadcastSyncEvent("depot-updated", {
-
         assignments: currentState._depotAssignments,
-
         depot1Count: updatedCountsDel.depot1Count,
-
         depot2Count: updatedCountsDel.depot2Count,
-
         total: updatedCountsDel.total
-
     });
 
-
-
     return deletedInfo;
-
 }
 
 
@@ -5241,6 +5411,8 @@ const server = http.createServer(async (req, res) => {
 
                 deletedRoutes: currentState._deletedRoutes || [],
 
+                pendingDeletions: ensurePendingDeletions(currentState),
+
                 routesDatabase: currentState._routesDatabase || loadRoutesDataset() || {},
 
                 timestamp: Date.now()
@@ -5257,6 +5429,17 @@ const server = http.createServer(async (req, res) => {
 
     }
 
+    // ── GET /api/pending-deletions ──
+    if (pathname === "/api/pending-deletions" && req.method === "GET") {
+        try {
+            const currentState = loadBusState();
+            sendJson(res, { ok: true, pendingDeletions: ensurePendingDeletions(currentState), version: stateVersion });
+        } catch (err) {
+            sendJson(res, { ok: false, error: "Failed to load pending deletions", details: err.message }, 500);
+        }
+        return;
+    }
+
     // ── GET & POST /api/custom-depots (Cross-Device Dynamic Depot Synchronization) ──
     if (pathname === "/api/custom-depots") {
         if (req.method === "GET") {
@@ -5268,6 +5451,7 @@ const server = http.createServer(async (req, res) => {
                     customAccounts: currentState._customAccounts || {},
                     deletedDepotIds: currentState._deletedDepotIds || [],
                     deletedRoutes: currentState._deletedRoutes || [],
+                    pendingDeletions: ensurePendingDeletions(currentState),
                     version: stateVersion
                 });
             } catch (err) {
@@ -5293,6 +5477,7 @@ const server = http.createServer(async (req, res) => {
                     if (!Array.isArray(currentState._deletedRoutes)) {
                         currentState._deletedRoutes = [];
                     }
+                    const pd = ensurePendingDeletions(currentState);
 
                     const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds, deletedRoutes } = payload;
 
@@ -5310,16 +5495,19 @@ const server = http.createServer(async (req, res) => {
                     if (Array.isArray(deletedDepotIds)) {
                         deletedDepotIds.forEach(id => {
                             const cId = String(id || "").trim();
-                            if (cId && !currentState._deletedDepotIds.includes(cId)) {
+                            if (cId && !currentState._deletedDepotIds.includes(cId) && !pd.depots[cId]) {
                                 currentState._deletedDepotIds.push(cId);
                             }
                         });
                     }
 
+                    const pendingDepots = [];
+                    const deletedDepotsImmediate = [];
+
                     if (action === "add" && depot) {
                         const cleanId = String(depot.id || "").trim();
-                        // Un-tombstone if re-created
                         currentState._deletedDepotIds = currentState._deletedDepotIds.filter(id => id !== cleanId);
+                        delete pd.depots[cleanId];
                         if (Array.isArray(depot.routes)) {
                             depot.routes = depot.routes.filter(rc => !delRouteSet.has(`${cleanId}_${String(rc || "").toUpperCase().trim()}`));
                         }
@@ -5334,35 +5522,30 @@ const server = http.createServer(async (req, res) => {
                         }
                     } else if (action === "delete" || action === "delete_batch" || action === "delete-batch") {
                         const idsToDelete = Array.isArray(payload.depotIds)
-                            ? payload.depotIds.map(x => String(x || "").trim()).filter(Boolean)
-                            : [String(depotId || depot?.id || "").trim()].filter(Boolean);
+                            ? payload.depotIds.map(x => normalizeCleanDepotId(x)).filter(Boolean)
+                            : [normalizeCleanDepotId(depotId || depot?.id || "")].filter(Boolean);
 
                         idsToDelete.forEach(cleanId => {
                             if (!cleanId) return;
-                            if (!currentState._deletedDepotIds.includes(cleanId)) {
-                                currentState._deletedDepotIds.push(cleanId);
-                            }
-                            currentState._customDepots = currentState._customDepots.filter(d => String(d.id) !== cleanId);
-                            for (const k of Object.keys(currentState._customAccounts)) {
-                                if (currentState._customAccounts[k] && String(currentState._customAccounts[k].depot) === cleanId) {
-                                    delete currentState._customAccounts[k];
-                                }
-                            }
-                            // Unassign any bus duties allocated to this deleted depot
-                            if (Array.isArray(currentState._allocatedDuties)) {
-                                currentState._allocatedDuties = currentState._allocatedDuties.filter(d => String(d.depot) !== cleanId);
-                            }
-                            // Also cascade delete depot and its routes from Master Route Dataset
-                            let db = currentState._routesDatabase || loadRoutesDataset();
-                            if (db) {
-                                if (Array.isArray(db.depots)) {
-                                    db.depots = db.depots.filter(d => String(d.id) !== cleanId);
-                                }
-                                if (Array.isArray(db.routes)) {
-                                    db.routes = db.routes.filter(r => String(r.depotId) !== cleanId);
-                                }
-                                currentState._routesDatabase = db;
-                                saveRoutesDataset(db);
+                            const activeDuties = getAllocatedDutiesForDepot(currentState, cleanId);
+                            if (activeDuties.length > 0) {
+                                const depotObj = currentState._customDepots.find(d => normalizeCleanDepotId(d.id) === cleanId);
+                                const dName = payload.depotName || depotObj?.name || (cleanId === "1" ? "Depot 1 (Chandapura)" : cleanId === "2" ? "Depot 2 (Attibele)" : `Depot ${cleanId}`);
+                                const activeBms = activeDuties.map(d => String(d.bm || d.bmNumber || "").toUpperCase().trim()).filter(Boolean);
+                                pd.depots[cleanId] = {
+                                    type: "depot",
+                                    depotId: cleanId,
+                                    depotName: dName,
+                                    activeBms,
+                                    reason: String(payload.reason || "Decommissioned by Admin").trim(),
+                                    requestedAt: new Date().toISOString()
+                                };
+                                currentState._deletedDepotIds = currentState._deletedDepotIds.filter(id => id !== cleanId);
+                                pendingDepots.push(pd.depots[cleanId]);
+                            } else {
+                                delete pd.depots[cleanId];
+                                finalizeDepotCascade(currentState, cleanId);
+                                deletedDepotsImmediate.push(cleanId);
                             }
                         });
                     } else if (action === "sync" || Array.isArray(customDepots)) {
@@ -5429,20 +5612,30 @@ const server = http.createServer(async (req, res) => {
                     }
 
                     saveBusState(currentState);
+                    stateVersion = Date.now();
                     broadcastSyncEvent("custom-depots-updated", {
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
                         deletedDepotIds: currentState._deletedDepotIds,
                         deletedRoutes: currentState._deletedRoutes
                     });
+                    broadcastSyncEvent("pending-deletions-updated", {
+                        pendingDeletions: pd
+                    });
 
                     sendJson(res, {
                         ok: true,
-                        message: "Custom depots synchronized successfully",
+                        deferred: pendingDepots.length > 0,
+                        pendingDepots,
+                        deletedDepots: deletedDepotsImmediate,
+                        message: pendingDepots.length > 0
+                            ? `Depot deletion paused until ${pendingDepots.map(p => `${p.depotName} (${p.activeBms.join(', ')})`).join('; ')} finish active schedules.`
+                            : "Custom depots synchronized successfully",
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
                         deletedDepotIds: currentState._deletedDepotIds,
                         deletedRoutes: currentState._deletedRoutes,
+                        pendingDeletions: pd,
                         version: stateVersion
                     });
                 } catch (err) {
@@ -5531,12 +5724,20 @@ const server = http.createServer(async (req, res) => {
                     ].filter(Boolean));
                     const delDepotSet = new Set((Array.isArray(currentState._deletedDepotIds) ? currentState._deletedDepotIds : []).map(String));
 
+                    const pd = ensurePendingDeletions(currentState);
+                    const pendingRoutesResp = [];
+                    const deletedRoutesResp = [];
+                    const pendingDepotsResp = [];
+
                     const { action, route, depot, routeCode, depotId, routeComplexity, timeComplexity, timeSlot, timetables, dataset: incomingDataset } = payload;
 
                     if (action === "add_route" && route) {
                         const cleanCode = String(route.code || route.id || "").toUpperCase().trim();
-                        const dId = String(route.depotId || depotId || "1").trim();
-                        if (cleanCode) delRouteSet.delete(`${dId}_${cleanCode}`);
+                        const dId = normalizeCleanDepotId(route.depotId || depotId || "1") || "1";
+                        if (cleanCode) {
+                            delRouteSet.delete(`${dId}_${cleanCode}`);
+                            delete pd.routes[`${dId}_${cleanCode}`];
+                        }
                         if (!dataset.routes) dataset.routes = [];
                         const existingIdx = dataset.routes.findIndex(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
                         if (existingIdx >= 0) {
@@ -5563,37 +5764,32 @@ const server = http.createServer(async (req, res) => {
                         const codes = Array.isArray(payload.routeCodes) ? payload.routeCodes : (Array.isArray(payload.routes) ? payload.routes : [routeCode]);
                         codes.forEach(codeItem => {
                             const cleanCode = String(codeItem?.code || codeItem?.id || codeItem || "").toUpperCase().trim();
-                            const dId = codeItem?.depotId ? String(codeItem.depotId).trim() : (depotId ? String(depotId).trim() : null);
+                            const dId = codeItem?.depotId ? normalizeCleanDepotId(codeItem.depotId) : (depotId ? normalizeCleanDepotId(depotId) : null);
                             if (!cleanCode) return;
-                            if (dId) {
-                                delRouteSet.add(`${dId}_${cleanCode}`);
-                            } else if (Array.isArray(dataset.routes)) {
-                                dataset.routes.forEach(r => {
-                                    if (String(r.code || r.id).toUpperCase().trim() === cleanCode) {
-                                        delRouteSet.add(`${String(r.depotId || "1").trim()}_${cleanCode}`);
-                                    }
-                                });
-                            }
-                            if (dataset.routes) {
-                                dataset.routes = dataset.routes.filter(r => !(String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
-                            }
-                            if (dataset.depots) {
-                                dataset.depots.forEach(depotObj => {
-                                    if ((!dId || String(depotObj.id).trim() === dId) && Array.isArray(depotObj.routes)) {
-                                        depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
-                                    }
-                                });
-                            }
-                            if (Array.isArray(currentState._customDepots)) {
-                                currentState._customDepots.forEach(cd => {
-                                    if ((!dId || String(cd.id).trim() === dId) && Array.isArray(cd.routes)) {
-                                        cd.routes = cd.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
-                                    }
-                                });
+                            const activeDuties = getAllocatedDutiesForRoute(currentState, cleanCode, dId);
+                            if (activeDuties.length > 0) {
+                                const resolvedDep = dId || getDutyDepotId(currentState, activeDuties[0]) || "1";
+                                const rKey = `${resolvedDep}_${cleanCode}`;
+                                pd.routes[rKey] = {
+                                    type: "route",
+                                    key: rKey,
+                                    code: cleanCode,
+                                    depotId: resolvedDep,
+                                    activeBms: activeDuties.map(d => String(d.bm || d.bmNumber || "").toUpperCase().trim()).filter(Boolean),
+                                    reason: String(payload.reason || "Decommissioned by Admin").trim(),
+                                    requestedAt: new Date().toISOString()
+                                };
+                                delRouteSet.delete(rKey);
+                                pendingRoutesResp.push(pd.routes[rKey]);
+                            } else {
+                                if (dId) delete pd.routes[`${dId}_${cleanCode}`];
+                                finalizeRouteCascade(currentState, dataset, cleanCode, dId, delRouteSet);
+                                deletedRoutesResp.push({ code: cleanCode, depotId: dId || "1" });
                             }
                         });
                     } else if (action === "add_depot" && depot) {
                         const cleanId = String(depot.id || "").trim();
+                        delete pd.depots[cleanId];
                         if (!dataset.depots) dataset.depots = [];
                         const existingIdx = dataset.depots.findIndex(d => String(d.id).trim() === cleanId);
                         if (existingIdx >= 0) {
@@ -5602,12 +5798,31 @@ const server = http.createServer(async (req, res) => {
                             dataset.depots.push(depot);
                         }
                     } else if (action === "delete_depot" && depotId) {
-                        const cleanId = String(depotId).trim();
-                        if (dataset.depots) {
-                            dataset.depots = dataset.depots.filter(d => String(d.id).trim() !== cleanId);
-                        }
-                        if (dataset.routes) {
-                            dataset.routes = dataset.routes.filter(r => String(r.depotId).trim() !== cleanId);
+                        const cleanId = normalizeCleanDepotId(depotId);
+                        const activeDuties = getAllocatedDutiesForDepot(currentState, cleanId);
+                        if (activeDuties.length > 0) {
+                            const depObj = (dataset.depots || []).find(d => normalizeCleanDepotId(d.id) === cleanId);
+                            pd.depots[cleanId] = {
+                                type: "depot",
+                                depotId: cleanId,
+                                depotName: payload.depotName || depObj?.name || `Depot ${cleanId}`,
+                                activeBms: activeDuties.map(d => String(d.bm || d.bmNumber || "").toUpperCase().trim()).filter(Boolean),
+                                reason: String(payload.reason || "Decommissioned by Admin").trim(),
+                                requestedAt: new Date().toISOString()
+                            };
+                            pendingDepotsResp.push(pd.depots[cleanId]);
+                        } else {
+                            delete pd.depots[cleanId];
+                            delDepotSet.add(cleanId);
+                            if (!Array.isArray(currentState._deletedDepotIds)) currentState._deletedDepotIds = [];
+                            if (!currentState._deletedDepotIds.includes(cleanId)) currentState._deletedDepotIds.push(cleanId);
+                            finalizeDepotCascade(currentState, cleanId);
+                            if (dataset.depots) {
+                                dataset.depots = dataset.depots.filter(d => String(d.id).trim() !== cleanId);
+                            }
+                            if (dataset.routes) {
+                                dataset.routes = dataset.routes.filter(r => String(r.depotId).trim() !== cleanId);
+                            }
                         }
                     } else if (action === "update_route_complexity" && routeCode && routeComplexity) {
                         const cleanCode = String(routeCode).toUpperCase().trim();
@@ -5789,6 +6004,17 @@ const server = http.createServer(async (req, res) => {
                         dataset = incomingDataset;
                     }
 
+                    // Remove any still-pending routes/depots from deletion sets so active routes remain until duties complete
+                    Object.keys(pd.depots || {}).forEach(dId => {
+                        delDepotSet.delete(dId);
+                        if (Array.isArray(currentState._deletedDepotIds)) {
+                            currentState._deletedDepotIds = currentState._deletedDepotIds.filter(id => id !== dId);
+                        }
+                    });
+                    Object.keys(pd.routes || {}).forEach(rKey => {
+                        delRouteSet.delete(rKey);
+                    });
+
                     // Enforce _deletedRoutes & _deletedDepotIds tombstones across dataset so stale caches cannot resurrect deleted routes
                     dataset.routes = (dataset.routes || []).filter(r => {
                         const rDep = String(r.depotId || "1").trim();
@@ -5816,16 +6042,28 @@ const server = http.createServer(async (req, res) => {
                     saveBusState(currentState);
                     cachedCorridorSchedules = null;
                     stateVersion = Date.now();
-                    broadcastSyncEvent("routes-dataset-updated", { dataset, deletedRoutes: currentState._deletedRoutes });
-                    if (action === "delete_route" || action === "delete_routes_batch" || action === "delete-routes-batch" || action === "add_route") {
+                    broadcastSyncEvent("routes-dataset-updated", { dataset, deletedRoutes: currentState._deletedRoutes, pendingDeletions: pd });
+                    if (action === "delete_route" || action === "delete_routes_batch" || action === "delete-routes-batch" || action === "add_route" || action === "delete_depot" || action === "add_depot") {
                         broadcastSyncEvent("custom-depots-updated", {
                             customDepots: currentState._customDepots || [],
                             customAccounts: currentState._customAccounts || {},
                             deletedDepotIds: currentState._deletedDepotIds || [],
-                            deletedRoutes: currentState._deletedRoutes || []
+                            deletedRoutes: currentState._deletedRoutes || [],
+                            pendingDeletions: pd
                         });
                     }
-                    sendJson(res, { ok: true, dataset, deletedRoutes: currentState._deletedRoutes, version: stateVersion });
+                    broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: pd });
+                    sendJson(res, {
+                        ok: true,
+                        dataset,
+                        deletedRoutes: currentState._deletedRoutes,
+                        pendingRoutes: pendingRoutesResp,
+                        deletedRoutesImmediate: deletedRoutesResp,
+                        pendingDepots: pendingDepotsResp,
+                        deferred: pendingRoutesResp.length > 0 || pendingDepotsResp.length > 0,
+                        pendingDeletions: pd,
+                        version: stateVersion
+                    });
                 } catch (err) {
                     sendJson(res, { ok: false, error: "Failed to update routes dataset", details: err.message }, 500);
                 }
@@ -7159,10 +7397,38 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                     const currentState = loadBusState();
 
                     if (Array.isArray(payload.lockedBuses)) {
-                        // Strict turnaround validation: Reject locking for cleaning if charging is pending
+                        const existingLockedBms = new Set(
+                            (Array.isArray(currentState._lockedBuses) ? currentState._lockedBuses : [])
+                                .map(x => String(x?.bm || x?.bmNumber || '').toUpperCase().trim())
+                                .filter(Boolean)
+                        );
+                        const pd = ensurePendingDeletions(currentState);
+                        // Strict turnaround & pending-deletion validation
                         const curServicing = currentState._servicingStatus || {};
                         for (const lb of payload.lockedBuses) {
                             const bKey = String(lb.bm || lb.bmNumber || '').toUpperCase().trim();
+                            if (!existingLockedBms.has(bKey)) {
+                                if (bKey && pd.buses[bKey]) {
+                                    sendJson(res, {
+                                        ok: false,
+                                        blockedByPendingDeletion: true,
+                                        blockedType: "bus",
+                                        error: `Bus ${bKey} is scheduled to be deleted after completing its assigned route, so bay operations are paused.`
+                                    }, 409);
+                                    return;
+                                }
+                                const lbDep = normalizeCleanDepotId(lb.depot || lb.depotId || currentState._depotAssignments?.[bKey]);
+                                if (lbDep && pd.depots[lbDep]) {
+                                    const depName = pd.depots[lbDep].depotName || `Depot ${lbDep}`;
+                                    sendJson(res, {
+                                        ok: false,
+                                        blockedByPendingDeletion: true,
+                                        blockedType: "depot",
+                                        error: `Depot "${depName}" is going to be deleted once all assigned buses complete their schedules, so bay operations are paused.`
+                                    }, 409);
+                                    return;
+                                }
+                            }
                             const isCleaningLock = String(lb.page || '').toLowerCase().includes('clean');
                             const serv = curServicing[bKey] || {};
                             const needsChargingFirst = Boolean(serv.needsCharging || (serv.routeCompleted && !serv.chargingCompleted));
@@ -7217,7 +7483,15 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                 }
 
                 const currentState = loadBusState();
-                const targetDepot = String(payload.depot || currentState._depotAssignments?.[bmKey] || "1").trim();
+                const pd = ensurePendingDeletions(currentState);
+                const existingDuties = Array.isArray(currentState._allocatedDuties) ? currentState._allocatedDuties : [];
+                const completedDuty = existingDuties.find(d => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === bmKey);
+                const completedRouteCode = cleanRouteCode(payload.route || completedDuty?.routeCode || completedDuty?.route || '');
+                const completedDepotId = normalizeCleanDepotId(
+                    payload.depot || completedDuty?.depot || completedDuty?.depotId || currentState._depotAssignments?.[bmKey] || '1'
+                ) || '1';
+                const targetDepot = String(payload.depot || currentState._depotAssignments?.[bmKey] || completedDepotId || "1").trim();
+                const targetDepotClean = normalizeCleanDepotId(targetDepot) || completedDepotId;
                 const now = new Date();
                 const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
                 const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -7285,9 +7559,18 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                     status: 'Returned / Completed'
                 });
 
-                // 7. Track Non-Single Charge Relay requirement (2nd bus allocation from same depot)
-                if (isNonSingleChargeRoute(payload.route)) {
-                    const cCode = cleanRouteCode(payload.route);
+                // 7. Track Non-Single Charge Relay requirement (2nd bus allocation from same depot), unless route/depot is pending deletion
+                const isTargetRouteOrDepotPending = Boolean(
+                    pd.depots[targetDepotClean] ||
+                    pd.depots[completedDepotId] ||
+                    (completedRouteCode && (
+                        pd.routes[`${targetDepotClean}_${completedRouteCode}`] ||
+                        pd.routes[`${completedDepotId}_${completedRouteCode}`] ||
+                        Object.values(pd.routes).some(r => r && String(r.code || "").toUpperCase().trim() === completedRouteCode && (!r.depotId || normalizeCleanDepotId(r.depotId) === targetDepotClean))
+                    ))
+                );
+                if (!isTargetRouteOrDepotPending && isNonSingleChargeRoute(payload.route || completedDuty?.route || completedDuty?.routeCode)) {
+                    const cCode = cleanRouteCode(payload.route || completedDuty?.route || completedDuty?.routeCode);
                     if (!currentState._pendingRelayRoutes) currentState._pendingRelayRoutes = {};
                     currentState._pendingRelayRoutes[cCode] = {
                         route: cCode,
@@ -7303,22 +7586,58 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                     };
                 }
 
+                // 8. Auto-finalize any pending bus/route/depot deletions whose active duties are now 0
+                const resolution = resolvePendingDeletionsAfterCompletion(currentState, bmKey);
+                const busWasFinalizedDeleted = resolution.finalizedBuses.some(b => String(b.bm || '').toUpperCase().trim() === bmKey);
+                const updatedPd = ensurePendingDeletions(currentState);
+                if (resolution.pendingChanged || resolution.finalizedBuses.length > 0 || resolution.finalizedRoutes.length > 0 || resolution.finalizedDepots.length > 0) {
+                    stateVersion = Date.now();
+                }
+
                 saveBusState(currentState);
-                broadcastSyncEvent("route-completed", { bm: bmKey, depot: targetDepot, locked: true });
+                broadcastSyncEvent("route-completed", { bm: bmKey, depot: targetDepot, locked: !busWasFinalizedDeleted, finalizedBusDeleted: busWasFinalizedDeleted });
                 broadcastSyncEvent("locked-buses-updated", { lockedBuses: currentState._lockedBuses || [] });
                 broadcastSyncEvent("servicing-status-updated", { servicingStatus: currentState._servicingStatus || {} });
                 broadcastSyncEvent("allocated-duties-updated", { allocatedDuties: currentState._allocatedDuties || [] });
                 broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes || {} });
+                resolution.finalizedBuses.forEach(bInfo => {
+                    broadcastSyncEvent("fleet-bus-deleted", {
+                        bm: bInfo.bm,
+                        regNo: bInfo.regNo,
+                        reason: bInfo.reason,
+                        deletedInfo: bInfo,
+                        addedBuses: currentState._addedBuses,
+                        deletedBuses: currentState._deletedBuses
+                    });
+                });
+                if (resolution.finalizedRoutes.length > 0 || resolution.finalizedDepots.length > 0) {
+                    broadcastSyncEvent("routes-dataset-updated", {
+                        dataset: currentState._routesDatabase || loadRoutesDataset(),
+                        deletedRoutes: currentState._deletedRoutes || []
+                    });
+                    broadcastSyncEvent("custom-depots-updated", {
+                        customDepots: currentState._customDepots || [],
+                        customAccounts: currentState._customAccounts || {},
+                        deletedDepotIds: currentState._deletedDepotIds || [],
+                        deletedRoutes: currentState._deletedRoutes || []
+                    });
+                }
+                if (resolution.pendingChanged || resolution.finalizedBuses.length > 0 || resolution.finalizedRoutes.length > 0 || resolution.finalizedDepots.length > 0) {
+                    broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: updatedPd });
+                }
 
                 sendJson(res, {
                     ok: true,
                     bm: bmKey,
-                    locked: true,
-                    status: 'turnaround_charging',
+                    locked: !busWasFinalizedDeleted,
+                    status: busWasFinalizedDeleted ? 'decommissioned' : 'turnaround_charging',
                     depot: targetDepot,
                     lockedBuses: currentState._lockedBuses,
                     servicingStatus: currentState._servicingStatus,
-                    pendingRelayRoutes: currentState._pendingRelayRoutes || {}
+                    pendingRelayRoutes: currentState._pendingRelayRoutes || {},
+                    finalizedBusDeleted: busWasFinalizedDeleted,
+                    finalizedDeletions: resolution,
+                    pendingDeletions: updatedPd
                 });
             } catch (err) {
                 sendJson(res, { ok: false, error: "Failed to complete route", details: err.message }, 500);
@@ -7803,80 +8122,178 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
 
 
     if ((pathname === "/api/fleet/delete-bus" || pathname === "/api/fleet/delete-buses-batch") && req.method === "POST") {
-
         readBody(req, body => {
-
             try {
-
                 const payload = JSON.parse(body || "{}");
+                const currentState = loadBusState();
+                const pd = ensurePendingDeletions(currentState);
 
                 if (Array.isArray(payload.bms)) {
                     const results = [];
+                    const pendingBuses = [];
                     const reason = String(payload.reason || "Batch Fleet Decommissioning").trim();
                     payload.bms.forEach(item => {
-                        const bm = typeof item === "string" ? item : (item.bm || item.bmNumber);
+                        let bm = String(typeof item === "string" ? item : (item.bm || item.bmNumber || "")).toUpperCase().trim();
+                        if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+                        if (!bm) return;
                         const regNo = typeof item === "object" ? (item.regNo || item.regNumber || "") : "";
                         const depot = typeof item === "object" ? (item.depot || "") : "";
-                        try {
-                            const resObj = deleteFleetBus({ bm, regNo, reason, depot });
-                            results.push(resObj);
-                        } catch (e) {
-                            console.warn("Could not delete bus in batch:", bm, e.message);
+                        const activeDuties = getAllocatedDutiesForBus(currentState, bm);
+                        if (activeDuties.length > 0) {
+                            const busDepot = normalizeCleanDepotId(depot || currentState._depotAssignments?.[bm] || activeDuties[0]?.depot || "1") || "1";
+                            pd.buses[bm] = {
+                                type: "bus",
+                                bm,
+                                busNumber: bm,
+                                regNo: String(regNo || (currentState[bm] && (currentState[bm].regNo || currentState[bm].regNumber)) || "").toUpperCase().trim(),
+                                make: (currentState[bm] && currentState[bm].make) || "Ashok Leyland",
+                                model: (currentState[bm] && currentState[bm].model) || "ELECTRIC BUS AC EiV12",
+                                depot: busDepot,
+                                reason,
+                                activeRoutes: activeDuties.map(d => d.route || d.routeCode || "Scheduled Duty"),
+                                requestedAt: new Date().toISOString()
+                            };
+                            pendingBuses.push(pd.buses[bm]);
+                        } else {
+                            delete pd.buses[bm];
+                            try {
+                                const resObj = applyBusDeletionToState(currentState, { bm, regNo, reason, depot });
+                                results.push(resObj);
+                            } catch (e) {
+                                console.warn("Could not delete bus in batch:", bm, e.message);
+                            }
                         }
                     });
+                    saveBusState(currentState);
                     stateVersion = Date.now();
-                    broadcastSyncEvent("fleet-buses-deleted", {
-                        count: results.length,
-                        bms: results.map(b => b.bm),
-                        timestamp: new Date().toISOString()
-                    });
+                    if (results.length > 0) {
+                        broadcastSyncEvent("fleet-buses-deleted", {
+                            count: results.length,
+                            bms: results.map(b => b.bm),
+                            addedBuses: currentState._addedBuses,
+                            deletedBuses: currentState._deletedBuses,
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                    broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: pd });
                     sendJson(res, {
                         ok: true,
                         count: results.length,
                         deleted: results,
-                        message: `${results.length} buses deleted successfully from available fleet`
+                        pendingCount: pendingBuses.length,
+                        pendingBuses,
+                        pending: pendingBuses.length > 0 && results.length === 0,
+                        deferred: pendingBuses.length > 0,
+                        pendingDeletions: pd,
+                        message: pendingBuses.length > 0
+                            ? `${results.length} bus(es) deleted immediately; ${pendingBuses.length} active bus(es) scheduled for deletion after completing their route(s).`
+                            : `${results.length} buses deleted successfully from available fleet`
                     });
                 } else {
-                    const result = deleteFleetBus(payload);
-                    sendJson(res, { ok: true, message: `Bus ${result.bm} deleted successfully from available fleet`, bus: result });
+                    let bm = String(payload.bm || payload.busNumber || payload.bmNumber || "").toUpperCase().trim();
+                    if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+                    const reason = String(payload.reason || payload.reasonVal || "").trim();
+                    if (!bm || !reason) {
+                        throw new Error("Bus Number and Reason are mandatory for deleting a bus.");
+                    }
+                    const activeDuties = getAllocatedDutiesForBus(currentState, bm);
+                    if (activeDuties.length > 0) {
+                        const busDepot = normalizeCleanDepotId(payload.depot || currentState._depotAssignments?.[bm] || activeDuties[0]?.depot || "1") || "1";
+                        pd.buses[bm] = {
+                            type: "bus",
+                            bm,
+                            busNumber: bm,
+                            regNo: String(payload.regNo || payload.regNumber || payload.reg_no || (currentState[bm] && (currentState[bm].regNo || currentState[bm].regNumber)) || "").toUpperCase().trim(),
+                            make: String(payload.make || (currentState[bm] && currentState[bm].make) || "Ashok Leyland").trim(),
+                            model: String(payload.model || (currentState[bm] && currentState[bm].model) || "ELECTRIC BUS AC EiV12").trim(),
+                            depot: busDepot,
+                            reason,
+                            activeRoutes: activeDuties.map(d => d.route || d.routeCode || "Scheduled Duty"),
+                            requestedAt: new Date().toISOString()
+                        };
+                        saveBusState(currentState);
+                        stateVersion = Date.now();
+                        broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: pd });
+                        sendJson(res, {
+                            ok: true,
+                            pending: true,
+                            deferred: true,
+                            bm,
+                            count: 0,
+                            deleted: [],
+                            pendingCount: 1,
+                            pendingBuses: [pd.buses[bm]],
+                            pendingDeletions: pd,
+                            message: `Bus ${bm} is currently allocated to route(s) (${pd.buses[bm].activeRoutes.join(", ")}). Deletion is paused and will complete automatically once the bus finishes its assigned route.`
+                        });
+                        return;
+                    }
+                    delete pd.buses[bm];
+                    const result = applyBusDeletionToState(currentState, payload);
+                    saveBusState(currentState);
+                    stateVersion = Date.now();
+                    broadcastSyncEvent("fleet-bus-deleted", {
+                        bm,
+                        regNo: result.regNo,
+                        reason,
+                        deletedInfo: result,
+                        addedBuses: currentState._addedBuses,
+                        deletedBuses: currentState._deletedBuses
+                    });
+                    const updatedCountsDel = getDepotCounts(currentState._depotAssignments, currentState);
+                    broadcastSyncEvent("depot-updated", {
+                        assignments: currentState._depotAssignments,
+                        depot1Count: updatedCountsDel.depot1Count,
+                        depot2Count: updatedCountsDel.depot2Count,
+                        total: updatedCountsDel.total
+                    });
+                    broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: pd });
+                    sendJson(res, {
+                        ok: true,
+                        pending: false,
+                        deferred: false,
+                        count: 1,
+                        deleted: [result],
+                        pendingCount: 0,
+                        pendingBuses: [],
+                        bus: result,
+                        pendingDeletions: pd,
+                        message: `Bus ${result.bm} deleted successfully from available fleet`
+                    });
                 }
-
             } catch (err) {
-
                 sendJson(res, { ok: false, error: err.message }, 400);
-
             }
-
         });
-
         return;
-
     }
 
-
-
     if (pathname === "/api/fleet/restore-bus" && req.method === "POST") {
-
         readBody(req, body => {
-
             try {
-
                 const payload = JSON.parse(body || "{}");
-
+                let bm = String(payload.bm || payload.busNumber || payload.bmNumber || payload.id || "").toUpperCase().trim();
+                if (bm && !bm.startsWith("BM")) bm = "BM" + bm;
+                const currentState = loadBusState();
+                const pd = ensurePendingDeletions(currentState);
+                if (bm && pd.buses[bm]) {
+                    const wasDeleted = Boolean(currentState._deletedBuses && currentState._deletedBuses[bm]);
+                    delete pd.buses[bm];
+                    saveBusState(currentState);
+                    stateVersion = Date.now();
+                    broadcastSyncEvent("pending-deletions-updated", { pendingDeletions: pd });
+                    if (!wasDeleted) {
+                        sendJson(res, { ok: true, canceledPending: true, message: `Pending deletion cancelled for Bus ${bm}`, bus: { bm }, pendingDeletions: pd });
+                        return;
+                    }
+                }
                 const result = restoreFleetBus(payload);
-
-                sendJson(res, { ok: true, message: `Bus ${result.bm} restored successfully to available fleet`, bus: result });
-
+                sendJson(res, { ok: true, message: `Bus ${result.bm} restored successfully to available fleet`, bus: result, pendingDeletions: ensurePendingDeletions(loadBusState()) });
             } catch (err) {
-
                 sendJson(res, { ok: false, error: err.message }, 400);
-
             }
-
         });
-
         return;
-
     }
 
 
@@ -9271,6 +9688,32 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                     const currentState = loadBusState();
 
                     if (Array.isArray(payload.duties)) {
+                        const existingDuties = Array.isArray(currentState._allocatedDuties) ? currentState._allocatedDuties : [];
+                        const existingByBm = new Map();
+                        existingDuties.forEach(d => {
+                            const bmK = String(d?.bm || d?.bmNumber || d?.busId || "").toUpperCase().trim();
+                            if (bmK) existingByBm.set(bmK, d);
+                        });
+                        for (const duty of payload.duties) {
+                            const bmK = String(duty?.bm || duty?.bmNumber || duty?.busId || "").toUpperCase().trim();
+                            const prev = bmK ? existingByBm.get(bmK) : null;
+                            const isNewOrReassigned = !prev ||
+                                getDutyRouteCode(prev) !== getDutyRouteCode(duty) ||
+                                getDutyDepotId(currentState, prev) !== getDutyDepotId(currentState, duty);
+                            if (isNewOrReassigned) {
+                                const blockCheck = isDutyBlockedByPendingDeletion(currentState, duty);
+                                if (blockCheck.blocked) {
+                                    sendJson(res, {
+                                        ok: false,
+                                        blockedByPendingDeletion: true,
+                                        blockedType: blockCheck.type,
+                                        blockedTarget: blockCheck.target,
+                                        error: blockCheck.reason
+                                    }, 409);
+                                    return;
+                                }
+                            }
+                        }
 
                         currentState._allocatedDuties = payload.duties;
 

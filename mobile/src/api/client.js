@@ -34,11 +34,25 @@ async function apiRequest(endpoint, options = {}) {
     });
     clearTimeout(timeoutId);
 
-    if (!res.ok) {
-      throw new Error(`Server returned status ${res.status}`);
+    let data = null;
+    try {
+      data = await res.json();
+    } catch (_) {
+      data = null;
     }
 
-    const data = await res.json();
+    if (!res.ok) {
+      const serverErr = (data && (data.error || data.message)) || `Server returned status ${res.status}`;
+      return {
+        ok: false,
+        status: res.status,
+        blockedByPendingDeletion: Boolean(data && data.blockedByPendingDeletion),
+        blockedType: (data && data.blockedType) || null,
+        data,
+        error: serverErr,
+      };
+    }
+
     return { ok: true, data };
   } catch (err) {
     clearTimeout(timeoutId);
@@ -275,6 +289,11 @@ export const api = {
     });
   },
 
+  // Get pending deletions (deferred bus, route, and depot deletions)
+  getPendingDeletions: async () => {
+    return apiRequest('/api/pending-deletions');
+  },
+
   // Get custom depots & accounts from server
   getCustomDepots: async () => {
     return apiRequest('/api/custom-depots');
@@ -289,12 +308,13 @@ export const api = {
   },
 
   // Delete custom depot from server
-  deleteCustomDepot: async (depotId, deletedDepotIds = []) => {
+  deleteCustomDepot: async (depotId, deletedDepotIds = [], reason = 'Decommissioned by Admin') => {
     return apiRequest('/api/custom-depots', {
       method: 'POST',
       body: JSON.stringify({
         action: 'delete',
         depotId: String(depotId),
+        reason: String(reason || 'Decommissioned by Admin'),
         deletedDepotIds: Array.isArray(deletedDepotIds) ? deletedDepotIds : [String(depotId)],
       }),
     });

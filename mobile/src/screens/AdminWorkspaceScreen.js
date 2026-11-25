@@ -36,12 +36,14 @@ import {
   getAllDepots,
   registerNewDepot,
   deleteDepot,
+  requestDeleteDepot,
   getDepotCredentialsList,
   getDepotDisplayName,
   subscribeDepotChanges,
   addRouteToDepot,
   removeRouteFromDepot,
   removeRoutesBatchFromDepot,
+  requestRemoveRoutesBatchFromDepot,
   getRoutesForDepot,
   getRouteDefinition,
 } from '../context/accounts';
@@ -675,6 +677,7 @@ export default function AdminWorkspaceScreen() {
     unlockBus,
     unlockAllBuses,
     refreshFleet,
+    pendingDeletions = { buses: {}, routes: {}, depots: {} },
   } = useFleet();
   const { user, selectedDepot, logout, openDepotScreen } = useAuth();
 
@@ -1451,47 +1454,84 @@ export default function AdminWorkspaceScreen() {
         {
           text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
-          onPress: () => {
-            targets.forEach((depotId) => {
-              deleteDepot(depotId);
+          onPress: async () => {
+            const immediateDepots = [];
+            const deferredDepots = [];
+            const errorDepots = [];
 
-              // Unassign custom routes
-              setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== depotId));
-
-              if (adminDepotFilter === depotId) {
-                setAdminDepotFilter('all');
-              }
-              if (selectedDepot === depotId && typeof switchDepot === 'function') {
-                const remaining = getAllDepots();
-                const nextDepot = remaining.length > 0 ? String(remaining[0].id) : '1';
-                switchDepot(nextDepot);
-              }
-
-              const dObj = depotsList.find((d) => String(d.id) === depotId);
+            for (const depotId of targets) {
+              const dObj = depotsList.find((d) => String(d.id) === String(depotId));
               const dName = dObj ? dObj.name : `Depot ${depotId}`;
+              const delRes = await requestDeleteDepot(depotId, finalReason);
 
-              setDepotAuditLogs((prev) => [
-                {
-                  id: (Date.now() + Math.random()).toString(),
-                  action: 'DEPOT_DELETED',
-                  code: `DEPOT-${depotId}`,
-                  fullName: dName,
-                  origin: 'Decommissioned',
-                  destination: 'Decommissioned',
-                  distance: 0,
-                  depot: dName,
-                  reason: finalReason,
-                  time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                },
-                ...prev,
-              ]);
-            });
+              if (!delRes || !delRes.ok) {
+                errorDepots.push(`${dName}: ${(delRes && delRes.error) || 'Failed'}`);
+                continue;
+              }
+
+              if (delRes.deferred) {
+                deferredDepots.push(dName);
+                setDepotAuditLogs((prev) => [
+                  {
+                    id: (Date.now() + Math.random()).toString(),
+                    action: 'DELETION_PAUSED',
+                    code: `DEPOT-${depotId}`,
+                    fullName: `${dName} (Awaiting Route Completion)`,
+                    origin: 'Paused',
+                    destination: 'Pending Deletion',
+                    distance: 0,
+                    depot: dName,
+                    reason: finalReason,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  },
+                  ...prev,
+                ]);
+              } else {
+                immediateDepots.push(dName);
+                setCustomRoutes((prev) => prev.filter((r) => String(r.depotId) !== String(depotId)));
+                if (adminDepotFilter === String(depotId)) {
+                  setAdminDepotFilter('all');
+                }
+                if (selectedDepot === String(depotId) && typeof switchDepot === 'function') {
+                  const remaining = getAllDepots();
+                  const nextDepot = remaining.length > 0 ? String(remaining[0].id) : '1';
+                  switchDepot(nextDepot);
+                }
+                setDepotAuditLogs((prev) => [
+                  {
+                    id: (Date.now() + Math.random()).toString(),
+                    action: 'DEPOT_DELETED',
+                    code: `DEPOT-${depotId}`,
+                    fullName: dName,
+                    origin: 'Decommissioned',
+                    destination: 'Decommissioned',
+                    distance: 0,
+                    depot: dName,
+                    reason: finalReason,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                  },
+                  ...prev,
+                ]);
+              }
+            }
 
             setSelectedDepotToDelete('');
             setSelectedDepotsToDelete([]);
+            refreshFleet();
+
+            const msgs = [];
+            if (deferredDepots.length > 0) {
+              msgs.push(`⏳ Paused & Scheduled for Deletion: ${deferredDepots.join(', ')}.\nBuses assigned to these depots are still running on routes. All operations and new allocations are now paused; deletion will complete automatically once all buses finish their schedules.`);
+            }
+            if (immediateDepots.length > 0) {
+              msgs.push(`✅ Deleted Immediately: ${immediateDepots.join(', ')}.`);
+            }
+            if (errorDepots.length > 0) {
+              msgs.push(`⚠️ Errors: ${errorDepots.join('; ')}`);
+            }
             Alert.alert(
-              t('depot_deleted_success_title', 'Depots Deleted'),
-              `Successfully removed ${targets.length} depot(s) from the depot network.`
+              deferredDepots.length > 0 ? '⏳ Depot Deletion Scheduled' : t('depot_deleted_success_title', 'Depots Deleted'),
+              msgs.join('\n\n') || `Processed ${targets.length} depot(s).`
             );
           },
         },
@@ -1885,21 +1925,40 @@ export default function AdminWorkspaceScreen() {
         {
           text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
-          onPress: () => {
+          onPress: async () => {
             const batchItems = [];
+            const metaByKey = {};
             targets.forEach((codeToDelete) => {
               const cleanTarget = String(codeToDelete || '').toUpperCase().trim();
               const matchedRoute =
                 allAvailableRoutes.find((r) => (r.code === cleanTarget || r.id === cleanTarget) && String(r.depotId) === String(routesSelectedDepot)) ||
                 allAvailableRoutes.find((r) => r.code === cleanTarget || r.id === cleanTarget);
-              const routeDepotId = String(matchedRoute?.depotId || (routesSelectedDepot !== 'all' ? routesSelectedDepot : '1'));
+              const routeDepotId = String(matchedRoute?.depotId || (routesSelectedDepot !== 'all' ? routesSelectedDepot : '1')).replace(/^DEPOT\s*/i, '');
               batchItems.push({ depotId: routeDepotId, code: cleanTarget });
-              setDeletedRouteCodes((prev) => (prev.includes(cleanTarget) ? prev : [...prev, cleanTarget]));
-              setCustomRoutes((prev) => prev.filter((r) => !(r.code === cleanTarget && String(r.depotId) === routeDepotId)));
+              metaByKey[`${routeDepotId}_${cleanTarget}`] = { cleanTarget, matchedRoute, routeDepotId };
+            });
+
+            const res = await requestRemoveRoutesBatchFromDepot(batchItems, finalReason);
+            if (!res || !res.ok) {
+              Alert.alert('⚠️ Route Deletion Failed', (res && res.error) || 'Could not process route deletion on server.');
+              return;
+            }
+
+            const pendingRoutes = Array.isArray(res.pendingRoutes) ? res.pendingRoutes : [];
+            const pendingKeySet = new Set(
+              pendingRoutes.map((pr) => `${String(pr.depotId || '1').trim().replace(/^DEPOT\s*/i, '')}_${String(pr.code || '').toUpperCase().trim()}`)
+            );
+
+            Object.entries(metaByKey).forEach(([rKey, { cleanTarget, matchedRoute, routeDepotId }]) => {
+              const isPending = pendingKeySet.has(rKey);
+              if (!isPending) {
+                setDeletedRouteCodes((prev) => (prev.includes(cleanTarget) ? prev : [...prev, cleanTarget]));
+                setCustomRoutes((prev) => prev.filter((r) => !(r.code === cleanTarget && String(r.depotId) === routeDepotId)));
+              }
               setDepotAuditLogs((prev) => [
                 {
                   id: (Date.now() + Math.random()).toString(),
-                  action: 'DELETED',
+                  action: isPending ? 'DELETION_PAUSED' : 'DELETED',
                   code: cleanTarget,
                   fullName: matchedRoute?.fullName || matchedRoute?.name || cleanTarget,
                   origin: matchedRoute?.origin || '',
@@ -1912,14 +1971,24 @@ export default function AdminWorkspaceScreen() {
                 ...prev,
               ]);
             });
-            removeRoutesBatchFromDepot(batchItems);
-            setDatasetVersionTick((v) => v + 1);
 
+            setDatasetVersionTick((v) => v + 1);
             setDelRouteSelectedCode('');
             setSelectedRoutesToDelete([]);
+            refreshFleet();
+
+            const immediateCount = Math.max(0, batchItems.length - pendingRoutes.length);
+            const parts = [];
+            if (pendingRoutes.length > 0) {
+              const desc = pendingRoutes.map((pr) => `${pr.code} (Active bus: ${(pr.activeBms || []).join(', ') || 'On Route'})`).join(', ');
+              parts.push(`⏳ Paused & Scheduled for Deletion: ${desc}.\nNo new buses can be allocated to these routes in Scheduling. Deletion will complete automatically once active buses finish their assigned routes.`);
+            }
+            if (immediateCount > 0) {
+              parts.push(`✅ Deleted Immediately: ${immediateCount} route(s) removed from active service.`);
+            }
             Alert.alert(
-              t('route_deleted_success_title', 'Routes Decommissioned'),
-              `Successfully removed ${targets.length} route(s) from active service.`
+              pendingRoutes.length > 0 ? '⏳ Route Deletion Scheduled (Paused)' : t('route_deleted_success_title', 'Routes Decommissioned'),
+              parts.join('\n\n')
             );
           },
         },
@@ -3119,27 +3188,40 @@ export default function AdminWorkspaceScreen() {
           text: `🗑 Confirm Delete (${targets.length})`,
           style: 'destructive',
           onPress: async () => {
+            let pendingBuses = [];
+            let deletedBuses = [];
             if (typeof deleteBusesBatchFromFleet === 'function') {
-              await deleteBusesBatchFromFleet(targets, reasonVal);
+              const delRes = await deleteBusesBatchFromFleet(targets, reasonVal);
+              if (delRes && delRes.data) {
+                pendingBuses = Array.isArray(delRes.data.pendingBuses) ? delRes.data.pendingBuses : [];
+                deletedBuses = Array.isArray(delRes.data.deleted) ? delRes.data.deleted : [];
+              }
             } else {
               for (const bm of targets) {
-                await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+                const singleRes = await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+                if (singleRes && singleRes.data && (singleRes.data.pending || singleRes.data.deferred)) {
+                  pendingBuses.push(...(singleRes.data.pendingBuses || [{ bm }]));
+                } else {
+                  deletedBuses.push({ bm });
+                }
               }
             }
 
+            const pendingBmSet = new Set(pendingBuses.map((p) => String(p.bm || p.busNumber || '').toUpperCase().trim()));
             targets.forEach((targetBm) => {
               const targetBus = buses.find((b) => b.bmNumber === targetBm);
               const targetReg = (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
               const targetDepot = String(delDepot || (targetBus && targetBus.depot) || '1');
+              const isPend = pendingBmSet.has(targetBm);
               setAuditLogs((prev) => [
                 {
                   id: 'audit_' + Date.now() + Math.random(),
-                  action: 'DELETED',
+                  action: isPend ? 'DELETION_PAUSED' : 'DELETED',
                   bm: targetBm,
                   reg: targetReg,
                   depot: targetDepot,
                   reasonCategory: delReasonSelect,
-                  detail: reasonVal,
+                  detail: isPend ? `${reasonVal} (Awaiting route completion)` : reasonVal,
                   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
                   user: user?.email || 'admin@bmtc.gov.in',
                 },
@@ -3147,9 +3229,17 @@ export default function AdminWorkspaceScreen() {
               ]);
             });
 
+            const msgParts = [];
+            if (pendingBuses.length > 0) {
+              const pList = pendingBuses.map((p) => `${p.bm} (${(p.activeRoutes || []).join(', ') || 'Active Route'})`).join(', ');
+              msgParts.push(`⏳ Paused & Scheduled for Deletion: ${pList}.\nThese buses are currently running on routes and will be automatically deleted once they complete their schedules.`);
+            }
+            if (deletedBuses.length > 0) {
+              msgParts.push(`🗑️ ${deletedBuses.length} unallocated bus(es) deleted immediately from the available fleet.\nReason recorded: ${reasonVal}`);
+            }
             Alert.alert(
-              '🗑️ Buses Deleted',
-              `${targets.length} bus(es) have been successfully deleted from the available fleet.\n\nReason recorded: ${reasonVal}`
+              pendingBuses.length > 0 ? '⏳ Bus Deletion Scheduled' : '🗑️ Buses Deleted',
+              msgParts.join('\n\n') || `${targets.length} bus(es) processed.`
             );
             setSelectedDelBms([]);
             setDelSelectedBm('');
@@ -3182,27 +3272,40 @@ export default function AdminWorkspaceScreen() {
           text: `🗑 Delete (${targets.length} Buses)`,
           style: 'destructive',
           onPress: async () => {
+            let pendingBuses = [];
+            let deletedBuses = [];
             if (typeof deleteBusesBatchFromFleet === 'function') {
-              await deleteBusesBatchFromFleet(targets, reasonVal);
+              const delRes = await deleteBusesBatchFromFleet(targets, reasonVal);
+              if (delRes && delRes.data) {
+                pendingBuses = Array.isArray(delRes.data.pendingBuses) ? delRes.data.pendingBuses : [];
+                deletedBuses = Array.isArray(delRes.data.deleted) ? delRes.data.deleted : [];
+              }
             } else {
               for (const bm of targets) {
-                await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+                const singleRes = await deleteBusFromFleet(bm, { bm, reason: reasonVal });
+                if (singleRes && singleRes.data && (singleRes.data.pending || singleRes.data.deferred)) {
+                  pendingBuses.push(...(singleRes.data.pendingBuses || [{ bm }]));
+                } else {
+                  deletedBuses.push({ bm });
+                }
               }
             }
 
+            const pendingBmSet = new Set(pendingBuses.map((p) => String(p.bm || p.busNumber || '').toUpperCase().trim()));
             targets.forEach((targetBm) => {
               const targetBus = buses.find((b) => b.bmNumber === targetBm);
               const targetReg = (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
               const targetDepot = String((targetBus && targetBus.depot) || '1');
+              const isPend = pendingBmSet.has(targetBm);
               setAuditLogs((prev) => [
                 {
                   id: 'audit_' + Date.now() + Math.random(),
-                  action: 'DELETED',
+                  action: isPend ? 'DELETION_PAUSED' : 'DELETED',
                   bm: targetBm,
                   reg: targetReg,
                   depot: targetDepot,
                   reasonCategory: 'Batch Fleet Decommissioning',
-                  detail: reasonVal,
+                  detail: isPend ? `${reasonVal} (Awaiting route completion)` : reasonVal,
                   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
                   user: user?.email || 'admin@bmtc.gov.in',
                 },
@@ -3212,7 +3315,17 @@ export default function AdminWorkspaceScreen() {
 
             setSelectedFleetBms([]);
             setFleetMultiSelectMode(false);
-            Alert.alert('🗑️ Fleet Updated', `${targets.length} buses deleted successfully.`);
+            const parts = [];
+            if (pendingBuses.length > 0) {
+              parts.push(`⏳ ${pendingBuses.length} active bus(es) scheduled for deletion after completing their assigned route(s): ${pendingBuses.map((p) => p.bm).join(', ')}.`);
+            }
+            if (deletedBuses.length > 0) {
+              parts.push(`✅ ${deletedBuses.length} unallocated bus(es) deleted immediately.`);
+            }
+            Alert.alert(
+              pendingBuses.length > 0 ? '⏳ Fleet Deletion Scheduled' : '🗑️ Fleet Updated',
+              parts.join('\n\n') || `${targets.length} buses processed.`
+            );
           },
         },
       ]
@@ -3222,6 +3335,35 @@ export default function AdminWorkspaceScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView ref={mainScrollRef} contentContainerStyle={styles.contentWrap} showsVerticalScrollIndicator={false}>
+        {/* ── PENDING DELETIONS LIVE BANNER ── */}
+        {(() => {
+          const pdBuses = Object.values((pendingDeletions && pendingDeletions.buses) || {});
+          const pdRoutes = Object.values((pendingDeletions && pendingDeletions.routes) || {});
+          const pdDepots = Object.values((pendingDeletions && pendingDeletions.depots) || {});
+          if (pdBuses.length === 0 && pdRoutes.length === 0 && pdDepots.length === 0) return null;
+          return (
+            <View style={{ backgroundColor: '#fffbeb', borderWidth: 1.5, borderColor: '#f59e0b', borderRadius: 12, padding: 12, marginBottom: 12 }}>
+              <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#92400e', marginBottom: 4 }}>
+                ⏳ Pending Deletions Waiting on Active Schedule Completion
+              </Text>
+              {pdDepots.map((d) => (
+                <Text key={`pd_dep_${d.depotId}`} style={{ fontSize: 12, color: '#78350f', marginTop: 2 }}>
+                  • Depot {d.depotName || d.depotId}: paused — waiting for {(d.activeBms || []).join(', ') || 'active bus(es)'} to complete schedule.
+                </Text>
+              ))}
+              {pdRoutes.map((r) => (
+                <Text key={`pd_rt_${r.key || r.code}`} style={{ fontSize: 12, color: '#78350f', marginTop: 2 }}>
+                  • Route {r.code} (Depot {r.depotId}): paused for new allocations — waiting for {(r.activeBms || []).join(', ') || 'active bus(es)'}.
+                </Text>
+              ))}
+              {pdBuses.map((b) => (
+                <Text key={`pd_bus_${b.bm}`} style={{ fontSize: 12, color: '#78350f', marginTop: 2 }}>
+                  • Bus {b.bm}: scheduled for deletion after completing {(b.activeRoutes || []).join(', ') || 'assigned route'}.
+                </Text>
+              ))}
+            </View>
+          );
+        })()}
         {/* ── PHOTO-MATCHING ADMIN HOME DASHBOARD ── */}
         {activeAdminTab === 'HOME' && (
           <View style={styles.homeContainer} onLayout={(e) => setHomeLayoutY(e.nativeEvent.layout.y)}>

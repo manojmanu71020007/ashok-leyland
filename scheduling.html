@@ -2114,6 +2114,11 @@
 
                 <p class="panel-note" data-i18n="panel_schedule_req_note">Define the next departure and let the allocation rules evaluate fleet readiness.</p>
 
+                <div id="pending-deletion-pause-banner" style="display:none; background:#fef2f2; border:1.5px solid #ef4444; border-radius:12px; padding:12px 14px; margin-bottom:14px;">
+                    <div style="font-weight:800; color:#991b1b; font-size:0.9rem; margin-bottom:4px;">⏸️ Scheduling Paused — Pending Deletion</div>
+                    <div id="pending-deletion-pause-msg" style="font-size:0.82rem; color:#7f1d1d; font-weight:600; line-height:1.45;"></div>
+                </div>
+
                 <div class="fields">
 
                     <label class="wide">
@@ -6251,6 +6256,95 @@
 
 
 
+        function getLocalPendingDeletions() {
+            try {
+                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.getPendingDeletions === "function") {
+                    return window.DepotSyncEngine.getPendingDeletions() || { buses: {}, routes: {}, depots: {} };
+                }
+                const raw = localStorage.getItem("depot_pending_deletions");
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    return {
+                        buses: (parsed && parsed.buses) || {},
+                        routes: (parsed && parsed.routes) || {},
+                        depots: (parsed && parsed.depots) || {}
+                    };
+                }
+            } catch (e) {}
+            return { buses: {}, routes: {}, depots: {} };
+        }
+
+        function getPendingDeletionBlock(opts = {}) {
+            const pd = getLocalPendingDeletions();
+            const dClean = String(opts.depotId || currentOperatingDepot || "1").trim().replace(/^DEPOT\s*/i, "");
+            const rawR = String(opts.routeCode || "").toUpperCase().trim();
+            const rClean = (typeof cleanRouteCode === "function" ? cleanRouteCode(rawR) : rawR) || rawR;
+            const bmClean = String(opts.bm || "").toUpperCase().trim();
+
+            if (dClean && pd.depots && pd.depots[dClean]) {
+                const meta = pd.depots[dClean];
+                const dName = meta.depotName || `Depot ${dClean}`;
+                return {
+                    blocked: true,
+                    type: "depot",
+                    message: `Depot "${dName}" is going to be deleted once all assigned buses complete their schedules, so no bus can be allocated for this depot.`
+                };
+            }
+            if ((rawR || rClean) && pd.routes) {
+                const match =
+                    pd.routes[`${dClean}_${rawR}`] ||
+                    pd.routes[`${dClean}_${rClean}`] ||
+                    Object.values(pd.routes).find(r => {
+                        if (!r) return false;
+                        const rc = String(r.code || "").toUpperCase().trim();
+                        const sameRoute = rc === rawR || rc === rClean;
+                        const sameDepot = !r.depotId || String(r.depotId).trim().replace(/^DEPOT\s*/i, "") === dClean;
+                        return sameRoute && sameDepot;
+                    });
+                if (match) {
+                    const displayCode = match.code || rawR || rClean;
+                    return {
+                        blocked: true,
+                        type: "route",
+                        message: `This route (${displayCode}) is going to be deleted, so no bus can be allocated for this route.`
+                    };
+                }
+            }
+            if (bmClean && pd.buses && pd.buses[bmClean]) {
+                return {
+                    blocked: true,
+                    type: "bus",
+                    message: `Bus ${bmClean} is going to be deleted after completing its assigned route, so it is paused and cannot be allocated.`
+                };
+            }
+            return { blocked: false };
+        }
+
+        function updatePendingDeletionPauseBanner() {
+            const banner = document.getElementById("pending-deletion-pause-banner");
+            const msgEl = document.getElementById("pending-deletion-pause-msg");
+            const recBtn = document.getElementById("recommend");
+            const selectedCode = routeSelect ? routeSelect.value : "";
+            const block = getPendingDeletionBlock({ depotId: currentOperatingDepot, routeCode: selectedCode });
+            if (banner && msgEl) {
+                if (block.blocked) {
+                    msgEl.textContent = block.message;
+                    banner.style.display = "block";
+                } else {
+                    banner.style.display = "none";
+                }
+            }
+            if (recBtn) {
+                if (block.blocked) {
+                    recBtn.style.background = "#991b1b";
+                    recBtn.textContent = "⛔ Allocation Paused (Pending Deletion)";
+                } else if (recBtn.textContent && recBtn.textContent.includes("Allocation Paused")) {
+                    recBtn.style.background = "";
+                    recBtn.textContent = "⚡ Allocate Bus";
+                }
+            }
+        }
+
         function evaluateBusFeasibility(bm, candidateRole, routeDist, currentTargetKey = null, targetReqSoc = null, isComplexRoute = false, routeCode = null) {
 
             if (!bm) return { feasible: false, reason: "No vehicle assigned in schedule" };
@@ -6258,6 +6352,12 @@
 
 
             const key = String(bm).toUpperCase().trim();
+
+            const activeRouteForCheck = routeCode || (routeSelect ? routeSelect.value : "");
+            const pdBlock = getPendingDeletionBlock({ depotId: currentOperatingDepot, routeCode: activeRouteForCheck, bm: key });
+            if (pdBlock.blocked) {
+                return { feasible: false, bm: key, reason: pdBlock.message };
+            }
 
 
 
@@ -9607,6 +9707,7 @@
 
         async function recommend() {
 
+            updatePendingDeletionPauseBanner();
             populateDriverDropdown();
 
             const selectedRouteObj = getSelectedRouteObj();
@@ -9959,8 +10060,10 @@
                 const optVal = r.id || r.code;
 
                 const isSel = (optVal === currentVal || r.code === currentVal);
+                const rPause = getPendingDeletionBlock({ depotId: currentOperatingDepot, routeCode: r.code || optVal });
+                const pauseTag = rPause.blocked ? ' [⏸ PAUSED - Pending Deletion]' : '';
 
-                html += `<option value="${optVal}" ${isSel ? 'selected' : ''}>[Depot ${currentOperatingDepot}] ${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}</option>`;
+                html += `<option value="${optVal}" ${isSel ? 'selected' : ''}>[Depot ${currentOperatingDepot}] ${escapeHtml(r.label || `${r.origin} ➔ ${r.destination} (${r.code})`)}${pauseTag}</option>`;
 
             });
 
@@ -10031,6 +10134,13 @@
                     currentScheduleMatch = null;
 
                     isManualOverride = false;
+
+                    updatePendingDeletionPauseBanner();
+                    const routePauseCheck = getPendingDeletionBlock({ depotId: currentOperatingDepot, routeCode: routeSelect.value });
+                    if (routePauseCheck.blocked) {
+                        showAllocationToast(`⛔ ${routePauseCheck.message}`, "error");
+                        alert(`⛔ Route Scheduled for Deletion\n\n${routePauseCheck.message}`);
+                    }
 
                     updateSelectedRouteDistance();
 
@@ -10257,6 +10367,17 @@
                     const schedVal = scheduledTimeSelect ? scheduledTimeSelect.value : "";
 
                     const departureTime = depVal || schedVal;
+
+                    const pauseCheckTop = getPendingDeletionBlock({
+                        depotId: currentOperatingDepot,
+                        routeCode: routeObj.code || routeObj.id,
+                        bm: currentlyAllocatedBus ? currentlyAllocatedBus.bm : ""
+                    });
+                    if (pauseCheckTop.blocked && !(currentlyAllocatedBus && currentlyAllocatedBus.isCommitted)) {
+                        showAllocationToast(`⛔ ${pauseCheckTop.message}`, "error");
+                        alert(`⛔ Allocation Paused\n\n${pauseCheckTop.message}`);
+                        return;
+                    }
 
                     if (!departureTime) {
 
@@ -10613,15 +10734,30 @@
 
 
 
-                        // Remove any prior bus on this specific route and departure time slot
+                        // Build next duties list and validate with server BEFORE mutating local state (enforces pending deletion 409 check)
+                        const nextDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                        const finalDuties = nextDuties.filter(d => String(d.bm).toUpperCase() !== String(alloc.bm).toUpperCase());
+                        finalDuties.unshift(newDuty);
 
-                        allocatedDuties = allocatedDuties.filter(d => !(d.routeCode === routeObj.code && (d.departureTime || '').substring(0, 5) === depShort));
+                        try {
+                            const postRes = await fetch('/api/allocated-duties', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ duties: finalDuties })
+                            });
+                            if (!postRes.ok) {
+                                const errJson = await postRes.json().catch(() => ({}));
+                                const errMsg = errJson.error || `This route (${routeObj.code}) is going to be deleted, so no bus can be allocated for this route.`;
+                                showAllocationToast(`⛔ ${errMsg}`, "error");
+                                alert(`⛔ Allocation Blocked\n\n${errMsg}`);
+                                if (window.DepotSyncEngine && typeof window.DepotSyncEngine.syncNow === 'function') {
+                                    window.DepotSyncEngine.syncNow();
+                                }
+                                return;
+                            }
+                        } catch (_) {}
 
-                        // Also ensure this bus is not in any other duty slot
-
-                        allocatedDuties = allocatedDuties.filter(d => String(d.bm).toUpperCase() !== String(alloc.bm).toUpperCase());
-
-                        allocatedDuties.unshift(newDuty);
+                        allocatedDuties = finalDuties;
 
                         saveAllocatedDuties(allocatedDuties);
 
@@ -11008,15 +11144,21 @@
 
                 const curDepot = String(currentOperatingDepot || '1').trim();
                 const activeDuties = Array.isArray(allocatedDuties) ? allocatedDuties : loadAllocatedDuties();
+                const pd = getLocalPendingDeletions();
 
                 // Only consider pending relays that were actively recorded on route completion for this depot
+                // and skip routes/depots currently pending deletion
                 const filtered = {};
-                if (serverPending && typeof serverPending === 'object') {
+                if (serverPending && typeof serverPending === 'object' && !(pd.depots && pd.depots[curDepot])) {
                     for (const [rCode, info] of Object.entries(serverPending)) {
                         if (!info) continue;
                         const infoDepot = String(info.depot || '').trim();
                         // Only match current operating depot
                         if (infoDepot && curDepot && infoDepot.toLowerCase() !== curDepot.toLowerCase()) {
+                            continue;
+                        }
+                        const rClean = cleanRouteCode(rCode);
+                        if (pd.routes && (pd.routes[`${curDepot}_${rClean}`] || Object.values(pd.routes).some(pr => pr && cleanRouteCode(pr.code) === rClean && (!pr.depotId || String(pr.depotId).trim() === curDepot)))) {
                             continue;
                         }
 
@@ -11176,6 +11318,13 @@
         function selectAndAllocateRelayRoute(routeCode, depotId) {
             closeRelayAlertsModal();
             dismissRelayPopupFor5Minutes();
+
+            const check = getPendingDeletionBlock({ depotId: depotId || currentOperatingDepot, routeCode });
+            if (check.blocked) {
+                showAllocationToast(`⛔ ${check.message}`, "error");
+                alert(`⛔ Allocation Paused\n\n${check.message}`);
+                return;
+            }
 
             // 1. Select the route in the route dropdown
             if (routeSelect) {
@@ -11870,6 +12019,10 @@
 
             recalcDepotCounts();
 
+            populateRouteDropdown(routeSearch ? routeSearch.value : "");
+
+            updatePendingDeletionPauseBanner();
+
             populateDriverDropdown();
 
             await recommend();
@@ -11930,6 +12083,8 @@
 
             window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
 
+            window.DepotSyncEngine.on('pending-deletions', handleSyncStateUpdate);
+
             window.DepotSyncEngine.on('routes-dataset', async () => {
                 try {
                     const corRes = await fetch('/api/corridor-schedules');
@@ -11964,7 +12119,7 @@
 
                 const msgType = String(ev.data?.type || '').toUpperCase();
 
-                if (msgType === 'DRIVER_ATTENDANCE_UPDATED' || msgType === 'ROUTE_COMPLETED' || msgType === 'DEPOT_CHANGED' || msgType === 'ALLOCATED_DUTIES_UPDATED' || msgType === 'CHARGING_COMPLETED' || msgType === 'CLEANING_COMPLETED' || msgType === 'SERVICING_STATUS_UPDATED') {
+                if (msgType === 'DRIVER_ATTENDANCE_UPDATED' || msgType === 'ROUTE_COMPLETED' || msgType === 'DEPOT_CHANGED' || msgType === 'ALLOCATED_DUTIES_UPDATED' || msgType === 'CHARGING_COMPLETED' || msgType === 'CLEANING_COMPLETED' || msgType === 'SERVICING_STATUS_UPDATED' || msgType === 'PENDING_DELETIONS_UPDATED') {
 
                     await handleSyncStateUpdate();
 

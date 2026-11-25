@@ -11278,6 +11278,15 @@ let busCategoriesMap = new Map();
                         showAllocationToast("⚠️ Please choose a valid route first.", "error");
                         return;
                     }
+                    const adminPd = (window.DepotSyncEngine && typeof window.DepotSyncEngine.isPendingDeletion === "function")
+                        ? window.DepotSyncEngine.isPendingDeletion({ depotId: routeObj.depotId || '', routeCode: routeObj.code || routeObj.id })
+                        : { pending: false };
+                    if (adminPd.pending) {
+                        const msg = `This route (${routeObj.code || routeObj.id}) is going to be deleted, so no bus can be allocated for this route.`;
+                        showAllocationToast(`⛔ ${msg}`, "error");
+                        alert(`⛔ Allocation Paused\n\n${msg}`);
+                        return;
+                    }
                     const depInput = document.getElementById("departure");
                     const departureTime = depInput ? depInput.value : "";
                     if (!departureTime) {
@@ -11365,12 +11374,29 @@ let busCategoriesMap = new Map();
                         _isJustAdded: true
                     };
 
+                    const candidateAdminDuties = [...allocatedDuties];
                     if (existingIndex >= 0) {
-                        allocatedDuties[existingIndex] = newDuty;
+                        candidateAdminDuties[existingIndex] = newDuty;
                     } else {
-                        allocatedDuties.unshift(newDuty);
+                        candidateAdminDuties.unshift(newDuty);
                     }
 
+                    try {
+                        const dutyRes = await fetch('/api/allocated-duties', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ duties: candidateAdminDuties })
+                        });
+                        if (!dutyRes.ok) {
+                            const errData = await dutyRes.json().catch(() => ({}));
+                            const errMsg = errData.error || `This route (${routeObj.code}) is going to be deleted, so no bus can be allocated for this route.`;
+                            showAllocationToast(`⛔ ${errMsg}`, "error");
+                            alert(`⛔ Allocation Paused\n\n${errMsg}`);
+                            return;
+                        }
+                    } catch (_) {}
+
+                    allocatedDuties = candidateAdminDuties;
                     saveAllocatedDuties(allocatedDuties);
                     renderRoutes(true);
                     await recommend();
@@ -12133,8 +12159,9 @@ let busCategoriesMap = new Map();
                     make: "Ashok Leyland",
                     model: "ELECTRIC BUS AC EiV12"
                 };
+                let deleteResult = null;
                 if (window.DepotSyncEngine && typeof window.DepotSyncEngine.deleteBus === "function") {
-                    await window.DepotSyncEngine.deleteBus(delPayload);
+                    deleteResult = await window.DepotSyncEngine.deleteBus(delPayload);
                 } else {
                     const res = await fetch('/api/fleet/delete-bus', {
                         method: 'POST',
@@ -12145,10 +12172,11 @@ let busCategoriesMap = new Map();
                     if (!res.ok || !resData.ok) {
                         throw new Error(resData.error || "Failed to delete bus");
                     }
+                    deleteResult = resData;
                 }
 
-                // If deleted bus was in allocatedDuties, remove it
-                if (Array.isArray(allocatedDuties)) {
+                const isDeferred = Boolean(deleteResult && (deleteResult.pending || deleteResult.deferred));
+                if (!isDeferred && Array.isArray(allocatedDuties)) {
                     const filteredDuties = allocatedDuties.filter(d => String(d.bm || '').toUpperCase().trim() !== busNumber);
                     if (filteredDuties.length !== allocatedDuties.length) {
                         allocatedDuties = filteredDuties;
@@ -12168,8 +12196,12 @@ let busCategoriesMap = new Map();
                 populateDeleteBusSelectors();
                 updateAddDeleteBadgeCount();
 
-                alert(`✅ Bus ${busNumber} (${regNumber}) has been deleted from the available fleet.\n\nReason recorded: ${reasonVal}`);
-                switchAddDeleteTab('hist');
+                if (isDeferred) {
+                    alert(`⏳ Bus Deletion Scheduled (Paused)\n\n${deleteResult.message || `Bus ${busNumber} is currently allocated on an active route. Deletion will finalize automatically once the bus finishes its route.`}`);
+                } else {
+                    alert(`✅ Bus ${busNumber} (${regNumber}) has been deleted from the available fleet.\n\nReason recorded: ${reasonVal}`);
+                    switchAddDeleteTab('hist');
+                }
             } catch (err) {
                 console.error("Failed to delete bus:", err);
                 alert("Error deleting bus: " + (err.message || "Network error"));
@@ -12910,6 +12942,7 @@ let busCategoriesMap = new Map();
             window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
             window.DepotSyncEngine.on('depot-updated', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('pending-deletions', handleSyncStateUpdate);
             window.DepotSyncEngine.on('routes-dataset', async () => {
                 await refreshRoutesAndTimetablesFromServer();
             });

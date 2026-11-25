@@ -3024,7 +3024,15 @@ function isNonSingleChargeRoute(rStr) {
 }
 
 export default function SchedulingScreen() {
-  const { buses, allBuses, lockedBuses = [], allocatedDuties = [], allocateBusToRoute } = useFleet();
+  const {
+    buses,
+    allBuses,
+    lockedBuses = [],
+    allocatedDuties = [],
+    allocateBusToRoute,
+    pendingDeletions = { buses: {}, routes: {}, depots: {} },
+    isTargetPendingDeletion,
+  } = useFleet();
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
@@ -3216,12 +3224,19 @@ export default function SchedulingScreen() {
       const curDepot = String(depotNum || '1').trim();
 
       // Only consider pending relays that were actively recorded on route completion for this depot
+      // and ignore routes or depots that are pending deletion (paused)
+      const pdDepots = (pendingDeletions && pendingDeletions.depots) || {};
+      const pdRoutes = (pendingDeletions && pendingDeletions.routes) || {};
       const filtered = {};
-      if (serverPending && typeof serverPending === 'object') {
+      if (serverPending && typeof serverPending === 'object' && !pdDepots[curDepot]) {
         for (const [rCode, info] of Object.entries(serverPending)) {
           if (!info) continue;
           const infoDepot = String(info.depot || '').trim();
           if (infoDepot && curDepot && infoDepot.toLowerCase() !== curDepot.toLowerCase()) {
+            continue;
+          }
+          const rClean = cleanRouteCode(rCode);
+          if (pdRoutes[`${curDepot}_${rClean}`] || Object.values(pdRoutes).some((pr) => pr && cleanRouteCode(pr.code) === rClean && (!pr.depotId || String(pr.depotId).trim() === curDepot))) {
             continue;
           }
 
@@ -3265,6 +3280,15 @@ export default function SchedulingScreen() {
     setRelayModalOpen(false);
     setRelayPopupOpen(false);
     lastPopupTimeRef.current = Date.now();
+
+    const check = isTargetPendingDeletion ? isTargetPendingDeletion({ depotId: targetDepot || depotNum, routeCode: rCode }) : { pending: false };
+    if (check.pending) {
+      Alert.alert(
+        '⛔ Route Scheduled for Deletion',
+        check.message || `This route (${rCode}) is going to be deleted, so no bus can be allocated for this route.`
+      );
+      return;
+    }
 
     const matched = availableRoutes.find((r) => cleanRouteCode(r.code || r.id) === rCode);
     if (matched) {
@@ -3413,6 +3437,14 @@ export default function SchedulingScreen() {
       return { feasible: false, bm: key, reason: `Bus ${key} belongs to Depot ${busDepot} (Active view: Depot ${depotNum}).` };
     }
 
+    const selectedRouteCodeClean = String(selectedRoute?.code || selectedRoute?.id || '').toUpperCase().trim();
+    const pdCheck = isTargetPendingDeletion
+      ? isTargetPendingDeletion({ depotId: depotNum, routeCode: selectedRouteCodeClean, bm: key })
+      : { pending: false };
+    if (pdCheck.pending) {
+      return { feasible: false, bm: key, reason: pdCheck.message || `Pending deletion pause active for ${pdCheck.type || 'target'}.` };
+    }
+
     // Lock / turnaround / servicing / allocation check
     const isLocked = Boolean(busObj?.isLocked || lockedBuses.some((lb) => String(lb.bm || lb.bmNumber || '').toUpperCase().trim() === key));
     if (isLocked || busObj?.isCharging || busObj?.isCleaning || busObj?.isTurnaround) {
@@ -3481,7 +3513,7 @@ export default function SchedulingScreen() {
       actualRangeKm: drainDetails.busRangeKm,
       role: candidateRole
     };
-  }, [resolvedAll, pool, depotNum, lockedBuses, allocatedDuties, matchedSched, timeCatInfo, complexity]);
+  }, [resolvedAll, pool, depotNum, lockedBuses, allocatedDuties, matchedSched, timeCatInfo, complexity, pendingDeletions, isTargetPendingDeletion]);
 
   // 4. Candidate Buses Generation & Mandatory Assignment (Exact 1:1 match with scheduling.html getRouteCandidateBuses)
   const candidateBuses = useMemo(() => {
@@ -3792,16 +3824,45 @@ export default function SchedulingScreen() {
     : false;
   const catDisplay = requiresCatA ? 'A' : allowedCategories.join('/');
 
+  const selectedRouteCodeClean = String(selectedRoute?.code || selectedRoute?.id || '').toUpperCase().trim();
+  const depotPauseInfo = isTargetPendingDeletion ? isTargetPendingDeletion({ depotId: depotNum }) : { pending: false };
+  const routePauseInfo = isTargetPendingDeletion
+    ? isTargetPendingDeletion({ depotId: depotNum, routeCode: selectedRouteCodeClean })
+    : { pending: false };
+  const isAllocationPaused = Boolean(depotPauseInfo.pending || routePauseInfo.pending);
+  const allocationPauseMessage = depotPauseInfo.pending
+    ? depotPauseInfo.message
+    : routePauseInfo.pending
+      ? `This route (${selectedRouteCodeClean}) is going to be deleted, so no bus can be allocated for this route.`
+      : '';
+
   // Change route
   const handleSelectRoute = (r) => {
     setSelectedRoute(r);
-    setScheduledTime(r.timetables[0]);
+    setScheduledTime((r.timetables && r.timetables[0]) || '08:00 AM');
     setSelectedCandidateBm(null);
     setRoutePickerOpen(false);
+
+    const rCode = String(r?.code || r?.id || '').toUpperCase().trim();
+    const check = isTargetPendingDeletion ? isTargetPendingDeletion({ depotId: depotNum, routeCode: rCode }) : { pending: false };
+    if (check.pending) {
+      Alert.alert(
+        '⛔ Route Scheduled for Deletion',
+        check.message || `This route (${rCode}) is going to be deleted, so no bus can be allocated for this route.`
+      );
+    }
   };
 
   // Commit Allocation
   const handleCommitAllocation = () => {
+    if (isAllocationPaused) {
+      Alert.alert(
+        '⛔ Allocation Paused — Pending Deletion',
+        allocationPauseMessage || `This route (${selectedRouteCodeClean}) is going to be deleted, so no bus can be allocated for this route.`
+      );
+      return;
+    }
+
     if (!activeCandidate) {
       Alert.alert(
         'No Buses Available',
@@ -3867,7 +3928,7 @@ export default function SchedulingScreen() {
         {
           text: 'Confirm & Allocate',
           style: 'default',
-          onPress: () => {
+          onPress: async () => {
             const duty = {
               id: `duty_${activeCandidate.bmNumber}_${selectedRoute.code}_${Date.now()}`,
               bm: activeCandidate.bmNumber,
@@ -3896,7 +3957,14 @@ export default function SchedulingScreen() {
               status: 'Allocated',
             };
 
-            allocateBusToRoute(duty);
+            const allocRes = await allocateBusToRoute(duty);
+            if (allocRes && !allocRes.ok) {
+              Alert.alert(
+                '⛔ Allocation Blocked',
+                allocRes.error || `This route (${selectedRoute.code}) is going to be deleted, so no bus can be allocated for this route.`
+              );
+              return;
+            }
 
             // Resolve relay if this fulfills a pending second bus requirement
             const cleanR = cleanRouteCode(selectedRoute.code || selectedRoute.id || '');
@@ -3999,6 +4067,16 @@ export default function SchedulingScreen() {
           </View>
         ) : (
           <>
+            {isAllocationPaused && (
+              <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#ef4444', borderRadius: 12, padding: 14, marginBottom: 12 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '800', color: '#991b1b', marginBottom: 4 }}>
+                  ⏸️ Scheduling Paused — Pending Deletion
+                </Text>
+                <Text style={{ fontSize: 12.5, color: '#7f1d1d', lineHeight: 18, fontWeight: '600' }}>
+                  {allocationPauseMessage}
+                </Text>
+              </View>
+            )}
             {/* ── PANEL 1: SCHEDULE REQUIREMENT ── */}
             <View style={styles.panel}>
           <Text style={styles.panelTitle}>{t('panel_schedule_req_title', 'Schedule requirement')}</Text>
@@ -4229,12 +4307,18 @@ export default function SchedulingScreen() {
 
           {/* ── ALLOCATE BUS BUTTON ── */}
           <TouchableOpacity
-            style={[styles.btnAllocate, isManualOverride && styles.btnAllocateOverride]}
+            style={[
+              styles.btnAllocate,
+              isManualOverride && styles.btnAllocateOverride,
+              isAllocationPaused && { backgroundColor: '#991b1b', opacity: 0.9 },
+            ]}
             onPress={handleCommitAllocation}
             activeOpacity={0.85}
           >
             <Text style={styles.btnAllocateText}>
-              {isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus'}
+              {isAllocationPaused
+                ? '⛔ Allocation Paused (Route / Depot Pending Deletion)'
+                : (isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -4453,7 +4537,11 @@ export default function SchedulingScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={{ maxHeight: 400 }}>
-              {availableRoutes.map((r) => (
+              {availableRoutes.map((r) => {
+                const rPendCheck = isTargetPendingDeletion
+                  ? isTargetPendingDeletion({ depotId: depotNum, routeCode: r.code || r.id })
+                  : { pending: false };
+                return (
                 <TouchableOpacity
                   key={r.id}
                   style={[styles.pickerItem, r.id === selectedRoute?.id && styles.pickerItemActive]}
@@ -4461,14 +4549,22 @@ export default function SchedulingScreen() {
                   activeOpacity={0.7}
                 >
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.pickerItemTitle}>{r.code} — {r.fullName || r.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <Text style={styles.pickerItemTitle}>{r.code} — {r.fullName || r.name}</Text>
+                      {rPendCheck.pending && (
+                        <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fca5a5', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}>
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: '#b91c1c' }}>⏳ PAUSED (Pending Deletion)</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text style={styles.pickerItemSub}>
                       GTFS Distance: {r.distance} km • Category {r.requiredCat} ({r.category})
                     </Text>
                   </View>
                   {r.id === selectedRoute?.id && <Text style={styles.pickerCheck}>✓</Text>}
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </ScrollView>
           </View>
         </View>

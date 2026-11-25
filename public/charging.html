@@ -1170,6 +1170,18 @@
     }
 
     const v = allVehicles.find(x => isSameBusId(x.bm_no, bm));
+    const busDepotCheck = getBusDepot(bm) || currentOperatingDepot;
+    const pdCheck = (window.DepotSyncEngine && typeof window.DepotSyncEngine.isPendingDeletion === 'function')
+      ? window.DepotSyncEngine.isPendingDeletion({ depotId: busDepotCheck, bm })
+      : { pending: false };
+    if (pdCheck.pending) {
+      const msg = pdCheck.type === 'depot'
+        ? `Depot ${busDepotCheck} is going to be deleted once active schedules finish, so charging operations are paused.`
+        : `Bus ${bm} is scheduled for deletion after its assigned route finishes, so charging bay locking is paused.`;
+      showToast(`⛔ ${msg}`, 'error', 5500);
+      alert(`⛔ Operation Paused — Pending Deletion\n\n${msg}`);
+      return;
+    }
 
     if (isBusAllocatedOnRoute(bm, v?.reg_no)) {
       showToast(`⚠️ Bus ${bm} is currently on route (Allocated via Scheduling). It cannot be charged until marked 'Completed Route' in Depot Operations!`, 'error', 5000);

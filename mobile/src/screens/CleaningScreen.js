@@ -25,6 +25,7 @@ export default function CleaningScreen() {
     cleaningHistory,
     lockBus,
     submitCleaningRecord,
+    isTargetPendingDeletion,
   } = useFleet();
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
@@ -112,9 +113,16 @@ export default function CleaningScreen() {
     return { now, timeStr, fullTimeStr };
   };
 
-  const handleLockBus = () => {
+  const handleLockBus = async () => {
     if (!currentSelectedBus) {
       Alert.alert('Selection Required', 'Please choose a bus first.');
+      return;
+    }
+    const pdCheck = isTargetPendingDeletion
+      ? isTargetPendingDeletion({ depotId: depotNum, bm: currentSelectedBus.bmNumber })
+      : { pending: false };
+    if (pdCheck.pending) {
+      Alert.alert('⛔ Operation Paused — Pending Deletion', pdCheck.message || `Cleaning bay operations are paused while pending deletion is in progress.`);
       return;
     }
     if (currentSelectedBus.isAllocated) {
@@ -139,7 +147,11 @@ export default function CleaningScreen() {
       startTimestamp: now.getTime(),
     };
 
-    lockBus(entry);
+    const res = await lockBus(entry);
+    if (res && !res.ok) {
+      Alert.alert('⛔ Operation Paused', res.error || 'Could not lock bus for cleaning.');
+      return;
+    }
     Alert.alert('🧹 Bus Locked for Cleaning', `Bus ${currentSelectedBus.bmNumber} is now locked for cleaning.`);
   };
 
@@ -249,6 +261,23 @@ export default function CleaningScreen() {
             Record bus sanitization & cleaning sessions — Depot {depotNum} ({depotBuses.length} Active Buses)
           </Text>
         </View>
+
+        {(() => {
+          const clnPd = isTargetPendingDeletion
+            ? isTargetPendingDeletion({ depotId: depotNum, bm: selectedBus?.bmNumber })
+            : { pending: false };
+          if (!clnPd.pending) return null;
+          return (
+            <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#ef4444', borderRadius: 12, padding: 12, marginBottom: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '800', color: '#991b1b', marginBottom: 2 }}>
+                ⏸️ Cleaning Operations Paused — Pending Deletion
+              </Text>
+              <Text style={{ fontSize: 12, color: '#7f1d1d', lineHeight: 17, fontWeight: '600' }}>
+                {clnPd.message}
+              </Text>
+            </View>
+          );
+        })()}
 
         {/* ── 1. SELECT BUS (Exact Website Layout: Search Box + Dropdown) ── */}
         <View style={styles.card}>

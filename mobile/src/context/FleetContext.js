@@ -665,11 +665,57 @@ export const FleetProvider = ({ children }) => {
   // Local additions and deletions to guarantee immediate 0ms UI feedback and offline persistence across poll intervals
   const [localAddedBuses, setLocalAddedBuses] = useState({});
   const [localDeletedBuses, setLocalDeletedBuses] = useState({});
+  const [pendingDeletions, setPendingDeletions] = useState({ buses: {}, routes: {}, depots: {} });
   const localAddedBusesRef = useRef(localAddedBuses);
   localAddedBusesRef.current = localAddedBuses;
   const localDeletedBusesRef = useRef(localDeletedBuses);
   localDeletedBusesRef.current = localDeletedBuses;
   const servicingStatusRef = useRef({});
+  const pendingDeletionsRef = useRef(pendingDeletions);
+  pendingDeletionsRef.current = pendingDeletions;
+  const allocatedDutiesRef = useRef(allocatedDuties);
+  allocatedDutiesRef.current = allocatedDuties;
+
+  const isTargetPendingDeletion = useCallback(({ depotId, routeCode, bm } = {}) => {
+    const pd = pendingDeletionsRef.current || { buses: {}, routes: {}, depots: {} };
+    const dClean = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : '';
+    const rClean = routeCode ? String(routeCode).toUpperCase().trim() : '';
+    const bClean = bm ? String(bm).toUpperCase().trim() : '';
+
+    if (dClean && pd.depots && pd.depots[dClean]) {
+      const meta = pd.depots[dClean];
+      const depName = meta.depotName || `Depot ${dClean}`;
+      return {
+        pending: true,
+        type: 'depot',
+        meta,
+        message: `Depot "${depName}" is going to be deleted once all assigned buses complete their schedules, so no bus can be allocated for this depot.`,
+      };
+    }
+    if (rClean && pd.routes) {
+      const rk = dClean ? `${dClean}_${rClean}` : '';
+      const rMatch = (rk && pd.routes[rk]) || Object.values(pd.routes).find(
+        (r) => r && String(r.code || '').toUpperCase().trim() === rClean && (!dClean || !r.depotId || String(r.depotId).trim().replace(/^DEPOT\s*/i, '') === dClean)
+      );
+      if (rMatch) {
+        return {
+          pending: true,
+          type: 'route',
+          meta: rMatch,
+          message: `This route (${rClean}) is going to be deleted, so no bus can be allocated for this route.`,
+        };
+      }
+    }
+    if (bClean && pd.buses && pd.buses[bClean]) {
+      return {
+        pending: true,
+        type: 'bus',
+        meta: pd.buses[bClean],
+        message: `Bus ${bClean} is going to be deleted after completing its assigned route, so it is paused and cannot be allocated.`,
+      };
+    }
+    return { pending: false };
+  }, []);
 
   // Parse and normalize the busState dictionary returned by server.js
   const processBusState = useCallback((rawState) => {
@@ -907,6 +953,13 @@ export const FleetProvider = ({ children }) => {
           );
         }
 
+        if (resSync.data.pendingDeletions && typeof resSync.data.pendingDeletions === 'object') {
+          setPendingDeletions({
+            buses: resSync.data.pendingDeletions.buses || {},
+            routes: resSync.data.pendingDeletions.routes || {},
+            depots: resSync.data.pendingDeletions.depots || {},
+          });
+        }
         addedBusesObj = resSync.data.addedBuses || {};
         deletedBusesObj = resSync.data.deletedBuses || {};
 
@@ -1033,6 +1086,12 @@ export const FleetProvider = ({ children }) => {
 
   // Lock a bus for charging or cleaning
   const lockBus = async (busEntry) => {
+    const cleanBm = String(busEntry.bm || busEntry.bmNumber || '').toUpperCase().trim();
+    const blockCheck = isTargetPendingDeletion({ depotId: busEntry.depot || selectedDepot, bm: cleanBm });
+    if (blockCheck.pending) {
+      return { ok: false, blockedByPendingDeletion: true, blockedType: blockCheck.type, error: blockCheck.message };
+    }
+
     const updated = [...lockedBuses.filter((x) => x.bm !== busEntry.bm), busEntry];
     setLockedBuses(updated);
 
@@ -1055,9 +1114,21 @@ export const FleetProvider = ({ children }) => {
     );
 
     try {
-      await api.saveLockedBuses(updated);
+      const res = await api.saveLockedBuses(updated);
+      if (!res.ok) {
+        fetchFleet();
+        return {
+          ok: false,
+          blockedByPendingDeletion: Boolean(res.blockedByPendingDeletion),
+          blockedType: res.blockedType || null,
+          error: res.error || 'Failed to lock bus on server.',
+        };
+      }
+      return { ok: true };
     } catch (e) {
       console.warn('Failed to save locked buses:', e);
+      fetchFleet();
+      return { ok: false, error: e?.message || 'Failed to lock bus.' };
     }
   };
 
@@ -1281,39 +1352,43 @@ export const FleetProvider = ({ children }) => {
     fetchFleet();
   };
 
-  // Delete multiple buses in a single batch
+  // Delete multiple buses in a single batch (defers active buses on route until completion)
   const deleteBusesBatchFromFleet = async (bmsList, reasonVal = 'Batch Fleet Decommissioning') => {
-    if (!Array.isArray(bmsList) || bmsList.length === 0) return { ok: true, count: 0 };
+    if (!Array.isArray(bmsList) || bmsList.length === 0) return { ok: true, count: 0, pendingCount: 0 };
 
     const cleanBms = bmsList.map((bm) => String(bm).toUpperCase().trim()).filter(Boolean);
-    const deletedMap = {};
-    const nowIso = new Date().toISOString();
-    const nowTs = Date.now();
-
-    cleanBms.forEach((cleanBm) => {
-      deletedMap[cleanBm] = {
-        bm: cleanBm,
-        busNumber: cleanBm,
-        reason: reasonVal,
-        deletedAt: nowIso,
-        timestamp: nowTs,
-      };
-    });
-
-    setLocalDeletedBuses((prev) => ({ ...prev, ...deletedMap }));
-
-    setLocalAddedBuses((prev) => {
-      const next = { ...prev };
-      cleanBms.forEach((k) => delete next[k]);
-      return next;
-    });
-
-    setBuses((prev) => prev.filter((b) => !cleanBms.includes(b.bmNumber)));
-    setAllocatedDuties((prev) => prev.filter((d) => !cleanBms.includes(String(d.bm || d.bmNumber || '').toUpperCase().trim())));
-
     try {
       const res = await api.deleteBusesBatchFromFleet(cleanBms, reasonVal);
-      fetchFleet();
+      if (res && res.ok && res.data) {
+        if (res.data.pendingDeletions) {
+          setPendingDeletions(res.data.pendingDeletions);
+        }
+        const deletedList = Array.isArray(res.data.deleted) ? res.data.deleted : [];
+        const deletedBms = deletedList.map((d) => String(d.bm || d.busNumber || '').toUpperCase().trim()).filter(Boolean);
+        if (deletedBms.length > 0) {
+          const nowIso = new Date().toISOString();
+          const nowTs = Date.now();
+          const deletedMap = {};
+          deletedBms.forEach((cleanBm) => {
+            deletedMap[cleanBm] = {
+              bm: cleanBm,
+              busNumber: cleanBm,
+              reason: reasonVal,
+              deletedAt: nowIso,
+              timestamp: nowTs,
+            };
+          });
+          setLocalDeletedBuses((prev) => ({ ...prev, ...deletedMap }));
+          setLocalAddedBuses((prev) => {
+            const next = { ...prev };
+            deletedBms.forEach((k) => delete next[k]);
+            return next;
+          });
+          setBuses((prev) => prev.filter((b) => !deletedBms.includes(b.bmNumber)));
+          setAllocatedDuties((prev) => prev.filter((d) => !deletedBms.includes(String(d.bm || d.bmNumber || '').toUpperCase().trim())));
+        }
+        fetchFleet();
+      }
       return res;
     } catch (err) {
       console.warn('Network error in deleteBusesBatchFromFleet:', err);
@@ -1321,7 +1396,7 @@ export const FleetProvider = ({ children }) => {
     }
   };
 
-  // Delete/Decommission a bus from the available fleet (fully matching admin.html & server.js)
+  // Delete/Decommission a bus from the available fleet (defers if currently allocated to an active route)
   const deleteBusFromFleet = async (bmNumber, details = {}) => {
     const cleanBm = String(bmNumber).toUpperCase().trim();
     const cleanReg = String(details.regNo || details.regNumber || details.reg || '').toUpperCase().trim();
@@ -1340,23 +1415,25 @@ export const FleetProvider = ({ children }) => {
       model: 'ELECTRIC BUS AC EiV12',
     };
 
-    // 1. Immediately track in localDeletedBuses map & remove from localAddedBuses
-    setLocalDeletedBuses((prev) => ({ ...prev, [cleanBm]: payload }));
-    setLocalAddedBuses((prev) => {
-      const next = { ...prev };
-      delete next[cleanBm];
-      return next;
-    });
-
-    // 2. Remove from buses state in 0ms
-    setBuses((prev) => prev.filter((b) => b.bmNumber !== cleanBm));
-
-    // 3. Remove from allocatedDuties if it was currently dispatched (matching website behavior)
-    setAllocatedDuties((prev) => prev.filter((d) => String(d.bm || d.bmNumber || '').toUpperCase().trim() !== cleanBm));
-
-    // 4. Sync to backend API
     try {
       const res = await api.deleteBusFromFleet(payload);
+      if (res && res.ok && res.data) {
+        if (res.data.pendingDeletions) {
+          setPendingDeletions(res.data.pendingDeletions);
+        }
+        const isDeferred = Boolean(res.data.pending || res.data.deferred);
+        if (!isDeferred) {
+          setLocalDeletedBuses((prev) => ({ ...prev, [cleanBm]: payload }));
+          setLocalAddedBuses((prev) => {
+            const next = { ...prev };
+            delete next[cleanBm];
+            return next;
+          });
+          setBuses((prev) => prev.filter((b) => b.bmNumber !== cleanBm));
+          setAllocatedDuties((prev) => prev.filter((d) => String(d.bm || d.bmNumber || '').toUpperCase().trim() !== cleanBm));
+        }
+        fetchFleet();
+      }
       return res;
     } catch (err) {
       console.warn('Network error in deleteBusFromFleet:', err);
@@ -1765,6 +1842,8 @@ export const FleetProvider = ({ children }) => {
         restoreBusToFleet,
         localAddedBuses,
         localDeletedBuses,
+        pendingDeletions,
+        isTargetPendingDeletion,
         submitChargingRecord,
         submitCleaningRecord,
         allocateBusToRoute,

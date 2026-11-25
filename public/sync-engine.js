@@ -1,3 +1,24 @@
+
+    function mergeHistoryLists(serverList, localList) {
+        if (!Array.isArray(serverList)) return Array.isArray(localList) ? localList : [];
+        if (!Array.isArray(localList)) return serverList;
+        const map = new Map();
+        serverList.forEach(item => {
+            if (!item) return;
+            const key = String(item.id || (item.bm + '_' + (item.unlockTime || item.completedAt || item.startTime || item.completedTs || '')));
+            map.set(key, item);
+        });
+        const extraLocal = [];
+        localList.forEach(item => {
+            if (!item) return;
+            const key = String(item.id || (item.bm + '_' + (item.unlockTime || item.completedAt || item.startTime || item.completedTs || '')));
+            if (!map.has(key)) {
+                map.set(key, item);
+                extraLocal.push(item);
+            }
+        });
+        return [...extraLocal, ...serverList];
+    }
 /**
  * DepotSyncEngine - Real-Time Cross-Device Synchronization Client
  * 
@@ -23,12 +44,17 @@
     const ADDED_BUSES_KEY = 'depot_added_buses';
     const DELETED_BUSES_KEY = 'depot_deleted_buses';
     const SERVICING_STATUS_KEY = 'smartbus_servicing_status';
+    const CHARGING_HISTORY_KEY = 'depot_charging_history';
+    const CLEANING_HISTORY_KEY = 'depot_cleaning_history';
+    const COMPLETED_LOG_KEY = 'depot_route_completed_log';
+    const PENDING_DELETIONS_KEY = 'depot_pending_deletions';
 
     let currentVersion = 0;
     let eventSource = null;
     let pollIntervalTimer = null;
     let isSyncing = false;
     let reconnectDelay = 1000;
+    let serverDepotCounts = null;
     const listeners = {
         'bus-state': new Set(),
         'allocated-duties': new Set(),
@@ -36,8 +62,55 @@
         'depot-updated': new Set(),
         'fleet-updated': new Set(),
         'servicing-status': new Set(),
+        'charging-history': new Set(),
+        'cleaning-history': new Set(),
+        'completed-routes': new Set(),
+        'routes-dataset': new Set(),
+        'pending-deletions': new Set(),
         'sync': new Set()
     };
+
+    function getPendingDeletionsLocal() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(PENDING_DELETIONS_KEY) || '{}');
+            return {
+                buses: (parsed && parsed.buses && typeof parsed.buses === 'object') ? parsed.buses : {},
+                routes: (parsed && parsed.routes && typeof parsed.routes === 'object') ? parsed.routes : {},
+                depots: (parsed && parsed.depots && typeof parsed.depots === 'object') ? parsed.depots : {}
+            };
+        } catch (e) {
+            return { buses: {}, routes: {}, depots: {} };
+        }
+    }
+
+    function savePendingDeletionsLocal(pd) {
+        const normalized = {
+            buses: (pd && pd.buses && typeof pd.buses === 'object') ? pd.buses : {},
+            routes: (pd && pd.routes && typeof pd.routes === 'object') ? pd.routes : {},
+            depots: (pd && pd.depots && typeof pd.depots === 'object') ? pd.depots : {}
+        };
+        try {
+            localStorage.setItem(PENDING_DELETIONS_KEY, JSON.stringify(normalized));
+        } catch (e) {}
+        notify('pending-deletions', normalized);
+        return normalized;
+    }
+
+    function isPendingDeletionTarget(opts) {
+        const target = opts || {};
+        const pd = getPendingDeletionsLocal();
+        const dClean = target.depotId ? String(target.depotId).trim().replace(/^DEPOT\s*/i, '') : '';
+        const rClean = target.routeCode ? String(target.routeCode).toUpperCase().trim() : '';
+        const bClean = target.bm ? String(target.bm).toUpperCase().trim() : '';
+        if (dClean && pd.depots[dClean]) return { pending: true, type: 'depot', meta: pd.depots[dClean] };
+        if (rClean) {
+            const rk = dClean ? `${dClean}_${rClean}` : '';
+            const rMatch = (rk && pd.routes[rk]) || Object.values(pd.routes).find(r => r && String(r.code || '').toUpperCase().trim() === rClean && (!dClean || !r.depotId || String(r.depotId).trim().replace(/^DEPOT\s*/i, '') === dClean));
+            if (rMatch) return { pending: true, type: 'route', meta: rMatch };
+        }
+        if (bClean && pd.buses[bClean]) return { pending: true, type: 'bus', meta: pd.buses[bClean] };
+        return { pending: false };
+    }
 
     function notify(type, data) {
         if (listeners[type]) {
@@ -98,13 +171,19 @@
             try {
                 localStorage.setItem('depot_bus_assignments', JSON.stringify(stateData.depotAssignments));
             } catch (e) {}
-            const counts = (typeof stateData.depot1Count === 'number' && typeof stateData.depot2Count === 'number')
-                ? { depot1Count: stateData.depot1Count, depot2Count: stateData.depot2Count }
-                : getDepotCountsLocal();
+            if (typeof stateData.depot1Count === 'number' && typeof stateData.depot2Count === 'number') {
+                serverDepotCounts = {
+                    depot1Count: stateData.depot1Count,
+                    depot2Count: stateData.depot2Count,
+                    total: typeof stateData.total === 'number' ? stateData.total : (stateData.depot1Count + stateData.depot2Count)
+                };
+            }
+            const counts = serverDepotCounts || getDepotCountsLocal();
             notify('depot-updated', {
                 assignments: stateData.depotAssignments,
                 depot1Count: counts.depot1Count,
-                depot2Count: counts.depot2Count
+                depot2Count: counts.depot2Count,
+                total: counts.total || (counts.depot1Count + counts.depot2Count)
             });
         }
         // 5. Sync added buses (newly inducted fleet)
@@ -129,6 +208,41 @@
                 localStorage.setItem(SERVICING_STATUS_KEY, JSON.stringify(stateData.servicingStatus));
             } catch (e) {}
             notify('servicing-status', stateData.servicingStatus);
+        }
+
+        // 8. Sync charging history (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.chargingHistory)) {
+            try {
+                const local = getChargingHistoryLocal();
+                const merged = mergeHistoryLists(stateData.chargingHistory, local);
+                localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(merged));
+                notify('charging-history', merged);
+            } catch (e) {}
+        }
+
+        // 9. Sync cleaning history (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.cleaningHistory)) {
+            try {
+                const local = getCleaningHistoryLocal();
+                const merged = mergeHistoryLists(stateData.cleaningHistory, local);
+                localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(merged));
+                notify('cleaning-history', merged);
+            } catch (e) {}
+        }
+
+        // 10. Sync completed routes log (merge to prevent vanishing recent records)
+        if (Array.isArray(stateData.completedRoutesLog)) {
+            try {
+                const local = getCompletedRoutesLocal();
+                const merged = mergeHistoryLists(stateData.completedRoutesLog, local);
+                localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(merged));
+                notify('completed-routes', merged);
+            } catch (e) {}
+        }
+
+        // 11. Sync pending deletions (deferred deletions waiting on route completion)
+        if (stateData.pendingDeletions && typeof stateData.pendingDeletions === 'object') {
+            savePendingDeletionsLocal(stateData.pendingDeletions);
         }
 
         notify('sync', stateData);
@@ -234,6 +348,45 @@
                 }
             });
 
+            eventSource.addEventListener('charging-history-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const history = payload?.data?.chargingHistory || payload?.chargingHistory;
+                    if (Array.isArray(history)) {
+                        localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(history));
+                        notify('charging-history', history);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
+            });
+
+            eventSource.addEventListener('cleaning-history-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const history = payload?.data?.cleaningHistory || payload?.cleaningHistory;
+                    if (Array.isArray(history)) {
+                        localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(history));
+                        notify('cleaning-history', history);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
+            });
+
+            eventSource.addEventListener('completed-routes-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    const log = payload?.data?.completedRoutesLog || payload?.completedRoutesLog;
+                    if (Array.isArray(log)) {
+                        localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(log));
+                        notify('completed-routes', log);
+                    } else {
+                        fetchFullSync();
+                    }
+                } catch (err) { fetchFullSync(); }
+            });
+
             eventSource.addEventListener('servicing-status-updated', (e) => {
                 try {
                     const payload = JSON.parse(e.data);
@@ -327,6 +480,40 @@
                 }
             });
 
+            eventSource.addEventListener('routes-dataset-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const ds = payload?.data?.dataset || payload?.dataset;
+                    notify('routes-dataset', ds || payload);
+                } catch (err) {
+                    notify('routes-dataset', null);
+                }
+            });
+
+            eventSource.addEventListener('custom-depots-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const d = (payload && payload.data) || payload;
+                    notify('routes-dataset', d || null);
+                } catch (err) {
+                    notify('routes-dataset', null);
+                }
+            });
+
+            eventSource.addEventListener('pending-deletions-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const pd = (payload && payload.data && payload.data.pendingDeletions) || (payload && payload.pendingDeletions);
+                    if (pd) savePendingDeletionsLocal(pd);
+                    else fetchFullSync();
+                } catch (err) {
+                    fetchFullSync();
+                }
+            });
+
             eventSource.addEventListener('sync-all', () => {
                 fetchFullSync();
             });
@@ -415,6 +602,12 @@
         return false;
     }
 
+    function isCanonicalBm(key) {
+        if (!key || typeof key !== 'string') return false;
+        const clean = key.trim().toUpperCase();
+        return /^BM\d+$/i.test(clean);
+    }
+
     const DEFAULT_FLEET_BMS = ["BM001","BM002","BM003","BM004","BM005","BM010","BM012","BM019","BM020","BM024","BM032","BM033","BM038","BM052","BM054","BM056","BM057","BM058","BM062","BM068","BM075","BM080","BM081","BM082","BM086","BM088","BM107","BM116","BM119","BM124","BM151","BM152","BM153","BM157","BM174","BM183","BM185","BM187","BM191","BM193","BM197","BM198","BM199","BM200","BM201","BM202","BM203","BM204","BM205","BM206","BM207","BM208","BM209","BM210","BM212","BM213","BM214","BM215","BM216","BM217","BM218","BM219","BM220","BM221","BM222","BM223","BM224","BM225","BM227","BM238","BM239","BM240","BM245","BM248","BM249","BM250","BM253","BM255","BM256","BM257","BM258","BM259","BM260","BM261","BM263","BM264","BM265","BM267","BM268","BM269","BM271","BM272","BM273","BM274","BM275","BM276","BM277","BM278","BM279","BM280","BM281","BM282","BM283","BM284","BM285","BM286","BM287","BM288","BM289","BM290","BM291","BM292","BM293","BM294","BM295","BM296","BM297","BM298","BM299","BM300","BM303","BM304"];
 
     const DEFAULT_DEPOT_MAP = {"BM001":"1","BM002":"1","BM003":"1","BM004":"1","BM005":"1","BM010":"1","BM012":"1","BM019":"1","BM020":"1","BM024":"1","BM032":"1","BM033":"1","BM038":"1","BM052":"2","BM054":"1","BM056":"1","BM057":"1","BM058":"1","BM062":"1","BM068":"1","BM075":"1","BM080":"1","BM081":"1","BM082":"1","BM086":"1","BM088":"1","BM107":"1","BM116":"1","BM119":"1","BM124":"1","BM151":"1","BM152":"1","BM153":"1","BM157":"1","BM174":"1","BM183":"1","BM185":"1","BM187":"1","BM191":"1","BM193":"1","BM197":"1","BM198":"1","BM199":"1","BM200":"1","BM201":"1","BM202":"1","BM203":"1","BM204":"1","BM205":"1","BM206":"1","BM207":"1","BM208":"1","BM209":"1","BM210":"1","BM212":"1","BM213":"1","BM214":"1","BM215":"1","BM216":"1","BM217":"1","BM218":"1","BM219":"2","BM220":"2","BM221":"2","BM222":"2","BM223":"2","BM224":"2","BM225":"2","BM227":"2","BM238":"2","BM239":"2","BM240":"2","BM245":"2","BM248":"2","BM249":"2","BM250":"2","BM253":"2","BM255":"2","BM256":"2","BM257":"2","BM258":"2","BM259":"2","BM260":"2","BM261":"2","BM263":"2","BM264":"2","BM265":"2","BM267":"2","BM268":"2","BM269":"2","BM271":"2","BM272":"2","BM273":"2","BM274":"2","BM275":"2","BM276":"2","BM277":"2","BM278":"2","BM279":"1","BM280":"2","BM281":"2","BM282":"2","BM283":"2","BM284":"2","BM285":"2","BM286":"2","BM287":"2","BM288":"2","BM289":"2","BM290":"2","BM291":"2","BM292":"2","BM293":"2","BM294":"2","BM295":"2","BM296":"2","BM297":"2","BM298":"2","BM299":"2","BM300":"2","BM303":"1","BM304":"2"};
@@ -476,16 +669,26 @@
 
         const deleted = getDeletedBusesLocal();
         const added = getAddedBusesLocal();
-        const allBms = Array.from(new Set([...DEFAULT_FLEET_BMS, ...Object.keys(added)]));
+        const allBms = Array.from(new Set([...DEFAULT_FLEET_BMS, ...Object.keys(map), ...Object.keys(added)]));
 
         allBms.forEach((bm) => {
-            if (deleted[bm]) return;
-            const assigned = map[bm] || (added[bm] ? added[bm].depot : null) || DEFAULT_DEPOT_MAP[bm] || '1';
+            const clean = String(bm).toUpperCase().trim();
+            // Strictly exclude route IDs, schedule aliases, or non-BM entries
+            if (!isCanonicalBm(clean)) return;
+            if (deleted[clean] || isDeletedBus(clean)) return;
+            const assigned = map[clean] || (added[clean] ? added[clean].depot : null) || DEFAULT_DEPOT_MAP[clean] || '1';
             if (String(assigned) === '2') d2++;
             else d1++;
         });
 
         return { depot1Count: d1, depot2Count: d2, total: d1 + d2 };
+    }
+
+    function getDepotCounts() {
+        if (serverDepotCounts && typeof serverDepotCounts.depot1Count === 'number' && typeof serverDepotCounts.depot2Count === 'number') {
+            return Object.assign({}, serverDepotCounts);
+        }
+        return getDepotCountsLocal();
     }
 
     // ── Fleet Bus Management Helper Functions ──
@@ -501,14 +704,29 @@
         } catch(e) { return {}; }
     }
 
+    const NEWLY_ADDED_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days (1 month)
+
     function isNewlyAddedBus(bm) {
         if (!bm) return false;
         const clean = String(bm).toUpperCase().trim();
         const added = getAddedBusesLocal();
-        if (added[clean]) return true;
+        const entry = added[clean];
+        if (entry) {
+            const addedTime = entry.addedAt ? new Date(entry.addedAt).getTime() : (entry.timestamp ? Number(entry.timestamp) : null);
+            if (addedTime && !isNaN(addedTime)) {
+                return (Date.now() - addedTime) < NEWLY_ADDED_MAX_AGE_MS;
+            }
+            return true;
+        }
         try {
             const states = JSON.parse(localStorage.getItem(BUS_STATES_KEY) || '{}');
-            if (states[clean] && states[clean].isNewlyAdded) return true;
+            if (states[clean] && states[clean].isNewlyAdded) {
+                const addedTime = states[clean].addedAt ? new Date(states[clean].addedAt).getTime() : (states[clean].timestamp ? Number(states[clean].timestamp) : null);
+                if (addedTime && !isNaN(addedTime)) {
+                    return (Date.now() - addedTime) < NEWLY_ADDED_MAX_AGE_MS;
+                }
+                return true;
+            }
         } catch(e) {}
         return false;
     }
@@ -598,6 +816,16 @@
             });
             const result = await res.json();
             if (result && result.ok) {
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
                 const busData = Object.assign({}, payload, result.bus || {});
                 busData.bm = busData.bm || bm;
                 busData.busNumber = busData.busNumber || bm;
@@ -612,12 +840,20 @@
                 delete deleted[bm];
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
 
+                const counts = getDepotCountsLocal();
+                serverDepotCounts = counts;
+
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: busData });
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: busData, counts });
                 } catch(e) {}
 
                 notify('fleet-updated', { type: 'add', bm, data: busData });
+                notify('depot-updated', {
+                    depot1Count: counts.depot1Count,
+                    depot2Count: counts.depot2Count,
+                    total: counts.total
+                });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to add bus');
@@ -647,6 +883,16 @@
             });
             const result = await res.json();
             if (result && result.ok) {
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
                 const busData = Object.assign({}, payload, result.bus || {});
                 busData.bm = busData.bm || bm;
                 busData.busNumber = busData.busNumber || bm;
@@ -661,12 +907,20 @@
                 delete added[bm];
                 localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
 
+                const counts = getDepotCountsLocal();
+                serverDepotCounts = counts;
+
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_DELETED', bm, data: busData });
+                    bc.postMessage({ type: 'FLEET_BUS_DELETED', bm, data: busData, counts });
                 } catch(e) {}
 
                 notify('fleet-updated', { type: 'delete', bm, data: busData });
+                notify('depot-updated', {
+                    depot1Count: counts.depot1Count,
+                    depot2Count: counts.depot2Count,
+                    total: counts.total
+                });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to delete bus');
@@ -764,27 +1018,48 @@
 
     async function restoreFleetBusApi(data) {
         try {
+            const rawBm = (typeof data === 'string') ? data : (data && (data.bm || data.busNumber || data.bmNumber || ''));
+            const bm = String(rawBm).toUpperCase().trim();
+            const payload = (typeof data === 'object' && data !== null) ? Object.assign({ bm, busNumber: bm }, data) : { bm, busNumber: bm };
             const res = await fetch(API_BASE + '/api/fleet/restore-bus', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const result = await res.json();
             if (result && result.ok) {
-                const bm = String(data.bm).toUpperCase().trim();
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
+                const busData = Object.assign({}, payload, result.bus || {});
+                const busBm = String(busData.bm || busData.busNumber || bm).toUpperCase().trim();
                 const deleted = getDeletedBusesLocal();
-                delete deleted[bm];
+                delete deleted[busBm];
                 localStorage.setItem(DELETED_BUSES_KEY, JSON.stringify(deleted));
                 const added = getAddedBusesLocal();
-                added[bm] = result.bus || data;
+                added[busBm] = busData;
                 localStorage.setItem(ADDED_BUSES_KEY, JSON.stringify(added));
 
+                const counts = getDepotCountsLocal();
+                serverDepotCounts = counts;
                 try {
                     const bc = new BroadcastChannel('depot_operations_sync');
-                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm, data: result.bus });
+                    bc.postMessage({ type: 'FLEET_BUS_ADDED', bm: busBm, data: busData, counts });
                 } catch(e) {}
 
-                notify('fleet-updated', { type: 'restore', bm, data: result.bus });
+                notify('fleet-updated', { type: 'restore', bm: busBm, data: busData });
+                notify('depot-updated', {
+                    depot1Count: counts.depot1Count,
+                    depot2Count: counts.depot2Count,
+                    total: counts.total
+                });
                 return result;
             } else {
                 throw new Error(result.error || 'Failed to restore bus');
@@ -792,6 +1067,76 @@
         } catch(e) {
             console.error('[SyncEngine] restoreFleetBusApi error:', e);
             throw e;
+        }
+    }
+
+
+    function getChargingHistoryLocal() {
+        try {
+            const raw = localStorage.getItem(CHARGING_HISTORY_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushChargingHistory(data) {
+        let list = Array.isArray(data) ? data : [data, ...getChargingHistoryLocal()];
+        try { localStorage.setItem(CHARGING_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('charging-history', list);
+        try {
+            await fetch(API_BASE + '/api/charging-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chargingHistory: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushChargingHistory error:', e);
+        }
+    }
+
+    function getCleaningHistoryLocal() {
+        try {
+            const raw = localStorage.getItem(CLEANING_HISTORY_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushCleaningHistory(data) {
+        let list = Array.isArray(data) ? data : [data, ...getCleaningHistoryLocal()];
+        try { localStorage.setItem(CLEANING_HISTORY_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('cleaning-history', list);
+        try {
+            await fetch(API_BASE + '/api/cleaning-history', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cleaningHistory: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushCleaningHistory error:', e);
+        }
+    }
+
+    function getCompletedRoutesLocal() {
+        try {
+            const raw = localStorage.getItem(COMPLETED_LOG_KEY);
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    async function pushCompletedRoutes(data) {
+        let list = Array.isArray(data) ? data : [data, ...getCompletedRoutesLocal()];
+        try { localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(list)); } catch (e) {}
+        notify('completed-routes', list);
+        try {
+            await fetch(API_BASE + '/api/completed-routes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ completedRoutesLog: list })
+            });
+        } catch (e) {
+            console.warn('[SyncEngine] pushCompletedRoutes error:', e);
         }
     }
 
@@ -806,6 +1151,9 @@
             } else if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
                 fetchFullSync();
                 notify('fleet-updated', ev.data);
+            } else if (msgType === 'PENDING_DELETIONS_UPDATED') {
+                if (ev.data && ev.data.pendingDeletions) savePendingDeletionsLocal(ev.data.pendingDeletions);
+                else fetchFullSync();
             }
         };
     } catch(e) {}
@@ -826,7 +1174,9 @@
         saveBusState: pushBusState,
         saveDepotAssignment: pushDepotAssignment,
         getDepotForBus: getDepotForBus,
-        getDepotCounts: getDepotCountsLocal,
+        getDepotCounts: getDepotCounts,
+        getDepotCountsLocal: getDepotCountsLocal,
+        isCanonicalBm: isCanonicalBm,
         getAddedBuses: getAddedBusesLocal,
         getDeletedBuses: getDeletedBusesLocal,
         isNewlyAddedBus: isNewlyAddedBus,
@@ -842,6 +1192,16 @@
         updateBusServicing: updateBusServicingApi,
         saveBusServicing: updateBusServicingApi,
         clearBusServicing: clearBusServicingApi,
+        getChargingHistory: getChargingHistoryLocal,
+        saveChargingHistory: pushChargingHistory,
+        getCleaningHistory: getCleaningHistoryLocal,
+        saveCleaningHistory: pushCleaningHistory,
+        getCompletedRoutes: getCompletedRoutesLocal,
+        saveCompletedRoutes: pushCompletedRoutes,
+        unlockBus: unlockBusApi,
+        unlockAllBuses: unlockAllBusesApi,
+        getPendingDeletions: getPendingDeletionsLocal,
+        isPendingDeletion: isPendingDeletionTarget,
         getVersion: () => currentVersion
     };
 })(window);

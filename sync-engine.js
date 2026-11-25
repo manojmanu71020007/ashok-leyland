@@ -47,6 +47,7 @@
     const CHARGING_HISTORY_KEY = 'depot_charging_history';
     const CLEANING_HISTORY_KEY = 'depot_cleaning_history';
     const COMPLETED_LOG_KEY = 'depot_route_completed_log';
+    const PENDING_DELETIONS_KEY = 'depot_pending_deletions';
 
     let currentVersion = 0;
     let eventSource = null;
@@ -65,8 +66,51 @@
         'cleaning-history': new Set(),
         'completed-routes': new Set(),
         'routes-dataset': new Set(),
+        'pending-deletions': new Set(),
         'sync': new Set()
     };
+
+    function getPendingDeletionsLocal() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(PENDING_DELETIONS_KEY) || '{}');
+            return {
+                buses: (parsed && parsed.buses && typeof parsed.buses === 'object') ? parsed.buses : {},
+                routes: (parsed && parsed.routes && typeof parsed.routes === 'object') ? parsed.routes : {},
+                depots: (parsed && parsed.depots && typeof parsed.depots === 'object') ? parsed.depots : {}
+            };
+        } catch (e) {
+            return { buses: {}, routes: {}, depots: {} };
+        }
+    }
+
+    function savePendingDeletionsLocal(pd) {
+        const normalized = {
+            buses: (pd && pd.buses && typeof pd.buses === 'object') ? pd.buses : {},
+            routes: (pd && pd.routes && typeof pd.routes === 'object') ? pd.routes : {},
+            depots: (pd && pd.depots && typeof pd.depots === 'object') ? pd.depots : {}
+        };
+        try {
+            localStorage.setItem(PENDING_DELETIONS_KEY, JSON.stringify(normalized));
+        } catch (e) {}
+        notify('pending-deletions', normalized);
+        return normalized;
+    }
+
+    function isPendingDeletionTarget(opts) {
+        const target = opts || {};
+        const pd = getPendingDeletionsLocal();
+        const dClean = target.depotId ? String(target.depotId).trim().replace(/^DEPOT\s*/i, '') : '';
+        const rClean = target.routeCode ? String(target.routeCode).toUpperCase().trim() : '';
+        const bClean = target.bm ? String(target.bm).toUpperCase().trim() : '';
+        if (dClean && pd.depots[dClean]) return { pending: true, type: 'depot', meta: pd.depots[dClean] };
+        if (rClean) {
+            const rk = dClean ? `${dClean}_${rClean}` : '';
+            const rMatch = (rk && pd.routes[rk]) || Object.values(pd.routes).find(r => r && String(r.code || '').toUpperCase().trim() === rClean && (!dClean || !r.depotId || String(r.depotId).trim().replace(/^DEPOT\s*/i, '') === dClean));
+            if (rMatch) return { pending: true, type: 'route', meta: rMatch };
+        }
+        if (bClean && pd.buses[bClean]) return { pending: true, type: 'bus', meta: pd.buses[bClean] };
+        return { pending: false };
+    }
 
     function notify(type, data) {
         if (listeners[type]) {
@@ -194,6 +238,11 @@
                 localStorage.setItem(COMPLETED_LOG_KEY, JSON.stringify(merged));
                 notify('completed-routes', merged);
             } catch (e) {}
+        }
+
+        // 11. Sync pending deletions (deferred deletions waiting on route completion)
+        if (stateData.pendingDeletions && typeof stateData.pendingDeletions === 'object') {
+            savePendingDeletionsLocal(stateData.pendingDeletions);
         }
 
         notify('sync', stateData);
@@ -450,6 +499,18 @@
                     notify('routes-dataset', d || null);
                 } catch (err) {
                     notify('routes-dataset', null);
+                }
+            });
+
+            eventSource.addEventListener('pending-deletions-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const pd = (payload && payload.data && payload.data.pendingDeletions) || (payload && payload.pendingDeletions);
+                    if (pd) savePendingDeletionsLocal(pd);
+                    else fetchFullSync();
+                } catch (err) {
+                    fetchFullSync();
                 }
             });
 
@@ -755,6 +816,16 @@
             });
             const result = await res.json();
             if (result && result.ok) {
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
                 const busData = Object.assign({}, payload, result.bus || {});
                 busData.bm = busData.bm || bm;
                 busData.busNumber = busData.busNumber || bm;
@@ -812,6 +883,16 @@
             });
             const result = await res.json();
             if (result && result.ok) {
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
                 const busData = Object.assign({}, payload, result.bus || {});
                 busData.bm = busData.bm || bm;
                 busData.busNumber = busData.busNumber || bm;
@@ -947,6 +1028,16 @@
             });
             const result = await res.json();
             if (result && result.ok) {
+                if (result.pendingDeletions) {
+                    savePendingDeletionsLocal(result.pendingDeletions);
+                }
+                if (result.pending || result.deferred) {
+                    try {
+                        const bc = new BroadcastChannel('depot_operations_sync');
+                        bc.postMessage({ type: 'PENDING_DELETIONS_UPDATED', bm, pendingDeletions: result.pendingDeletions });
+                    } catch (e) {}
+                    return result;
+                }
                 const busData = Object.assign({}, payload, result.bus || {});
                 const busBm = String(busData.bm || busData.busNumber || bm).toUpperCase().trim();
                 const deleted = getDeletedBusesLocal();
@@ -1060,6 +1151,9 @@
             } else if (msgType === 'FLEET_BUS_ADDED' || msgType === 'FLEET_BUS_DELETED' || msgType === 'FLEET_UPDATED') {
                 fetchFullSync();
                 notify('fleet-updated', ev.data);
+            } else if (msgType === 'PENDING_DELETIONS_UPDATED') {
+                if (ev.data && ev.data.pendingDeletions) savePendingDeletionsLocal(ev.data.pendingDeletions);
+                else fetchFullSync();
             }
         };
     } catch(e) {}
@@ -1106,6 +1200,8 @@
         saveCompletedRoutes: pushCompletedRoutes,
         unlockBus: unlockBusApi,
         unlockAllBuses: unlockAllBusesApi,
+        getPendingDeletions: getPendingDeletionsLocal,
+        isPendingDeletion: isPendingDeletionTarget,
         getVersion: () => currentVersion
     };
 })(window);

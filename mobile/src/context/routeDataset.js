@@ -9365,9 +9365,10 @@ function syncToServer(actionPayload) {
       if (!hasMutationAction) {
         bodyPayload.dataset = masterDataset;
       }
-      api.post('/api/dataset/routes', bodyPayload).catch(() => {});
+      return api.post('/api/dataset/routes', bodyPayload).catch((err) => ({ ok: false, error: err?.message || 'Network error' }));
     }
   } catch (_) {}
+  return Promise.resolve({ ok: false, error: 'API unavailable' });
 }
 
 export function getDeletedRouteKeys() {
@@ -9620,6 +9621,66 @@ export function deleteRoutesBatchFromDataset(items) {
   persistDataset();
   notifyListeners();
   syncToServer({ action: 'delete_routes_batch', routes: cleaned });
+}
+
+/**
+ * Requests server-checked single route deletion (defers automatically if buses are currently allocated)
+ */
+export async function requestDeleteRouteFromDataset(depotId, routeCode, reason = 'Decommissioned by Admin') {
+  const dId = String(depotId || '1').trim().replace(/^DEPOT\s*/i, '');
+  const cleanCode = String(routeCode || '').toUpperCase().trim();
+  if (!cleanCode) return { ok: false, error: 'Route code is required.' };
+
+  const res = await syncToServer({ action: 'delete_route', depotId: dId, routeCode: cleanCode, reason });
+  if (res && res.ok && res.data) {
+    if (res.data.dataset) {
+      syncDatasetWithServer(res.data.dataset, [], res.data.deletedRoutes || []);
+    }
+    const pendingRoutes = Array.isArray(res.data.pendingRoutes) ? res.data.pendingRoutes : [];
+    const deletedImmediate = Array.isArray(res.data.deletedRoutesImmediate) ? res.data.deletedRoutesImmediate : [];
+    const deferred = Boolean(res.data.deferred || pendingRoutes.length > 0);
+    return {
+      ok: true,
+      deferred,
+      pendingRoutes,
+      deletedRoutesImmediate: deletedImmediate,
+      pendingDeletions: res.data.pendingDeletions || null,
+    };
+  }
+  return { ok: false, error: (res && res.error) || 'Failed to delete route from server.' };
+}
+
+/**
+ * Requests server-checked batch route deletion (defers routes that still have active allocated buses)
+ */
+export async function requestDeleteRoutesBatchFromDataset(items, reason = 'Decommissioned by Admin') {
+  if (!Array.isArray(items) || items.length === 0) return { ok: false, error: 'No routes selected.' };
+  const cleaned = items
+    .map((item) => {
+      const cleanCode = String(item?.code || item?.routeCode || item?.id || item || '').toUpperCase().trim();
+      const dId = String(item?.depotId || '1').trim().replace(/^DEPOT\s*/i, '');
+      return cleanCode ? { code: cleanCode, depotId: dId } : null;
+    })
+    .filter(Boolean);
+  if (cleaned.length === 0) return { ok: false, error: 'No valid route codes provided.' };
+
+  const res = await syncToServer({ action: 'delete_routes_batch', routes: cleaned, reason });
+  if (res && res.ok && res.data) {
+    if (res.data.dataset) {
+      syncDatasetWithServer(res.data.dataset, [], res.data.deletedRoutes || []);
+    }
+    const pendingRoutes = Array.isArray(res.data.pendingRoutes) ? res.data.pendingRoutes : [];
+    const deletedImmediate = Array.isArray(res.data.deletedRoutesImmediate) ? res.data.deletedRoutesImmediate : [];
+    const deferred = Boolean(res.data.deferred || pendingRoutes.length > 0);
+    return {
+      ok: true,
+      deferred,
+      pendingRoutes,
+      deletedRoutesImmediate: deletedImmediate,
+      pendingDeletions: res.data.pendingDeletions || null,
+    };
+  }
+  return { ok: false, error: (res && res.error) || 'Failed to delete routes on server.' };
 }
 
 /**

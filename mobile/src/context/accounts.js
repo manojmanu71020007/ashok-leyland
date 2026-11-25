@@ -8,6 +8,7 @@ import {
   addRouteToDataset,
   deleteRouteFromDataset,
   deleteRoutesBatchFromDataset,
+  requestDeleteRoutesBatchFromDataset,
   getDeletedRouteKeys,
   getRouteFromDataset,
   syncDatasetWithServer as syncMasterRouteDatasetWithServer,
@@ -988,6 +989,53 @@ export function removeRoutesBatchFromDepot(items) {
 }
 
 /**
+ * Requests server-checked batch route removal.
+ * Routes that currently have active bus(es) allocated on schedule are NOT removed locally;
+ * instead they are marked pending deletion on the server until all assigned buses complete their routes.
+ */
+export async function requestRemoveRoutesBatchFromDepot(items, reason = 'Decommissioned by Admin') {
+  if (!Array.isArray(items) || items.length === 0) return { ok: false, count: 0, error: 'No routes selected.' };
+  const normalized = items
+    .map((item) => ({
+      depotId: String(item?.depotId || '1').trim().replace(/^DEPOT\s*/i, ''),
+      code: String(item?.code || item?.routeCode || item?.id || '').toUpperCase().trim(),
+    }))
+    .filter((x) => x.code);
+  if (normalized.length === 0) return { ok: false, count: 0, error: 'No valid route codes provided.' };
+
+  const res = await requestDeleteRoutesBatchFromDataset(normalized, reason);
+  if (!res || !res.ok) {
+    return { ok: false, count: 0, error: (res && res.error) || 'Failed to delete routes on server.' };
+  }
+
+  const pendingRoutes = Array.isArray(res.pendingRoutes) ? res.pendingRoutes : [];
+  const pendingKeySet = new Set(
+    pendingRoutes.map((pr) => `${String(pr.depotId || '1').trim().replace(/^DEPOT\s*/i, '')}_${String(pr.code || '').toUpperCase().trim()}`)
+  );
+
+  const immediateItems = normalized.filter(
+    ({ depotId, code }) => !pendingKeySet.has(`${depotId}_${code}`)
+  );
+  immediateItems.forEach(({ depotId, code }) => {
+    removeRouteFromDepot(depotId, code, { skipDatasetSync: true, skipServerDepotSync: true });
+  });
+
+  if (immediateItems.length > 0) {
+    persistLocalDepotState();
+  }
+  notifyDepotListeners();
+
+  return {
+    ok: true,
+    count: immediateItems.length,
+    deferred: Boolean(res.deferred || pendingRoutes.length > 0),
+    pendingRoutes,
+    deletedRoutesImmediate: res.deletedRoutesImmediate || immediateItems,
+    pendingDeletions: res.pendingDeletions || null,
+  };
+}
+
+/**
  * Registers a new depot in the system and automatically generates
  * the 4 dedicated operational accounts (Charging, Cleaning, Scheduling, Depot Ops).
  */
@@ -1143,8 +1191,8 @@ export function registerNewDepot({ id, name, location, routes = [], password = '
 }
 
 /**
- * Deletes a depot and removes its charging, cleaning, scheduling, and depot operations
- * along with all generated login credentials.
+ * Deletes a depot immediately (offline/legacy helper).
+ * Prefer requestDeleteDepot() so active schedule checks on the server are enforced first.
  */
 export function deleteDepot(depotId) {
   const cleanId = String(depotId || '').trim().replace(/^DEPOT\s*/i, '');
@@ -1180,6 +1228,59 @@ export function deleteDepot(depotId) {
   }
 
   return { ok: true, deletedDepotId: cleanId };
+}
+
+/**
+ * Requests server-checked depot deletion.
+ * If any bus assigned to this depot or its routes is still on an active route,
+ * deletion is deferred on the server and all local depot/route data stays intact
+ * while operational controls pause until completion.
+ */
+export async function requestDeleteDepot(depotId, reason = 'Decommissioned by Admin') {
+  const cleanId = String(depotId || '').trim().replace(/^DEPOT\s*/i, '');
+  if (!cleanId) return { ok: false, error: 'Depot ID is required.' };
+
+  if (typeof api !== 'undefined' && api && typeof api.deleteCustomDepot === 'function') {
+    try {
+      const res = await api.deleteCustomDepot(cleanId, Array.from(deletedDepotIds), reason);
+      if (res && res.ok && res.data) {
+        const pd = res.data.pendingDeletions || null;
+        const pendingDepots = Array.isArray(res.data.pendingDepots) ? res.data.pendingDepots : [];
+        const isDeferred = Boolean(res.data.deferred || pendingDepots.length > 0 || (pd && pd.depots && pd.depots[cleanId]));
+        if (isDeferred) {
+          notifyDepotListeners();
+          return {
+            ok: true,
+            deferred: true,
+            depotId: cleanId,
+            pendingDepots,
+            pendingDeletions: pd,
+            message: res.data.message || `Depot ${cleanId} is paused and will be deleted automatically once active buses complete their schedules.`,
+          };
+        }
+      } else if (res && !res.ok) {
+        return { ok: false, error: res.error || 'Failed to delete depot on server.' };
+      }
+    } catch (err) {
+      return { ok: false, error: err?.message || 'Failed to delete depot on server.' };
+    }
+  }
+
+  deletedDepotIds.add(cleanId);
+  dynamicDepots = dynamicDepots.filter((d) => String(d.id) !== cleanId);
+  Object.keys(dynamicAccounts).forEach((k) => {
+    if (dynamicAccounts[k] && String(dynamicAccounts[k].depot) === cleanId) {
+      delete dynamicAccounts[k];
+    }
+  });
+  persistLocalDepotState();
+  notifyDepotListeners();
+  try {
+    deleteDepotFromDataset(cleanId);
+  } catch (err) {
+    console.warn('[requestDeleteDepot] Dataset sync notice:', err?.message || err);
+  }
+  return { ok: true, deferred: false, deletedDepotId: cleanId };
 }
 
 /**
