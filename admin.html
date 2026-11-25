@@ -3308,18 +3308,38 @@
                     <div id="dep-time-unlocked-body" style="display:none;">
                         <!-- TAB 1: ADD DEPARTURE TIME -->
                         <div id="tab-content-add-dep-time" style="display:block;">
-                            <div style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; margin-bottom:14px;">
+                            <div style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; margin-bottom:12px;">
                                 <div>
                                     <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
                                         New Departure Time (e.g. 07:30 AM, 02:15 PM, or 14:30) <span style="color:#ef4444;">*</span>
                                     </label>
-                                    <input type="text" id="dep-time-new-input" placeholder="e.g. 07:30 AM or 14:30" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                                    <input type="text" id="dep-time-new-input" placeholder="e.g. 07:30 AM or 14:30" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" oninput="onDepTimeNewInputChange(this.value)" />
                                 </div>
                                 <div>
                                     <label style="display:block; font-size:0.78rem; font-weight:700; color:#64748b; margin-bottom:6px;">
                                         Or Pick Time
                                     </label>
-                                    <input type="time" id="dep-time-native-picker" style="padding:9px 10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.86rem;" onchange="if(this.value){ document.getElementById('dep-time-new-input').value = this.value; }" />
+                                    <input type="time" id="dep-time-native-picker" style="padding:9px 10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.86rem;" onchange="if(this.value){ document.getElementById('dep-time-new-input').value = this.value; onDepTimeNewInputChange(this.value); }" />
+                                </div>
+                            </div>
+
+                            <div id="dep-time-category-selector-wrap" style="display:none; background:#f8fafc; border:1.5px solid #cbd5e1; border-radius:10px; padding:12px 14px; margin-bottom:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+                                    <label style="font-size:0.82rem; font-weight:800; color:#0f172a;">
+                                        Departure Time Category (Select One) <span style="color:#ef4444;">*</span>
+                                    </label>
+                                    <span id="dep-time-normalized-preview" style="font-size:0.78rem; font-weight:700; color:#166534; background:#dcfce7; padding:3px 9px; border-radius:6px; display:none;"></span>
+                                </div>
+                                <div id="dep-time-cat-options-row" style="display:flex; flex-wrap:wrap; gap:8px;">
+                                    <button type="button" class="dep-time-cat-radio-btn" data-cat="Extreme Peak" onclick="selectAdminDepTimeCategory('Extreme Peak', true)" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                                        <span class="dep-time-radio-dot">○</span> Extreme Peak
+                                    </button>
+                                    <button type="button" class="dep-time-cat-radio-btn" data-cat="Peak" onclick="selectAdminDepTimeCategory('Peak', true)" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                                        <span class="dep-time-radio-dot">○</span> Peak
+                                    </button>
+                                    <button type="button" class="dep-time-cat-radio-btn" data-cat="Normal" onclick="selectAdminDepTimeCategory('Normal', true)" style="display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; border:1.5px solid #cbd5e1; background:#fff; color:#334155; font-size:0.82rem; font-weight:700; cursor:pointer;">
+                                        <span class="dep-time-radio-dot">○</span> Normal
+                                    </button>
                                 </div>
                             </div>
 
@@ -5546,7 +5566,7 @@ let busCategoriesMap = new Map();
             return 110.0;
         }
 
-        function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
+        function getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj = null, schedObj = null) {
             let key = "NORMAL";
             if (timeCategoryOrStr && typeof timeCategoryOrStr === "object" && timeCategoryOrStr.key) {
                 key = timeCategoryOrStr.key;
@@ -5554,8 +5574,10 @@ let busCategoriesMap = new Map();
                 const upper = timeCategoryOrStr.toUpperCase().trim();
                 if (upper === "EXTREME_PEAK" || upper === "PEAK" || upper === "NORMAL") {
                     key = upper;
+                } else if (upper === "EXTREME PEAK") {
+                    key = "EXTREME_PEAK";
                 } else if (typeof getTimeCategory === "function") {
-                    key = getTimeCategory(timeCategoryOrStr).key;
+                    key = getTimeCategory(timeCategoryOrStr, routeObj, schedObj).key;
                 }
             }
             if (key === "EXTREME_PEAK") {
@@ -5566,10 +5588,10 @@ let busCategoriesMap = new Map();
             return { multiplier: 1.0, label: "Normal", timeCategory: "Normal", pctNote: "Normal Baseline Drain" };
         }
 
-        function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
+        function getBusDrainRatePerKm(bm, timeCategoryOrStr, routeObj = null, schedObj = null) {
             const busRangeKm = bm ? getBusActualRangeKm(bm) : 200.0;
             const baseDrain = 100 / busRangeKm;
-            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
+            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj, schedObj);
             return {
                 busRangeKm: busRangeKm,
                 baseDrainPerKm: baseDrain,
@@ -5581,11 +5603,11 @@ let busCategoriesMap = new Map();
             };
         }
 
-        function getHistoricalDischargeRate(bm, hours, timeCategoryOrStr) {
+        function getHistoricalDischargeRate(bm, hours, timeCategoryOrStr, routeObj = null, schedObj = null) {
             const key = String(bm || "").toUpperCase().trim();
             const cat = typeof getBusCategory === 'function' ? getBusCategory(key) : "B";
             const baseRates = { "A": 12.5, "B": 15.0, "C": 22.0 };
-            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
+            const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj, schedObj);
             const rate = baseRates[cat] * drainInfo.multiplier;
             const dur = Number(hours) || 1.3;
             const expectedSoc = Math.min(100, Math.round(dur * rate + 15));
@@ -5598,14 +5620,14 @@ let busCategoriesMap = new Map();
             };
         }
 
-        function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr) {
-            const drainInfo = getBusDrainRatePerKm(busBm, timeCategoryOrStr);
+        function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr, routeObj = null, schedObj = null) {
+            const drainInfo = getBusDrainRatePerKm(busBm, timeCategoryOrStr, routeObj, schedObj);
             const d = Number(distKm) || 28.7;
             return Math.min(100, Math.round(d * drainInfo.effectiveDrainPerKm));
         }
 
         // ── Single Charge Operation (Form 4 Transit Standard) Calculation ──
-        function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride) {
+        function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride, routeObj = null) {
             let targetKm = (schedObj && schedObj.singleChargeReqKm)
                 ? Number(schedObj.singleChargeReqKm)
                 : (Number(distKm) || 28.7);
@@ -5631,7 +5653,7 @@ let busCategoriesMap = new Map();
             //    - Peak: Moderate drain rate (1.15x)
             //    - Normal: Normal baseline drain rate (1.0x)
             const depTime = timeCategoryOrStr || (schedObj && (schedObj.outTime || schedObj.cum_time || schedObj.departureTime));
-            const drainInfo = getBusDrainRatePerKm(busBm, depTime);
+            const drainInfo = getBusDrainRatePerKm(busBm, depTime, routeObj, schedObj);
             const baseSoc = targetKm * drainInfo.effectiveDrainPerKm;
             const reservePct = 15;
             return Math.min(100, Math.round(baseSoc + reservePct));
@@ -7197,7 +7219,72 @@ let busCategoriesMap = new Map();
             return false;
         }
 
-                function getTimeCategory(timeStr) {
+        function toH24TimeKey(tStr) {
+            const raw = String(tStr || "").trim();
+            if (!raw) return "";
+            const ampm = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+            if (ampm) {
+                let h = parseInt(ampm[1], 10);
+                const m = parseInt(ampm[2], 10);
+                const mod = ampm[3].toUpperCase();
+                if (mod === "PM" && h < 12) h += 12;
+                if (mod === "AM" && h === 12) h = 0;
+                return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+            }
+            const h24m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+            if (h24m) {
+                return `${String(parseInt(h24m[1], 10)).padStart(2, "0")}:${String(parseInt(h24m[2], 10)).padStart(2, "0")}`;
+            }
+            return "";
+        }
+
+        function mapSlotLabelToTimeCat(slotStr, timeLabel = "") {
+            const s = String(slotStr || "").toUpperCase();
+            const suf = timeLabel ? ` (${timeLabel})` : "";
+            if (s.includes("EXTREME")) return { key: "EXTREME_PEAK", label: `Extreme Peak${suf}`, isPeak: true };
+            if (s.includes("PEAK")) return { key: "PEAK", label: `Peak${suf}`, isPeak: true };
+            if (s.includes("NORM")) return { key: "NORMAL", label: `Normal${suf}`, isPeak: false };
+            return null;
+        }
+
+        function getTimeCategory(timeStr, routeObj = null, schedObj = null) {
+            const targetH24 = toH24TimeKey(timeStr);
+            if (schedObj && schedObj.timeComplexity) {
+                const r = mapSlotLabelToTimeCat(schedObj.timeComplexity, timeStr);
+                if (r) return r;
+            }
+            const checkRouteSlots = (rObj) => {
+                if (!rObj || typeof rObj !== "object" || !rObj.timeComplexitySlots || !timeStr) return null;
+                let matchedVal = rObj.timeComplexitySlots[timeStr];
+                if (!matchedVal && targetH24) {
+                    for (const [k, v] of Object.entries(rObj.timeComplexitySlots)) {
+                        if (toH24TimeKey(k) === targetH24) { matchedVal = v; break; }
+                    }
+                }
+                return matchedVal ? mapSlotLabelToTimeCat(matchedVal, timeStr) : null;
+            };
+            const directHit = checkRouteSlots(routeObj);
+            if (directHit) return directHit;
+            const rCode = routeObj ? String(routeObj.code || routeObj.id || "").toUpperCase().trim() : "";
+            if (rCode) {
+                if (typeof _masterRoutesCatalog !== "undefined" && Array.isArray(_masterRoutesCatalog)) {
+                    const mr = _masterRoutesCatalog.find(x => String(x.code || x.id).toUpperCase().trim() === rCode);
+                    const mrHit = checkRouteSlots(mr);
+                    if (mrHit) return mrHit;
+                }
+                if (typeof directionalRoutes !== "undefined" && Array.isArray(directionalRoutes)) {
+                    const dr = directionalRoutes.find(x => String(x.code || x.id).toUpperCase().trim() === rCode);
+                    const drHit = checkRouteSlots(dr);
+                    if (drHit) return drHit;
+                }
+                if (typeof datasetSchedules !== "undefined" && Array.isArray(datasetSchedules) && targetH24) {
+                    const ds = datasetSchedules.find(s => String(s.route || "").toUpperCase().trim() === rCode && toH24TimeKey(s.departureTime || s.outTime) === targetH24);
+                    if (ds && ds.timeComplexity) {
+                        const dsHit = mapSlotLabelToTimeCat(ds.timeComplexity, timeStr);
+                        if (dsHit) return dsHit;
+                    }
+                }
+            }
             const depMin = timeToMinutes(timeStr || "12:00");
             const departHours = depMin / 60;
             if (departHours >= 5 && departHours < 7) {
@@ -7212,7 +7299,17 @@ let busCategoriesMap = new Map();
 
         function timeToMinutes(tStr) {
             if (!tStr) return 0;
-            const [h, m] = tStr.split(":").map(Number);
+            const s = String(tStr).trim();
+            const ampm = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+            if (ampm) {
+                let h = parseInt(ampm[1], 10);
+                const m = parseInt(ampm[2], 10);
+                const mod = ampm[3].toUpperCase();
+                if (mod === "PM" && h < 12) h += 12;
+                if (mod === "AM" && h === 12) h = 0;
+                return h * 60 + m;
+            }
+            const [h, m] = s.replace(/[^\d:]/g, "").split(":").map(Number);
             return (h || 0) * 60 + (m || 0);
         }
 
@@ -7622,9 +7719,10 @@ let busCategoriesMap = new Map();
                 }
             }
 
+            const curRouteObjForCat = (typeof directionalRoutes !== "undefined" ? directionalRoutes.find(r => String(r.code || r.id).toUpperCase() === String(curRoute).toUpperCase()) : null) || { code: curRoute };
             const constantMinReqSoc = (typeof targetReqSoc === "number" && targetReqSoc > 0)
                 ? targetReqSoc
-                : getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort);
+                : getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort, null, curRouteObjForCat);
 
             // 2. SoC Matching Condition with -2% Margin:
             const minAllowedSoc = constantMinReqSoc - 2;
@@ -7643,7 +7741,7 @@ let busCategoriesMap = new Map();
             // - Extreme Peak: High drain rate (1.30x)
             // - Peak: Moderate drain rate (1.15x)
             // - Normal: Normal baseline drain rate (1.0x)
-            const drainDetails = (typeof getBusDrainRatePerKm === 'function') ? getBusDrainRatePerKm(key, depTimeShort) : {
+            const drainDetails = (typeof getBusDrainRatePerKm === 'function') ? getBusDrainRatePerKm(key, depTimeShort, curRouteObjForCat, matchedSched) : {
                 busRangeKm: 110.0,
                 baseDrainPerKm: (100 / 110.0),
                 effectiveDrainPerKm: (100 / 110.0),
@@ -7719,11 +7817,11 @@ let busCategoriesMap = new Map();
             let timeCatKey = "NORMAL";
             let timeCatLabel = "Normal";
             if (currentTargetKey && currentTargetKey.includes('_')) {
-                const tInfo = getTimeCategory(currentTargetKey.split('_')[1]);
+                const tInfo = getTimeCategory(currentTargetKey.split('_')[1], curRouteObjForCat, matchedSched);
                 timeCatKey = tInfo.key;
                 timeCatLabel = tInfo.label;
             } else if (depTimeShort) {
-                const tInfo = getTimeCategory(depTimeShort);
+                const tInfo = getTimeCategory(depTimeShort, curRouteObjForCat, matchedSched);
                 timeCatKey = tInfo.key;
                 timeCatLabel = tInfo.label;
             }
@@ -7898,7 +7996,7 @@ let busCategoriesMap = new Map();
             let allocated = null;
             let swapLog = [];
 
-            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, null, depShort);
+            const reqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, null, depShort, null, routeObj);
 
             // Fast precomputed Map lookups for instant O(1) candidate evaluation
             const allocBmMap = new Map();
@@ -7918,7 +8016,7 @@ let busCategoriesMap = new Map();
                 const curRoute = normalizeRoute(routeCode);
                 return dRoute === curRoute && (d.departureTime || '').substring(0, 5) === depShort;
             });
-            const timeCatInfo = getTimeCategory(depShort);
+            const timeCatInfo = getTimeCategory(depShort, routeObj, matchedSched);
             const isPeakTime = timeCatInfo.isPeak;
             const requiresCatA = isPeakTime || isComplexRoute;
 
@@ -9888,7 +9986,7 @@ let busCategoriesMap = new Map();
             ) || { code: routeCode, distKm: 28.7 };
             
             const routeDist = Number(rObj.distKm || rObj.distanceKm || 28.7);
-            const timeInfo = getTimeCategory(depTimeClean);
+            const timeInfo = getTimeCategory(depTimeClean, rObj);
             const isPeak = timeInfo.isPeak;
             const timeCatLabel = timeInfo.label || (isPeak ? "Peak (10:00–16:00 & 20:00–23:00)" : "Normal (Off-Peak)");
             const complexity = (typeof getRouteComplexity === 'function') ? getRouteComplexity(rObj, null, depTimeClean) : "moderate";
@@ -9899,7 +9997,7 @@ let busCategoriesMap = new Map();
             if (currentlyAllocatedBus && (currentlyAllocatedBus.bm === busBm || currentlyAllocatedBus.routeCode === routeCode) && currentlyAllocatedBus.reqSoc) {
                 reqSoc = currentlyAllocatedBus.reqSoc;
             } else if (typeof getRequiredSingleChargeSoc === 'function') {
-                reqSoc = getRequiredSingleChargeSoc(routeDist, null, busBm, depTimeClean);
+                reqSoc = getRequiredSingleChargeSoc(routeDist, null, busBm, depTimeClean, null, rObj);
             }
             if (!reqSoc || reqSoc <= 0) reqSoc = 63;
 
@@ -10921,19 +11019,9 @@ let busCategoriesMap = new Map();
 
             const busShortName = (selectedRouteObj && (selectedRouteObj.code || selectedRouteObj.routeShortName)) || "500DC";
 
-            const departHours = departMinutes / 60;
-            let timeCategoryKey = "NORMAL";
-            let timeCategoryLabel = "Normal (Off-Peak)";
-            if (departHours >= 5 && departHours < 7) {
-                timeCategoryKey = "NORMAL";
-                timeCategoryLabel = "Normal (05:00–07:00)";
-            } else if ((departHours >= 7 && departHours < 10) || (departHours >= 16 && departHours < 20)) {
-                timeCategoryKey = "EXTREME_PEAK";
-                timeCategoryLabel = "Extreme Peak (07:00–10:00 & 16:00–20:00)";
-            } else if ((departHours >= 10 && departHours < 16) || (departHours >= 20 && departHours < 23)) {
-                timeCategoryKey = "PEAK";
-                timeCategoryLabel = "Peak (10:00–16:00 & 20:00–23:00)";
-            }
+            const timeCatInfo = getTimeCategory(departure, selectedRouteObj, currentScheduleMatch);
+            const timeCategoryKey = timeCatInfo.key;
+            const timeCategoryLabel = timeCatInfo.label;
 
             const allowedMatrix = {
                 simple: { NORMAL: ["A", "B", "C"], PEAK: ["A"], EXTREME_PEAK: ["A"] },
@@ -11020,8 +11108,8 @@ let busCategoriesMap = new Map();
             if (rangeKpi) rangeKpi.style.opacity = "1";
 
             const busCategory = currentlyAllocatedBus.busCategory || getBusCategory(assignedVehicle, liveSoc);
-            const timeCatInfo = getTimeCategory(departure);
-            const isPeakTime = timeCatInfo.isPeak;
+            const timeCatInfoAlloc = getTimeCategory(departure, selectedRouteObj, currentScheduleMatch);
+            const isPeakTime = timeCatInfoAlloc.isPeak;
             const requiresCatA = isComplexRoute || isPeakTime;
             const isMatrixCompliant = requiresCatA ? (busCategory === "A") : allowedCategories.includes(busCategory);
 
@@ -12861,32 +12949,118 @@ let busCategoriesMap = new Map();
             };
         }
 
+        let _deletedRoutesSet = new Set();
+        let _selectedAdminDepTimeCat = "";
+        let _adminDepTimeCatManual = false;
+
+        function getAutoAdminTimeCategory(ampmStr) {
+            const h24 = toH24TimeKey(ampmStr);
+            if (!h24) return "Normal";
+            const h = parseInt(h24.split(":")[0], 10);
+            if ((h >= 7 && h < 10) || (h >= 16 && h < 20)) return "Extreme Peak";
+            if ((h >= 10 && h < 16) || (h >= 20 && h < 23)) return "Peak";
+            return "Normal";
+        }
+
+        window.selectAdminDepTimeCategory = function(cat, isManual = true) {
+            if (!["Extreme Peak", "Peak", "Normal"].includes(cat)) return;
+            _selectedAdminDepTimeCat = cat;
+            if (isManual) _adminDepTimeCatManual = true;
+            const btns = document.querySelectorAll(".dep-time-cat-radio-btn");
+            btns.forEach(btn => {
+                const opt = btn.getAttribute("data-cat");
+                const dot = btn.querySelector(".dep-time-radio-dot");
+                const active = (opt === cat);
+                if (dot) dot.textContent = active ? "◉" : "○";
+                if (active) {
+                    if (opt === "Extreme Peak") {
+                        btn.style.background = "#fef2f2";
+                        btn.style.borderColor = "#dc2626";
+                        btn.style.color = "#b91c1c";
+                    } else if (opt === "Peak") {
+                        btn.style.background = "#fef3c7";
+                        btn.style.borderColor = "#d97706";
+                        btn.style.color = "#92400e";
+                    } else {
+                        btn.style.background = "#ecfdf5";
+                        btn.style.borderColor = "#059669";
+                        btn.style.color = "#065f46";
+                    }
+                    btn.style.fontWeight = "800";
+                } else {
+                    btn.style.background = "#ffffff";
+                    btn.style.borderColor = "#cbd5e1";
+                    btn.style.color = "#334155";
+                    btn.style.fontWeight = "600";
+                }
+            });
+        };
+
+        window.onDepTimeNewInputChange = function(val) {
+            const wrap = document.getElementById("dep-time-category-selector-wrap");
+            const previewEl = document.getElementById("dep-time-normalized-preview");
+            const raw = String(val || "").trim();
+            if (!raw) {
+                if (wrap) wrap.style.display = "none";
+                if (previewEl) previewEl.style.display = "none";
+                if (!_adminDepTimeCatManual) _selectedAdminDepTimeCat = "";
+                return;
+            }
+            if (wrap) wrap.style.display = "block";
+            const parsed = normalizeAdminDepTimeStr(raw);
+            if (parsed) {
+                if (previewEl) {
+                    previewEl.style.display = "inline-block";
+                    previewEl.textContent = `🕒 Normalized: ${parsed.ampmStr}`;
+                }
+                if (!_adminDepTimeCatManual) {
+                    selectAdminDepTimeCategory(getAutoAdminTimeCategory(parsed.ampmStr), false);
+                }
+            } else {
+                if (previewEl) previewEl.style.display = "none";
+                if (!_selectedAdminDepTimeCat) {
+                    selectAdminDepTimeCategory("Normal", false);
+                }
+            }
+        };
+
         async function refreshRoutesAndTimetablesFromServer() {
             try {
                 const [corRes, dsRes] = await Promise.all([
                     fetch("/api/corridor-schedules").catch(() => null),
                     fetch("/api/dataset/routes").catch(() => null)
                 ]);
+                if (dsRes && dsRes.ok) {
+                    const dData = await dsRes.json();
+                    if (dData && dData.ok) {
+                        const delArr = Array.isArray(dData.deletedRoutes) ? dData.deletedRoutes : (Array.isArray(dData.dataset?.deletedRoutes) ? dData.dataset.deletedRoutes : []);
+                        _deletedRoutesSet = new Set(delArr.map(k => String(k || "").toUpperCase().trim()).filter(Boolean));
+                        if (dData.dataset && Array.isArray(dData.dataset.routes)) {
+                            _masterRoutesCatalog = dData.dataset.routes
+                                .filter(r => !_deletedRoutesSet.has(`${String(r.depotId || "1").trim()}_${String(r.code || r.id || "").toUpperCase().trim()}`))
+                                .map(r => ({
+                                    ...r,
+                                    code: String(r.code || r.id || "").toUpperCase().trim(),
+                                    depotId: String(r.depotId || "1"),
+                                    timeComplexitySlots: (r.timeComplexitySlots && typeof r.timeComplexitySlots === "object") ? r.timeComplexitySlots : {},
+                                    timetables: Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : []
+                                }));
+                        }
+                    }
+                }
                 if (corRes && corRes.ok) {
                     const cData = await corRes.json();
                     if (cData && cData.ok) {
                         if (Array.isArray(cData.directionalRoutes) && cData.directionalRoutes.length) {
-                            directionalRoutes = cData.directionalRoutes;
+                            directionalRoutes = cData.directionalRoutes.filter(dr => {
+                                const code = String(dr.code || dr.id || "").toUpperCase().trim();
+                                const dId = String(dr.depotId || dr.depot || "1").trim();
+                                return !_deletedRoutesSet.has(`${dId}_${code}`);
+                            });
                         }
                         if (Array.isArray(cData.schedules)) {
                             datasetSchedules = cData.schedules;
                         }
-                    }
-                }
-                if (dsRes && dsRes.ok) {
-                    const dData = await dsRes.json();
-                    if (dData && dData.ok && dData.dataset && Array.isArray(dData.dataset.routes)) {
-                        _masterRoutesCatalog = dData.dataset.routes.map(r => ({
-                            ...r,
-                            code: String(r.code || r.id || "").toUpperCase().trim(),
-                            depotId: String(r.depotId || "1"),
-                            timetables: Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : []
-                        }));
                     }
                 }
                 updateScheduledTimesForSelectedRoute(true);
@@ -12910,16 +13084,18 @@ let busCategoriesMap = new Map();
                 const code = String(dr.code || dr.id || "").toUpperCase().trim();
                 if (!code) return;
                 const dId = String(dr.depotId || dr.depot || "1");
+                if (_deletedRoutesSet.has(`${dId}_${code}`)) return;
                 const matchingTimes = (datasetSchedules || [])
                     .filter(s => String(s.route || "").toUpperCase().trim() === code && (s.departureTime || s.outTime))
                     .map(s => s.departureTime || s.outTime);
                 map.set(`${dId}_${code}`, {
                     code,
                     depotId: dId,
-                    depotName: dId === "1" ? "Depot 1 (Chandapura)" : (dId === "2" ? "Depot 2 (Attibele)" : `Depot ${dId}`),
+                    depotName: dId === "1" ? "Depot 1 (Chandapura)" : (dId === "2" ? "Depot 2 (Attibele)" : (dId === "3" ? "Depot 3 (Peenya)" : `Depot ${dId}`)),
                     origin: dr.origin || "Origin",
                     destination: dr.destination || "Destination",
                     distance: Number(dr.distKm || dr.distanceKm || 25),
+                    timeComplexitySlots: (dr.timeComplexitySlots && typeof dr.timeComplexitySlots === "object") ? dr.timeComplexitySlots : {},
                     timetables: Array.isArray(dr.timetables) && dr.timetables.length ? dr.timetables.flat().filter(Boolean) : Array.from(new Set(matchingTimes))
                 });
             });
@@ -12927,6 +13103,7 @@ let busCategoriesMap = new Map();
                 const code = String(mr.code || mr.id || "").toUpperCase().trim();
                 if (!code) return;
                 const dId = String(mr.depotId || "1");
+                if (_deletedRoutesSet.has(`${dId}_${code}`)) return;
                 const k = `${dId}_${code}`;
                 const depName = mr.depotName || (dId === "1" ? "Depot 1 (Chandapura)" : (dId === "2" ? "Depot 2 (Attibele)" : (dId === "3" ? "Depot 3 (Peenya)" : `Depot ${dId}`)));
                 map.set(k, {
@@ -12936,6 +13113,7 @@ let busCategoriesMap = new Map();
                     origin: mr.origin || "Origin",
                     destination: mr.destination || "Destination",
                     distance: Number(mr.distance || 25),
+                    timeComplexitySlots: (mr.timeComplexitySlots && typeof mr.timeComplexitySlots === "object") ? mr.timeComplexitySlots : {},
                     timetables: Array.isArray(mr.timetables) ? mr.timetables.flat().filter(Boolean) : []
                 });
             });
@@ -13008,7 +13186,12 @@ let busCategoriesMap = new Map();
             if (chipsEl) {
                 chipsEl.innerHTML = times.length === 0
                     ? `<span style="font-size:0.82rem; color:#64748b; font-style:italic;">No departure timings configured yet.</span>`
-                    : times.map(t => `<span style="background:#f8fafc; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:700; color:#0f172a;">🕒 ${escapeHtml(t)}</span>`).join("");
+                    : times.map(t => {
+                        const tc = getTimeCategory(t, _activeDepTimeRoute);
+                        const tcShort = tc.key === "EXTREME_PEAK" ? "Extreme Peak" : (tc.key === "PEAK" ? "Peak" : "Normal");
+                        const tcColor = tc.key === "EXTREME_PEAK" ? "#b91c1c" : (tc.key === "PEAK" ? "#b45309" : "#047857");
+                        return `<span style="background:#f8fafc; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:700; color:#0f172a;">🕒 ${escapeHtml(t)} <span style="color:${tcColor}; font-size:0.72rem;">• ${escapeHtml(tcShort)}</span></span>`;
+                    }).join("");
             }
             renderDepTimeDeleteList();
         }
@@ -13020,10 +13203,16 @@ let busCategoriesMap = new Map();
             const selEl = document.getElementById("dep-time-route-select");
             const newInp = document.getElementById("dep-time-new-input");
             const picker = document.getElementById("dep-time-native-picker");
+            const catWrap = document.getElementById("dep-time-category-selector-wrap");
+            const previewEl = document.getElementById("dep-time-normalized-preview");
             if (searchEl) searchEl.value = "";
             if (selEl) selEl.value = "";
             if (newInp) newInp.value = "";
             if (picker) picker.value = "";
+            if (catWrap) catWrap.style.display = "none";
+            if (previewEl) previewEl.style.display = "none";
+            _selectedAdminDepTimeCat = "";
+            _adminDepTimeCatManual = false;
             _activeDepTimeRoute = null;
 
             switchDepTimeModalTab(tab);
@@ -13086,6 +13275,11 @@ let busCategoriesMap = new Map();
                 alert("⚠️ Please enter a valid departure time (e.g. 07:30 AM, 02:15 PM, or 14:30).");
                 return;
             }
+            if (!["Extreme Peak", "Peak", "Normal"].includes(_selectedAdminDepTimeCat)) {
+                alert("⚠️ Please select one departure time category: Extreme Peak, Peak, or Normal.");
+                return;
+            }
+            const chosenCategory = _selectedAdminDepTimeCat;
             try {
                 const res = await fetch("/api/dataset/routes", {
                     method: "POST",
@@ -13094,7 +13288,8 @@ let busCategoriesMap = new Map();
                         action: "add_departure_time",
                         routeCode: _activeDepTimeRoute.code,
                         depotId: _activeDepTimeRoute.depotId,
-                        departureTime: parsed.ampmStr
+                        departureTime: parsed.ampmStr,
+                        timeCategory: chosenCategory
                     })
                 });
                 const json = await res.json();
@@ -13105,8 +13300,14 @@ let busCategoriesMap = new Map();
                 document.getElementById("dep-time-new-input").value = "";
                 const picker = document.getElementById("dep-time-native-picker");
                 if (picker) picker.value = "";
+                const catWrap = document.getElementById("dep-time-category-selector-wrap");
+                if (catWrap) catWrap.style.display = "none";
+                const previewEl = document.getElementById("dep-time-normalized-preview");
+                if (previewEl) previewEl.style.display = "none";
+                _selectedAdminDepTimeCat = "";
+                _adminDepTimeCatManual = false;
                 await refreshRoutesAndTimetablesFromServer();
-                alert(`✅ Departure time ${parsed.ampmStr} has been added to Route ${_activeDepTimeRoute.code}!`);
+                alert(`✅ Departure time ${parsed.ampmStr} (${chosenCategory}) has been added to Route ${_activeDepTimeRoute.code}!`);
             } catch (e) {
                 alert("Error updating departure time: " + e.message);
             }
@@ -13121,17 +13322,23 @@ let busCategoriesMap = new Map();
                 listEl.innerHTML = `<div style="padding:18px; text-align:center; color:#64748b; background:#f8fafc; border-radius:8px;">No matching departure timings found for Route ${escapeHtml(_activeDepTimeRoute.code)}.</div>`;
                 return;
             }
-            listEl.innerHTML = times.map(t => `
+            listEl.innerHTML = times.map(t => {
+                const tc = getTimeCategory(t, _activeDepTimeRoute);
+                const tcShort = tc.key === "EXTREME_PEAK" ? "Extreme Peak" : (tc.key === "PEAK" ? "Peak" : "Normal");
+                const tcColor = tc.key === "EXTREME_PEAK" ? "#b91c1c" : (tc.key === "PEAK" ? "#b45309" : "#047857");
+                return `
                 <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#fff; border:1px solid #e2e8f0; border-radius:8px;">
                     <div>
                         <strong style="color:#0f172a; font-size:0.9rem;">🕒 ${escapeHtml(t)}</strong>
+                        <span style="display:inline-block; margin-left:6px; font-size:0.74rem; font-weight:800; color:${tcColor};">${escapeHtml(tcShort)}</span>
                         <span style="display:block; font-size:0.75rem; color:#64748b;">Route ${escapeHtml(_activeDepTimeRoute.code)} • ${escapeHtml(_activeDepTimeRoute.depotName)}</span>
                     </div>
                     <button type="button" onclick="deleteSingleDepartureTime('${escapeHtml(t)}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; border-radius:6px; padding:6px 12px; font-weight:700; cursor:pointer; font-size:0.8rem;">
                         🗑️ Delete
                     </button>
                 </div>
-            `).join("");
+            `;
+            }).join("");
         };
 
         window.deleteSingleDepartureTime = async function(timeStr) {

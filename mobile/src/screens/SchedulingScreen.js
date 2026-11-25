@@ -3159,18 +3159,34 @@ export default function SchedulingScreen() {
   const [selectedRoute, setSelectedRoute] = useState(availableRoutes[0] || null);
   const [scheduledTime, setScheduledTime] = useState(availableRoutes[0]?.timetables?.[0] || '');
 
-  // Keep active selectedRoute and scheduledTime in sync when Master Route Dataset updates departure times
+  // Keep active selectedRoute and scheduledTime in sync when Master Route Dataset updates departure times or deletes routes
   useEffect(() => {
-    if (!selectedRoute || availableRoutes.length === 0) return;
+    if (availableRoutes.length === 0) {
+      if (selectedRoute !== null) setSelectedRoute(null);
+      if (scheduledTime !== '') setScheduledTime('');
+      return;
+    }
+    if (!selectedRoute) {
+      setSelectedRoute(availableRoutes[0]);
+      setScheduledTime(availableRoutes[0]?.timetables?.[0] || '');
+      return;
+    }
     const updated = availableRoutes.find((r) => (r.code || r.id) === (selectedRoute.code || selectedRoute.id));
-    if (updated) {
-      const updatedTimes = Array.isArray(updated.timetables) ? updated.timetables : [];
-      const curTimes = Array.isArray(selectedRoute.timetables) ? selectedRoute.timetables : [];
-      if (JSON.stringify(updatedTimes) !== JSON.stringify(curTimes) || JSON.stringify(updated.schedules) !== JSON.stringify(selectedRoute.schedules)) {
-        setSelectedRoute(updated);
-        if (scheduledTime && !updatedTimes.includes(scheduledTime)) {
-          setScheduledTime(updatedTimes[0] || '');
-        }
+    if (!updated) {
+      setSelectedRoute(availableRoutes[0]);
+      setScheduledTime(availableRoutes[0]?.timetables?.[0] || '');
+      return;
+    }
+    const updatedTimes = Array.isArray(updated.timetables) ? updated.timetables : [];
+    const curTimes = Array.isArray(selectedRoute.timetables) ? selectedRoute.timetables : [];
+    if (
+      JSON.stringify(updatedTimes) !== JSON.stringify(curTimes) ||
+      JSON.stringify(updated.schedules) !== JSON.stringify(selectedRoute.schedules) ||
+      JSON.stringify(updated.timeComplexitySlots || {}) !== JSON.stringify(selectedRoute.timeComplexitySlots || {})
+    ) {
+      setSelectedRoute(updated);
+      if (scheduledTime && !updatedTimes.includes(scheduledTime)) {
+        setScheduledTime(updatedTimes[0] || '');
       }
     }
   }, [availableRoutes, datasetTick]);
@@ -3412,13 +3428,13 @@ export default function SchedulingScreen() {
 
     const liveSoc = Number(busObj?.soc ?? 80);
     const actualKmVal = Number(matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute?.actualKm || selectedRoute?.fullDutyKm || 188.54);
-    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort, actualKmVal);
+    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, timeCatInfo || depTimeShort, actualKmVal, selectedRoute);
     const minAllowedSoc = constantMinReqSoc - 2;
     if (liveSoc < minAllowedSoc) {
       return { feasible: false, bm: key, liveSoc, reqSoc: constantMinReqSoc, reason: `Bus ${key} battery at ${liveSoc}% does not match minimum required SoC (${constantMinReqSoc}%).` };
     }
 
-    const drainDetails = getBusDrainRatePerKm(key, depTimeShort);
+    const drainDetails = getBusDrainRatePerKm(key, timeCatInfo || depTimeShort, selectedRoute);
     const drainPerKm = drainDetails.effectiveDrainPerKm;
     const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
     let operatingKm = Number(routeDist) || 28.7;
@@ -4476,6 +4492,11 @@ export default function SchedulingScreen() {
                   : DEFAULT_DATASET_SCHEDULES.filter((s) => String(s.route || '').toUpperCase().trim() === routeCode);
                 const sched = schedulesList.find((s) => (s.departureTime || s.outTime || '').trim().toLowerCase() === String(t).trim().toLowerCase()) ||
                               schedulesList.find((s) => (s.departureTime || s.outTime || '').startsWith(String(t).substring(0, 5)));
+                const slotTimeCat = getTimeCategory(t, selectedRoute, sched);
+                const slotBadgeBg = slotTimeCat?.key === 'EXTREME_PEAK' ? '#fef2f2' : (slotTimeCat?.key === 'PEAK' ? '#fef3c7' : '#ecfdf5');
+                const slotBadgeBorder = slotTimeCat?.key === 'EXTREME_PEAK' ? '#fca5a5' : (slotTimeCat?.key === 'PEAK' ? '#fde68a' : '#a7f3d0');
+                const slotBadgeText = slotTimeCat?.key === 'EXTREME_PEAK' ? '#b91c1c' : (slotTimeCat?.key === 'PEAK' ? '#b45309' : '#047857');
+                const slotShortLabel = slotTimeCat?.key === 'EXTREME_PEAK' ? 'Extreme Peak' : (slotTimeCat?.key === 'PEAK' ? 'Peak' : 'Normal');
                 return (
                   <TouchableOpacity
                     key={t}
@@ -4487,7 +4508,12 @@ export default function SchedulingScreen() {
                     activeOpacity={0.7}
                   >
                     <View style={{ flex: 1, paddingVertical: 2 }}>
-                      <Text style={styles.pickerItemTitle}>🕒 {formatDualTime(t)}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                        <Text style={styles.pickerItemTitle}>🕒 {formatDualTime(t)}</Text>
+                        <View style={{ backgroundColor: slotBadgeBg, borderWidth: 1, borderColor: slotBadgeBorder, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 }}>
+                          <Text style={{ fontSize: 10.5, fontWeight: '800', color: slotBadgeText }}>{slotShortLabel}</Text>
+                        </View>
+                      </View>
                       {sched ? (
                         <Text style={{ fontSize: 11.5, color: '#0284c7', fontWeight: '700', marginTop: 2 }}>
                           Sub-Route: {sched.scheduleId} ({sched.totalGroupDistance || sched.distance} km • {sched.shift})

@@ -442,6 +442,17 @@
                 }
             });
 
+            eventSource.addEventListener('custom-depots-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const d = (payload && payload.data) || payload;
+                    notify('routes-dataset', d || null);
+                } catch (err) {
+                    notify('routes-dataset', null);
+                }
+            });
+
             eventSource.addEventListener('sync-all', () => {
                 fetchFullSync();
             });

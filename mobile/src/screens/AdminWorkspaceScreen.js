@@ -41,11 +41,13 @@ import {
   subscribeDepotChanges,
   addRouteToDepot,
   removeRouteFromDepot,
+  removeRoutesBatchFromDepot,
   getRoutesForDepot,
   getRouteDefinition,
 } from '../context/accounts';
 import {
   getMasterDataset,
+  getDeletedRouteKeys,
   addRouteToDataset,
   updateRouteComplexityInDataset,
   updateTimeComplexityInDataset,
@@ -747,8 +749,12 @@ export default function AdminWorkspaceScreen() {
   const [depTimeRouteDropdownOpen, setDepTimeRouteDropdownOpen] = useState(false);
   const [depTimeSelectedRouteKey, setDepTimeSelectedRouteKey] = useState(''); // `${depotId}_${code}`
   const [depTimeInputVal, setDepTimeInputVal] = useState('');
+  const [depTimeCategoryChoice, setDepTimeCategoryChoice] = useState(''); // 'Extreme Peak' | 'Peak' | 'Normal'
+  const [depTimeCategoryManual, setDepTimeCategoryManual] = useState(false);
   const [depTimeDeleteFilter, setDepTimeDeleteFilter] = useState('');
   const [selectedTimesToDelete, setSelectedTimesToDelete] = useState([]);
+  const [inlineDepTimeCategory, setInlineDepTimeCategory] = useState('Normal');
+  const [inlineDepTimeCategoryManual, setInlineDepTimeCategoryManual] = useState(false);
 
   // Driver Form States
   const [newDriverName, setNewDriverName] = useState('');
@@ -1045,14 +1051,32 @@ export default function AdminWorkspaceScreen() {
     const seen = new Set();
     const CORE_DEPOT_1_CODES = ['356Z', '360K', '600F', 'KBS3A'];
     const CORE_DEPOT_2_CODES = ['361C', '399C', '328H', '500DC', 'KBS3F'];
+    const deletedKeysSet = new Set(
+      (typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : [])
+        .map((k) => String(k || '').toUpperCase().trim())
+        .filter(Boolean)
+    );
+    const activeDepotRoutesMap = new Map();
+    (depotsList || []).forEach((d) => {
+      if (!d || d.id === undefined || d.id === null) return;
+      const dId = String(d.id).trim();
+      activeDepotRoutesMap.set(
+        dId,
+        new Set((Array.isArray(d.routes) ? d.routes : []).map((rc) => String(rc).toUpperCase().trim()).filter(Boolean))
+      );
+    });
+    const isRouteDeleted = (dId, code) =>
+      deletedRouteCodes.includes(code) || deletedKeysSet.has(`${dId}_${code}`);
 
-    // 1. Process custom registered routes first
+    // 1. Process custom registered routes first (only if not deleted and still present on depot if depot is managed)
     (customRoutes || []).forEach((r) => {
       const code = String(r.code || r.id).toUpperCase().trim();
       const dId = String(r.depotId || '1');
       if (dId === '1' && CORE_DEPOT_2_CODES.includes(code)) return;
       if (dId === '2' && CORE_DEPOT_1_CODES.includes(code)) return;
-      if (!deletedRouteCodes.includes(code) && !seen.has(`${dId}_${code}`)) {
+      if (isRouteDeleted(dId, code)) return;
+      if (activeDepotRoutesMap.has(dId) && !activeDepotRoutesMap.get(dId).has(code)) return;
+      if (!seen.has(`${dId}_${code}`)) {
         seen.add(`${dId}_${code}`);
         list.push({ ...r, code, depotId: dId });
       }
@@ -1066,7 +1090,7 @@ export default function AdminWorkspaceScreen() {
 
       dRoutes.forEach((routeCode) => {
         const cleanCode = String(routeCode).toUpperCase().trim();
-        if (!cleanCode || deletedRouteCodes.includes(cleanCode)) return;
+        if (!cleanCode || isRouteDeleted(dId, cleanCode)) return;
 
         // Strictly filter duplicate routes between Depot 1 and Depot 2
         if (dId === '1' && CORE_DEPOT_2_CODES.includes(cleanCode)) return;
@@ -1075,7 +1099,7 @@ export default function AdminWorkspaceScreen() {
         if (seen.has(`${dId}_${cleanCode}`)) return;
         seen.add(`${dId}_${cleanCode}`);
 
-        const dynamicDef = getRouteDefinition(cleanCode);
+        const dynamicDef = getRouteDefinition(cleanCode, dId);
         const baseRoute = ALL_ROUTES_DATA.find((r) => r.code === cleanCode || r.id === cleanCode);
         if (dynamicDef) {
           list.push({
@@ -1120,27 +1144,27 @@ export default function AdminWorkspaceScreen() {
     // 3. Ensure core default routes for Depot 1 and Depot 2 are included without duplicate crossover
     DEPOT_1_ROUTES_DATA.forEach((r) => {
       const code = String(r.code).toUpperCase();
-      if (!deletedRouteCodes.includes(code) && !seen.has(`1_${code}`)) {
+      if (!isRouteDeleted('1', code) && !seen.has(`1_${code}`)) {
         seen.add(`1_${code}`);
         list.push({ ...r, depotId: '1', depotName: 'Depot 1 (Chandapura)' });
       }
     });
     DEPOT_2_ROUTES_DATA.forEach((r) => {
       const code = String(r.code).toUpperCase();
-      if (!deletedRouteCodes.includes(code) && !seen.has(`2_${code}`)) {
+      if (!isRouteDeleted('2', code) && !seen.has(`2_${code}`)) {
         seen.add(`2_${code}`);
         list.push({ ...r, depotId: '2', depotName: 'Depot 2 (Attibele / Hoskote)' });
       }
     });
 
-    // 4. Enrich with Master Route & Schedule Dataset (including uploaded spreadsheets & dynamic departure times)
+    // 4. Enrich active routes with Master Route & Schedule Dataset (never resurrect routes deleted from depot)
     try {
       const masterDs = getMasterDataset();
       if (masterDs && Array.isArray(masterDs.routes)) {
         masterDs.routes.forEach((mr) => {
           const code = String(mr.code || mr.id).toUpperCase().trim();
           const dId = String(mr.depotId || '1');
-          if (deletedRouteCodes.includes(code)) return;
+          if (isRouteDeleted(dId, code)) return;
           if (dId === '1' && CORE_DEPOT_2_CODES.includes(code)) return;
           if (dId === '2' && CORE_DEPOT_1_CODES.includes(code)) return;
 
@@ -1158,7 +1182,7 @@ export default function AdminWorkspaceScreen() {
             if (mr.timeComplexitySlots) {
               list[existingIdx].timeComplexitySlots = mr.timeComplexitySlots;
             }
-          } else if (!seen.has(`${dId}_${code}`)) {
+          } else if (!activeDepotRoutesMap.has(dId) && !seen.has(`${dId}_${code}`)) {
             seen.add(`${dId}_${code}`);
             list.push({
               ...mr,
@@ -1196,20 +1220,31 @@ export default function AdminWorkspaceScreen() {
   const [selectedRoute, setSelectedRoute] = useState(ALL_ROUTES_DATA[0]);
   const [scheduledTime, setScheduledTime] = useState(ALL_ROUTES_DATA[0].timetables[0]);
 
-  // Keep selectedRoute synchronized when departure timings / route dataset update
+  // Keep selectedRoute synchronized when departure timings / route dataset update or routes are deleted
   React.useEffect(() => {
-    if (!selectedRoute) return;
+    if (allAvailableRoutes.length === 0) return;
+    if (!selectedRoute) {
+      setSelectedRoute(allAvailableRoutes[0]);
+      setScheduledTime((allAvailableRoutes[0].timetables && allAvailableRoutes[0].timetables[0]) || '');
+      return;
+    }
     const match = allAvailableRoutes.find(
       (r) => r.code === selectedRoute.code && String(r.depotId) === String(selectedRoute.depotId)
     ) || allAvailableRoutes.find((r) => r.code === selectedRoute.code);
-    if (match) {
-      const mTimes = Array.isArray(match.timetables) ? match.timetables : [];
-      const curTimes = Array.isArray(selectedRoute.timetables) ? selectedRoute.timetables : [];
-      if (JSON.stringify(mTimes) !== JSON.stringify(curTimes)) {
-        setSelectedRoute(match);
-        if (scheduledTime && !mTimes.includes(scheduledTime)) {
-          setScheduledTime(mTimes[0] || '');
-        }
+    if (!match) {
+      setSelectedRoute(allAvailableRoutes[0]);
+      setScheduledTime((allAvailableRoutes[0].timetables && allAvailableRoutes[0].timetables[0]) || '');
+      return;
+    }
+    const mTimes = Array.isArray(match.timetables) ? match.timetables : [];
+    const curTimes = Array.isArray(selectedRoute.timetables) ? selectedRoute.timetables : [];
+    if (
+      JSON.stringify(mTimes) !== JSON.stringify(curTimes) ||
+      JSON.stringify(match.timeComplexitySlots || {}) !== JSON.stringify(selectedRoute.timeComplexitySlots || {})
+    ) {
+      setSelectedRoute(match);
+      if (scheduledTime && !mTimes.includes(scheduledTime)) {
+        setScheduledTime(mTimes[0] || '');
       }
     }
   }, [allAvailableRoutes, datasetVersionTick]);
@@ -1770,11 +1805,10 @@ export default function AdminWorkspaceScreen() {
               destination: depotRouteDestination.trim(),
               distance: distNum,
               fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
-              category: depotRouteCategory || 'Standard',
-              routeComplexity: depotRouteCategory || 'Standard',
-              requiredCat: depotRouteCategory === 'Complex' ? 'A' : (depotRouteCategory === 'Moderate' ? 'B' : 'B'),
+              category: 'Standard',
+              routeComplexity: 'Standard',
+              requiredCat: 'B',
               drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
-              timeComplexity: depotRouteTimeComplexity || 'Normal',
               timetables: finalTimetables,
               shift: depotRouteShift || 'General Shift',
               depotId: resolvedDepotId,
@@ -1785,10 +1819,6 @@ export default function AdminWorkspaceScreen() {
 
             // Attach route to depot in accounts and sync across devices
             addRouteToDepot(resolvedDepotId, newRoute);
-            try {
-              addRouteToDataset(resolvedDepotId, newRoute);
-              api.updateRoutesDataset({ action: 'add_route', depotId: resolvedDepotId, route: newRoute }).catch(() => {});
-            } catch (_) {}
             setDatasetVersionTick((v) => v + 1);
 
             setCustomRoutes((prev) => [newRoute, ...prev]);
@@ -1856,28 +1886,34 @@ export default function AdminWorkspaceScreen() {
           text: t('btn_confirm_delete', 'Confirm Delete'),
           style: 'destructive',
           onPress: () => {
+            const batchItems = [];
             targets.forEach((codeToDelete) => {
-              const matchedRoute = allAvailableRoutes.find((r) => r.code === codeToDelete || r.id === codeToDelete);
-              const routeDepotId = String(matchedRoute?.depotId || '1');
-              removeRouteFromDepot(routeDepotId, codeToDelete);
-              setDeletedRouteCodes((prev) => [...prev, codeToDelete]);
-              setCustomRoutes((prev) => prev.filter((r) => r.code !== codeToDelete && r.id !== codeToDelete));
+              const cleanTarget = String(codeToDelete || '').toUpperCase().trim();
+              const matchedRoute =
+                allAvailableRoutes.find((r) => (r.code === cleanTarget || r.id === cleanTarget) && String(r.depotId) === String(routesSelectedDepot)) ||
+                allAvailableRoutes.find((r) => r.code === cleanTarget || r.id === cleanTarget);
+              const routeDepotId = String(matchedRoute?.depotId || (routesSelectedDepot !== 'all' ? routesSelectedDepot : '1'));
+              batchItems.push({ depotId: routeDepotId, code: cleanTarget });
+              setDeletedRouteCodes((prev) => (prev.includes(cleanTarget) ? prev : [...prev, cleanTarget]));
+              setCustomRoutes((prev) => prev.filter((r) => !(r.code === cleanTarget && String(r.depotId) === routeDepotId)));
               setDepotAuditLogs((prev) => [
                 {
                   id: (Date.now() + Math.random()).toString(),
                   action: 'DELETED',
-                  code: codeToDelete,
-                  fullName: matchedRoute?.fullName || matchedRoute?.name || codeToDelete,
+                  code: cleanTarget,
+                  fullName: matchedRoute?.fullName || matchedRoute?.name || cleanTarget,
                   origin: matchedRoute?.origin || '',
                   destination: matchedRoute?.destination || '',
                   distance: matchedRoute?.distance || 0,
-                  depot: matchedRoute?.depotName || (matchedRoute?.depotId === '2' ? 'Depot 2' : 'Depot 1'),
+                  depot: matchedRoute?.depotName || (routeDepotId === '2' ? 'Depot 2' : `Depot ${routeDepotId}`),
                   reason: finalReason,
                   time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 },
                 ...prev,
               ]);
             });
+            removeRoutesBatchFromDepot(batchItems);
+            setDatasetVersionTick((v) => v + 1);
 
             setDelRouteSelectedCode('');
             setSelectedRoutesToDelete([]);
@@ -1946,6 +1982,18 @@ export default function AdminWorkspaceScreen() {
     return `${String(h12).padStart(2, '0')}:${String(min).padStart(2, '0')} ${ampm}`;
   };
 
+  const getAutoTimeCategoryFromFormatted = (formattedStr) => {
+    const m = String(formattedStr || '').trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!m) return 'Normal';
+    let h = parseInt(m[1], 10);
+    const mod = m[3].toUpperCase();
+    if (mod === 'PM' && h < 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
+    if ((h >= 7 && h < 10) || (h >= 16 && h < 20)) return 'Extreme Peak';
+    if ((h >= 10 && h < 16) || (h >= 20 && h < 23)) return 'Peak';
+    return 'Normal';
+  };
+
   const handleAddDepTimeFromModal = async () => {
     if (!selectedDepTimeRoute) {
       Alert.alert(
@@ -1962,6 +2010,14 @@ export default function AdminWorkspaceScreen() {
       );
       return;
     }
+    if (!['Extreme Peak', 'Peak', 'Normal'].includes(depTimeCategoryChoice)) {
+      Alert.alert(
+        'Time Category Required',
+        'Please select one departure time category: Extreme Peak, Peak, or Normal.'
+      );
+      return;
+    }
+    const chosenCategory = depTimeCategoryChoice;
 
     const rCode = selectedDepTimeRoute.code;
     const rDepotId = String(selectedDepTimeRoute.depotId || '1');
@@ -1976,7 +2032,7 @@ export default function AdminWorkspaceScreen() {
       return;
     }
 
-    const res = addDepartureTimeToRoute(rCode, rDepotId, formatted);
+    const res = addDepartureTimeToRoute(rCode, rDepotId, formatted, chosenCategory);
     if (res && res.duplicate) {
       Alert.alert('Duplicate Departure Time', res.error || `Departure time ${formatted} already exists.`);
       return;
@@ -1986,7 +2042,8 @@ export default function AdminWorkspaceScreen() {
       prev.map((cr) => {
         if (cr.code === rCode && String(cr.depotId) === rDepotId) {
           const next = Array.from(new Set([...(cr.timetables || []), formatted]));
-          return { ...cr, timetables: next };
+          const nextSlots = { ...(cr.timeComplexitySlots || {}), [formatted]: chosenCategory };
+          return { ...cr, timetables: next, timeComplexitySlots: nextSlots };
         }
         return cr;
       })
@@ -1999,15 +2056,18 @@ export default function AdminWorkspaceScreen() {
           routeCode: rCode,
           depotId: rDepotId,
           departureTime: formatted,
+          timeCategory: chosenCategory,
         });
       } catch (_) {}
     }
 
     setDepTimeInputVal('');
+    setDepTimeCategoryChoice('');
+    setDepTimeCategoryManual(false);
     setDatasetVersionTick((v) => v + 1);
     Alert.alert(
       '✅ Departure Time Added',
-      `Departure time ${formatted} has been added to Route ${rCode} (${selectedDepTimeRoute.depotName || `Depot ${rDepotId}`}).`
+      `Departure time ${formatted} (${chosenCategory}) has been added to Route ${rCode} (${selectedDepTimeRoute.depotName || `Depot ${rDepotId}`}).`
     );
   };
 
@@ -2416,7 +2476,7 @@ export default function AdminWorkspaceScreen() {
   }, [viewBuses, viewAllocatedDuties]);
 
   // ── Candidate Bus Evaluation (Exact Match to website Matrix Status & Peak Rules) ──
-  const timeCatInfo = getTimeCategory(scheduledTime);
+  const timeCatInfo = getTimeCategory(scheduledTime, selectedRoute);
   const isPeak = Boolean(timeCatInfo && timeCatInfo.isPeak);
   const complexity = getRouteComplexity(selectedRoute);
   const matrixStatus = getMatrixStatus(complexity, timeCatInfo);
@@ -2476,7 +2536,7 @@ export default function AdminWorkspaceScreen() {
     if (!selectedRoute) return '—';
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
     const dist = Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
-    const calculated = getEstimatedTripDrainSoc(dist, null, depTime);
+    const calculated = getEstimatedTripDrainSoc(dist, null, depTime, selectedRoute);
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime]);
 
@@ -2485,7 +2545,7 @@ export default function AdminWorkspaceScreen() {
     if (!selectedRoute) return '—';
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
     const dutyDist = Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || ((Number(selectedRoute.distance || selectedRoute.distKm) || 28.7) * 3));
-    const calculated = getEstimatedTripDrainSoc(dutyDist, null, depTime);
+    const calculated = getEstimatedTripDrainSoc(dutyDist, null, depTime, selectedRoute);
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime]);
 
@@ -2502,7 +2562,7 @@ export default function AdminWorkspaceScreen() {
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
     const dutyDist = Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || 0);
     if (!dutyDist) return 0;
-    const drainInfo = getBusDrainRatePerKm(null, depTime);
+    const drainInfo = getBusDrainRatePerKm(null, depTime, selectedRoute);
     return Math.round(dutyDist * drainInfo.effectiveDrainPerKm + 15);
   }, [selectedRoute, scheduledTime]);
 
@@ -2513,7 +2573,7 @@ export default function AdminWorkspaceScreen() {
     const targetDist = (isSplitDutyRoute || selectedRoute.singleChargeReqKm || unchargedDutyRequiredSoc > 100)
       ? Number(selectedRoute.singleChargeReqKm || (selectedRoute.fullDutyKm ? selectedRoute.fullDutyKm / 2 : 91.9))
       : Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
-    const calculated = getRequiredSingleChargeSoc(targetDist, selectedRoute, null, depTime);
+    const calculated = getRequiredSingleChargeSoc(targetDist, selectedRoute, null, depTime, null, selectedRoute);
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime, isSplitDutyRoute, unchargedDutyRequiredSoc]);
 
@@ -3680,6 +3740,12 @@ export default function AdminWorkspaceScreen() {
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>One-Way Trip Distance</Text>
               <Text style={styles.ruleVal}>{selectedRoute.distance} km</Text>
+            </View>
+            <View style={styles.ruleItem}>
+              <Text style={styles.ruleLabel}>Time category</Text>
+              <Text style={[styles.ruleVal, { color: timeCatInfo?.isPeak ? '#b45309' : '#0369a1', fontWeight: '800' }]}>
+                🕒 {timeCatInfo?.label || 'Normal'}
+              </Text>
             </View>
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>Route category</Text>
@@ -5725,6 +5791,8 @@ export default function AdminWorkspaceScreen() {
                 setDepTimeSelectedRouteKey('');
                 setDepTimeRouteDropdownOpen(false);
                 setDepTimeInputVal('');
+                setDepTimeCategoryChoice('');
+                setDepTimeCategoryManual(false);
                 setDepTimeDeleteFilter('');
                 setSelectedTimesToDelete([]);
                 setAddDeleteDepTimeFullscreen(true);
@@ -7136,47 +7204,6 @@ export default function AdminWorkspaceScreen() {
                     ))}
                   </View>
 
-                  {/* Route Complexity Selection */}
-                  <Text style={styles.modalFieldLabel}>{t('route_complexity_label', 'Route Complexity (Difficulty & EV Class)')}</Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                    {[
-                      { cat: 'Simple', labelKey: 'complexity_simple', fallback: 'Simple' },
-                      { cat: 'Standard', labelKey: 'complexity_standard', fallback: 'Standard' },
-                      { cat: 'Moderate', labelKey: 'complexity_moderate', fallback: 'Moderate' },
-                      { cat: 'Complex', labelKey: 'complexity_complex', fallback: 'Complex (Cat A)' },
-                    ].map((item) => (
-                      <TouchableOpacity
-                        key={item.cat}
-                        style={[styles.modalCatBtn, depotRouteCategory === item.cat && styles.modalCatBtnActive]}
-                        onPress={() => setDepotRouteCategory(item.cat)}
-                      >
-                        <Text style={[styles.modalCatBtnText, depotRouteCategory === item.cat && styles.modalCatBtnTextActive]}>
-                          {t(item.labelKey, item.fallback)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
-                  {/* Time Complexity Selection */}
-                  <Text style={styles.modalFieldLabel}>{t('time_complexity_label', 'Time Complexity Tier')}</Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 14, flexWrap: 'wrap' }}>
-                    {[
-                      { tc: 'Normal', labelKey: 'time_tier_normal', fallback: 'Normal (Off-Peak)' },
-                      { tc: 'Peak', labelKey: 'time_tier_peak', fallback: 'Peak (+15%)' },
-                      { tc: 'Extreme Peak', labelKey: 'time_tier_extreme', fallback: 'Extreme Peak (+30%)' },
-                    ].map((item) => (
-                      <TouchableOpacity
-                        key={item.tc}
-                        style={[styles.modalCatBtn, depotRouteTimeComplexity === item.tc && styles.modalCatBtnActive]}
-                        onPress={() => setDepotRouteTimeComplexity(item.tc)}
-                      >
-                        <Text style={[styles.modalCatBtnText, depotRouteTimeComplexity === item.tc && styles.modalCatBtnTextActive]}>
-                          {t(item.labelKey, item.fallback)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-
                   {/* Timetable Departures */}
                   <Text style={styles.modalFieldLabel}>{t('scheduled_departures_label', 'Scheduled Departure Times (Comma Separated)')}</Text>
                   <TextInput
@@ -7682,7 +7709,17 @@ export default function AdminWorkspaceScreen() {
                         placeholder="Enter time (e.g. 07:30 AM or 14:30)"
                         placeholderTextColor="#94a3b8"
                         value={depTimeInputVal}
-                        onChangeText={setDepTimeInputVal}
+                        onChangeText={(txt) => {
+                          setDepTimeInputVal(txt);
+                          const norm = normalizeModalDepartureTime(txt);
+                          if (!txt.trim()) {
+                            if (!depTimeCategoryManual) setDepTimeCategoryChoice('');
+                          } else if (norm && !depTimeCategoryManual) {
+                            setDepTimeCategoryChoice(getAutoTimeCategoryFromFormatted(norm));
+                          } else if (!depTimeCategoryChoice) {
+                            setDepTimeCategoryChoice('Normal');
+                          }
+                        }}
                         autoCapitalize="characters"
                       />
 
@@ -7692,27 +7729,67 @@ export default function AdminWorkspaceScreen() {
                         if (!depTimeInputVal.trim()) return null;
                         if (!preview) {
                           return (
-                            <Text style={{ fontSize: 11.5, color: '#dc2626', fontWeight: '700', marginTop: -6, marginBottom: 12 }}>
+                            <Text style={{ fontSize: 11.5, color: '#dc2626', fontWeight: '700', marginTop: -6, marginBottom: 10 }}>
                               ⚠️ Enter a valid time like 07:30 AM, 04:15 PM, or 14:30
                             </Text>
                           );
                         }
-                        const tc = getTimeCategory(preview);
                         return (
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -4, marginBottom: 12, flexWrap: 'wrap' }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -4, marginBottom: 10, flexWrap: 'wrap' }}>
                             <View style={{ backgroundColor: '#dcfce7', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
                               <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#166534' }}>
                                 🕒 Normalized: {preview}
                               </Text>
                             </View>
-                            <View style={{ backgroundColor: tc?.isPeak ? '#fef3c7' : '#e0f2fe', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
-                              <Text style={{ fontSize: 11.5, fontWeight: '700', color: tc?.isPeak ? '#92400e' : '#0369a1' }}>
-                                {tc?.label || 'Normal'}
-                              </Text>
-                            </View>
                           </View>
                         );
                       })()}
+
+                      {/* Single-Select Time Category Picker (Appears when typing timing — strictly select ONLY 1 of 3) */}
+                      {depTimeInputVal.trim().length > 0 && (
+                        <View style={{ backgroundColor: '#f8fafc', borderWidth: 1.5, borderColor: '#cbd5e1', borderRadius: 10, padding: 12, marginBottom: 14 }}>
+                          <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0f172a', marginBottom: 8 }}>
+                            Departure Time Category (Select One) <Text style={{ color: '#ef4444' }}>*</Text>
+                          </Text>
+                          <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                            {[
+                              { id: 'Extreme Peak', label: 'Extreme Peak', activeBg: '#fef2f2', activeBorder: '#dc2626', activeText: '#b91c1c' },
+                              { id: 'Peak', label: 'Peak', activeBg: '#fef3c7', activeBorder: '#d97706', activeText: '#92400e' },
+                              { id: 'Normal', label: 'Normal', activeBg: '#ecfdf5', activeBorder: '#059669', activeText: '#065f46' },
+                            ].map((opt) => {
+                              const isSel = depTimeCategoryChoice === opt.id;
+                              return (
+                                <TouchableOpacity
+                                  key={opt.id}
+                                  onPress={() => {
+                                    setDepTimeCategoryChoice(opt.id);
+                                    setDepTimeCategoryManual(true);
+                                  }}
+                                  activeOpacity={0.8}
+                                  style={{
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    gap: 6,
+                                    paddingHorizontal: 12,
+                                    paddingVertical: 8,
+                                    borderRadius: 8,
+                                    borderWidth: 1.5,
+                                    borderColor: isSel ? opt.activeBorder : '#cbd5e1',
+                                    backgroundColor: isSel ? opt.activeBg : '#ffffff',
+                                  }}
+                                >
+                                  <Text style={{ fontSize: 14, color: isSel ? opt.activeBorder : '#64748b', fontWeight: '800' }}>
+                                    {isSel ? '◉' : '○'}
+                                  </Text>
+                                  <Text style={{ fontSize: 12.5, fontWeight: isSel ? '800' : '600', color: isSel ? opt.activeText : '#334155' }}>
+                                    {opt.label}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      )}
 
                       <View style={styles.modalActionButtonsRow}>
                         <TouchableOpacity style={styles.btnModalCancel} onPress={() => setAddDeleteDepTimeModalOpen(false)}>
@@ -7734,14 +7811,20 @@ export default function AdminWorkspaceScreen() {
                           </Text>
                         ) : (
                           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-                            {(selectedDepTimeRoute.timetables || []).map((tm) => (
-                              <View
-                                key={tm}
-                                style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}
-                              >
-                                <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a' }}>🕒 {tm}</Text>
-                              </View>
-                            ))}
+                            {(selectedDepTimeRoute.timetables || []).map((tm) => {
+                              const tmCat = getTimeCategory(tm, selectedDepTimeRoute);
+                              const tmShort = tmCat?.key === 'EXTREME_PEAK' ? 'Extreme Peak' : (tmCat?.key === 'PEAK' ? 'Peak' : 'Normal');
+                              const badgeColor = tmCat?.key === 'EXTREME_PEAK' ? '#b91c1c' : (tmCat?.key === 'PEAK' ? '#b45309' : '#047857');
+                              return (
+                                <View
+                                  key={tm}
+                                  style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#cbd5e1', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5, flexDirection: 'row', alignItems: 'center', gap: 6 }}
+                                >
+                                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#0f172a' }}>🕒 {tm}</Text>
+                                  <Text style={{ fontSize: 10.5, fontWeight: '800', color: badgeColor }}>• {tmShort}</Text>
+                                </View>
+                              );
+                            })}
                           </View>
                         )}
                       </View>
@@ -7811,7 +7894,7 @@ export default function AdminWorkspaceScreen() {
 
                             {shownTimes.map((tm) => {
                               const checked = selectedTimesToDelete.includes(tm);
-                              const tc = getTimeCategory(tm);
+                              const tc = getTimeCategory(tm, selectedDepTimeRoute);
                               return (
                                 <View
                                   key={tm}
@@ -8610,78 +8693,121 @@ export default function AdminWorkspaceScreen() {
               </View>
 
               {showAddDepartureTimeInput && (
-                <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginTop: 4, marginBottom: 8 }}>
-                  <TextInput
-                    style={{
-                      flex: 1,
-                      borderWidth: 1,
-                      borderColor: '#cbd5e1',
-                      borderRadius: 8,
-                      paddingHorizontal: 12,
-                      paddingVertical: 8,
-                      fontSize: 13,
-                      backgroundColor: '#ffffff',
-                      color: '#0f172a'
-                    }}
-                    placeholder="e.g. 11:45 AM or 04:30 PM"
-                    placeholderTextColor="#94a3b8"
-                    value={newDepartureTimeInput}
-                    onChangeText={setNewDepartureTimeInput}
-                    autoCapitalize="characters"
-                  />
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: '#0284c7',
-                      paddingHorizontal: 14,
-                      paddingVertical: 9,
-                      borderRadius: 8,
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                    onPress={() => {
-                      const clean = normalizeModalDepartureTime(newDepartureTimeInput);
-                      if (!clean) {
-                        Alert.alert('Invalid Input', 'Please enter a valid departure time (e.g. 11:45 AM or 14:30).');
-                        return;
-                      }
-                      if (!selectedRoute?.code) {
-                        Alert.alert('No Route Selected', 'Please select a route first.');
-                        return;
-                      }
-                      const res = addDepartureTimeToRoute(selectedRoute.code, selectedRoute.depotId, clean);
-                      if (res && res.duplicate) {
-                        Alert.alert('Duplicate Departure Time', res.error || `Departure time ${clean} already exists.`);
-                        return;
-                      }
-                      setCustomRoutes((prev) =>
-                        prev.map((cr) => {
-                          if (cr.code === selectedRoute.code && String(cr.depotId) === String(selectedRoute.depotId)) {
-                            const next = Array.from(new Set([...(cr.timetables || []), clean]));
-                            return { ...cr, timetables: next };
-                          }
-                          return cr;
-                        })
-                      );
-                      if (api && typeof api.updateRoutesDataset === 'function') {
-                        api.updateRoutesDataset({
-                          action: 'add_departure_time',
-                          routeCode: selectedRoute.code,
-                          depotId: selectedRoute.depotId,
-                          departureTime: clean
-                        }).catch(() => {});
-                      }
-                      setScheduledTime(clean);
-                      setNewDepartureTimeInput('');
-                      setShowAddDepartureTimeInput(false);
-                      setDatasetVersionTick(v => v + 1);
-                      Alert.alert(
-                        'Departure Time Added',
-                        `Departure time ${clean} has been successfully saved to Route ${selectedRoute.code} in the Master Dataset.`
-                      );
-                    }}
-                  >
-                    <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>Save</Text>
-                  </TouchableOpacity>
+                <View style={{ marginTop: 4, marginBottom: 8 }}>
+                  <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+                    <TextInput
+                      style={{
+                        flex: 1,
+                        borderWidth: 1,
+                        borderColor: '#cbd5e1',
+                        borderRadius: 8,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        fontSize: 13,
+                        backgroundColor: '#ffffff',
+                        color: '#0f172a'
+                      }}
+                      placeholder="e.g. 11:45 AM or 04:30 PM"
+                      placeholderTextColor="#94a3b8"
+                      value={newDepartureTimeInput}
+                      onChangeText={(txt) => {
+                        setNewDepartureTimeInput(txt);
+                        const norm = normalizeModalDepartureTime(txt);
+                        if (norm && !inlineDepTimeCategoryManual) {
+                          setInlineDepTimeCategory(getAutoTimeCategoryFromFormatted(norm));
+                        }
+                      }}
+                      autoCapitalize="characters"
+                    />
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: '#0284c7',
+                        paddingHorizontal: 14,
+                        paddingVertical: 9,
+                        borderRadius: 8,
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                      onPress={() => {
+                        const clean = normalizeModalDepartureTime(newDepartureTimeInput);
+                        if (!clean) {
+                          Alert.alert('Invalid Input', 'Please enter a valid departure time (e.g. 11:45 AM or 14:30).');
+                          return;
+                        }
+                        if (!selectedRoute?.code) {
+                          Alert.alert('No Route Selected', 'Please select a route first.');
+                          return;
+                        }
+                        const chosenCat = ['Extreme Peak', 'Peak', 'Normal'].includes(inlineDepTimeCategory) ? inlineDepTimeCategory : 'Normal';
+                        const res = addDepartureTimeToRoute(selectedRoute.code, selectedRoute.depotId, clean, chosenCat);
+                        if (res && res.duplicate) {
+                          Alert.alert('Duplicate Departure Time', res.error || `Departure time ${clean} already exists.`);
+                          return;
+                        }
+                        setCustomRoutes((prev) =>
+                          prev.map((cr) => {
+                            if (cr.code === selectedRoute.code && String(cr.depotId) === String(selectedRoute.depotId)) {
+                              const next = Array.from(new Set([...(cr.timetables || []), clean]));
+                              const nextSlots = { ...(cr.timeComplexitySlots || {}), [clean]: chosenCat };
+                              return { ...cr, timetables: next, timeComplexitySlots: nextSlots };
+                            }
+                            return cr;
+                          })
+                        );
+                        if (api && typeof api.updateRoutesDataset === 'function') {
+                          api.updateRoutesDataset({
+                            action: 'add_departure_time',
+                            routeCode: selectedRoute.code,
+                            depotId: selectedRoute.depotId,
+                            departureTime: clean,
+                            timeCategory: chosenCat
+                          }).catch(() => {});
+                        }
+                        setScheduledTime(clean);
+                        setNewDepartureTimeInput('');
+                        setInlineDepTimeCategory('Normal');
+                        setInlineDepTimeCategoryManual(false);
+                        setShowAddDepartureTimeInput(false);
+                        setDatasetVersionTick(v => v + 1);
+                        Alert.alert(
+                          'Departure Time Added',
+                          `Departure time ${clean} (${chosenCat}) has been successfully saved to Route ${selectedRoute.code} in the Master Dataset.`
+                        );
+                      }}
+                    >
+                      <Text style={{ color: '#ffffff', fontWeight: '700', fontSize: 12 }}>Save</Text>
+                    </TouchableOpacity>
+                  </View>
+                  {newDepartureTimeInput.trim().length > 0 && (
+                    <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
+                      {['Extreme Peak', 'Peak', 'Normal'].map((opt) => {
+                        const isSel = inlineDepTimeCategory === opt;
+                        return (
+                          <TouchableOpacity
+                            key={opt}
+                            onPress={() => {
+                              setInlineDepTimeCategory(opt);
+                              setInlineDepTimeCategoryManual(true);
+                            }}
+                            style={{
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: 5,
+                              paddingHorizontal: 10,
+                              paddingVertical: 5,
+                              borderRadius: 7,
+                              borderWidth: 1,
+                              borderColor: isSel ? '#0284c7' : '#cbd5e1',
+                              backgroundColor: isSel ? '#e0f2fe' : '#ffffff',
+                            }}
+                          >
+                            <Text style={{ fontSize: 12, color: isSel ? '#0284c7' : '#64748b' }}>{isSel ? '◉' : '○'}</Text>
+                            <Text style={{ fontSize: 11.5, fontWeight: isSel ? '800' : '600', color: isSel ? '#0369a1' : '#334155' }}>{opt}</Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               )}
             </View>
@@ -8696,7 +8822,7 @@ export default function AdminWorkspaceScreen() {
               ) : (
                 selectedRoute.timetables.map((t) => {
                   const isSelected = String(t).trim().toUpperCase() === String(scheduledTime).trim().toUpperCase();
-                  const timeInfo = getTimeCategory(t);
+                  const timeInfo = getTimeCategory(t, selectedRoute);
                   const isPeak = timeInfo && timeInfo.isPeak;
                   return (
                     <TouchableOpacity
@@ -8714,19 +8840,19 @@ export default function AdminWorkspaceScreen() {
                             🕒 {t}
                           </Text>
                           <Text style={styles.schedulePickerSub}>
-                            {timeInfo?.timeSlot || 'Scheduled Timetable'} • Route {selectedRoute.code}
+                            {timeInfo?.label || 'Normal'} • Route {selectedRoute.code}
                           </Text>
                         </View>
                         <View style={{
                           paddingHorizontal: 8,
                           paddingVertical: 3,
                           borderRadius: 6,
-                          backgroundColor: isPeak ? '#fef2f2' : '#f0fdf4',
+                          backgroundColor: timeInfo?.key === 'EXTREME_PEAK' ? '#fef2f2' : (isPeak ? '#fef3c7' : '#f0fdf4'),
                           borderWidth: 1,
-                          borderColor: isPeak ? '#fca5a5' : '#86efac'
+                          borderColor: timeInfo?.key === 'EXTREME_PEAK' ? '#fca5a5' : (isPeak ? '#fde68a' : '#86efac')
                         }}>
-                          <Text style={{ fontSize: 10, fontWeight: '700', color: isPeak ? '#dc2626' : '#16a34a' }}>
-                            {isPeak ? 'PEAK' : 'OFF-PEAK'}
+                          <Text style={{ fontSize: 10, fontWeight: '800', color: timeInfo?.key === 'EXTREME_PEAK' ? '#b91c1c' : (isPeak ? '#b45309' : '#16a34a') }}>
+                            {timeInfo?.key === 'EXTREME_PEAK' ? 'EXTREME PEAK' : (isPeak ? 'PEAK' : 'NORMAL')}
                           </Text>
                         </View>
                       </View>

@@ -14,6 +14,7 @@ import { api } from '../api/client.js';
 
 const DATASET_STORAGE_KEY = 'depot_app_master_route_dataset';
 const DATASET_DELETED_DEPOTS_KEY = 'depot_app_dataset_deleted_depots';
+const DATASET_DELETED_ROUTES_KEY = 'depot_app_dataset_deleted_routes';
 
 // ── Default Base Master Dataset (Depot 1 & Depot 2) ──
 const INITIAL_MASTER_DATASET = {
@@ -9250,7 +9251,23 @@ const INITIAL_MASTER_DATASET = {
 
 let masterDataset = JSON.parse(JSON.stringify(INITIAL_MASTER_DATASET));
 let deletedDepotIds = new Set();
+let deletedRouteKeys = new Set();
 const datasetListeners = new Set();
+
+function makeRouteKey(depotId, routeCode) {
+  const dId = String(depotId || '1').trim().replace(/^DEPOT\s*/i, '');
+  const code = String(routeCode || '').toUpperCase().trim();
+  return dId && code ? `${dId}_${code}` : '';
+}
+
+function normalizeTimeCategoryOption(val) {
+  const raw = String(val || '').trim().toLowerCase();
+  if (!raw) return null;
+  if (raw.includes('extreme')) return 'Extreme Peak';
+  if (raw.includes('peak')) return 'Peak';
+  if (raw.includes('norm')) return 'Normal';
+  return null;
+}
 
 // ── Load from LocalStorage (Web) ──
 try {
@@ -9262,9 +9279,22 @@ try {
         deletedDepotIds = new Set(arr.map(String));
       }
     }
+    const savedDelRoutes = localStorage.getItem(DATASET_DELETED_ROUTES_KEY);
+    if (savedDelRoutes) {
+      const arrR = JSON.parse(savedDelRoutes);
+      if (Array.isArray(arrR)) {
+        deletedRouteKeys = new Set(arrR.map((x) => String(x || '').toUpperCase().trim()).filter(Boolean));
+      }
+    }
     const savedData = localStorage.getItem(DATASET_STORAGE_KEY);
     if (savedData) {
       const parsed = JSON.parse(savedData);
+      if (Array.isArray(parsed?.deletedRoutes)) {
+        parsed.deletedRoutes.forEach((k) => {
+          const ck = String(k || '').toUpperCase().trim();
+          if (ck) deletedRouteKeys.add(ck);
+        });
+      }
       if (parsed && Array.isArray(parsed.depots) && Array.isArray(parsed.routes)) {
         const coreCodes = ['356Z', '360K', '600F', 'KBS3A', '361C', '399C', '328H', '500DC', 'KBS3F'];
         const hasLegacy = parseFloat(parsed.version || '0') < 5.1 || (parsed.routes || []).some((r) => 
@@ -9276,15 +9306,20 @@ try {
             ...INITIAL_MASTER_DATASET,
             version: '5.1',
             depots: parsed.depots ? parsed.depots.filter((d) => !deletedDepotIds.has(String(d.id))) : INITIAL_MASTER_DATASET.depots,
-            routes: [...INITIAL_MASTER_DATASET.routes, ...customRoutes].filter((r) => !deletedDepotIds.has(String(r.depotId))),
+            routes: [...INITIAL_MASTER_DATASET.routes, ...customRoutes].filter((r) => !deletedDepotIds.has(String(r.depotId)) && !deletedRouteKeys.has(makeRouteKey(r.depotId, r.code || r.id))),
           };
           localStorage.setItem(DATASET_STORAGE_KEY, JSON.stringify(masterDataset));
         } else {
           masterDataset = {
             ...INITIAL_MASTER_DATASET,
             ...parsed,
-            depots: parsed.depots.filter((d) => !deletedDepotIds.has(String(d.id))),
-            routes: parsed.routes.filter((r) => !deletedDepotIds.has(String(r.depotId))),
+            depots: parsed.depots
+              .filter((d) => !deletedDepotIds.has(String(d.id)))
+              .map((d) => ({
+                ...d,
+                routes: Array.isArray(d.routes) ? d.routes.filter((rc) => !deletedRouteKeys.has(makeRouteKey(d.id, rc))) : [],
+              })),
+            routes: parsed.routes.filter((r) => !deletedDepotIds.has(String(r.depotId)) && !deletedRouteKeys.has(makeRouteKey(r.depotId, r.code || r.id))),
           };
         }
       }
@@ -9297,9 +9332,11 @@ try {
 function persistDataset() {
   try {
     masterDataset.lastUpdated = new Date().toISOString();
+    masterDataset.deletedRoutes = Array.from(deletedRouteKeys);
     if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') {
       localStorage.setItem(DATASET_STORAGE_KEY, JSON.stringify(masterDataset));
       localStorage.setItem(DATASET_DELETED_DEPOTS_KEY, JSON.stringify(Array.from(deletedDepotIds)));
+      localStorage.setItem(DATASET_DELETED_ROUTES_KEY, JSON.stringify(Array.from(deletedRouteKeys)));
     }
   } catch (e) {
     console.warn('Failed to persist master route dataset:', e);
@@ -9319,13 +9356,22 @@ function notifyListeners() {
 function syncToServer(actionPayload) {
   try {
     if (typeof api !== 'undefined' && api && typeof api.post === 'function') {
-      api.post('/api/dataset/routes', {
+      const hasMutationAction = Boolean(actionPayload && actionPayload.action && actionPayload.action !== 'sync');
+      const bodyPayload = {
         ...actionPayload,
-        dataset: masterDataset,
         deletedDepotIds: Array.from(deletedDepotIds),
-      }).catch(() => {});
+        deletedRoutes: Array.from(deletedRouteKeys),
+      };
+      if (!hasMutationAction) {
+        bodyPayload.dataset = masterDataset;
+      }
+      api.post('/api/dataset/routes', bodyPayload).catch(() => {});
     }
   } catch (_) {}
+}
+
+export function getDeletedRouteKeys() {
+  return Array.from(deletedRouteKeys);
 }
 
 // ── Exported API Methods ──
@@ -9420,6 +9466,9 @@ export function addRouteToDataset(depotId, routeData) {
   const dId = String(depotId || '1').trim().replace(/^DEPOT\s*/i, '');
   const cleanCode = String(routeData.code || routeData.shortName || routeData.id || '').toUpperCase().trim();
   if (!cleanCode) throw new Error('Route code is required');
+
+  const rKey = makeRouteKey(dId, cleanCode);
+  if (rKey) deletedRouteKeys.delete(rKey);
 
   const dist = Number(routeData.distance) || 25.0;
   const orig = String(routeData.origin || `Depot ${dId} Terminal`).trim();
@@ -9524,13 +9573,16 @@ export function deleteRouteFromDataset(depotId, routeCode) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   if (!cleanCode) return;
 
+  const rKey = makeRouteKey(dId, cleanCode);
+  if (rKey) deletedRouteKeys.add(rKey);
+
   masterDataset.routes = masterDataset.routes.filter(
     (r) => !(String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId)
   );
 
   const depotIdx = masterDataset.depots.findIndex((d) => String(d.id).trim() === dId);
   if (depotIdx >= 0) {
-    masterDataset.depots[depotIdx].routes = masterDataset.depots[depotIdx].routes.filter(
+    masterDataset.depots[depotIdx].routes = (masterDataset.depots[depotIdx].routes || []).filter(
       (code) => String(code).toUpperCase().trim() !== cleanCode
     );
   }
@@ -9538,6 +9590,36 @@ export function deleteRouteFromDataset(depotId, routeCode) {
   persistDataset();
   notifyListeners();
   syncToServer({ action: 'delete_route', depotId: dId, routeCode: cleanCode });
+}
+
+export function deleteRoutesBatchFromDataset(items) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  const cleaned = items
+    .map((item) => {
+      const cleanCode = String(item?.code || item?.routeCode || item?.id || item || '').toUpperCase().trim();
+      const dId = String(item?.depotId || '1').trim().replace(/^DEPOT\s*/i, '');
+      return cleanCode ? { code: cleanCode, depotId: dId } : null;
+    })
+    .filter(Boolean);
+  if (cleaned.length === 0) return;
+
+  cleaned.forEach(({ code, depotId }) => {
+    const rKey = makeRouteKey(depotId, code);
+    if (rKey) deletedRouteKeys.add(rKey);
+    masterDataset.routes = masterDataset.routes.filter(
+      (r) => !(String(r.code || r.id).toUpperCase().trim() === code && String(r.depotId).trim() === depotId)
+    );
+    const depotIdx = masterDataset.depots.findIndex((d) => String(d.id).trim() === depotId);
+    if (depotIdx >= 0 && Array.isArray(masterDataset.depots[depotIdx].routes)) {
+      masterDataset.depots[depotIdx].routes = masterDataset.depots[depotIdx].routes.filter(
+        (c) => String(c).toUpperCase().trim() !== code
+      );
+    }
+  });
+
+  persistDataset();
+  notifyListeners();
+  syncToServer({ action: 'delete_routes_batch', routes: cleaned });
 }
 
 /**
@@ -9669,12 +9751,15 @@ export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
 /**
  * Adds a new departure time to an existing route's timetables and syncs to dataset
  */
-export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
+export function addDepartureTimeToRoute(routeCode, depotId, departureTime, timeCategory = null) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
   const parsed = normalizeTimeEntry(departureTime);
   const cleanTime = parsed ? parsed.ampmStr : String(departureTime || '').trim();
   if (!cleanCode || !cleanTime) return { ok: false, error: 'Route and departure time are required.' };
+
+  const explicitTier = normalizeTimeCategoryOption(timeCategory);
+  const chosenTier = explicitTier || (parsed ? parsed.tier : 'Normal');
 
   let found = false;
   let duplicate = false;
@@ -9706,9 +9791,9 @@ export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
           return dp ? dp.h24Str !== parsed.h24Str : true;
         });
       }
+      if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== 'object') r.timeComplexitySlots = {};
+      r.timeComplexitySlots[cleanTime] = chosenTier;
       if (parsed) {
-        if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== 'object') r.timeComplexitySlots = {};
-        r.timeComplexitySlots[cleanTime] = parsed.tier;
         if (!Array.isArray(r.schedules)) r.schedules = [];
         const hasSched = r.schedules.some((s) => {
           const sp = normalizeTimeEntry(s.departureTime || s.outTime);
@@ -9722,6 +9807,7 @@ export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
             departureTime: cleanTime,
             inTime: '16:00:00',
             category: r.routeComplexity || r.category || 'Standard',
+            timeComplexity: chosenTier,
             singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5),
           });
         }
@@ -9738,8 +9824,8 @@ export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
     persistDataset();
     notifyListeners();
   }
-  syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime });
-  return { ok: true, formattedTime: cleanTime };
+  syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime, timeCategory: chosenTier });
+  return { ok: true, formattedTime: cleanTime, timeCategory: chosenTier };
 }
 
 /**
@@ -9808,7 +9894,7 @@ export function deleteDepartureTimeFromRoute(routeCode, depotId, departureTimes)
 /**
  * Synchronizes in-memory dataset with server data
  */
-export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {
+export function syncDatasetWithServer(remoteDataset, remoteDeletedIds, remoteDeletedRoutes, remoteCustomDepots) {
   if (!remoteDataset || typeof remoteDataset !== 'object') return;
   let changed = false;
 
@@ -9822,30 +9908,70 @@ export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {
     });
   }
 
-  // Merge remote depots
+  const incomingDelRoutes = [
+    ...(Array.isArray(remoteDeletedRoutes) ? remoteDeletedRoutes : []),
+    ...(Array.isArray(remoteDataset.deletedRoutes) ? remoteDataset.deletedRoutes : []),
+  ];
+  incomingDelRoutes.forEach((rk) => {
+    const ck = String(rk || '').toUpperCase().trim();
+    if (ck && !deletedRouteKeys.has(ck)) {
+      deletedRouteKeys.add(ck);
+      changed = true;
+    }
+  });
+
+  const customDepotRoutesMap = new Map();
+  if (Array.isArray(remoteCustomDepots)) {
+    remoteCustomDepots.forEach((cd) => {
+      if (!cd || cd.id === undefined || cd.id === null) return;
+      const dId = String(cd.id).trim();
+      customDepotRoutesMap.set(
+        dId,
+        new Set((Array.isArray(cd.routes) ? cd.routes : []).map((rc) => String(rc).toUpperCase().trim()).filter(Boolean))
+      );
+    });
+  }
+
+  // Merge remote depots and prune deleted routes
   if (Array.isArray(remoteDataset.depots)) {
     remoteDataset.depots.forEach((rDepot) => {
       if (!rDepot || !rDepot.id || deletedDepotIds.has(String(rDepot.id))) return;
-      const existingIdx = masterDataset.depots.findIndex((d) => String(d.id) === String(rDepot.id));
+      const dId = String(rDepot.id).trim();
+      const filteredRoutes = customDepotRoutesMap.has(dId)
+        ? Array.from(customDepotRoutesMap.get(dId)).filter((rc) => !deletedRouteKeys.has(makeRouteKey(dId, rc)))
+        : (Array.isArray(rDepot.routes) ? rDepot.routes.filter((rc) => !deletedRouteKeys.has(makeRouteKey(dId, rc))) : []);
+      const cleanedDepot = { ...rDepot, routes: filteredRoutes };
+      const existingIdx = masterDataset.depots.findIndex((d) => String(d.id) === dId);
       if (existingIdx >= 0) {
-        const mergedDepot = { ...masterDataset.depots[existingIdx], ...rDepot };
+        const mergedDepot = { ...masterDataset.depots[existingIdx], ...cleanedDepot };
         if (JSON.stringify(masterDataset.depots[existingIdx]) !== JSON.stringify(mergedDepot)) {
           masterDataset.depots[existingIdx] = mergedDepot;
           changed = true;
         }
       } else {
-        masterDataset.depots.push(rDepot);
+        masterDataset.depots.push(cleanedDepot);
         changed = true;
       }
     });
   }
 
-  // Merge remote routes
+  // Reconcile remote routes authoritatively so server-deleted routes are pruned locally
   if (Array.isArray(remoteDataset.routes)) {
+    const remoteRouteKeys = new Set();
     remoteDataset.routes.forEach((rRoute) => {
-      if (!rRoute || !rRoute.code || deletedDepotIds.has(String(rRoute.depotId))) return;
+      if (!rRoute || !rRoute.code) return;
+      const dId = String(rRoute.depotId || '1').trim();
+      const cleanCode = String(rRoute.code || rRoute.id).toUpperCase().trim();
+      const rKey = makeRouteKey(dId, cleanCode);
+      if (deletedDepotIds.has(dId) || deletedRouteKeys.has(rKey)) return;
+      if (customDepotRoutesMap.has(dId) && !customDepotRoutesMap.get(dId).has(cleanCode)) {
+        deletedRouteKeys.add(rKey);
+        changed = true;
+        return;
+      }
+      remoteRouteKeys.add(rKey);
       const existingIdx = masterDataset.routes.findIndex(
-        (r) => String(r.code).toUpperCase().trim() === String(rRoute.code).toUpperCase().trim() && String(r.depotId) === String(rRoute.depotId)
+        (r) => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId
       );
       if (existingIdx >= 0) {
         const mergedRoute = { ...masterDataset.routes[existingIdx], ...rRoute };
@@ -9858,6 +9984,37 @@ export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {
         changed = true;
       }
     });
+
+    const remoteDepotIds = new Set(
+      (Array.isArray(remoteDataset.depots) ? remoteDataset.depots : [])
+        .map((d) => String(d?.id || '').trim())
+        .filter(Boolean)
+    );
+    const beforeLen = masterDataset.routes.length;
+    masterDataset.routes = masterDataset.routes.filter((r) => {
+      const dId = String(r.depotId || '1').trim();
+      const cleanCode = String(r.code || r.id || '').toUpperCase().trim();
+      const rKey = makeRouteKey(dId, cleanCode);
+      if (deletedDepotIds.has(dId) || deletedRouteKeys.has(rKey)) return false;
+      if (customDepotRoutesMap.has(dId) && !customDepotRoutesMap.get(dId).has(cleanCode)) return false;
+      if ((remoteDepotIds.has(dId) || customDepotRoutesMap.has(dId)) && remoteDataset.routes.length > 0 && !remoteRouteKeys.has(rKey)) {
+        return false;
+      }
+      return true;
+    });
+    if (masterDataset.routes.length !== beforeLen) {
+      changed = true;
+    }
+  } else {
+    const beforeLen = masterDataset.routes.length;
+    masterDataset.routes = masterDataset.routes.filter((r) => {
+      const dId = String(r.depotId || '1').trim();
+      const cleanCode = String(r.code || r.id || '').toUpperCase().trim();
+      return !deletedDepotIds.has(dId) && !deletedRouteKeys.has(makeRouteKey(dId, cleanCode));
+    });
+    if (masterDataset.routes.length !== beforeLen) {
+      changed = true;
+    }
   }
 
   if (changed) {

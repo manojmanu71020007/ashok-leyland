@@ -5672,7 +5672,67 @@
 
 
 
-        function getTimeCategory(timeStr) {
+        function toH24TimeKey(tStr) {
+            const raw = String(tStr || "").trim();
+            if (!raw) return "";
+            const ampm = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+            if (ampm) {
+                let h = parseInt(ampm[1], 10);
+                const m = parseInt(ampm[2], 10);
+                const mod = ampm[3].toUpperCase();
+                if (mod === "PM" && h < 12) h += 12;
+                if (mod === "AM" && h === 12) h = 0;
+                return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+            }
+            const h24m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+            if (h24m) {
+                return `${String(parseInt(h24m[1], 10)).padStart(2, "0")}:${String(parseInt(h24m[2], 10)).padStart(2, "0")}`;
+            }
+            return "";
+        }
+
+        function mapSlotLabelToTimeCat(slotStr, timeLabel = "") {
+            const s = String(slotStr || "").toUpperCase();
+            const suf = timeLabel ? ` (${timeLabel})` : "";
+            if (s.includes("EXTREME")) return { key: "EXTREME_PEAK", label: `Extreme Peak${suf}`, isPeak: true };
+            if (s.includes("PEAK")) return { key: "PEAK", label: `Peak${suf}`, isPeak: true };
+            if (s.includes("NORM")) return { key: "NORMAL", label: `Normal${suf}`, isPeak: false };
+            return null;
+        }
+
+        function getTimeCategory(timeStr, routeObj = null, schedObj = null) {
+            const targetH24 = toH24TimeKey(timeStr);
+            if (schedObj && schedObj.timeComplexity) {
+                const hit = mapSlotLabelToTimeCat(schedObj.timeComplexity, timeStr);
+                if (hit) return hit;
+            }
+            const checkRouteSlots = (rObj) => {
+                if (!rObj || typeof rObj !== "object" || !rObj.timeComplexitySlots || !timeStr) return null;
+                let matchedVal = rObj.timeComplexitySlots[timeStr];
+                if (!matchedVal && targetH24) {
+                    for (const [k, v] of Object.entries(rObj.timeComplexitySlots)) {
+                        if (toH24TimeKey(k) === targetH24) { matchedVal = v; break; }
+                    }
+                }
+                return matchedVal ? mapSlotLabelToTimeCat(matchedVal, timeStr) : null;
+            };
+            const directHit = checkRouteSlots(routeObj);
+            if (directHit) return directHit;
+            const rCode = routeObj ? String(routeObj.code || routeObj.id || "").toUpperCase().trim() : "";
+            if (rCode) {
+                if (typeof directionalRoutes !== "undefined" && Array.isArray(directionalRoutes)) {
+                    const dr = directionalRoutes.find(x => String(x.code || x.id).toUpperCase().trim() === rCode);
+                    const drHit = checkRouteSlots(dr);
+                    if (drHit) return drHit;
+                }
+                if (typeof datasetSchedules !== "undefined" && Array.isArray(datasetSchedules) && targetH24) {
+                    const ds = datasetSchedules.find(s => String(s.route || "").toUpperCase().trim() === rCode && toH24TimeKey(s.departureTime || s.outTime) === targetH24);
+                    if (ds && ds.timeComplexity) {
+                        const dsHit = mapSlotLabelToTimeCat(ds.timeComplexity, timeStr);
+                        if (dsHit) return dsHit;
+                    }
+                }
+            }
 
             const depMin = timeToMinutes(timeStr || "12:00");
 
@@ -5810,10 +5870,14 @@
             // Normal       -> Normal baseline drain rate (1.0x)
 
             const depTime = timeCategoryOrStr || (schedObj && (schedObj.outTime || schedObj.cum_time || schedObj.departureTime));
+            const routeForCat = (schedObj && schedObj.route && typeof directionalRoutes !== "undefined")
+                ? directionalRoutes.find(r => String(r.code || r.id).toUpperCase() === String(schedObj.route).toUpperCase())
+                : null;
+            const timeCatForDrain = (typeof depTime === "object") ? depTime : (typeof getTimeCategory === "function" ? getTimeCategory(depTime, routeForCat, schedObj) : depTime);
 
             const drainInfo = (typeof getBusDrainRatePerKm === 'function')
 
-                ? getBusDrainRatePerKm(busBm, depTime)
+                ? getBusDrainRatePerKm(busBm, timeCatForDrain)
 
                 : { effectiveDrainPerKm: (1 / 1.42) };
 
@@ -5914,7 +5978,7 @@
 
 
 
-        function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
+        function getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj = null, schedObj = null) {
 
             let key = "NORMAL";
 
@@ -5930,9 +5994,13 @@
 
                     key = upper;
 
+                } else if (upper === "EXTREME PEAK") {
+
+                    key = "EXTREME_PEAK";
+
                 } else if (typeof getTimeCategory === "function") {
 
-                    key = getTimeCategory(timeCategoryOrStr).key;
+                    key = getTimeCategory(timeCategoryOrStr, routeObj, schedObj).key;
 
                 }
 
@@ -6383,7 +6451,7 @@
 
                 ? targetReqSoc
 
-                : getRequiredSingleChargeSoc(routeDist, matchedSched, key, depTimeShort, Number(selectedRoute.actualKm || selectedRoute.actual_km || selectedRoute.fullDutyKm || 188.54));
+                : getRequiredSingleChargeSoc(routeDist, matchedSched, key, getTimeCategory(depTimeShort, selectedRoute, matchedSched), Number(selectedRoute.actualKm || selectedRoute.actual_km || selectedRoute.fullDutyKm || 188.54));
 
 
 
@@ -6425,7 +6493,7 @@
 
             // - Normal: Normal baseline drain rate (1.0x)
 
-            const drainDetails = (typeof getBusDrainRatePerKm === 'function') ? getBusDrainRatePerKm(key, depTimeShort) : {
+            const drainDetails = (typeof getBusDrainRatePerKm === 'function') ? getBusDrainRatePerKm(key, typeof getTimeCategory === 'function' ? getTimeCategory(depTimeShort, selectedRoute, matchedSched) : depTimeShort) : {
 
                 busRangeKm: 110.0,
 
@@ -6557,7 +6625,9 @@
 
             if (depTimeShort) {
 
-                const tInfo = getTimeCategory(depTimeShort);
+                const rObjForCat = (typeof getSelectedRouteObj === "function" ? getSelectedRouteObj() : null) || { code: selectedRoute };
+
+                const tInfo = getTimeCategory(depTimeShort, rObjForCat, matchedSched);
 
                 timeCatKey = tInfo.key;
 
@@ -6797,7 +6867,8 @@
 
 
 
-            const tInfo = getTimeCategory(depShort);
+            const rObjForCatTop = (typeof getSelectedRouteObj === "function" ? getSelectedRouteObj() : null) || { code: routeCode };
+            const tInfo = getTimeCategory(depShort, rObjForCatTop, matchedSched);
 
             const isPeak = tInfo.isPeak;
 
@@ -7465,7 +7536,7 @@
 
 
 
-            const timeInfo = getTimeCategory(depTimeClean);
+            const timeInfo = getTimeCategory(depTimeClean, routeObj);
 
             const isPeak = timeInfo.isPeak;
 
@@ -8170,7 +8241,8 @@
 
                 const busCat = getBusCategory(existingDuty.bm, liveSoc);
 
-                const tInfo = getTimeCategory(depShort);
+                const rObjForCatTop = (typeof getSelectedRouteObj === "function" ? getSelectedRouteObj() : null) || { code: routeCode };
+            const tInfo = getTimeCategory(depShort, rObjForCatTop, matchedSched);
 
                 const isCatCompliant = tInfo.isPeak
 
@@ -9011,7 +9083,7 @@
 
             const busShortName = (allocatedBus && allocatedBus.bm) || (routeObj && (routeObj.code || routeObj.routeShortName)) || "500DC";
 
-            const timeCatInfo = getTimeCategory(departure);
+            const timeCatInfo = getTimeCategory(departure, routeObj, currentScheduleMatch);
 
             const timeCategoryKey = timeCatInfo.key;
 
@@ -9774,7 +9846,9 @@
                             displayTime = `${sched.departureTime} (${timeStr})`;
                         }
 
-                        return `<option value="${sched.departureTime || timeStr}">${displayTime} [Sub-Route: ${sched.scheduleId}] (${sched.totalGroupDistance || sched.distance} km - ${sched.shift})</option>`;
+                        const tcSlot = getTimeCategory(sched.departureTime || timeStr, routeObj, sched);
+                        const tcShort = tcSlot.key === "EXTREME_PEAK" ? "Extreme Peak" : (tcSlot.key === "PEAK" ? "Peak" : "Normal");
+                        return `<option value="${sched.departureTime || timeStr}">${displayTime} [${tcShort}] [Sub-Route: ${sched.scheduleId}] (${sched.totalGroupDistance || sched.distance} km - ${sched.shift})</option>`;
 
                     }).join("");
 
@@ -10367,7 +10441,7 @@
 
                         const busCat = alloc.busCategory || getBusCategory(alloc.bm, alloc.liveSoc);
 
-                        const timeCat = getTimeCategory(depShortTime);
+                        const timeCat = getTimeCategory(depShortTime, routeObj, currentScheduleMatch);
 
                         const isPeakTime = timeCat.isPeak;
 

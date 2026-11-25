@@ -7,6 +7,8 @@ import {
   deleteDepotFromDataset,
   addRouteToDataset,
   deleteRouteFromDataset,
+  deleteRoutesBatchFromDataset,
+  getDeletedRouteKeys,
   getRouteFromDataset,
   syncDatasetWithServer as syncMasterRouteDatasetWithServer,
 } from './routeDataset.js';
@@ -585,13 +587,25 @@ function notifyDepotListeners() {
  * Ensures that newly created depots are NEVER prematurely deleted when updating app code or on server restarts,
  * while respecting tombstones when an administrator explicitly deletes a depot.
  */
-export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds, remoteRoutesDatabase) {
+export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeletedIds, remoteRoutesDatabase, remoteDeletedRoutes) {
   let changed = false;
 
-  // 0. Ingest remote master route dataset
-  if (remoteRoutesDatabase && typeof remoteRoutesDatabase === 'object') {
-    syncMasterRouteDatasetWithServer(remoteRoutesDatabase, remoteDeletedIds);
+  // 0. Ingest remote master route dataset & route tombstones
+  if ((remoteRoutesDatabase && typeof remoteRoutesDatabase === 'object') || Array.isArray(remoteDeletedRoutes)) {
+    syncMasterRouteDatasetWithServer(
+      remoteRoutesDatabase || {},
+      remoteDeletedIds,
+      remoteDeletedRoutes,
+      remoteDepots
+    );
   }
+
+  const deletedRouteSet = new Set(
+    [
+      ...(Array.isArray(remoteDeletedRoutes) ? remoteDeletedRoutes : []),
+      ...(typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : []),
+    ].map((k) => String(k || '').toUpperCase().trim()).filter(Boolean)
+  );
 
   // 1. Ingest any remote tombstones (permanently deleted depot IDs)
   if (Array.isArray(remoteDeletedIds)) {
@@ -624,14 +638,21 @@ export function syncDepotsWithServer(remoteDepots, remoteAccounts, remoteDeleted
       const cleanId = String(rDepot.id).trim();
       if (deletedDepotIds.has(cleanId)) return; // Permanently deleted, ignore
 
+      const sanitizedDepot = Array.isArray(rDepot.routes)
+        ? {
+            ...rDepot,
+            routes: rDepot.routes.filter((rc) => !deletedRouteSet.has(`${cleanId}_${String(rc || '').toUpperCase().trim()}`)),
+          }
+        : rDepot;
+
       const existingIdx = dynamicDepots.findIndex((d) => String(d.id) === cleanId);
       if (existingIdx >= 0) {
-        if (JSON.stringify(dynamicDepots[existingIdx]) !== JSON.stringify(rDepot)) {
-          dynamicDepots[existingIdx] = rDepot;
+        if (JSON.stringify(dynamicDepots[existingIdx]) !== JSON.stringify(sanitizedDepot)) {
+          dynamicDepots[existingIdx] = sanitizedDepot;
           changed = true;
         }
       } else {
-        dynamicDepots.push(rDepot);
+        dynamicDepots.push(sanitizedDepot);
         changed = true;
       }
     });
@@ -684,7 +705,9 @@ try {
         syncDepotsWithServer(
           res.data.customDepots || [],
           res.data.customAccounts || {},
-          res.data.deletedDepotIds || []
+          res.data.deletedDepotIds || [],
+          null,
+          res.data.deletedRoutes || []
         );
       }
     }).catch(() => {});
@@ -714,21 +737,26 @@ export function getDepotDisplayName(depotId) {
 export function getRoutesForDepot(depotId) {
   const cleanId = String(depotId || '').trim();
   if (deletedDepotIds.has(cleanId)) return [];
+  const delSet = new Set((typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : []).map((k) => String(k).toUpperCase().trim()));
   const found = getAllDepots().find((d) => String(d.id) === cleanId || String(d.number) === cleanId);
   const core1 = ['356Z', '360K', '600F', 'KBS3A'];
   const core2 = ['361C', '399C', '328H', '500DC', 'KBS3F'];
   if (cleanId === '1') {
     const list = found && Array.isArray(found.routes) ? found.routes : core1;
-    // Strictly filter out any Depot 2 routes to guarantee no duplicates
-    return Array.from(new Set(list.filter((r) => !core2.includes(String(r).trim().toUpperCase()))));
+    return Array.from(new Set(list.filter((r) => {
+      const u = String(r).trim().toUpperCase();
+      return !core2.includes(u) && !delSet.has(`1_${u}`);
+    })));
   }
   if (cleanId === '2') {
     const list = found && Array.isArray(found.routes) ? found.routes : core2;
-    // Strictly filter out any Depot 1 routes to guarantee no duplicates
-    return Array.from(new Set(list.filter((r) => !core1.includes(String(r).trim().toUpperCase()))));
+    return Array.from(new Set(list.filter((r) => {
+      const u = String(r).trim().toUpperCase();
+      return !core1.includes(u) && !delSet.has(`2_${u}`);
+    })));
   }
   if (found && Array.isArray(found.routes)) {
-    return Array.from(new Set(found.routes));
+    return Array.from(new Set(found.routes.filter((r) => !delSet.has(`${cleanId}_${String(r).trim().toUpperCase()}`))));
   }
   return [];
 }
@@ -854,6 +882,7 @@ export function addRouteToDepot(depotId, routeData) {
         customDepots: dynamicDepots,
         customAccounts: dynamicAccounts,
         deletedDepotIds: Array.from(deletedDepotIds),
+        deletedRoutes: typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : [],
       }).catch(() => {});
     }
   } catch (_) {}
@@ -864,7 +893,7 @@ export function addRouteToDepot(depotId, routeData) {
 /**
  * Removes a route code from a depot's assigned routes list and syncs across devices.
  */
-export function removeRouteFromDepot(depotId, routeCode) {
+export function removeRouteFromDepot(depotId, routeCode, options = {}) {
   const cleanId = String(depotId || '').trim();
   const cleanRoute = String(routeCode || '').trim().toUpperCase();
   if (!cleanId || !cleanRoute) {
@@ -877,10 +906,12 @@ export function removeRouteFromDepot(depotId, routeCode) {
   }
 
   // Also remove from Master Route & Schedule Dataset
-  try {
-    deleteRouteFromDataset(cleanId, cleanRoute);
-  } catch (err) {
-    console.warn('[removeRouteFromDepot] Dataset sync notice:', err?.message || err);
+  if (!options.skipDatasetSync) {
+    try {
+      deleteRouteFromDataset(cleanId, cleanRoute);
+    } catch (err) {
+      console.warn('[removeRouteFromDepot] Dataset sync notice:', err?.message || err);
+    }
   }
 
   let updatedRoutes = [];
@@ -901,6 +932,46 @@ export function removeRouteFromDepot(depotId, routeCode) {
   persistLocalDepotState();
   notifyDepotListeners();
 
+  if (!options.skipServerDepotSync) {
+    try {
+      if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
+        api.saveCustomDepot({
+          action: 'sync',
+          customDepots: dynamicDepots,
+          customAccounts: dynamicAccounts,
+          deletedDepotIds: Array.from(deletedDepotIds),
+          deletedRoutes: typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : [],
+        }).catch(() => {});
+      }
+    } catch (_) {}
+  }
+
+  return { ok: true, routes: updatedRoutes };
+}
+
+/**
+ * Batch removes multiple routes atomically without triggering overlapping per-route server requests.
+ */
+export function removeRoutesBatchFromDepot(items) {
+  if (!Array.isArray(items) || items.length === 0) return { ok: false, count: 0 };
+  const normalized = items
+    .map((item) => ({
+      depotId: String(item?.depotId || '1').trim(),
+      code: String(item?.code || item?.routeCode || item?.id || '').toUpperCase().trim(),
+    }))
+    .filter((x) => x.code);
+  if (normalized.length === 0) return { ok: false, count: 0 };
+
+  normalized.forEach(({ depotId, code }) => {
+    removeRouteFromDepot(depotId, code, { skipDatasetSync: true, skipServerDepotSync: true });
+  });
+
+  try {
+    deleteRoutesBatchFromDataset(normalized);
+  } catch (err) {
+    console.warn('[removeRoutesBatchFromDepot] Dataset sync notice:', err?.message || err);
+  }
+
   try {
     if (typeof api !== 'undefined' && api && typeof api.saveCustomDepot === 'function') {
       api.saveCustomDepot({
@@ -908,11 +979,12 @@ export function removeRouteFromDepot(depotId, routeCode) {
         customDepots: dynamicDepots,
         customAccounts: dynamicAccounts,
         deletedDepotIds: Array.from(deletedDepotIds),
+        deletedRoutes: typeof getDeletedRouteKeys === 'function' ? getDeletedRouteKeys() : [],
       }).catch(() => {});
     }
   } catch (_) {}
 
-  return { ok: true, routes: updatedRoutes };
+  return { ok: true, count: normalized.length };
 }
 
 /**

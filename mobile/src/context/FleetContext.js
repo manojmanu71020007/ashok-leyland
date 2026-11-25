@@ -307,28 +307,80 @@ export function getBusActualRangeKm(bm) {
   return 200.0;
 }
 
-export function getTimeCategory(timeStr, routeObj = null) {
+function toTimeH24Key(tStr) {
+  const raw = String(tStr || '').trim();
+  if (!raw) return '';
+  const ampm = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+  if (ampm) {
+    let h = parseInt(ampm[1], 10);
+    const m = parseInt(ampm[2], 10);
+    const mod = ampm[3].toUpperCase();
+    if (mod === 'PM' && h < 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  const h24m = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (h24m) {
+    return `${String(parseInt(h24m[1], 10)).padStart(2, '0')}:${String(parseInt(h24m[2], 10)).padStart(2, '0')}`;
+  }
+  return '';
+}
+
+function mapSlotLabelToTimeCat(slotStr, timeLabel = '') {
+  const slot = String(slotStr || '').toUpperCase();
+  const suffix = timeLabel ? ` (${timeLabel})` : '';
+  if (slot.includes('EXTREME')) {
+    return { key: 'EXTREME_PEAK', label: `Extreme Peak${suffix}`, isPeak: true };
+  }
+  if (slot.includes('PEAK')) {
+    return { key: 'PEAK', label: `Peak${suffix}`, isPeak: true };
+  }
+  if (slot.includes('NORM')) {
+    return { key: 'NORMAL', label: `Normal${suffix}`, isPeak: false };
+  }
+  return null;
+}
+
+export function getTimeCategory(timeStr, routeObj = null, schedObj = null) {
+  const targetH24 = toTimeH24Key(timeStr);
   if (routeObj && typeof routeObj === 'object') {
-    if (routeObj.timeComplexitySlots && timeStr && routeObj.timeComplexitySlots[timeStr]) {
-      const slot = String(routeObj.timeComplexitySlots[timeStr]).toUpperCase();
-      if (slot.includes('EXTREME')) {
-        return { key: 'EXTREME_PEAK', label: `Extreme Peak (${timeStr})`, isPeak: true };
+    if (routeObj.timeComplexitySlots && timeStr) {
+      let matchedSlotVal = routeObj.timeComplexitySlots[timeStr];
+      if (!matchedSlotVal && targetH24) {
+        for (const [k, v] of Object.entries(routeObj.timeComplexitySlots)) {
+          if (toTimeH24Key(k) === targetH24) {
+            matchedSlotVal = v;
+            break;
+          }
+        }
       }
-      if (slot.includes('PEAK')) {
-        return { key: 'PEAK', label: `Peak (${timeStr})`, isPeak: true };
-      }
-      if (slot.includes('NORM')) {
-        return { key: 'NORMAL', label: `Normal (${timeStr})`, isPeak: false };
+      if (matchedSlotVal) {
+        const res = mapSlotLabelToTimeCat(matchedSlotVal, timeStr);
+        if (res) return res;
       }
     }
-    if (routeObj.timeComplexity) {
-      const tc = String(routeObj.timeComplexity).toUpperCase();
-      if (tc.includes('EXTREME')) {
-        return { key: 'EXTREME_PEAK', label: 'Extreme Peak (Route Override)', isPeak: true };
+    if (Array.isArray(routeObj.schedules) && timeStr) {
+      const mSched = routeObj.schedules.find((s) => {
+        const sTime = s.departureTime || s.outTime || '';
+        return sTime === timeStr || (targetH24 && toTimeH24Key(sTime) === targetH24);
+      });
+      if (mSched && mSched.timeComplexity) {
+        const res = mapSlotLabelToTimeCat(mSched.timeComplexity, timeStr);
+        if (res) return res;
       }
-      if (tc.includes('PEAK')) {
-        return { key: 'PEAK', label: 'Peak (Route Override)', isPeak: true };
-      }
+    }
+  }
+  if (schedObj && typeof schedObj === 'object' && schedObj.timeComplexity) {
+    const res = mapSlotLabelToTimeCat(schedObj.timeComplexity, timeStr);
+    if (res) return res;
+  }
+  if (routeObj && typeof routeObj === 'object' && routeObj.timeComplexity) {
+    const tc = String(routeObj.timeComplexity).toUpperCase();
+    if (tc.includes('EXTREME')) {
+      return { key: 'EXTREME_PEAK', label: 'Extreme Peak (Route Override)', isPeak: true };
+    }
+    if (tc.includes('PEAK')) {
+      return { key: 'PEAK', label: 'Peak (Route Override)', isPeak: true };
     }
   }
 
@@ -344,7 +396,7 @@ export function getTimeCategory(timeStr, routeObj = null) {
   return { key: 'NORMAL', label: 'Normal (Off-Peak)', isPeak: false };
 }
 
-export function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
+export function getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj = null) {
   let key = 'NORMAL';
   if (timeCategoryOrStr && typeof timeCategoryOrStr === 'object' && timeCategoryOrStr.key) {
     key = timeCategoryOrStr.key;
@@ -352,8 +404,10 @@ export function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
     const upper = timeCategoryOrStr.toUpperCase().trim();
     if (upper === 'EXTREME_PEAK' || upper === 'PEAK' || upper === 'NORMAL') {
       key = upper;
+    } else if (upper === 'EXTREME PEAK') {
+      key = 'EXTREME_PEAK';
     } else {
-      key = getTimeCategory(timeCategoryOrStr).key;
+      key = getTimeCategory(timeCategoryOrStr, routeObj).key;
     }
   }
   if (key === 'EXTREME_PEAK') {
@@ -364,10 +418,10 @@ export function getTimeCategoryDrainMultiplier(timeCategoryOrStr) {
   return { multiplier: 1.0, label: 'Normal', timeCategory: 'Normal', pctNote: 'Normal Baseline Drain' };
 }
 
-export function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
+export function getBusDrainRatePerKm(bm, timeCategoryOrStr, routeObj = null) {
   const busRangeKm = bm ? getBusActualRangeKm(bm) : 200.0;
   const baseDrain = 100 / busRangeKm;
-  const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr);
+  const drainInfo = getTimeCategoryDrainMultiplier(timeCategoryOrStr, routeObj);
   return {
     busRangeKm,
     baseDrainPerKm: baseDrain,
@@ -380,13 +434,13 @@ export function getBusDrainRatePerKm(bm, timeCategoryOrStr) {
 }
 
 // ── Pure Trip Battery Consumption (Excluding 15% Safety Reserve) ──
-export function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr) {
-  const drainInfo = getBusDrainRatePerKm(busBm, timeCategoryOrStr);
+export function getEstimatedTripDrainSoc(distKm, busBm, timeCategoryOrStr, routeObj = null) {
+  const drainInfo = getBusDrainRatePerKm(busBm, timeCategoryOrStr, routeObj);
   const d = Number(distKm) || 28.7;
   return Math.min(100, Math.round(d * drainInfo.effectiveDrainPerKm));
 }
 
-export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride = null) {
+export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategoryOrStr, actualKmOverride = null, routeObj = null) {
   let targetKm = actualKmOverride
     ? Number(actualKmOverride)
     : (schedObj && (schedObj.actualKm || schedObj.fullDutyKm))
@@ -409,7 +463,7 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
   }
 
   const depTime = timeCategoryOrStr || (schedObj && (schedObj.outTime || schedObj.cum_time || schedObj.departureTime));
-  const drainInfo = getBusDrainRatePerKm(busBm, depTime);
+  const drainInfo = getBusDrainRatePerKm(busBm, depTime, routeObj);
   const baseSoc = targetKm * drainInfo.effectiveDrainPerKm;
   const reservePct = 15;
   return Math.min(100, Math.round(baseSoc + reservePct));
@@ -843,12 +897,13 @@ export const FleetProvider = ({ children }) => {
       let deletedBusesObj = {};
 
       if (resSync.ok && resSync.data) {
-        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined || resSync.data.routesDatabase !== undefined) {
+        if (resSync.data.customDepots !== undefined || resSync.data.customAccounts !== undefined || resSync.data.deletedDepotIds !== undefined || resSync.data.routesDatabase !== undefined || resSync.data.deletedRoutes !== undefined) {
           syncDepotsWithServer(
             resSync.data.customDepots || [],
             resSync.data.customAccounts || {},
             resSync.data.deletedDepotIds || [],
-            resSync.data.routesDatabase || null
+            resSync.data.routesDatabase || null,
+            resSync.data.deletedRoutes || []
           );
         }
 

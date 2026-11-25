@@ -22452,11 +22452,6 @@
         "shortName": "Depot 3",
         "location": "bangalore",
         "routes": [
-          "201G",
-          "275M",
-          "318R",
-          "342A",
-          "415T",
           "MS30"
         ],
         "isDefault": false
@@ -31622,266 +31617,6 @@
         "totalGroupDistance": 203.2
       },
       {
-        "code": "201G",
-        "id": "201G",
-        "depotId": "3",
-        "name": "Hebbagodi ➔ Shivajinagar (201G)",
-        "fullName": "Hebbagodi - Shivajinagar",
-        "shortName": "201G",
-        "origin": "Hebbagodi",
-        "destination": "Shivajinagar",
-        "distance": 39.4,
-        "fullDutyKm": 108.35,
-        "actualKm": 108.35,
-        "chargingOcc": 1,
-        "noChargingOcc": 1,
-        "splitDuty": true,
-        "singleChargeReqKm": 98.5,
-        "routeComplexity": "Standard",
-        "category": "Standard",
-        "requiredCat": "B",
-        "drainSoc": 33,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "201G/1",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "04:00 PM",
-            "fixBm": "",
-            "swapBm": "",
-            "category": "Standard",
-            "singleChargeReqKm": 98.5,
-            "actualKm": 108.35,
-            "chargingOcc": 1,
-            "noChargingOcc": 1,
-            "splitDuty": true
-          }
-        ]
-      },
-      {
-        "code": "275M",
-        "id": "275M",
-        "depotId": "3",
-        "name": "Attibele ➔ Jayanagar (275M)",
-        "fullName": "Attibele - Jayanagar",
-        "shortName": "275M",
-        "origin": "Attibele",
-        "destination": "Jayanagar",
-        "distance": 41.8,
-        "fullDutyKm": 126.45,
-        "actualKm": 126.45,
-        "chargingOcc": 1,
-        "noChargingOcc": 1,
-        "splitDuty": true,
-        "singleChargeReqKm": 115,
-        "routeComplexity": "Moderate",
-        "category": "Moderate",
-        "requiredCat": "B",
-        "drainSoc": 36,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "275M/1",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "04:00 PM",
-            "fixBm": "",
-            "swapBm": "",
-            "category": "Moderate",
-            "singleChargeReqKm": 115,
-            "actualKm": 126.45,
-            "chargingOcc": 1,
-            "noChargingOcc": 1,
-            "splitDuty": true
-          }
-        ]
-      },
-      {
-        "code": "318R",
-        "id": "318R",
-        "depotId": "3",
-        "name": "Anekal ➔ Yeshwanthpur (318R)",
-        "fullName": "Anekal - Yeshwanthpur",
-        "shortName": "318R",
-        "origin": "Anekal",
-        "destination": "Yeshwanthpur",
-        "distance": 43.6,
-        "fullDutyKm": 119.9,
-        "actualKm": 119.9,
-        "chargingOcc": 1,
-        "noChargingOcc": 1,
-        "splitDuty": true,
-        "singleChargeReqKm": 109,
-        "routeComplexity": "Moderate",
-        "category": "Moderate",
-        "requiredCat": "B",
-        "drainSoc": 37,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "318R/1",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "04:00 PM",
-            "fixBm": "",
-            "swapBm": "",
-            "category": "Moderate",
-            "singleChargeReqKm": 109,
-            "actualKm": 119.9,
-            "chargingOcc": 1,
-            "noChargingOcc": 1,
-            "splitDuty": true
-          }
-        ]
-      },
-      {
-        "code": "342A",
-        "id": "342A",
-        "depotId": "3",
-        "name": "Bommasandra ➔ Hebbal (342A)",
-        "fullName": "Bommasandra - Hebbal",
-        "shortName": "342A",
-        "origin": "Bommasandra",
-        "destination": "Hebbal",
-        "distance": 48.7,
-        "fullDutyKm": 139.26,
-        "actualKm": 139.26,
-        "chargingOcc": 1,
-        "noChargingOcc": 1,
-        "splitDuty": true,
-        "singleChargeReqKm": 126.6,
-        "routeComplexity": "Complex",
-        "category": "Complex",
-        "requiredCat": "A",
-        "drainSoc": 41,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "342A/1",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "04:00 PM",
-            "fixBm": "",
-            "swapBm": "",
-            "category": "Complex",
-            "singleChargeReqKm": 126.6,
-            "actualKm": 139.26,
-            "chargingOcc": 1,
-            "noChargingOcc": 1,
-            "splitDuty": true
-          }
-        ]
-      },
-      {
-        "code": "415T",
-        "id": "415T",
-        "depotId": "3",
-        "name": "Harohalli ➔ Devanahalli (415T)",
-        "fullName": "Harohalli - Devanahalli",
-        "shortName": "415T",
-        "origin": "Harohalli",
-        "destination": "Devanahalli",
-        "distance": 72.5,
-        "fullDutyKm": 159.5,
-        "actualKm": 159.5,
-        "chargingOcc": 1,
-        "noChargingOcc": 1,
-        "splitDuty": true,
-        "singleChargeReqKm": 145,
-        "routeComplexity": "Complex",
-        "category": "Complex",
-        "requiredCat": "A",
-        "drainSoc": 62,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "415T/1",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "04:00 PM",
-            "fixBm": "",
-            "swapBm": "",
-            "category": "Complex",
-            "singleChargeReqKm": 145,
-            "actualKm": 159.5,
-            "chargingOcc": 1,
-            "noChargingOcc": 1,
-            "splitDuty": true
-          }
-        ]
-      },
-      {
         "code": "MS30",
         "id": "MS30",
         "depotId": "3",
@@ -31989,7 +31724,14 @@
         "drainMultiplier": 1,
         "requiredBusCat": "B"
       }
-    }
+    },
+    "deletedRoutes": [
+      "3_201G",
+      "3_275M",
+      "3_318R",
+      "3_342A",
+      "3_415T"
+    ]
   },
   "BM1994": {
     "uniqueId": "BM1994",
@@ -32270,5 +32012,12 @@
     "chargingCompleted": false,
     "cleaningCompleted": false,
     "postRouteServicingPending": false
-  }
+  },
+  "_deletedRoutes": [
+    "3_201G",
+    "3_275M",
+    "3_318R",
+    "3_342A",
+    "3_415T"
+  ]
 }

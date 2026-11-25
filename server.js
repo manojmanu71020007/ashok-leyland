@@ -677,6 +677,15 @@ function loadRoutes() {
 
 let cachedCorridorSchedules = null;
 
+function normalizeTimeCategoryOption(val) {
+    const raw = String(val || "").trim().toLowerCase();
+    if (!raw) return null;
+    if (raw.includes("extreme")) return "Extreme Peak";
+    if (raw.includes("peak")) return "Peak";
+    if (raw.includes("norm")) return "Normal";
+    return null;
+}
+
 function normalizeDepartureTimeParts(tStr) {
     const raw = String(tStr || "").trim();
     if (!raw) return null;
@@ -1054,10 +1063,36 @@ function loadCorridorSchedules() {
     try {
         const state = loadBusState();
         const ds = state._routesDatabase || loadRoutesDataset();
+        const deletedRouteKeys = new Set(
+            [...(Array.isArray(state._deletedRoutes) ? state._deletedRoutes : []), ...(Array.isArray(ds?.deletedRoutes) ? ds.deletedRoutes : [])]
+                .map(k => String(k || "").toUpperCase().trim())
+                .filter(Boolean)
+        );
+        const customDepotRoutesMap = new Map();
+        if (Array.isArray(state._customDepots)) {
+            state._customDepots.forEach(cd => {
+                if (!cd || cd.id === undefined || cd.id === null) return;
+                const dId = String(cd.id).trim();
+                const rSet = new Set((Array.isArray(cd.routes) ? cd.routes : []).map(c => String(c || "").toUpperCase().trim()).filter(Boolean));
+                customDepotRoutesMap.set(dId, rSet);
+            });
+        }
+        // Purge schedules belonging strictly to tombstoned routes
+        for (let i = schedules.length - 1; i >= 0; i--) {
+            const sCode = String(schedules[i].route || "").toUpperCase().trim();
+            const sDep = String(schedules[i].depotId || schedules[i].depot || "").trim();
+            if (sDep && deletedRouteKeys.has(`${sDep}_${sCode}`)) {
+                schedules.splice(i, 1);
+            }
+        }
         if (ds && Array.isArray(ds.routes)) {
             ds.routes.forEach(r => {
                 const cleanCode = String(r.code || r.id || "").toUpperCase().trim();
+                const dId = String(r.depotId || "1").trim();
                 if (!cleanCode) return;
+                const routeKey = `${dId}_${cleanCode}`;
+                if (deletedRouteKeys.has(routeKey)) return;
+                if (customDepotRoutesMap.has(dId) && !customDepotRoutesMap.get(dId).has(cleanCode)) return;
                 const flatTimetables = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : null;
                 let existingDir = directionalRoutes.find(c => c.code === cleanCode);
                 if (!existingDir) {
@@ -1066,8 +1101,8 @@ function loadCorridorSchedules() {
                         code: cleanCode,
                         routeCode: cleanCode,
                         routeId: cleanCode,
-                        depot: String(r.depotId || "1"),
-                        depotId: String(r.depotId || "1"),
+                        depot: dId,
+                        depotId: dId,
                         origin: r.origin || "Origin",
                         destination: r.destination || "Destination",
                         distKm: Number(r.distance) || 28.7,
@@ -1075,6 +1110,7 @@ function loadCorridorSchedules() {
                         actualKm: r.actualKm || r.fullDutyKm || undefined,
                         fullDutyKm: r.fullDutyKm || undefined,
                         timetables: flatTimetables || undefined,
+                        timeComplexitySlots: (r.timeComplexitySlots && typeof r.timeComplexitySlots === "object") ? r.timeComplexitySlots : {},
                         trips: (flatTimetables && flatTimetables.length) || 8,
                         label: `${r.origin || 'Origin'} ⇔ ${r.destination || 'Destination'} (Route ${cleanCode}) — ${r.distance || 28.7} km`
                     };
@@ -1084,6 +1120,9 @@ function loadCorridorSchedules() {
                     if (flatTimetables) {
                         existingDir.timetables = flatTimetables;
                         existingDir.trips = flatTimetables.length || existingDir.trips;
+                    }
+                    if (r.timeComplexitySlots && typeof r.timeComplexitySlots === "object") {
+                        existingDir.timeComplexitySlots = { ...(existingDir.timeComplexitySlots || {}), ...r.timeComplexitySlots };
                     }
                     if (r.fullDutyKm) existingDir.fullDutyKm = r.fullDutyKm;
                     if (r.actualKm || r.fullDutyKm) existingDir.actualKm = r.actualKm || r.fullDutyKm;
@@ -1108,12 +1147,26 @@ function loadCorridorSchedules() {
                     }
                 }
 
+                const findSlotTier = (depNorm, sParts) => {
+                    const slots = r.timeComplexitySlots;
+                    if (!slots || typeof slots !== "object") return null;
+                    if (depNorm && slots[depNorm]) return normalizeTimeCategoryOption(slots[depNorm]);
+                    if (sParts) {
+                        for (const [k, v] of Object.entries(slots)) {
+                            const kp = normalizeDepartureTimeParts(k);
+                            if (kp && kp.h24Str === sParts.h24Str) return normalizeTimeCategoryOption(v);
+                        }
+                    }
+                    return null;
+                };
+
                 if (Array.isArray(r.schedules)) {
                     r.schedules.forEach(s => {
                         const sId = String(s.scheduleId || "").trim();
                         const sParts = normalizeDepartureTimeParts(s.departureTime || s.outTime);
                         const outNorm = sParts ? sParts.outTime24 : (s.outTime || s.departureTime || "08:00:00");
                         const depNorm = sParts ? sParts.ampmStr : (s.departureTime || s.outTime || "08:00 AM");
+                        const resolvedTier = findSlotTier(depNorm, sParts) || normalizeTimeCategoryOption(s.timeComplexity);
                         const dupByTime = sParts && schedules.some(x => {
                             if (String(x.route || "").toUpperCase().trim() !== cleanCode) return false;
                             const xp = normalizeDepartureTimeParts(x.departureTime || x.outTime);
@@ -1132,6 +1185,7 @@ function loadCorridorSchedules() {
                                 departureTime: depNorm,
                                 inTime: s.inTime || "16:00:00",
                                 category: s.category || r.routeComplexity || "Standard",
+                                timeComplexity: resolvedTier || (sParts ? sParts.tier : undefined),
                                 singleChargeReqKm: s.singleChargeReqKm || s.totalGroupDistance || Math.round((Number(r.distance) || 25) * 1.5),
                                 totalGroupDistance: s.totalGroupDistance || s.distance || Number(r.fullDutyKm || r.distance || 0),
                                 distance: s.distance || s.totalGroupDistance || Number(r.distance || 0),
@@ -1146,12 +1200,15 @@ function loadCorridorSchedules() {
                     flatTimetables.forEach(tStr => {
                         const tParts = normalizeDepartureTimeParts(tStr);
                         if (!tParts) return;
-                        const alreadyInSched = schedules.some(x => {
+                        const resolvedTier = findSlotTier(tParts.ampmStr, tParts) || tParts.tier;
+                        const existingMatch = schedules.find(x => {
                             if (String(x.route || "").toUpperCase().trim() !== cleanCode) return false;
                             const xp = normalizeDepartureTimeParts(x.departureTime || x.outTime);
                             return xp && xp.h24Str === tParts.h24Str;
                         });
-                        if (!alreadyInSched) {
+                        if (existingMatch) {
+                            if (resolvedTier) existingMatch.timeComplexity = resolvedTier;
+                        } else {
                             schedules.push({
                                 scheduleId: `${cleanCode}/T-${tParts.h24Str.replace(":", "")}`,
                                 route: cleanCode,
@@ -1164,6 +1221,7 @@ function loadCorridorSchedules() {
                                 departureTime: tParts.ampmStr,
                                 inTime: "16:00:00",
                                 category: r.routeComplexity || r.category || "Standard",
+                                timeComplexity: resolvedTier,
                                 singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5),
                                 totalGroupDistance: Number(r.fullDutyKm || r.distance || 0),
                                 distance: Number(r.distance || 0),
@@ -5181,6 +5239,8 @@ const server = http.createServer(async (req, res) => {
 
                 deletedDepotIds: currentState._deletedDepotIds || [],
 
+                deletedRoutes: currentState._deletedRoutes || [],
+
                 routesDatabase: currentState._routesDatabase || loadRoutesDataset() || {},
 
                 timestamp: Date.now()
@@ -5207,6 +5267,7 @@ const server = http.createServer(async (req, res) => {
                     customDepots: currentState._customDepots || [],
                     customAccounts: currentState._customAccounts || {},
                     deletedDepotIds: currentState._deletedDepotIds || [],
+                    deletedRoutes: currentState._deletedRoutes || [],
                     version: stateVersion
                 });
             } catch (err) {
@@ -5229,8 +5290,21 @@ const server = http.createServer(async (req, res) => {
                     if (!Array.isArray(currentState._deletedDepotIds)) {
                         currentState._deletedDepotIds = [];
                     }
+                    if (!Array.isArray(currentState._deletedRoutes)) {
+                        currentState._deletedRoutes = [];
+                    }
 
-                    const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds } = payload;
+                    const { action, depot, depotId, accounts, customDepots, customAccounts, deletedDepotIds, deletedRoutes } = payload;
+
+                    if (Array.isArray(deletedRoutes)) {
+                        deletedRoutes.forEach(rk => {
+                            const ck = String(rk || "").toUpperCase().trim();
+                            if (ck && !currentState._deletedRoutes.includes(ck)) {
+                                currentState._deletedRoutes.push(ck);
+                            }
+                        });
+                    }
+                    const delRouteSet = new Set(currentState._deletedRoutes.map(k => String(k || "").toUpperCase().trim()));
 
                     // Ingest any incoming deleted depot IDs
                     if (Array.isArray(deletedDepotIds)) {
@@ -5246,6 +5320,9 @@ const server = http.createServer(async (req, res) => {
                         const cleanId = String(depot.id || "").trim();
                         // Un-tombstone if re-created
                         currentState._deletedDepotIds = currentState._deletedDepotIds.filter(id => id !== cleanId);
+                        if (Array.isArray(depot.routes)) {
+                            depot.routes = depot.routes.filter(rc => !delRouteSet.has(`${cleanId}_${String(rc || "").toUpperCase().trim()}`));
+                        }
                         const existingIdx = currentState._customDepots.findIndex(d => String(d.id) === cleanId);
                         if (existingIdx >= 0) {
                             currentState._customDepots[existingIdx] = depot;
@@ -5301,6 +5378,9 @@ const server = http.createServer(async (req, res) => {
                                 if (!d || !d.id) return;
                                 const id = String(d.id).trim();
                                 if (currentState._deletedDepotIds.includes(id)) return;
+                                if (Array.isArray(d.routes)) {
+                                    d.routes = d.routes.filter(rc => !delRouteSet.has(`${id}_${String(rc || "").toUpperCase().trim()}`));
+                                }
                                 const idx = currentState._customDepots.findIndex(ex => String(ex.id) === id);
                                 if (idx >= 0) {
                                     currentState._customDepots[idx] = d;
@@ -5318,11 +5398,42 @@ const server = http.createServer(async (req, res) => {
                         }
                     }
 
+                    // Keep _routesDatabase synchronized with _deletedRoutes & active _customDepots routes
+                    if (currentState._routesDatabase && Array.isArray(currentState._routesDatabase.routes)) {
+                        const customMap = new Map(currentState._customDepots.map(cd => [String(cd.id).trim(), new Set((cd.routes || []).map(c => String(c).toUpperCase().trim()))]));
+                        currentState._routesDatabase.routes = currentState._routesDatabase.routes.filter(r => {
+                            const rDep = String(r.depotId || "1").trim();
+                            const rCode = String(r.code || r.id || "").toUpperCase().trim();
+                            const rKey = `${rDep}_${rCode}`;
+                            if (delRouteSet.has(rKey)) return false;
+                            if (customMap.has(rDep) && !customMap.get(rDep).has(rCode)) {
+                                delRouteSet.add(rKey);
+                                if (!currentState._deletedRoutes.includes(rKey)) currentState._deletedRoutes.push(rKey);
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (Array.isArray(currentState._routesDatabase.depots)) {
+                            currentState._routesDatabase.depots.forEach(dp => {
+                                const dpId = String(dp.id || "").trim();
+                                if (customMap.has(dpId)) {
+                                    dp.routes = Array.from(customMap.get(dpId));
+                                } else if (Array.isArray(dp.routes)) {
+                                    dp.routes = dp.routes.filter(rc => !delRouteSet.has(`${dpId}_${String(rc).toUpperCase().trim()}`));
+                                }
+                            });
+                        }
+                        currentState._routesDatabase.deletedRoutes = Array.from(delRouteSet);
+                        saveRoutesDataset(currentState._routesDatabase);
+                        cachedCorridorSchedules = null;
+                    }
+
                     saveBusState(currentState);
                     broadcastSyncEvent("custom-depots-updated", {
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
-                        deletedDepotIds: currentState._deletedDepotIds
+                        deletedDepotIds: currentState._deletedDepotIds,
+                        deletedRoutes: currentState._deletedRoutes
                     });
 
                     sendJson(res, {
@@ -5331,6 +5442,7 @@ const server = http.createServer(async (req, res) => {
                         customDepots: currentState._customDepots,
                         customAccounts: currentState._customAccounts,
                         deletedDepotIds: currentState._deletedDepotIds,
+                        deletedRoutes: currentState._deletedRoutes,
                         version: stateVersion
                     });
                 } catch (err) {
@@ -5347,8 +5459,40 @@ const server = http.createServer(async (req, res) => {
             try {
                 const currentState = loadBusState();
                 const fileDataset = loadRoutesDataset();
-                const dataset = fileDataset || currentState._routesDatabase || {};
-                sendJson(res, { ok: true, dataset, version: stateVersion });
+                const rawDataset = currentState._routesDatabase || fileDataset || {};
+                const delRouteSet = new Set(
+                    [...(Array.isArray(currentState._deletedRoutes) ? currentState._deletedRoutes : []), ...(Array.isArray(rawDataset.deletedRoutes) ? rawDataset.deletedRoutes : [])]
+                        .map(k => String(k || "").toUpperCase().trim())
+                        .filter(Boolean)
+                );
+                const delDepotSet = new Set((Array.isArray(currentState._deletedDepotIds) ? currentState._deletedDepotIds : []).map(String));
+                const customMap = new Map(
+                    (Array.isArray(currentState._customDepots) ? currentState._customDepots : [])
+                        .map(cd => [String(cd.id).trim(), new Set((cd.routes || []).map(c => String(c).toUpperCase().trim()))])
+                );
+                const dataset = {
+                    ...rawDataset,
+                    deletedRoutes: Array.from(delRouteSet),
+                    depots: Array.isArray(rawDataset.depots)
+                        ? rawDataset.depots.filter(d => !delDepotSet.has(String(d.id).trim())).map(d => {
+                            const dId = String(d.id).trim();
+                            if (customMap.has(dId)) {
+                                return { ...d, routes: Array.from(customMap.get(dId)) };
+                            }
+                            return { ...d, routes: Array.isArray(d.routes) ? d.routes.filter(rc => !delRouteSet.has(`${dId}_${String(rc).toUpperCase().trim()}`)) : [] };
+                        })
+                        : [],
+                    routes: Array.isArray(rawDataset.routes)
+                        ? rawDataset.routes.filter(r => {
+                            const rDep = String(r.depotId || "1").trim();
+                            const rCode = String(r.code || r.id || "").toUpperCase().trim();
+                            if (delDepotSet.has(rDep) || delRouteSet.has(`${rDep}_${rCode}`)) return false;
+                            if (customMap.has(rDep) && !customMap.get(rDep).has(rCode)) return false;
+                            return true;
+                        })
+                        : []
+                };
+                sendJson(res, { ok: true, dataset, deletedRoutes: Array.from(delRouteSet), version: stateVersion });
             } catch (err) {
                 sendJson(res, { ok: false, error: "Failed to load routes dataset", details: err.message }, 500);
             }
@@ -5371,14 +5515,28 @@ const server = http.createServer(async (req, res) => {
                             timeComplexityConfig: {}
                         };
                     }
+                    if (!Array.isArray(currentState._deletedRoutes)) currentState._deletedRoutes = [];
+                    if (!Array.isArray(dataset.deletedRoutes)) dataset.deletedRoutes = [];
+                    if (Array.isArray(payload.deletedRoutes)) {
+                        payload.deletedRoutes.forEach(rk => {
+                            const ck = String(rk || "").toUpperCase().trim();
+                            if (ck && !currentState._deletedRoutes.includes(ck)) {
+                                currentState._deletedRoutes.push(ck);
+                            }
+                        });
+                    }
+                    const delRouteSet = new Set([
+                        ...currentState._deletedRoutes.map(k => String(k || "").toUpperCase().trim()),
+                        ...dataset.deletedRoutes.map(k => String(k || "").toUpperCase().trim())
+                    ].filter(Boolean));
+                    const delDepotSet = new Set((Array.isArray(currentState._deletedDepotIds) ? currentState._deletedDepotIds : []).map(String));
 
                     const { action, route, depot, routeCode, depotId, routeComplexity, timeComplexity, timeSlot, timetables, dataset: incomingDataset } = payload;
 
-                    if (incomingDataset && Array.isArray(incomingDataset.routes)) {
-                        dataset = incomingDataset;
-                    } else if (action === "add_route" && route) {
+                    if (action === "add_route" && route) {
                         const cleanCode = String(route.code || route.id || "").toUpperCase().trim();
                         const dId = String(route.depotId || depotId || "1").trim();
+                        if (cleanCode) delRouteSet.delete(`${dId}_${cleanCode}`);
                         if (!dataset.routes) dataset.routes = [];
                         const existingIdx = dataset.routes.findIndex(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
                         if (existingIdx >= 0) {
@@ -5392,19 +5550,46 @@ const server = http.createServer(async (req, res) => {
                                 depotObj.routes.push(cleanCode);
                             }
                         }
+                        if (Array.isArray(currentState._customDepots)) {
+                            const cDep = currentState._customDepots.find(d => String(d.id).trim() === dId);
+                            if (cDep) {
+                                if (!Array.isArray(cDep.routes)) cDep.routes = [];
+                                if (cleanCode && !cDep.routes.some(c => String(c).toUpperCase().trim() === cleanCode)) {
+                                    cDep.routes.push(cleanCode);
+                                }
+                            }
+                        }
                     } else if ((action === "delete_route" || action === "delete_routes_batch" || action === "delete-routes-batch") && (routeCode || Array.isArray(payload.routeCodes) || Array.isArray(payload.routes))) {
                         const codes = Array.isArray(payload.routeCodes) ? payload.routeCodes : (Array.isArray(payload.routes) ? payload.routes : [routeCode]);
                         codes.forEach(codeItem => {
                             const cleanCode = String(codeItem?.code || codeItem?.id || codeItem || "").toUpperCase().trim();
                             const dId = codeItem?.depotId ? String(codeItem.depotId).trim() : (depotId ? String(depotId).trim() : null);
-                            if (dataset.routes) {
-                                dataset.routes = dataset.routes.filter(r => !(String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
+                            if (!cleanCode) return;
+                            if (dId) {
+                                delRouteSet.add(`${dId}_${cleanCode}`);
+                            } else if (Array.isArray(dataset.routes)) {
+                                dataset.routes.forEach(r => {
+                                    if (String(r.code || r.id).toUpperCase().trim() === cleanCode) {
+                                        delRouteSet.add(`${String(r.depotId || "1").trim()}_${cleanCode}`);
+                                    }
+                                });
                             }
-                            if (dId && dataset.depots) {
-                                const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
-                                if (depotObj && Array.isArray(depotObj.routes)) {
-                                    depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
-                                }
+                            if (dataset.routes) {
+                                dataset.routes = dataset.routes.filter(r => !(String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)));
+                            }
+                            if (dataset.depots) {
+                                dataset.depots.forEach(depotObj => {
+                                    if ((!dId || String(depotObj.id).trim() === dId) && Array.isArray(depotObj.routes)) {
+                                        depotObj.routes = depotObj.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+                                    }
+                                });
+                            }
+                            if (Array.isArray(currentState._customDepots)) {
+                                currentState._customDepots.forEach(cd => {
+                                    if ((!dId || String(cd.id).trim() === dId) && Array.isArray(cd.routes)) {
+                                        cd.routes = cd.routes.filter(c => String(c).toUpperCase().trim() !== cleanCode);
+                                    }
+                                });
                             }
                         });
                     } else if (action === "add_depot" && depot) {
@@ -5471,6 +5656,8 @@ const server = http.createServer(async (req, res) => {
                             sendJson(res, { ok: false, error: "Invalid departure time format. Please use e.g. 07:30 AM or 14:30." }, 400);
                             return;
                         }
+                        const explicitTier = normalizeTimeCategoryOption(payload.timeCategory || payload.timeComplexity || payload.tier);
+                        const chosenTier = explicitTier || tParts.tier;
                         if (!Array.isArray(dataset.routes)) dataset.routes = [];
                         let targets = dataset.routes.filter(r => String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId));
                         if (targets.length === 0) {
@@ -5523,7 +5710,7 @@ const server = http.createServer(async (req, res) => {
                                 });
                             }
                             if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== "object") r.timeComplexitySlots = {};
-                            r.timeComplexitySlots[tParts.ampmStr] = tParts.tier;
+                            r.timeComplexitySlots[tParts.ampmStr] = chosenTier;
                             if (!Array.isArray(r.schedules)) r.schedules = [];
                             const schedExists = r.schedules.some(s => {
                                 const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
@@ -5538,6 +5725,7 @@ const server = http.createServer(async (req, res) => {
                                     departureTime: tParts.ampmStr,
                                     inTime: "16:00:00",
                                     category: r.routeComplexity || r.category || "Standard",
+                                    timeComplexity: chosenTier,
                                     totalGroupDistance: Number(r.fullDutyKm || r.distance || 0),
                                     distance: Number(r.distance || 0),
                                     singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5)
@@ -5597,15 +5785,47 @@ const server = http.createServer(async (req, res) => {
                                 });
                             }
                         });
+                    } else if (incomingDataset && Array.isArray(incomingDataset.routes)) {
+                        dataset = incomingDataset;
                     }
+
+                    // Enforce _deletedRoutes & _deletedDepotIds tombstones across dataset so stale caches cannot resurrect deleted routes
+                    dataset.routes = (dataset.routes || []).filter(r => {
+                        const rDep = String(r.depotId || "1").trim();
+                        const rCode = String(r.code || r.id || "").toUpperCase().trim();
+                        return !delDepotSet.has(rDep) && !delRouteSet.has(`${rDep}_${rCode}`);
+                    });
+                    if (Array.isArray(dataset.depots)) {
+                        dataset.depots = dataset.depots
+                            .filter(d => !delDepotSet.has(String(d.id).trim()))
+                            .map(d => {
+                                const dId = String(d.id).trim();
+                                return {
+                                    ...d,
+                                    routes: Array.isArray(d.routes)
+                                        ? d.routes.filter(rc => !delRouteSet.has(`${dId}_${String(rc).toUpperCase().trim()}`))
+                                        : []
+                                };
+                            });
+                    }
+                    currentState._deletedRoutes = Array.from(delRouteSet);
+                    dataset.deletedRoutes = currentState._deletedRoutes;
 
                     currentState._routesDatabase = dataset;
                     saveRoutesDataset(dataset);
                     saveBusState(currentState);
                     cachedCorridorSchedules = null;
                     stateVersion = Date.now();
-                    broadcastSyncEvent("routes-dataset-updated", { dataset });
-                    sendJson(res, { ok: true, dataset, version: stateVersion });
+                    broadcastSyncEvent("routes-dataset-updated", { dataset, deletedRoutes: currentState._deletedRoutes });
+                    if (action === "delete_route" || action === "delete_routes_batch" || action === "delete-routes-batch" || action === "add_route") {
+                        broadcastSyncEvent("custom-depots-updated", {
+                            customDepots: currentState._customDepots || [],
+                            customAccounts: currentState._customAccounts || {},
+                            deletedDepotIds: currentState._deletedDepotIds || [],
+                            deletedRoutes: currentState._deletedRoutes || []
+                        });
+                    }
+                    sendJson(res, { ok: true, dataset, deletedRoutes: currentState._deletedRoutes, version: stateVersion });
                 } catch (err) {
                     sendJson(res, { ok: false, error: "Failed to update routes dataset", details: err.message }, 500);
                 }
