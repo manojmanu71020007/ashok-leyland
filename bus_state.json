@@ -19907,7 +19907,34 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [],
+  "_allocatedDuties": [
+    {
+      "id": "duty_BM1996_MS30_1795590248131",
+      "bm": "BM1996",
+      "bmNumber": "BM1996",
+      "regNo": "KA03MS1996",
+      "routeId": "MS30",
+      "routeCode": "MS30",
+      "busNumber": "MS30",
+      "routeName": "man ➔ san (MS30) — 120 km",
+      "origin": "man",
+      "destination": "san",
+      "departureTime": "06:30 AM",
+      "isManualOverride": false,
+      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
+      "scheduleId": "MS30/1",
+      "shift": "General Shift",
+      "soc": 100,
+      "fullDutyKm": 128,
+      "routeDist": 120,
+      "tripCount": 8,
+      "busCategory": "C",
+      "driver": "Ramesh Kumar (BMTC-4101)",
+      "depot": "3",
+      "allocatedAt": "12:34 pm, 21 Oct 2026",
+      "status": "Allocated"
+    }
+  ],
   "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "Chandapura (BMT-32)",
@@ -32019,5 +32046,10 @@
     "3_318R",
     "3_342A",
     "3_415T"
-  ]
+  ],
+  "_pendingDeletions": {
+    "buses": {},
+    "routes": {},
+    "depots": {}
+  }
 }
