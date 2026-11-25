@@ -9,6 +9,7 @@ import {
   Alert,
   Modal,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors } from '../theme/colors';
@@ -681,6 +682,9 @@ export default function AdminWorkspaceScreen() {
     pendingDeletions = { buses: {}, routes: {}, depots: {} },
   } = useFleet();
   const { user, selectedDepot, logout, openDepotScreen } = useAuth();
+  const { width: windowWidth } = useWindowDimensions();
+  const isCompactPhone = windowWidth < 500;
+  const [csvConfirmModalOpen, setCsvConfirmModalOpen] = useState(false);
 
   // Admin Workspace is the enterprise view of the ENTIRE fleet (both Depot 1 and Depot 2)
   const buses = (allBuses && allBuses.length > 0) ? allBuses : contextBuses;
@@ -1540,8 +1544,8 @@ export default function AdminWorkspaceScreen() {
     );
   };
 
-  // ── Handler: Open & Download All Depot Login Credentials as CSV ──
-  const handleOpenDepotCredentialsCsv = useCallback(async () => {
+  // ── Handler: Execute Actual Download of All Depot Login Credentials CSV ──
+  const executeDepotCredentialsCsvDownload = useCallback(async () => {
     try {
       const credentialsData = getDepotCredentialsList();
       const dateStr = new Date().toISOString().slice(0, 10);
@@ -1598,6 +1602,11 @@ export default function AdminWorkspaceScreen() {
       Alert.alert('Export Error', `Could not open CSV file: ${err?.message || err}`);
     }
   }, [depotsList]);
+
+  // ── Handler: Prompt Confirmation Before Downloading Credentials CSV ──
+  const handleOpenDepotCredentialsCsv = useCallback(() => {
+    setCsvConfirmModalOpen(true);
+  }, []);
 
   // ── Helper: Trigger Native File Browser for Spreadsheet / CSV ──
   const triggerDatasetFilePicker = useCallback(() => {
@@ -4909,10 +4918,10 @@ export default function AdminWorkspaceScreen() {
 
             {/* ── 📊 BUS DETAILS DATASET / SPREADSHEET UPDATE CARD ── */}
             <View style={styles.profileCard}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 }}>
                   <Text style={{ fontSize: 20 }}>🚌</Text>
-                  <Text style={styles.profileCardTitle}>{t('update_dataset_title', 'Update Dataset / Spreadsheet (Bus Details Only)')}</Text>
+                  <Text style={[styles.profileCardTitle, { marginBottom: 0, flexShrink: 1 }]}>{t('update_dataset_title', 'Update Dataset / Spreadsheet (Bus Details Only)')}</Text>
                 </View>
                 <View style={{ backgroundColor: '#ecfdf5', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12, borderWidth: 1, borderColor: '#a7f3d0' }}>
                   <Text style={{ fontSize: 11.5, fontWeight: '800', color: '#059669' }}>
@@ -4920,10 +4929,6 @@ export default function AdminWorkspaceScreen() {
                   </Text>
                 </View>
               </View>
-
-              <Text style={{ fontSize: 12.5, color: '#64748b', marginBottom: 12, fontWeight: '500', lineHeight: 18 }}>
-                {t('update_dataset_desc', 'Upload bus details spreadsheet or CSV to update the fleet. Strictly accepts files containing Registration Numbers (KA...), Bus Numbers (BM...), or Bus Categories (CAT...). Files with route details, timetables, or other irrelevant data are rejected.')}
-              </Text>
 
               {/* Dataset Quick Badges */}
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 14 }}>
@@ -5057,18 +5062,21 @@ export default function AdminWorkspaceScreen() {
             </View>
 
             {/* ── 🔑 DEPOT LOGIN CREDENTIALS (ALL DEPOTS) CSV ROW ── */}
-            <View style={styles.profileCard}>
+            <View style={[styles.profileCard, isCompactPhone && { padding: 14 }]}>
               <TouchableOpacity
-                style={styles.profileCredentialsRowBtn}
+                style={[
+                  styles.profileCredentialsRowBtn,
+                  isCompactPhone && { flexDirection: 'column', alignItems: 'stretch', gap: 10, padding: 12 },
+                ]}
                 onPress={handleOpenDepotCredentialsCsv}
                 activeOpacity={0.75}
               >
-                <View style={styles.profileCredentialsRowLeft}>
-                  <View style={styles.profileCredentialsIconWrap}>
-                    <Text style={{ fontSize: 22 }}>🔑</Text>
+                <View style={[styles.profileCredentialsRowLeft, { minWidth: 0 }, isCompactPhone && { flex: 0, width: '100%' }]}>
+                  <View style={[styles.profileCredentialsIconWrap, isCompactPhone && { width: 38, height: 38 }]}>
+                    <Text style={{ fontSize: isCompactPhone ? 18 : 22 }}>🔑</Text>
                   </View>
-                  <View style={{ flex: 1, paddingRight: 8 }}>
-                    <Text style={styles.profileCredentialsRowTitle}>
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[styles.profileCredentialsRowTitle, isCompactPhone && { fontSize: 14 }]}>
                       🔑 Depot Login Credentials (All Depots)
                     </Text>
                     <Text style={styles.profileCredentialsRowSubtitle}>
@@ -5076,14 +5084,14 @@ export default function AdminWorkspaceScreen() {
                     </Text>
                   </View>
                 </View>
-                <View style={styles.profileCredentialsActionPill}>
+                <View style={[styles.profileCredentialsActionPill, isCompactPhone && { width: '100%', paddingVertical: 10 }]}>
                   <Text style={styles.profileCredentialsActionPillText}>📄 Open CSV ➔</Text>
                 </View>
               </TouchableOpacity>
 
               {/* Quick Manage Depots Link */}
-              <View style={styles.profileDepotsQuickBar}>
-                <Text style={styles.profileDepotsQuickCountText}>
+              <View style={[styles.profileDepotsQuickBar, isCompactPhone && { flexDirection: 'column', alignItems: 'flex-start' }]}>
+                <Text style={[styles.profileDepotsQuickCountText, { flexShrink: 1 }]}>
                   🏢 {depotsList.length} Depots: {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(', ')}
                 </Text>
                 <TouchableOpacity
@@ -9469,6 +9477,50 @@ export default function AdminWorkspaceScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* ── CONFIRMATION POP-UP: OPEN / DOWNLOAD DEPOT LOGIN CREDENTIALS CSV ── */}
+      <Modal
+        visible={csvConfirmModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCsvConfirmModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxWidth: 420, width: '92%', padding: 18 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <Text style={[styles.modalTitle, { fontSize: 16, flexShrink: 1 }]}>🔑 Confirm CSV Download</Text>
+              <TouchableOpacity onPress={() => setCsvConfirmModalOpen(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: 13.5, color: '#334155', lineHeight: 20, marginBottom: 12 }}>
+              Are you sure you want to open and download the Depot Login Credentials CSV file for all {depotsList.length} active depot(s)?
+            </Text>
+            <View style={{ backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, padding: 10, marginBottom: 16 }}>
+              <Text style={{ fontSize: 12, color: '#475569', fontWeight: '600' }}>
+                📄 File: Depot_Login_Credentials_All_Depots_{new Date().toISOString().slice(0, 10)}.csv
+              </Text>
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10, flexWrap: 'wrap' }}>
+              <TouchableOpacity
+                style={[styles.btnModalCancel, { paddingHorizontal: 16, paddingVertical: 10 }]}
+                onPress={() => setCsvConfirmModalOpen(false)}
+              >
+                <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.btnSubmitAddDepot, { paddingHorizontal: 16, paddingVertical: 10 }]}
+                onPress={() => {
+                  setCsvConfirmModalOpen(false);
+                  executeDepotCredentialsCsvDownload();
+                }}
+              >
+                <Text style={styles.btnSubmitAddDepotText}>Confirm & Download CSV</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* ── LANGUAGE SELECTOR MODAL ── */}
       <LanguageModal visible={langModalOpen} onClose={() => setLangModalOpen(false)} />
     </SafeAreaView>
@@ -12142,6 +12194,8 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
     padding: 18,
     marginBottom: 14,
+    width: '100%',
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -13807,16 +13861,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 10,
     backgroundColor: '#f8fafc',
     borderRadius: 14,
     padding: 14,
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
+    width: '100%',
   },
   profileCredentialsRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
+    minWidth: 0,
     gap: 12,
   },
   profileCredentialsIconWrap: {
@@ -13828,18 +13886,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#bfdbfe',
+    flexShrink: 0,
   },
   profileCredentialsRowTitle: {
     fontSize: 15,
     fontWeight: '800',
     color: '#0f172a',
     letterSpacing: -0.2,
+    flexShrink: 1,
   },
   profileCredentialsRowSubtitle: {
     fontSize: 12,
     color: '#64748b',
     marginTop: 2,
     fontWeight: '500',
+    flexShrink: 1,
   },
   profileCredentialsActionPill: {
     backgroundColor: '#2563eb',
@@ -13874,6 +13935,7 @@ const styles = StyleSheet.create({
     fontSize: 11.5,
     color: '#64748b',
     fontWeight: '600',
+    flexShrink: 1,
   },
   profileManageDepotsLink: {
     backgroundColor: '#f1f5f9',

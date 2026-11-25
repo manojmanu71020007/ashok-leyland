@@ -4433,10 +4433,6 @@ export default function SchedulingScreen() {
                 <Text style={styles.kpiLbl}>{t('selected_bus_soc', 'Selected bus SOC')}</Text>
               </View>
               <View style={styles.kpiBox}>
-                <Text style={[styles.kpiVal, { color: '#0284c7' }]}>{selectedRoute.actualKm || selectedRoute.fullDutyKm || activeCandidate.fullDutyKm} km</Text>
-                <Text style={styles.kpiLbl}>{t('full_duty_distance', 'Full Duty Distance')} ({t('single_charge_ready', 'Single Charge Ready')})</Text>
-              </View>
-              <View style={styles.kpiBox}>
                 <Text style={styles.kpiVal}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km</Text>
                 <Text style={styles.kpiLbl}>{t('route_distance', 'Total Route Distance')}</Text>
               </View>
@@ -4457,10 +4453,6 @@ export default function SchedulingScreen() {
                 <Text style={styles.ruleVal}>
                   {selectedRoute.origin || 'HBL'} ➔ {selectedRoute.destination || 'TNF'} ({selectedRoute.corridorDistance || selectedRoute.distance} km)
                 </Text>
-              </View>
-              <View style={styles.ruleItem}>
-                <Text style={styles.ruleLabel}>{t('full_duty_distance', 'Group Duty Distance')}</Text>
-                <Text style={styles.ruleVal}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.actualKm || selectedRoute.fullDutyKm || activeCandidate.fullDutyKm} km</Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>

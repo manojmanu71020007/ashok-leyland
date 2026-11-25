@@ -2349,9 +2349,7 @@
 
                     <div class="kpi" id="kpi-soc"><strong id="soc-result">—</strong><span data-i18n="kpi_battery_soc">Selected bus SOC</span></div>
 
-                    <div class="kpi" id="kpi-range"><strong id="range-result">—</strong><span data-i18n="kpi_est_range">Full Duty Distance (Single Charge)</span></div>
-
-                    <div class="kpi" id="kpi-total-dist"><strong id="kpi-route-dist">28.7 km</strong><span data-i18n="label_route_length">Route Distance</span></div>
+                    <div class="kpi" id="kpi-total-dist" style="grid-column: 1 / -1;"><strong id="kpi-route-dist">28.7 km</strong><span data-i18n="label_route_length">Route Distance</span></div>
 
                 </div>
 
@@ -2364,8 +2362,6 @@
                     <div class="rule"><span>Current SOC</span><strong id="current-soc-rule">—</strong></div>
 
                     <div class="rule"><span>Actual Shift Duty (actual_km)</span><strong id="actual-km-rule" style="color:#0284c7;">—</strong></div>
-
-                    <div class="rule"><span>Full Duty Distance</span><strong id="full-duty-dist-rule">—</strong></div>
 
                     <div class="rule"><span>Operation Mode</span><strong id="operation-standard-rule">Single Charge Operation</strong></div>
 
@@ -8773,16 +8769,6 @@
                             <strong id="alloc-soc" class="metric-val" style="color:#15803d;font-size:1.15rem;">${alloc.liveSoc}%</strong>
 
                             <span class="metric-sub" style="color:#166534;">Surplus: +${surplusVal}% (Feasible)</span>
-
-                        </div>
-
-                        <div class="alloc-metric-item">
-
-                            <span class="metric-label">Full Duty Distance</span>
-
-                            <strong id="alloc-full-duty" class="metric-val">${alloc.fullDutyKm} km</strong>
-
-                            <span class="metric-sub">Single Charge Operation</span>
 
                         </div>
 
