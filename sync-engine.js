@@ -64,6 +64,7 @@
         'charging-history': new Set(),
         'cleaning-history': new Set(),
         'completed-routes': new Set(),
+        'routes-dataset': new Set(),
         'sync': new Set()
     };
 
@@ -427,6 +428,17 @@
                     }
                 } catch (err) {
                     fetchFullSync();
+                }
+            });
+
+            eventSource.addEventListener('routes-dataset-updated', (e) => {
+                try {
+                    const payload = JSON.parse(e.data);
+                    if (payload && payload.version) currentVersion = payload.version;
+                    const ds = payload?.data?.dataset || payload?.dataset;
+                    notify('routes-dataset', ds || payload);
+                } catch (err) {
+                    notify('routes-dataset', null);
                 }
             });
 

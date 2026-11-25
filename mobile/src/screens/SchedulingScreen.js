@@ -3028,6 +3028,14 @@ export default function SchedulingScreen() {
   const { selectedDepot, logout, returnToLogin } = useAuth();
   const { t } = useLanguage();
 
+  const [datasetTick, setDatasetTick] = useState(0);
+  useEffect(() => {
+    const unsub = subscribeDatasetChanges(() => {
+      setDatasetTick((v) => v + 1);
+    });
+    return unsub;
+  }, []);
+
   const depotNum = String(selectedDepot || '1');
   const depotLabel = getDepotDisplayName(depotNum);
 
@@ -3049,6 +3057,7 @@ export default function SchedulingScreen() {
     // 1. Check Master Route & Schedule Dataset first
     const ds = getRouteFromDataset(clean, depotNum);
     if (ds) {
+      const dsTimes = Array.isArray(ds.timetables) ? ds.timetables.flat().filter(Boolean) : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
       return {
         id: clean,
         code: clean,
@@ -3058,7 +3067,7 @@ export default function SchedulingScreen() {
         origin: ds.origin || `${depotLabel} Terminal`,
         destination: ds.destination || 'Central Terminal',
         via: (ds.via && ds.via !== '') ? ds.via : '',
-        timetables: Array.isArray(ds.timetables) ? ds.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+        timetables: dsTimes,
         distance: Number(ds.distance) || 25.0,
         revenueKm: Number(ds.revenueKm || ds.distance) || 25.0,
         corridorDistance: Number(ds.corridorDistance || ds.distance) || 25.0,
@@ -3082,7 +3091,12 @@ export default function SchedulingScreen() {
     }
 
     const found = ALL_BASE_ROUTES.find((r) => r.code === clean || r.id === clean);
-    if (found) return found;
+    if (found) {
+      return {
+        ...found,
+        timetables: Array.isArray(found.timetables) ? found.timetables.flat().filter(Boolean) : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+      };
+    }
 
     const dyn = getRouteDefinition(clean);
     if (dyn) {
@@ -3095,7 +3109,7 @@ export default function SchedulingScreen() {
         origin: dyn.origin || `${depotLabel} Terminal`,
         destination: dyn.destination || 'Central Terminal',
         via: (dyn.via && dyn.via !== '') ? dyn.via : '',
-        timetables: Array.isArray(dyn.timetables) ? dyn.timetables : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
+        timetables: Array.isArray(dyn.timetables) ? dyn.timetables.flat().filter(Boolean) : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(dyn.distance) || 25.0,
         fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
         actualKm: dyn.actualKm || dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
@@ -3131,9 +3145,9 @@ export default function SchedulingScreen() {
       requiredCat: 'B',
       drainSoc: 24,
     };
-  }, [depotLabel, ALL_BASE_ROUTES]);
+  }, [depotNum, depotLabel, ALL_BASE_ROUTES, datasetTick]);
 
-  const matchedRoutes = assignedRouteCodes.map(resolveDepotRoute);
+  const matchedRoutes = useMemo(() => assignedRouteCodes.map(resolveDepotRoute), [assignedRouteCodes, resolveDepotRoute, datasetTick]);
   const availableRoutes = (depotNum === '1' && matchedRoutes.length === 0)
     ? DEPOT_1_ROUTES
     : (depotNum === '2' && matchedRoutes.length === 0)
@@ -3144,6 +3158,22 @@ export default function SchedulingScreen() {
   // Scheduling states (Safe empty state when newly created depot has no routes or buses assigned yet)
   const [selectedRoute, setSelectedRoute] = useState(availableRoutes[0] || null);
   const [scheduledTime, setScheduledTime] = useState(availableRoutes[0]?.timetables?.[0] || '');
+
+  // Keep active selectedRoute and scheduledTime in sync when Master Route Dataset updates departure times
+  useEffect(() => {
+    if (!selectedRoute || availableRoutes.length === 0) return;
+    const updated = availableRoutes.find((r) => (r.code || r.id) === (selectedRoute.code || selectedRoute.id));
+    if (updated) {
+      const updatedTimes = Array.isArray(updated.timetables) ? updated.timetables : [];
+      const curTimes = Array.isArray(selectedRoute.timetables) ? selectedRoute.timetables : [];
+      if (JSON.stringify(updatedTimes) !== JSON.stringify(curTimes) || JSON.stringify(updated.schedules) !== JSON.stringify(selectedRoute.schedules)) {
+        setSelectedRoute(updated);
+        if (scheduledTime && !updatedTimes.includes(scheduledTime)) {
+          setScheduledTime(updatedTimes[0] || '');
+        }
+      }
+    }
+  }, [availableRoutes, datasetTick]);
   const [selectedDriver, setSelectedDriver] = useState(availableDrivers[0]);
   const [driverNameInput, setDriverNameInput] = useState(availableDrivers[0].name);
   const [driverError, setDriverError] = useState('');

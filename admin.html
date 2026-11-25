@@ -2425,6 +2425,10 @@
                         <span style="pointer-events:none;" data-i18n="admin_btn_add_delete_buses">Add / Delete Buses</span>
                         <span id="topbar-newly-added-count" class="newly-added-badge-count" style="pointer-events:none; display:none;">0</span>
                     </button>
+                    <button id="add-delete-dep-time-topbar-btn" class="add-delete-buses-topbar-btn" type="button" style="color:#0284c7; border-color:#7dd3fc;" title="Add / Delete Departure Time (🕒) — Search and select route first to update departure timings" onclick="openAddDeleteDepTimeModal('add')">
+                        <span class="topbar-plus-symbol" style="pointer-events:none; background:#0284c7;">🕒</span>
+                        <span style="pointer-events:none;">Add / Delete Departure Time</span>
+                    </button>
                     <button id="total-buses-topbar-btn" class="total-buses-topbar-btn" type="button" title="View total fleet categorized into Depot 1 and Depot 2" onclick="openFleetSection('total-buses', true)">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><rect x="2" y="3" width="20" height="15" rx="3" ry="3"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M7 11h10M7 7h10"/></svg>
                         <span style="pointer-events:none;" data-i18n="admin_btn_total_buses">Total Buses</span>
@@ -3238,6 +3242,107 @@
                     <div id="tab-content-hist-bus" style="display:none;">
                         <div id="fleet-history-content">
                             <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add / Delete Departure Time Modal Dialog (Search + Select Route Required First) -->
+        <div id="add-delete-dep-time-modal-backdrop" class="modal-backdrop" aria-hidden="true" style="display:none;" onclick="if(event.target===this)closeAddDeleteDepTimeModal()">
+            <div class="modal-dialog add-delete-modal-dialog" style="max-width:780px;" role="dialog" aria-modal="true" aria-labelledby="add-del-dep-time-title">
+                <div class="modal-header">
+                    <div>
+                        <div class="eyebrow" style="margin-bottom:4px; color:#0284c7;">Timetable &amp; Schedule Control</div>
+                        <h2 id="add-del-dep-time-title" style="margin:0; font-size:1.35rem; display:flex; align-items:center; gap:8px;">
+                            <span>🕒 Add / Delete Departure Time</span>
+                            <span id="dep-time-slots-count-badge" style="background:#e0f2fe; color:#0369a1; font-weight:800; font-size:.82rem; padding:3px 10px; border-radius:6px; border:1px solid #bae6fd;">Select Route First</span>
+                        </h2>
+                        <p style="margin:4px 0 0; color:var(--muted); font-size:.82rem;">
+                            Search and select a route first. Only after selecting a route can you update its departure timings.
+                        </p>
+                    </div>
+                    <button type="button" class="modal-close-btn" aria-label="Close dialog" onclick="closeAddDeleteDepTimeModal()">✕</button>
+                </div>
+
+                <!-- Step 1: Route Search Box + Route Select Dropdown Box -->
+                <div style="padding:14px 24px; background:#f0f9ff; border-bottom:1px solid #bae6fd;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; gap:8px; flex-wrap:wrap;">
+                        <label style="font-size:0.84rem; font-weight:800; color:#0369a1; margin:0;">
+                            🛣️ Step 1: Search &amp; Select Route (Required) <span style="color:#ef4444;">*</span>
+                        </label>
+                        <span id="dep-time-route-match-count" style="font-size:0.78rem; font-weight:700; color:#0284c7;">0 routes</span>
+                    </div>
+                    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
+                        <div>
+                            <input type="text" id="dep-time-route-search" placeholder="🔍 Search route (e.g. MS30, Peenya, 356Z, 600F)..." style="width:100%; padding:10px 12px; border:1.5px solid #7dd3fc; border-radius:8px; font-size:0.86rem; background:#fff;" oninput="onDepTimeRouteSearch(this.value)" />
+                        </div>
+                        <div>
+                            <select id="dep-time-route-select" style="width:100%; padding:10px 12px; border:1.5px solid #0284c7; border-radius:8px; font-size:0.86rem; background:#fff; font-weight:700;" onchange="onDepTimeRouteSelectChange(this.value)">
+                                <option value="">— Select Route (Required First) —</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="dep-time-selected-route-banner" style="display:none; margin-top:10px; padding:8px 12px; background:#e0f2fe; border:1px solid #7dd3fc; border-radius:8px; font-size:0.82rem; color:#0c4a6e; font-weight:700;"></div>
+                </div>
+
+                <!-- Tabs: Add Departure Time | Delete Departure Time -->
+                <div class="modal-tabs-header" style="display:flex; border-bottom:1px solid var(--line); background:#f8fafc; padding:0 24px; gap:8px;">
+                    <button type="button" id="tab-btn-add-dep-time" class="modal-tab-btn active" onclick="switchDepTimeModalTab('add')">
+                        ➕ Add Departure Time
+                    </button>
+                    <button type="button" id="tab-btn-del-dep-time" class="modal-tab-btn" onclick="switchDepTimeModalTab('del')">
+                        🗑️ Delete Departure Time
+                    </button>
+                </div>
+
+                <div class="modal-body" style="padding:20px 24px; max-height:calc(85vh - 250px); overflow-y:auto;">
+                    <!-- Locked Banner Until Route Selected -->
+                    <div id="dep-time-locked-guard" style="background:#fef2f2; border:1.5px solid #fca5a5; border-radius:10px; padding:20px; text-align:center; color:#991b1b;">
+                        <div style="font-size:1.8rem; margin-bottom:6px;">🔒</div>
+                        <strong style="display:block; font-size:0.98rem; margin-bottom:4px;">Select a Route First to Update Departure Timings</strong>
+                        <span style="font-size:0.84rem; color:#7f1d1d;">Use the Route Search box and Select dropdown above to choose a route. Timing controls unlock only after a route is selected.</span>
+                    </div>
+
+                    <!-- Unlocked Content Area -->
+                    <div id="dep-time-unlocked-body" style="display:none;">
+                        <!-- TAB 1: ADD DEPARTURE TIME -->
+                        <div id="tab-content-add-dep-time" style="display:block;">
+                            <div style="display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; margin-bottom:14px;">
+                                <div>
+                                    <label style="display:block; font-size:0.82rem; font-weight:700; color:#334155; margin-bottom:6px;">
+                                        New Departure Time (e.g. 07:30 AM, 02:15 PM, or 14:30) <span style="color:#ef4444;">*</span>
+                                    </label>
+                                    <input type="text" id="dep-time-new-input" placeholder="e.g. 07:30 AM or 14:30" style="width:100%; padding:10px 12px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.88rem;" />
+                                </div>
+                                <div>
+                                    <label style="display:block; font-size:0.78rem; font-weight:700; color:#64748b; margin-bottom:6px;">
+                                        Or Pick Time
+                                    </label>
+                                    <input type="time" id="dep-time-native-picker" style="padding:9px 10px; border:1.5px solid #cbd5e1; border-radius:8px; font-size:0.86rem;" onchange="if(this.value){ document.getElementById('dep-time-new-input').value = this.value; }" />
+                                </div>
+                            </div>
+
+                            <div style="display:flex; justify-content:flex-end; gap:10px; margin-bottom:18px;">
+                                <button type="button" class="btn-util-toggle" onclick="closeAddDeleteDepTimeModal()">Cancel</button>
+                                <button type="button" id="btn-submit-add-dep-time" onclick="submitAddDepartureTime()" style="background:#0284c7; color:#fff; border:none; padding:10px 20px; border-radius:8px; font-weight:700; cursor:pointer; font-size:0.88rem;">
+                                    ➕ Add Departure Time
+                                </button>
+                            </div>
+
+                            <div style="border-top:1px solid #e2e8f0; padding-top:14px;">
+                                <strong style="display:block; font-size:0.84rem; color:#334155; margin-bottom:8px;">📋 Current Departure Timings for Selected Route:</strong>
+                                <div id="dep-time-current-chips" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- TAB 2: DELETE DEPARTURE TIME -->
+                        <div id="tab-content-del-dep-time" style="display:none;">
+                            <div style="background:#fff1f2; border:1px solid #fecdd3; border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:0.83rem; color:#9f1239;">
+                                <strong>⚠️ Note:</strong> Deleting departure timings removes them immediately from this route across Admin and Scheduling views.
+                            </div>
+                            <input type="text" id="dep-time-del-filter" placeholder="🔍 Filter departure timings (e.g. 06:30, PM, AM)..." style="width:100%; padding:9px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:0.85rem; margin-bottom:10px;" oninput="renderDepTimeDeleteList()" />
+                            <div id="dep-time-delete-list" style="display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto;"></div>
                         </div>
                     </div>
                 </div>
@@ -7050,7 +7155,7 @@ let busCategoriesMap = new Map();
             const sortedTimes = Array.from(timeMap.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
             if (timeSelect) {
-                const buildKey = `${routeCode}_${sortedTimes.length}`;
+                const buildKey = `${routeCode}_${sortedTimes.map(([t]) => t).join(",")}`;
                 if (!timeSelect.dataset) timeSelect.dataset = {};
                 const needsRebuild = (timeSelect.dataset.lastBuildKey !== buildKey || (sortedTimes.length > 0 && timeSelect.options && timeSelect.options.length <= 1));
                 if (needsRebuild) {
@@ -11397,6 +11502,10 @@ let busCategoriesMap = new Map();
                     if (addDelModal && addDelModal.style.display === "flex") {
                         closeAddDeleteBusesModal();
                     }
+                    const depTimeModal = document.getElementById("add-delete-dep-time-modal-backdrop");
+                    if (depTimeModal && depTimeModal.style.display === "flex") {
+                        closeAddDeleteDepTimeModal();
+                    }
                 }
             });
 
@@ -12019,7 +12128,7 @@ let busCategoriesMap = new Map();
             }
         }
 
-        function submitAddBus() {
+        async function submitAddBus() {
             const bmInput = document.getElementById("add-bus-bm");
             const regInput = document.getElementById("add-bus-reg");
             const reasonSelect = document.getElementById("add-bus-reason-select");
@@ -12713,7 +12822,346 @@ let busCategoriesMap = new Map();
             window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
             window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
             window.DepotSyncEngine.on('depot-updated', handleSyncStateUpdate);
+            window.DepotSyncEngine.on('routes-dataset', async () => {
+                await refreshRoutesAndTimetablesFromServer();
+            });
         }
+
+        // ── Add / Delete Departure Time Modal Engine (Requires Selecting Route First) ──
+        let _masterRoutesCatalog = [];
+        let _activeDepTimeRoute = null;
+
+        function normalizeAdminDepTimeStr(rawStr) {
+            const s = String(rawStr || "").trim();
+            if (!s) return null;
+            const ampmMatch = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+            const h24Match = s.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+            let h24 = null;
+            let min = null;
+            if (ampmMatch) {
+                let h = parseInt(ampmMatch[1], 10);
+                min = parseInt(ampmMatch[2], 10);
+                const mod = ampmMatch[3].toUpperCase();
+                if (h < 1 || h > 12 || min < 0 || min > 59) return null;
+                if (mod === "PM" && h < 12) h += 12;
+                if (mod === "AM" && h === 12) h = 0;
+                h24 = h;
+            } else if (h24Match) {
+                h24 = parseInt(h24Match[1], 10);
+                min = parseInt(h24Match[2], 10);
+                if (h24 < 0 || h24 > 23 || min < 0 || min > 59) return null;
+            } else {
+                return null;
+            }
+            const ampm = h24 >= 12 ? "PM" : "AM";
+            const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+            return {
+                h24Str: `${String(h24).padStart(2, "0")}:${String(min).padStart(2, "0")}`,
+                ampmStr: `${String(h12).padStart(2, "0")}:${String(min).padStart(2, "0")} ${ampm}`
+            };
+        }
+
+        async function refreshRoutesAndTimetablesFromServer() {
+            try {
+                const [corRes, dsRes] = await Promise.all([
+                    fetch("/api/corridor-schedules").catch(() => null),
+                    fetch("/api/dataset/routes").catch(() => null)
+                ]);
+                if (corRes && corRes.ok) {
+                    const cData = await corRes.json();
+                    if (cData && cData.ok) {
+                        if (Array.isArray(cData.directionalRoutes) && cData.directionalRoutes.length) {
+                            directionalRoutes = cData.directionalRoutes;
+                        }
+                        if (Array.isArray(cData.schedules)) {
+                            datasetSchedules = cData.schedules;
+                        }
+                    }
+                }
+                if (dsRes && dsRes.ok) {
+                    const dData = await dsRes.json();
+                    if (dData && dData.ok && dData.dataset && Array.isArray(dData.dataset.routes)) {
+                        _masterRoutesCatalog = dData.dataset.routes.map(r => ({
+                            ...r,
+                            code: String(r.code || r.id || "").toUpperCase().trim(),
+                            depotId: String(r.depotId || "1"),
+                            timetables: Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : []
+                        }));
+                    }
+                }
+                updateScheduledTimesForSelectedRoute(true);
+                renderRoutes(true, true);
+                await recommend();
+
+                const modalBackdrop = document.getElementById("add-delete-dep-time-modal-backdrop");
+                if (modalBackdrop && modalBackdrop.style.display === "flex") {
+                    const sQuery = document.getElementById("dep-time-route-search")?.value || "";
+                    renderDepTimeRouteSelectOptions(sQuery);
+                    updateDepTimeModalPanels();
+                }
+            } catch (e) {
+                console.warn("Could not refresh routes/timetables:", e);
+            }
+        }
+
+        function getCombinedDepTimeRoutesList() {
+            const map = new Map();
+            (directionalRoutes || []).forEach(dr => {
+                const code = String(dr.code || dr.id || "").toUpperCase().trim();
+                if (!code) return;
+                const dId = String(dr.depotId || dr.depot || "1");
+                const matchingTimes = (datasetSchedules || [])
+                    .filter(s => String(s.route || "").toUpperCase().trim() === code && (s.departureTime || s.outTime))
+                    .map(s => s.departureTime || s.outTime);
+                map.set(`${dId}_${code}`, {
+                    code,
+                    depotId: dId,
+                    depotName: dId === "1" ? "Depot 1 (Chandapura)" : (dId === "2" ? "Depot 2 (Attibele)" : `Depot ${dId}`),
+                    origin: dr.origin || "Origin",
+                    destination: dr.destination || "Destination",
+                    distance: Number(dr.distKm || dr.distanceKm || 25),
+                    timetables: Array.isArray(dr.timetables) && dr.timetables.length ? dr.timetables.flat().filter(Boolean) : Array.from(new Set(matchingTimes))
+                });
+            });
+            (_masterRoutesCatalog || []).forEach(mr => {
+                const code = String(mr.code || mr.id || "").toUpperCase().trim();
+                if (!code) return;
+                const dId = String(mr.depotId || "1");
+                const k = `${dId}_${code}`;
+                const depName = mr.depotName || (dId === "1" ? "Depot 1 (Chandapura)" : (dId === "2" ? "Depot 2 (Attibele)" : (dId === "3" ? "Depot 3 (Peenya)" : `Depot ${dId}`)));
+                map.set(k, {
+                    code,
+                    depotId: dId,
+                    depotName: depName,
+                    origin: mr.origin || "Origin",
+                    destination: mr.destination || "Destination",
+                    distance: Number(mr.distance || 25),
+                    timetables: Array.isArray(mr.timetables) ? mr.timetables.flat().filter(Boolean) : []
+                });
+            });
+            return Array.from(map.values()).sort((a, b) => a.code.localeCompare(b.code));
+        }
+
+        function renderDepTimeRouteSelectOptions(filterText = "") {
+            const sel = document.getElementById("dep-time-route-select");
+            const matchBadge = document.getElementById("dep-time-route-match-count");
+            if (!sel) return;
+            const prevVal = sel.value;
+            const q = String(filterText || "").trim().toLowerCase();
+            const all = getCombinedDepTimeRoutesList();
+            const filtered = q ? all.filter(r => `${r.code} ${r.origin} ${r.destination} ${r.depotName} Depot ${r.depotId}`.toLowerCase().includes(q)) : all;
+
+            if (matchBadge) {
+                matchBadge.textContent = `${filtered.length} matching route(s)`;
+            }
+
+            let html = `<option value="">— Select Route (Required First) —</option>`;
+            filtered.forEach(r => {
+                const val = `${r.depotId}_${r.code}`;
+                html += `<option value="${escapeHtml(val)}">[${escapeHtml(r.code)}] ${escapeHtml(r.origin)} ➔ ${escapeHtml(r.destination)} • ${escapeHtml(r.depotName)} (${(r.timetables || []).length} slots)</option>`;
+            });
+            sel.innerHTML = html;
+
+            if (prevVal && filtered.some(r => `${r.depotId}_${r.code}` === prevVal)) {
+                sel.value = prevVal;
+                _activeDepTimeRoute = filtered.find(r => `${r.depotId}_${r.code}` === prevVal) || null;
+            } else if (!prevVal) {
+                sel.value = "";
+                _activeDepTimeRoute = null;
+            } else if (prevVal) {
+                const kept = all.find(r => `${r.depotId}_${r.code}` === prevVal);
+                _activeDepTimeRoute = kept || null;
+                if (kept) {
+                    const opt = document.createElement("option");
+                    opt.value = prevVal;
+                    opt.textContent = `[${kept.code}] ${kept.origin} ➔ ${kept.destination} • ${kept.depotName} (${(kept.timetables || []).length} slots)`;
+                    sel.appendChild(opt);
+                    sel.value = prevVal;
+                }
+            }
+        }
+
+        function updateDepTimeModalPanels() {
+            const guardEl = document.getElementById("dep-time-locked-guard");
+            const bodyEl = document.getElementById("dep-time-unlocked-body");
+            const bannerEl = document.getElementById("dep-time-selected-route-banner");
+            const countBadge = document.getElementById("dep-time-slots-count-badge");
+            const chipsEl = document.getElementById("dep-time-current-chips");
+
+            if (!_activeDepTimeRoute) {
+                if (guardEl) guardEl.style.display = "block";
+                if (bodyEl) bodyEl.style.display = "none";
+                if (bannerEl) bannerEl.style.display = "none";
+                if (countBadge) countBadge.textContent = "Select Route First";
+                return;
+            }
+
+            if (guardEl) guardEl.style.display = "none";
+            if (bodyEl) bodyEl.style.display = "block";
+
+            const times = _activeDepTimeRoute.timetables || [];
+            if (countBadge) countBadge.textContent = `${times.length} Timing(s)`;
+            if (bannerEl) {
+                bannerEl.style.display = "block";
+                bannerEl.textContent = `✅ Active Route: [${_activeDepTimeRoute.code}] ${_activeDepTimeRoute.origin} ➔ ${_activeDepTimeRoute.destination} • ${_activeDepTimeRoute.depotName} (${times.length} scheduled departure timings)`;
+            }
+            if (chipsEl) {
+                chipsEl.innerHTML = times.length === 0
+                    ? `<span style="font-size:0.82rem; color:#64748b; font-style:italic;">No departure timings configured yet.</span>`
+                    : times.map(t => `<span style="background:#f8fafc; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; font-size:0.8rem; font-weight:700; color:#0f172a;">🕒 ${escapeHtml(t)}</span>`).join("");
+            }
+            renderDepTimeDeleteList();
+        }
+
+        window.openAddDeleteDepTimeModal = async function(tab = 'add') {
+            const backdrop = document.getElementById("add-delete-dep-time-modal-backdrop");
+            if (!backdrop) return;
+            const searchEl = document.getElementById("dep-time-route-search");
+            const selEl = document.getElementById("dep-time-route-select");
+            const newInp = document.getElementById("dep-time-new-input");
+            const picker = document.getElementById("dep-time-native-picker");
+            if (searchEl) searchEl.value = "";
+            if (selEl) selEl.value = "";
+            if (newInp) newInp.value = "";
+            if (picker) picker.value = "";
+            _activeDepTimeRoute = null;
+
+            switchDepTimeModalTab(tab);
+            renderDepTimeRouteSelectOptions("");
+            updateDepTimeModalPanels();
+            backdrop.style.display = "flex";
+            backdrop.setAttribute("aria-hidden", "false");
+            await refreshRoutesAndTimetablesFromServer();
+        };
+
+        window.closeAddDeleteDepTimeModal = function() {
+            const backdrop = document.getElementById("add-delete-dep-time-modal-backdrop");
+            if (backdrop) {
+                backdrop.style.display = "none";
+                backdrop.setAttribute("aria-hidden", "true");
+            }
+        };
+
+        window.switchDepTimeModalTab = function(tab) {
+            const btnAdd = document.getElementById("tab-btn-add-dep-time");
+            const btnDel = document.getElementById("tab-btn-del-dep-time");
+            const cAdd = document.getElementById("tab-content-add-dep-time");
+            const cDel = document.getElementById("tab-content-del-dep-time");
+            if (tab === 'del') {
+                if (btnAdd) btnAdd.classList.remove("active");
+                if (btnDel) btnDel.classList.add("active");
+                if (cAdd) cAdd.style.display = "none";
+                if (cDel) cDel.style.display = "block";
+                renderDepTimeDeleteList();
+            } else {
+                if (btnAdd) btnAdd.classList.add("active");
+                if (btnDel) btnDel.classList.remove("active");
+                if (cAdd) cAdd.style.display = "block";
+                if (cDel) cDel.style.display = "none";
+            }
+        };
+
+        window.onDepTimeRouteSearch = function(query) {
+            renderDepTimeRouteSelectOptions(query);
+        };
+
+        window.onDepTimeRouteSelectChange = function(val) {
+            if (!val) {
+                _activeDepTimeRoute = null;
+            } else {
+                const all = getCombinedDepTimeRoutesList();
+                _activeDepTimeRoute = all.find(r => `${r.depotId}_${r.code}` === val) || null;
+            }
+            updateDepTimeModalPanels();
+        };
+
+        window.submitAddDepartureTime = async function() {
+            if (!_activeDepTimeRoute) {
+                alert("⚠️ Please search and select a route first before adding a departure time.");
+                return;
+            }
+            const rawVal = document.getElementById("dep-time-new-input")?.value || "";
+            const parsed = normalizeAdminDepTimeStr(rawVal);
+            if (!parsed) {
+                alert("⚠️ Please enter a valid departure time (e.g. 07:30 AM, 02:15 PM, or 14:30).");
+                return;
+            }
+            try {
+                const res = await fetch("/api/dataset/routes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "add_departure_time",
+                        routeCode: _activeDepTimeRoute.code,
+                        depotId: _activeDepTimeRoute.depotId,
+                        departureTime: parsed.ampmStr
+                    })
+                });
+                const json = await res.json();
+                if (!res.ok || !json.ok) {
+                    alert(json.error || "Could not add departure time.");
+                    return;
+                }
+                document.getElementById("dep-time-new-input").value = "";
+                const picker = document.getElementById("dep-time-native-picker");
+                if (picker) picker.value = "";
+                await refreshRoutesAndTimetablesFromServer();
+                alert(`✅ Departure time ${parsed.ampmStr} has been added to Route ${_activeDepTimeRoute.code}!`);
+            } catch (e) {
+                alert("Error updating departure time: " + e.message);
+            }
+        };
+
+        window.renderDepTimeDeleteList = function() {
+            const listEl = document.getElementById("dep-time-delete-list");
+            if (!listEl || !_activeDepTimeRoute) return;
+            const fq = (document.getElementById("dep-time-del-filter")?.value || "").trim().toLowerCase();
+            const times = (_activeDepTimeRoute.timetables || []).filter(t => !fq || String(t).toLowerCase().includes(fq));
+            if (times.length === 0) {
+                listEl.innerHTML = `<div style="padding:18px; text-align:center; color:#64748b; background:#f8fafc; border-radius:8px;">No matching departure timings found for Route ${escapeHtml(_activeDepTimeRoute.code)}.</div>`;
+                return;
+            }
+            listEl.innerHTML = times.map(t => `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 12px; background:#fff; border:1px solid #e2e8f0; border-radius:8px;">
+                    <div>
+                        <strong style="color:#0f172a; font-size:0.9rem;">🕒 ${escapeHtml(t)}</strong>
+                        <span style="display:block; font-size:0.75rem; color:#64748b;">Route ${escapeHtml(_activeDepTimeRoute.code)} • ${escapeHtml(_activeDepTimeRoute.depotName)}</span>
+                    </div>
+                    <button type="button" onclick="deleteSingleDepartureTime('${escapeHtml(t)}')" style="background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; border-radius:6px; padding:6px 12px; font-weight:700; cursor:pointer; font-size:0.8rem;">
+                        🗑️ Delete
+                    </button>
+                </div>
+            `).join("");
+        };
+
+        window.deleteSingleDepartureTime = async function(timeStr) {
+            if (!_activeDepTimeRoute) {
+                alert("⚠️ Please select a route first.");
+                return;
+            }
+            if (!confirm(`Delete departure timing "${timeStr}" from Route ${_activeDepTimeRoute.code}?`)) return;
+            try {
+                const res = await fetch("/api/dataset/routes", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "delete_departure_time",
+                        routeCode: _activeDepTimeRoute.code,
+                        depotId: _activeDepTimeRoute.depotId,
+                        departureTime: timeStr
+                    })
+                });
+                const json = await res.json();
+                if (!res.ok || !json.ok) {
+                    alert(json.error || "Failed to delete departure time.");
+                    return;
+                }
+                await refreshRoutesAndTimetablesFromServer();
+                alert(`🗑️ Departure time ${timeStr} removed from Route ${_activeDepTimeRoute.code}.`);
+            } catch (e) {
+                alert("Error deleting departure time: " + e.message);
+            }
+        };
 
         // Initialize badge count on startup
         setTimeout(updateAddDeleteBadgeCount, 500);

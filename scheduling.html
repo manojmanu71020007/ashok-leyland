@@ -2701,7 +2701,6 @@
                 return 'Chandra Layout Depot';
             })(currentOperatingDepot);
 
-            const eyebrow = document.getElementById('schedulingEyebrow');
             if (eyebrow) eyebrow.textContent = `🏢 ${depotCleanName}`;
 
             const pageSub = document.getElementById('schedulingPageSubtitle');
@@ -11856,6 +11855,26 @@
             window.DepotSyncEngine.on('fleet-bus-deleted', handleSyncStateUpdate);
 
             window.DepotSyncEngine.on('fleet-updated', handleSyncStateUpdate);
+
+            window.DepotSyncEngine.on('routes-dataset', async () => {
+                try {
+                    const corRes = await fetch('/api/corridor-schedules');
+                    if (corRes && corRes.ok) {
+                        const cData = await corRes.json();
+                        if (cData && cData.ok) {
+                            if (Array.isArray(cData.directionalRoutes) && cData.directionalRoutes.length) {
+                                directionalRoutes = cData.directionalRoutes;
+                            }
+                            if (Array.isArray(cData.schedules)) {
+                                datasetSchedules = cData.schedules;
+                            }
+                            populateRouteDropdown(routeSearch ? routeSearch.value : "");
+                            updateScheduledTimesForSelectedRoute(true);
+                            await recommend();
+                        }
+                    }
+                } catch (e) {}
+            });
 
         }
 

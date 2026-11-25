@@ -677,6 +677,57 @@ function loadRoutes() {
 
 let cachedCorridorSchedules = null;
 
+function normalizeDepartureTimeParts(tStr) {
+    const raw = String(tStr || "").trim();
+    if (!raw) return null;
+    // Match "06:30 AM", "6:30 pm", "14:30", "14:30:00", "01:45 PM (13:45)"
+    const parenMatch = raw.match(/\((\d{1,2}):(\d{2})\)/);
+    const ampmMatch = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+    const h24Match = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+    let h24 = null;
+    let min = null;
+    if (ampmMatch) {
+        let h = parseInt(ampmMatch[1], 10);
+        min = parseInt(ampmMatch[2], 10);
+        const mod = ampmMatch[3].toUpperCase();
+        if (h < 1 || h > 12 || min < 0 || min > 59) return null;
+        if (mod === "PM" && h < 12) h += 12;
+        if (mod === "AM" && h === 12) h = 0;
+        h24 = h;
+    } else if (h24Match) {
+        h24 = parseInt(h24Match[1], 10);
+        min = parseInt(h24Match[2], 10);
+        if (h24 < 0 || h24 > 23 || min < 0 || min > 59) return null;
+    } else if (parenMatch) {
+        h24 = parseInt(parenMatch[1], 10);
+        min = parseInt(parenMatch[2], 10);
+        if (h24 < 0 || h24 > 23 || min < 0 || min > 59) return null;
+    } else {
+        return null;
+    }
+    const ampm = h24 >= 12 ? "PM" : "AM";
+    const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+    const h24Str = `${String(h24).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+    const ampmStr = `${String(h12).padStart(2, "0")}:${String(min).padStart(2, "0")} ${ampm}`;
+    const tier = ((h24 >= 7 && h24 < 10) || (h24 >= 16 && h24 < 20))
+        ? "Extreme Peak"
+        : ((h24 >= 10 && h24 < 16) || (h24 >= 20 && h24 < 23)) ? "Peak" : "Normal";
+    const shift = (h24 >= 5 && h24 < 13) || (h24 === 13 && min < 30)
+        ? "General Shift"
+        : (h24 >= 13 && h24 < 22) ? "Shift B" : "Night Halt";
+    return {
+        raw,
+        h24,
+        min,
+        minutes: h24 * 60 + min,
+        h24Str,
+        outTime24: `${h24Str}:00`,
+        ampmStr,
+        tier,
+        shift
+    };
+}
+
 function loadCorridorSchedules() {
 
     if (cachedCorridorSchedules) return cachedCorridorSchedules;
@@ -1007,6 +1058,7 @@ function loadCorridorSchedules() {
             ds.routes.forEach(r => {
                 const cleanCode = String(r.code || r.id || "").toUpperCase().trim();
                 if (!cleanCode) return;
+                const flatTimetables = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : null;
                 let existingDir = directionalRoutes.find(c => c.code === cleanCode);
                 if (!existingDir) {
                     const cObj = {
@@ -1014,36 +1066,108 @@ function loadCorridorSchedules() {
                         code: cleanCode,
                         routeCode: cleanCode,
                         routeId: cleanCode,
+                        depot: String(r.depotId || "1"),
+                        depotId: String(r.depotId || "1"),
                         origin: r.origin || "Origin",
                         destination: r.destination || "Destination",
                         distKm: Number(r.distance) || 28.7,
                         distanceKm: Number(r.distance) || 28.7,
-                        trips: (r.timetables && r.timetables.length) || 8,
+                        actualKm: r.actualKm || r.fullDutyKm || undefined,
+                        fullDutyKm: r.fullDutyKm || undefined,
+                        timetables: flatTimetables || undefined,
+                        trips: (flatTimetables && flatTimetables.length) || 8,
                         label: `${r.origin || 'Origin'} ⇔ ${r.destination || 'Destination'} (Route ${cleanCode}) — ${r.distance || 28.7} km`
                     };
                     directionalRoutes.push(cObj);
                     corridorMap.push(cObj);
+                } else {
+                    if (flatTimetables) {
+                        existingDir.timetables = flatTimetables;
+                        existingDir.trips = flatTimetables.length || existingDir.trips;
+                    }
+                    if (r.fullDutyKm) existingDir.fullDutyKm = r.fullDutyKm;
+                    if (r.actualKm || r.fullDutyKm) existingDir.actualKm = r.actualKm || r.fullDutyKm;
                 }
+
+                // Filter out any deleted departure times explicitly removed by Admin
+                if (Array.isArray(r._deletedTimes) && r._deletedTimes.length > 0) {
+                    const delKeys = new Set(
+                        r._deletedTimes.map(dt => {
+                            const parts = normalizeDepartureTimeParts(dt);
+                            return parts ? parts.h24Str : String(dt || "").trim().toLowerCase();
+                        })
+                    );
+                    for (let i = schedules.length - 1; i >= 0; i--) {
+                        if (String(schedules[i].route || "").toUpperCase().trim() !== cleanCode) continue;
+                        const sTimeRaw = schedules[i].departureTime || schedules[i].outTime || "";
+                        const sParts = normalizeDepartureTimeParts(sTimeRaw) || normalizeDepartureTimeParts(schedules[i].outTime);
+                        const sKey = sParts ? sParts.h24Str : String(sTimeRaw).trim().toLowerCase();
+                        if (delKeys.has(sKey)) {
+                            schedules.splice(i, 1);
+                        }
+                    }
+                }
+
                 if (Array.isArray(r.schedules)) {
                     r.schedules.forEach(s => {
                         const sId = String(s.scheduleId || "").trim();
-                        if (sId && !schedules.some(x => String(x.scheduleId).toLowerCase() === sId.toLowerCase())) {
+                        const sParts = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                        const outNorm = sParts ? sParts.outTime24 : (s.outTime || s.departureTime || "08:00:00");
+                        const depNorm = sParts ? sParts.ampmStr : (s.departureTime || s.outTime || "08:00 AM");
+                        const dupByTime = sParts && schedules.some(x => {
+                            if (String(x.route || "").toUpperCase().trim() !== cleanCode) return false;
+                            const xp = normalizeDepartureTimeParts(x.departureTime || x.outTime);
+                            return xp && xp.h24Str === sParts.h24Str;
+                        });
+                        if (sId && !schedules.some(x => String(x.scheduleId).toLowerCase() === sId.toLowerCase()) && !dupByTime) {
                             schedules.push({
                                 scheduleId: sId,
                                 route: cleanCode,
-                                shift: s.shift || "General Shift",
+                                shift: s.shift || (sParts ? sParts.shift : "General Shift"),
                                 fixBm: s.fixBm || "",
                                 fixReg: s.fixReg || "",
                                 swapBm: s.swapBm || "",
                                 swapReg: s.swapReg || "",
-                                outTime: s.outTime || s.departureTime || "08:00:00",
-                                departureTime: s.departureTime || s.outTime || "08:00:00",
+                                outTime: outNorm,
+                                departureTime: depNorm,
                                 inTime: s.inTime || "16:00:00",
                                 category: s.category || r.routeComplexity || "Standard",
                                 singleChargeReqKm: s.singleChargeReqKm || s.totalGroupDistance || Math.round((Number(r.distance) || 25) * 1.5),
-                                totalGroupDistance: s.totalGroupDistance || s.distance || 0,
-                                distance: s.distance || s.totalGroupDistance || 0,
-                                actualKm: s.actualKm || s.totalGroupDistance || 0
+                                totalGroupDistance: s.totalGroupDistance || s.distance || Number(r.fullDutyKm || r.distance || 0),
+                                distance: s.distance || s.totalGroupDistance || Number(r.distance || 0),
+                                actualKm: s.actualKm || s.totalGroupDistance || Number(r.actualKm || r.fullDutyKm || 0)
+                            });
+                        }
+                    });
+                }
+
+                // Ensure any custom departure times stored in r.timetables exist in corridor schedules
+                if (flatTimetables && flatTimetables.length > 0) {
+                    flatTimetables.forEach(tStr => {
+                        const tParts = normalizeDepartureTimeParts(tStr);
+                        if (!tParts) return;
+                        const alreadyInSched = schedules.some(x => {
+                            if (String(x.route || "").toUpperCase().trim() !== cleanCode) return false;
+                            const xp = normalizeDepartureTimeParts(x.departureTime || x.outTime);
+                            return xp && xp.h24Str === tParts.h24Str;
+                        });
+                        if (!alreadyInSched) {
+                            schedules.push({
+                                scheduleId: `${cleanCode}/T-${tParts.h24Str.replace(":", "")}`,
+                                route: cleanCode,
+                                shift: tParts.shift,
+                                fixBm: "",
+                                fixReg: "",
+                                swapBm: "",
+                                swapReg: "",
+                                outTime: tParts.outTime24,
+                                departureTime: tParts.ampmStr,
+                                inTime: "16:00:00",
+                                category: r.routeComplexity || r.category || "Standard",
+                                singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5),
+                                totalGroupDistance: Number(r.fullDutyKm || r.distance || 0),
+                                distance: Number(r.distance || 0),
+                                actualKm: Number(r.actualKm || r.fullDutyKm || 0)
                             });
                         }
                     });
@@ -5333,25 +5457,146 @@ const server = http.createServer(async (req, res) => {
                         const dId = depotId ? String(depotId).trim() : null;
                         if (dataset.routes) {
                             dataset.routes.forEach(r => {
-                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
+                                if (String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
                                     r.timetables = timetables;
+                                    r._timetablesManaged = true;
                                 }
                             });
                         }
                     } else if (action === "add_departure_time" && routeCode && payload.departureTime) {
                         const cleanCode = String(routeCode).toUpperCase().trim();
                         const dId = depotId ? String(depotId).trim() : null;
-                        const newTime = String(payload.departureTime).trim();
-                        if (dataset.routes) {
-                            dataset.routes.forEach(r => {
-                                if (String(r.code).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId)) {
-                                    if (!Array.isArray(r.timetables)) r.timetables = [];
-                                    if (!r.timetables.includes(newTime)) {
-                                        r.timetables.push(newTime);
-                                    }
-                                }
-                            });
+                        const tParts = normalizeDepartureTimeParts(payload.departureTime);
+                        if (!tParts) {
+                            sendJson(res, { ok: false, error: "Invalid departure time format. Please use e.g. 07:30 AM or 14:30." }, 400);
+                            return;
                         }
+                        if (!Array.isArray(dataset.routes)) dataset.routes = [];
+                        let targets = dataset.routes.filter(r => String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId));
+                        if (targets.length === 0) {
+                            targets = dataset.routes.filter(r => String(r.code || r.id).toUpperCase().trim() === cleanCode);
+                        }
+                        if (targets.length === 0) {
+                            const newEntry = {
+                                code: cleanCode,
+                                id: cleanCode,
+                                depotId: dId || "1",
+                                name: `Route ${cleanCode}`,
+                                fullName: `Route ${cleanCode}`,
+                                shortName: cleanCode,
+                                distance: 25,
+                                fullDutyKm: 50,
+                                routeComplexity: "Standard",
+                                category: "Standard",
+                                timetables: [],
+                                timeComplexitySlots: {},
+                                schedules: [],
+                                _deletedTimes: [],
+                                _timetablesManaged: true
+                            };
+                            dataset.routes.push(newEntry);
+                            targets = [newEntry];
+                        }
+                        let duplicateFound = false;
+                        targets.forEach(r => {
+                            const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
+                            const hasDup = flat.some(existingT => {
+                                const ep = normalizeDepartureTimeParts(existingT);
+                                return ep ? ep.h24Str === tParts.h24Str : String(existingT).trim().toLowerCase() === tParts.ampmStr.toLowerCase();
+                            });
+                            if (hasDup) {
+                                duplicateFound = true;
+                                return;
+                            }
+                            flat.push(tParts.ampmStr);
+                            flat.sort((a, b) => {
+                                const pa = normalizeDepartureTimeParts(a);
+                                const pb = normalizeDepartureTimeParts(b);
+                                return (pa ? pa.minutes : 0) - (pb ? pb.minutes : 0);
+                            });
+                            r.timetables = flat;
+                            r._timetablesManaged = true;
+                            if (Array.isArray(r._deletedTimes)) {
+                                r._deletedTimes = r._deletedTimes.filter(dt => {
+                                    const dp = normalizeDepartureTimeParts(dt);
+                                    return dp ? dp.h24Str !== tParts.h24Str : true;
+                                });
+                            }
+                            if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== "object") r.timeComplexitySlots = {};
+                            r.timeComplexitySlots[tParts.ampmStr] = tParts.tier;
+                            if (!Array.isArray(r.schedules)) r.schedules = [];
+                            const schedExists = r.schedules.some(s => {
+                                const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                                return sp && sp.h24Str === tParts.h24Str;
+                            });
+                            if (!schedExists) {
+                                r.schedules.push({
+                                    scheduleId: `${cleanCode}/T-${tParts.h24Str.replace(":", "")}`,
+                                    route: cleanCode,
+                                    shift: tParts.shift,
+                                    outTime: tParts.outTime24,
+                                    departureTime: tParts.ampmStr,
+                                    inTime: "16:00:00",
+                                    category: r.routeComplexity || r.category || "Standard",
+                                    totalGroupDistance: Number(r.fullDutyKm || r.distance || 0),
+                                    distance: Number(r.distance || 0),
+                                    singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5)
+                                });
+                            }
+                        });
+                        if (duplicateFound) {
+                            sendJson(res, { ok: false, error: `Departure time ${tParts.ampmStr} already exists for Route ${cleanCode}.` }, 400);
+                            return;
+                        }
+                    } else if (action === "delete_departure_time" && routeCode && (payload.departureTime || Array.isArray(payload.departureTimes))) {
+                        const cleanCode = String(routeCode).toUpperCase().trim();
+                        const dId = depotId ? String(depotId).trim() : null;
+                        const toDeleteRaw = Array.isArray(payload.departureTimes) ? payload.departureTimes : [payload.departureTime];
+                        const deleteH24Keys = new Set();
+                        const deleteRawKeys = new Set();
+                        toDeleteRaw.forEach(dt => {
+                            const rawLower = String(dt || "").trim().toLowerCase();
+                            if (rawLower) deleteRawKeys.add(rawLower);
+                            const dp = normalizeDepartureTimeParts(dt);
+                            if (dp) deleteH24Keys.add(dp.h24Str);
+                        });
+                        if (!Array.isArray(dataset.routes)) dataset.routes = [];
+                        let targets = dataset.routes.filter(r => String(r.code || r.id).toUpperCase().trim() === cleanCode && (!dId || String(r.depotId).trim() === dId));
+                        if (targets.length === 0) {
+                            targets = dataset.routes.filter(r => String(r.code || r.id).toUpperCase().trim() === cleanCode);
+                        }
+                        targets.forEach(r => {
+                            const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
+                            r.timetables = flat.filter(existingT => {
+                                const ep = normalizeDepartureTimeParts(existingT);
+                                if (ep && deleteH24Keys.has(ep.h24Str)) return false;
+                                if (deleteRawKeys.has(String(existingT).trim().toLowerCase())) return false;
+                                return true;
+                            });
+                            r._timetablesManaged = true;
+                            if (!Array.isArray(r._deletedTimes)) r._deletedTimes = [];
+                            deleteH24Keys.forEach(hKey => {
+                                if (!r._deletedTimes.includes(hKey)) r._deletedTimes.push(hKey);
+                            });
+                            if (r.timeComplexitySlots && typeof r.timeComplexitySlots === "object") {
+                                Object.keys(r.timeComplexitySlots).forEach(k => {
+                                    const kp = normalizeDepartureTimeParts(k);
+                                    if ((kp && deleteH24Keys.has(kp.h24Str)) || deleteRawKeys.has(k.trim().toLowerCase())) {
+                                        delete r.timeComplexitySlots[k];
+                                    }
+                                });
+                            }
+                            if (Array.isArray(r.schedules)) {
+                                r.schedules = r.schedules.filter(s => {
+                                    const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                                    if (sp && deleteH24Keys.has(sp.h24Str)) return false;
+                                    const rawOut = String(s.outTime || "").trim().toLowerCase();
+                                    const rawDep = String(s.departureTime || "").trim().toLowerCase();
+                                    if (deleteRawKeys.has(rawOut) || deleteRawKeys.has(rawDep)) return false;
+                                    return true;
+                                });
+                            }
+                        });
                     }
 
                     currentState._routesDatabase = dataset;

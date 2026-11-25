@@ -9604,13 +9604,48 @@ export function updateTimeComplexityInDataset(routeCode, depotId, newTimeComplex
   return found;
 }
 
+function normalizeTimeEntry(t) {
+  const raw = String(t || '').trim();
+  if (!raw) return null;
+  const ampmMatch = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$/i);
+  const h24Match = raw.match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  let h24 = null;
+  let min = null;
+  if (ampmMatch) {
+    let h = parseInt(ampmMatch[1], 10);
+    min = parseInt(ampmMatch[2], 10);
+    const mod = ampmMatch[3].toUpperCase();
+    if (h < 1 || h > 12 || min < 0 || min > 59) return null;
+    if (mod === 'PM' && h < 12) h += 12;
+    if (mod === 'AM' && h === 12) h = 0;
+    h24 = h;
+  } else if (h24Match) {
+    h24 = parseInt(h24Match[1], 10);
+    min = parseInt(h24Match[2], 10);
+    if (h24 < 0 || h24 > 23 || min < 0 || min > 59) return null;
+  } else {
+    return null;
+  }
+  const ampm = h24 >= 12 ? 'PM' : 'AM';
+  const h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  const h24Str = `${String(h24).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+  const ampmStr = `${String(h12).padStart(2, '0')}:${String(min).padStart(2, '0')} ${ampm}`;
+  const shift = (h24 >= 5 && h24 < 13) || (h24 === 13 && min < 30)
+    ? 'General Shift'
+    : (h24 >= 13 && h24 < 22) ? 'Shift B' : 'Night Halt';
+  const tier = ((h24 >= 7 && h24 < 10) || (h24 >= 16 && h24 < 20))
+    ? 'Extreme Peak'
+    : ((h24 >= 10 && h24 < 16) || (h24 >= 20 && h24 < 23)) ? 'Peak' : 'Normal';
+  return { h24Str, outTime24: `${h24Str}:00`, ampmStr, minutes: h24 * 60 + min, shift, tier };
+}
+
 /**
  * Updates Route Timetables list for a route
  */
 export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
-  if (!Array.isArray(timetables) || timetables.length === 0) return false;
+  if (!Array.isArray(timetables)) return false;
 
   let found = false;
   masterDataset.routes.forEach((r) => {
@@ -9618,6 +9653,7 @@ export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
     const matchDepot = dId ? String(r.depotId).trim() === dId : true;
     if (matchCode && matchDepot) {
       r.timetables = timetables;
+      r._timetablesManaged = true;
       found = true;
     }
   });
@@ -9636,41 +9672,137 @@ export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
 export function addDepartureTimeToRoute(routeCode, depotId, departureTime) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
-  const cleanTime = String(departureTime || '').trim();
-  if (!cleanCode || !cleanTime) return false;
+  const parsed = normalizeTimeEntry(departureTime);
+  const cleanTime = parsed ? parsed.ampmStr : String(departureTime || '').trim();
+  if (!cleanCode || !cleanTime) return { ok: false, error: 'Route and departure time are required.' };
+
+  let found = false;
+  let duplicate = false;
+  masterDataset.routes.forEach((r) => {
+    const matchCode = String(r.code || r.id).toUpperCase().trim() === cleanCode;
+    const matchDepot = dId ? String(r.depotId).trim() === dId : true;
+    if (matchCode && matchDepot) {
+      const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
+      const exists = flat.some((t) => {
+        const ep = normalizeTimeEntry(t);
+        if (parsed && ep) return ep.h24Str === parsed.h24Str;
+        return String(t).trim().toLowerCase() === cleanTime.toLowerCase();
+      });
+      if (exists) {
+        duplicate = true;
+        return;
+      }
+      flat.push(cleanTime);
+      flat.sort((a, b) => {
+        const pa = normalizeTimeEntry(a);
+        const pb = normalizeTimeEntry(b);
+        return (pa ? pa.minutes : parseTimeToMinutes(a)) - (pb ? pb.minutes : parseTimeToMinutes(b));
+      });
+      r.timetables = flat;
+      r._timetablesManaged = true;
+      if (Array.isArray(r._deletedTimes) && parsed) {
+        r._deletedTimes = r._deletedTimes.filter((dt) => {
+          const dp = normalizeTimeEntry(dt);
+          return dp ? dp.h24Str !== parsed.h24Str : true;
+        });
+      }
+      if (parsed) {
+        if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== 'object') r.timeComplexitySlots = {};
+        r.timeComplexitySlots[cleanTime] = parsed.tier;
+        if (!Array.isArray(r.schedules)) r.schedules = [];
+        const hasSched = r.schedules.some((s) => {
+          const sp = normalizeTimeEntry(s.departureTime || s.outTime);
+          return sp && sp.h24Str === parsed.h24Str;
+        });
+        if (!hasSched) {
+          r.schedules.push({
+            scheduleId: `${cleanCode}/T-${parsed.h24Str.replace(':', '')}`,
+            shift: parsed.shift,
+            outTime: parsed.outTime24,
+            departureTime: cleanTime,
+            inTime: '16:00:00',
+            category: r.routeComplexity || r.category || 'Standard',
+            singleChargeReqKm: r.singleChargeReqKm || Math.round((Number(r.distance) || 25) * 1.5),
+          });
+        }
+      }
+      found = true;
+    }
+  });
+
+  if (duplicate) {
+    return { ok: false, duplicate: true, formattedTime: cleanTime, error: `Departure time ${cleanTime} already exists for Route ${cleanCode}.` };
+  }
+
+  if (found) {
+    persistDataset();
+    notifyListeners();
+  }
+  syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime });
+  return { ok: true, formattedTime: cleanTime };
+}
+
+/**
+ * Deletes one or more departure times from an existing route's timetables and syncs to dataset
+ */
+export function deleteDepartureTimeFromRoute(routeCode, depotId, departureTimes) {
+  const cleanCode = String(routeCode || '').toUpperCase().trim();
+  const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
+  const targets = (Array.isArray(departureTimes) ? departureTimes : [departureTimes]).filter(Boolean);
+  if (!cleanCode || targets.length === 0) return { ok: false, error: 'Route and departure time(s) required.' };
+
+  const delH24Keys = new Set();
+  const delRawKeys = new Set();
+  targets.forEach((dt) => {
+    delRawKeys.add(String(dt).trim().toLowerCase());
+    const p = normalizeTimeEntry(dt);
+    if (p) delH24Keys.add(p.h24Str);
+  });
 
   let found = false;
   masterDataset.routes.forEach((r) => {
     const matchCode = String(r.code || r.id).toUpperCase().trim() === cleanCode;
     const matchDepot = dId ? String(r.depotId).trim() === dId : true;
     if (matchCode && matchDepot) {
-      if (!Array.isArray(r.timetables)) r.timetables = [];
-      if (!r.timetables.includes(cleanTime)) {
-        r.timetables.push(cleanTime);
-        r.timetables.sort((a, b) => {
-          const parseMin = (t) => {
-            const m = String(t).match(/^(\d{1,2}):(\d{2})\s*(am|pm)?/i);
-            if (!m) return 0;
-            let h = parseInt(m[1], 10);
-            const min = parseInt(m[2], 10);
-            const isPm = /pm/i.test(m[3] || '');
-            if (isPm && h < 12) h += 12;
-            if (!isPm && h === 12) h = 0;
-            return h * 60 + min;
-          };
-          return parseMin(a) - parseMin(b);
+      const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
+      r.timetables = flat.filter((t) => {
+        const tp = normalizeTimeEntry(t);
+        if (tp && delH24Keys.has(tp.h24Str)) return false;
+        if (delRawKeys.has(String(t).trim().toLowerCase())) return false;
+        return true;
+      });
+      r._timetablesManaged = true;
+      if (!Array.isArray(r._deletedTimes)) r._deletedTimes = [];
+      delH24Keys.forEach((hk) => {
+        if (!r._deletedTimes.includes(hk)) r._deletedTimes.push(hk);
+      });
+      if (r.timeComplexitySlots && typeof r.timeComplexitySlots === 'object') {
+        Object.keys(r.timeComplexitySlots).forEach((k) => {
+          const kp = normalizeTimeEntry(k);
+          if ((kp && delH24Keys.has(kp.h24Str)) || delRawKeys.has(k.trim().toLowerCase())) {
+            delete r.timeComplexitySlots[k];
+          }
         });
-        found = true;
       }
+      if (Array.isArray(r.schedules)) {
+        r.schedules = r.schedules.filter((s) => {
+          const sp = normalizeTimeEntry(s.departureTime || s.outTime);
+          if (sp && delH24Keys.has(sp.h24Str)) return false;
+          if (delRawKeys.has(String(s.outTime || '').trim().toLowerCase())) return false;
+          if (delRawKeys.has(String(s.departureTime || '').trim().toLowerCase())) return false;
+          return true;
+        });
+      }
+      found = true;
     }
   });
 
   if (found) {
     persistDataset();
     notifyListeners();
-    syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime });
   }
-  return found;
+  syncToServer({ action: 'delete_departure_time', routeCode: cleanCode, depotId: dId, departureTimes: targets });
+  return { ok: true, count: targets.length };
 }
 
 /**
@@ -9696,7 +9828,11 @@ export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {
       if (!rDepot || !rDepot.id || deletedDepotIds.has(String(rDepot.id))) return;
       const existingIdx = masterDataset.depots.findIndex((d) => String(d.id) === String(rDepot.id));
       if (existingIdx >= 0) {
-        masterDataset.depots[existingIdx] = { ...masterDataset.depots[existingIdx], ...rDepot };
+        const mergedDepot = { ...masterDataset.depots[existingIdx], ...rDepot };
+        if (JSON.stringify(masterDataset.depots[existingIdx]) !== JSON.stringify(mergedDepot)) {
+          masterDataset.depots[existingIdx] = mergedDepot;
+          changed = true;
+        }
       } else {
         masterDataset.depots.push(rDepot);
         changed = true;
@@ -9712,7 +9848,11 @@ export function syncDatasetWithServer(remoteDataset, remoteDeletedIds) {
         (r) => String(r.code).toUpperCase().trim() === String(rRoute.code).toUpperCase().trim() && String(r.depotId) === String(rRoute.depotId)
       );
       if (existingIdx >= 0) {
-        masterDataset.routes[existingIdx] = { ...masterDataset.routes[existingIdx], ...rRoute };
+        const mergedRoute = { ...masterDataset.routes[existingIdx], ...rRoute };
+        if (JSON.stringify(masterDataset.routes[existingIdx]) !== JSON.stringify(mergedRoute)) {
+          masterDataset.routes[existingIdx] = mergedRoute;
+          changed = true;
+        }
       } else {
         masterDataset.routes.push(rRoute);
         changed = true;
