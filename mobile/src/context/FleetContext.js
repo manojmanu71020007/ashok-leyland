@@ -469,6 +469,52 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
   return Math.min(100, Math.round(baseSoc + reservePct));
 }
 
+// Unified Route Baseline Required SoC (Single source of truth across Admin Overview, View Fleet modal & Scheduling)
+export function computeRouteEstimatedSoc(routeObj, schedObj = null, depTimeOrCat = null, busBm = null) {
+  const depTime =
+    depTimeOrCat ||
+    (schedObj && (schedObj.departureTime || schedObj.outTime || schedObj.cum_time)) ||
+    (routeObj && Array.isArray(routeObj.timetables) && routeObj.timetables[0]) ||
+    '01:10 PM';
+  const chgOcc = Number(
+    (schedObj && (schedObj.chargingOcc ?? schedObj.noChargingOcc ?? schedObj.charging_occ)) ??
+    (routeObj && (routeObj.chargingOcc ?? routeObj.noChargingOcc)) ??
+    0
+  );
+  const isSplit = Boolean(
+    chgOcc > 0 ||
+    routeObj?.splitDuty ||
+    schedObj?.splitDuty ||
+    schedObj?.singleChargeReqKm ||
+    routeObj?.singleChargeReqKm
+  );
+  const fullDist = Number(
+    (routeObj && (routeObj.fullDutyKm || routeObj.actualKm)) ||
+    (schedObj && (schedObj.actualKm || schedObj.totalGroupDistance)) ||
+    (routeObj && (routeObj.distance || routeObj.distKm || routeObj.routeDist)) ||
+    28.7
+  );
+  const drainInfo = getBusDrainRatePerKm(busBm, depTime, routeObj);
+  const unchargedReq = Math.round(fullDist * drainInfo.effectiveDrainPerKm + 15);
+
+  let targetDist;
+  if (isSplit || unchargedReq > 100) {
+    targetDist = Number(
+      schedObj?.singleChargeReqKm ||
+      routeObj?.singleChargeReqKm ||
+      (chgOcc > 0 ? Math.ceil(fullDist / (chgOcc + 1)) : fullDist / 2)
+    );
+  } else {
+    targetDist = Number(
+      (routeObj && (routeObj.distance || routeObj.distKm || routeObj.routeDist)) ||
+      (schedObj && (schedObj.distance || schedObj.totalGroupDistance)) ||
+      28.7
+    );
+  }
+  const refObj = routeObj || schedObj || null;
+  return Math.min(100, Math.round(targetDist * drainInfo.effectiveDrainPerKm + 15));
+}
+
 export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
   let routeCode = null;
   let depotId = null;
@@ -900,6 +946,7 @@ export const FleetProvider = ({ children }) => {
         bmNumber: bm,
         regNo: item.regNo || addedMeta?.regNo || staticBusRegs[bm] || `KA51AH${bm.replace(/\D/g, '').padStart(4, '0')}`,
         busCategory: staticCats[bm] || addedMeta?.busCategory || addedMeta?.category || (item.busCategory || 'B').toUpperCase(),
+        routeComplexity: item.routeComplexity || addedMeta?.routeComplexity || '',
         actualRangeKm: staticRanges[bm] || item.actualRangeKm || 110,
         soc: Math.max(0, Math.min(100, soc)),
         depot: depot,
@@ -1273,6 +1320,11 @@ export const FleetProvider = ({ children }) => {
     const reasonVal = String(newBus.reason || newBus.reasonVal || newBus.notes || 'New Electric Bus Induction').trim();
     const depotVal = String(newBus.depot || '1').trim();
     const catVal = String(newBus.busCategory || newBus.category || 'B').toUpperCase().trim();
+    const routeComplexityVal = String(
+      newBus.routeComplexity ||
+      newBus.assignedRouteComplexity ||
+      (catVal === 'A' ? 'Complex Route' : catVal === 'C' ? 'Simple Route' : 'Moderate / Standard Route')
+    ).trim();
     const socVal = Number.isFinite(Number(newBus.soc)) ? Math.max(10, Math.min(100, Number(newBus.soc))) : 100;
 
     const nowIso = new Date().toISOString();
@@ -1288,6 +1340,7 @@ export const FleetProvider = ({ children }) => {
       depot: depotVal,
       busCategory: catVal,
       category: catVal,
+      routeComplexity: routeComplexityVal,
       soc: socVal,
       make: 'Ashok Leyland',
       model: 'ELECTRIC BUS AC EiV12',
@@ -1302,6 +1355,7 @@ export const FleetProvider = ({ children }) => {
       regNo: cleanReg,
       depot: depotVal,
       busCategory: catVal,
+      routeComplexity: routeComplexityVal,
       soc: socVal,
       status: 'Available',
       isCharging: false,

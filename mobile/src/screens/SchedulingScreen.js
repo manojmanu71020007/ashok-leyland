@@ -19,6 +19,7 @@ import {
   getBusActualRangeKm,
   getBusDrainRatePerKm,
   getRequiredSingleChargeSoc,
+  computeRouteEstimatedSoc,
   STATIC_BUS_CATEGORIES,
   STATIC_BUS_RANGES,
   getBusCategory,
@@ -3420,6 +3421,10 @@ export default function SchedulingScreen() {
     (matchedSched && (matchedSched.splitDuty || matchedSched.chargingOcc > 0 || matchedSched.noChargingOcc > 0)) ||
     (selectedRoute && (selectedRoute.splitDuty || selectedRoute.chargingOcc > 0 || selectedRoute.noChargingOcc > 0))
   );
+  const routeEstimatedSoc = useMemo(() => {
+    if (!selectedRoute) return 0;
+    return computeRouteEstimatedSoc(selectedRoute, matchedSched, scheduledTime || selectedRoute?.timetables?.[0]);
+  }, [selectedRoute, matchedSched, scheduledTime]);
   const chargingOccCount = (
     matchedSched?.chargingOcc ||
     matchedSched?.noChargingOcc ||
@@ -3951,8 +3956,10 @@ export default function SchedulingScreen() {
               scheduleId: matchedSched?.scheduleId || `${selectedRoute.code}/1`,
               shift: matchedSched?.shift || selectedRoute.shift,
               soc: activeCandidate.soc,
+              reqSoc: routeEstimatedSoc || activeCandidate.constantMinReqSoc || activeCandidate.reqSoc,
               fullDutyKm: activeCandidate.fullDutyKm || 108,
               routeDist: selectedRoute.distance,
+              routeFullDutyKm: Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || selectedRoute.distance),
               tripCount: 8,
               busCategory: activeCandidate.busCategory || 'A',
               driver: finalDriverName,
@@ -4438,6 +4445,12 @@ export default function SchedulingScreen() {
               <View style={styles.kpiBox}>
                 <Text style={styles.kpiVal}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km</Text>
                 <Text style={styles.kpiLbl}>{t('route_distance', 'Total Route Distance')}</Text>
+              </View>
+              <View style={styles.kpiBox}>
+                <Text style={[styles.kpiVal, { color: '#b45309' }]}>
+                  {routeEstimatedSoc || activeCandidate.constantMinReqSoc || activeCandidate.reqSoc || 75}%
+                </Text>
+                <Text style={styles.kpiLbl}>{t('estimated_soc', 'Estimated SoC')}</Text>
               </View>
             </View>
 

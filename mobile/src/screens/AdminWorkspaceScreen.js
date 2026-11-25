@@ -24,6 +24,7 @@ import {
   getBusDrainRatePerKm,
   getRequiredSingleChargeSoc,
   getEstimatedTripDrainSoc,
+  computeRouteEstimatedSoc,
   getBusDepot,
 } from '../context/FleetContext';
 import { useAuth } from '../context/AuthContext';
@@ -341,26 +342,27 @@ const adjustTimeStr = (timeStr, deltaMinutes) => {
 
 // ── Helper: Unified Single Charge Operation Threshold SoC (Form 4 Transit Standard Parity) ──
 export const getRequiredOperatingSoc = (duty, rData = null) => {
+  const rCode = duty ? String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '') : '';
+  const datasetRoute = rCode ? getRouteFromDataset(rCode, duty?.depot) : null;
+  const routeObj = rData || datasetRoute || (rCode ? ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode) : null);
+  const depTime = duty?.departureTime || duty?.scheduledTime || (routeObj?.timetables?.[0]) || '01:10 PM';
+
+  if (routeObj) {
+    return computeRouteEstimatedSoc(routeObj, null, depTime);
+  }
   if (duty && Number.isFinite(Number(duty.reqSoc)) && Number(duty.reqSoc) > 0) {
     return Number(duty.reqSoc);
   }
   if (duty && Number.isFinite(Number(duty.estimatedSoc)) && Number(duty.estimatedSoc) > 0) {
     return Number(duty.estimatedSoc);
   }
-  const bm = duty?.bm || duty?.bmNumber;
-  const rCode = duty ? String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '') : '';
-  const routeObj = rData || (rCode ? ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode) : null);
-  const depTime = duty?.departureTime || duty?.scheduledTime || '01:10 PM';
-
-  // Form 4 Transit Standard:
-  // Operating stretch for continuous single-charge operation is derived from singleChargeReqKm or split duty
-  let targetKm = duty?.singleChargeReqKm || routeObj?.singleChargeReqKm;
-  if (!targetKm) {
-    const fullDist = Number(duty?.fullDutyKm || routeObj?.fullDutyKm || (routeObj?.distance * (duty?.tripCount || 4)) || 100);
-    const chgOcc = Number(duty?.chargingOcc ?? routeObj?.chargingOcc ?? 0);
-    targetKm = chgOcc > 0 ? Math.ceil(fullDist / (chgOcc + 1)) : (routeObj?.distance || 28.7);
-  }
-  return getRequiredSingleChargeSoc(targetKm, duty || routeObj, bm, depTime);
+  const fallbackRoute = {
+    distance: Number(duty?.routeDist || duty?.distance || 28.7),
+    fullDutyKm: Number(duty?.routeFullDutyKm || duty?.routeDist || duty?.distance || 28.7),
+    chargingOcc: Number(duty?.chargingOcc || 0),
+    singleChargeReqKm: duty?.singleChargeReqKm,
+  };
+  return computeRouteEstimatedSoc(fallbackRoute, null, depTime);
 };
 
 // ── Detailed Duty Tasks & Feasibility Generator (Matching Website i-Symbol Info Modal) ──
@@ -754,7 +756,10 @@ export default function AdminWorkspaceScreen() {
   // ── Modal 3E: Add / Delete Departure Time Modal State ──
   const [addDeleteDepTimeModalOpen, setAddDeleteDepTimeModalOpen] = useState(false);
   const [addDeleteDepTimeFullscreen, setAddDeleteDepTimeFullscreen] = useState(true);
-  const [depTimeTab, setDepTimeTab] = useState('add'); // 'add' | 'delete'
+  const [depTimeTab, setDepTimeTab] = useState('add'); // 'add' | 'delete' | 'audit'
+  const [depTimeDepotSearchQuery, setDepTimeDepotSearchQuery] = useState('');
+  const [depTimeDepotFilter, setDepTimeDepotFilter] = useState('all'); // 'all' | depotId
+  const [depTimeDepotDropdownOpen, setDepTimeDepotDropdownOpen] = useState(false);
   const [depTimeRouteSearchQuery, setDepTimeRouteSearchQuery] = useState('');
   const [depTimeRouteDropdownOpen, setDepTimeRouteDropdownOpen] = useState(false);
   const [depTimeSelectedRouteKey, setDepTimeSelectedRouteKey] = useState(''); // `${depotId}_${code}`
@@ -765,6 +770,23 @@ export default function AdminWorkspaceScreen() {
   const [selectedTimesToDelete, setSelectedTimesToDelete] = useState([]);
   const [inlineDepTimeCategory, setInlineDepTimeCategory] = useState('Normal');
   const [inlineDepTimeCategoryManual, setInlineDepTimeCategoryManual] = useState(false);
+  const [depTimeAuditActionFilter, setDepTimeAuditActionFilter] = useState('all'); // 'all' | 'ADDED' | 'UPDATED' | 'DELETED'
+  const [depTimeAuditLogs, setDepTimeAuditLogs] = useState(() => {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const saved = localStorage.getItem('bmtc_deptime_audit_logs_v1');
+        if (saved) return JSON.parse(saved);
+      }
+    } catch (_) {}
+    return [];
+  });
+  React.useEffect(() => {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('bmtc_deptime_audit_logs_v1', JSON.stringify(depTimeAuditLogs));
+      }
+    } catch (_) {}
+  }, [depTimeAuditLogs]);
 
   // Driver Form States
   const [newDriverName, setNewDriverName] = useState('');
@@ -2059,11 +2081,15 @@ export default function AdminWorkspaceScreen() {
     );
   };
 
-  // ── Modal 3E Helpers: Add / Delete Departure Time (Requires Route Selection First) ──
+  // ── Modal 3E Helpers: Add / Delete Departure Time (Depot + Route Selection First) ──
   const depTimeFilteredRoutes = useMemo(() => {
+    let base = allAvailableRoutes;
+    if (depTimeDepotFilter && depTimeDepotFilter !== 'all') {
+      base = base.filter((r) => String(r.depotId || '1').replace(/^DEPOT\s*/i, '').trim() === String(depTimeDepotFilter));
+    }
     const q = (depTimeRouteSearchQuery || '').trim().toLowerCase();
-    if (!q) return allAvailableRoutes;
-    return allAvailableRoutes.filter((r) => {
+    if (!q) return base;
+    return base.filter((r) => {
       const code = String(r.code || '').toLowerCase();
       const name = String(r.name || r.fullName || '').toLowerCase();
       const orig = String(r.origin || '').toLowerCase();
@@ -2080,7 +2106,7 @@ export default function AdminWorkspaceScreen() {
         `depot ${depId}`.includes(q)
       );
     });
-  }, [allAvailableRoutes, depTimeRouteSearchQuery]);
+  }, [allAvailableRoutes, depTimeDepotFilter, depTimeRouteSearchQuery]);
 
   const selectedDepTimeRoute = useMemo(() => {
     if (!depTimeSelectedRouteKey) return null;
@@ -2126,46 +2152,9 @@ export default function AdminWorkspaceScreen() {
     return 'Normal';
   };
 
-  const handleAddDepTimeFromModal = async () => {
-    if (!selectedDepTimeRoute) {
-      Alert.alert(
-        'Route Selection Required',
-        'Please search and select a route first before updating departure timings.'
-      );
-      return;
-    }
-    const formatted = normalizeModalDepartureTime(depTimeInputVal);
-    if (!formatted) {
-      Alert.alert(
-        'Invalid Departure Time',
-        'Please enter a valid time in HH:MM AM/PM or 24-hour HH:MM format (e.g. 07:30 AM, 02:15 PM, or 14:30).'
-      );
-      return;
-    }
-    if (!['Extreme Peak', 'Peak', 'Normal'].includes(depTimeCategoryChoice)) {
-      Alert.alert(
-        'Time Category Required',
-        'Please select one departure time category: Extreme Peak, Peak, or Normal.'
-      );
-      return;
-    }
-    const chosenCategory = depTimeCategoryChoice;
-
-    const rCode = selectedDepTimeRoute.code;
-    const rDepotId = String(selectedDepTimeRoute.depotId || '1');
-    const existingTimes = Array.isArray(selectedDepTimeRoute.timetables) ? selectedDepTimeRoute.timetables : [];
-    const targetNorm = formatted.toUpperCase();
-    const isDuplicate = existingTimes.some((et) => {
-      const n = normalizeModalDepartureTime(et);
-      return (n && n.toUpperCase() === targetNorm) || String(et).trim().toUpperCase() === targetNorm;
-    });
-    if (isDuplicate) {
-      Alert.alert('Duplicate Departure Time', `Departure time ${formatted} already exists for Route ${rCode}.`);
-      return;
-    }
-
-    const res = addDepartureTimeToRoute(rCode, rDepotId, formatted, chosenCategory);
-    if (res && res.duplicate) {
+  const commitDepTimeAddOrUpdate = async ({ rCode, rDepotId, depotName, formatted, chosenCategory, isUpdate, previousCategory }) => {
+    const res = addDepartureTimeToRoute(rCode, rDepotId, formatted, chosenCategory, { updateIfExists: Boolean(isUpdate) });
+    if (res && !res.ok && res.duplicate && !isUpdate) {
       Alert.alert('Duplicate Departure Time', res.error || `Departure time ${formatted} already exists.`);
       return;
     }
@@ -2189,18 +2178,126 @@ export default function AdminWorkspaceScreen() {
           depotId: rDepotId,
           departureTime: formatted,
           timeCategory: chosenCategory,
+          updateIfExists: Boolean(isUpdate),
         });
       } catch (_) {}
     }
+
+    setDepTimeAuditLogs((prev) => [
+      {
+        id: `dt_audit_${Date.now()}_${Math.random()}`,
+        action: isUpdate ? 'UPDATED' : 'ADDED',
+        routeCode: rCode,
+        depotId: rDepotId,
+        depotName: depotName || `Depot ${rDepotId}`,
+        timing: formatted,
+        timeCategory: chosenCategory,
+        previousCategory: isUpdate ? previousCategory : null,
+        detail: isUpdate
+          ? `Updated time category for ${formatted} from ${previousCategory} to ${chosenCategory}`
+          : `Added departure timing ${formatted} (${chosenCategory})`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+        user: user?.email || 'admin@bmtc.gov.in',
+      },
+      ...prev,
+    ]);
 
     setDepTimeInputVal('');
     setDepTimeCategoryChoice('');
     setDepTimeCategoryManual(false);
     setDatasetVersionTick((v) => v + 1);
     Alert.alert(
-      '✅ Departure Time Added',
-      `Departure time ${formatted} (${chosenCategory}) has been added to Route ${rCode} (${selectedDepTimeRoute.depotName || `Depot ${rDepotId}`}).`
+      isUpdate ? '🔄 Departure Time Updated' : '✅ Departure Time Added',
+      isUpdate
+        ? `Departure time ${formatted} on Route ${rCode} (${depotName || `Depot ${rDepotId}`}) has been updated from "${previousCategory}" to "${chosenCategory}".`
+        : `Departure time ${formatted} (${chosenCategory}) has been added to Route ${rCode} (${depotName || `Depot ${rDepotId}`}).`
     );
+  };
+
+  const handleAddDepTimeFromModal = async () => {
+    if (!selectedDepTimeRoute) {
+      Alert.alert(
+        'Route Selection Required',
+        'Please search and select a depot and route first before updating departure timings.'
+      );
+      return;
+    }
+    const formatted = normalizeModalDepartureTime(depTimeInputVal);
+    if (!formatted) {
+      Alert.alert(
+        'Invalid Departure Time',
+        'Please enter a valid time in HH:MM AM/PM or 24-hour HH:MM format (e.g. 07:30 AM, 02:15 PM, or 14:30).'
+      );
+      return;
+    }
+    if (!['Extreme Peak', 'Peak', 'Normal'].includes(depTimeCategoryChoice)) {
+      Alert.alert(
+        'Time Category Required',
+        'Please select one departure time category: Extreme Peak, Peak, or Normal.'
+      );
+      return;
+    }
+    const chosenCategory = depTimeCategoryChoice;
+    const rCode = selectedDepTimeRoute.code;
+    const rDepotId = String(selectedDepTimeRoute.depotId || '1');
+    const depotName = selectedDepTimeRoute.depotName || `Depot ${rDepotId}`;
+    const existingTimes = Array.isArray(selectedDepTimeRoute.timetables) ? selectedDepTimeRoute.timetables : [];
+    const targetNorm = formatted.toUpperCase();
+    const matchedExistingTime = existingTimes.find((et) => {
+      const n = normalizeModalDepartureTime(et);
+      return (n && n.toUpperCase() === targetNorm) || String(et).trim().toUpperCase() === targetNorm;
+    });
+
+    if (matchedExistingTime) {
+      const existingCatInfo = getTimeCategory(matchedExistingTime, selectedDepTimeRoute);
+      const existingCategoryLabel =
+        existingCatInfo?.key === 'EXTREME_PEAK'
+          ? 'Extreme Peak'
+          : existingCatInfo?.key === 'PEAK'
+            ? 'Peak'
+            : 'Normal';
+
+      if (existingCategoryLabel === chosenCategory) {
+        Alert.alert(
+          'Duplicate Departure Time',
+          `Departure time ${formatted} (${chosenCategory}) already exists for Route ${rCode}.`
+        );
+        return;
+      }
+
+      Alert.alert(
+        '🔄 Confirm Update Departure Time Category',
+        `Departure time ${formatted} already exists on Route ${rCode} (${depotName}) with category "${existingCategoryLabel}".\n\nDo you want to update its category from "${existingCategoryLabel}" to "${chosenCategory}"?`,
+        [
+          { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
+          {
+            text: 'Confirm Update',
+            onPress: () => {
+              commitDepTimeAddOrUpdate({
+                rCode,
+                rDepotId,
+                depotName,
+                formatted,
+                chosenCategory,
+                isUpdate: true,
+                previousCategory: existingCategoryLabel,
+              });
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    await commitDepTimeAddOrUpdate({
+      rCode,
+      rDepotId,
+      depotName,
+      formatted,
+      chosenCategory,
+      isUpdate: false,
+      previousCategory: null,
+    });
   };
 
   const handleDeleteDepTimesFromModal = (explicitTimes = null) => {
@@ -2221,11 +2318,12 @@ export default function AdminWorkspaceScreen() {
 
     const rCode = selectedDepTimeRoute.code;
     const rDepotId = String(selectedDepTimeRoute.depotId || '1');
+    const depotName = selectedDepTimeRoute.depotName || `Depot ${rDepotId}`;
     const summaryList = targets.slice(0, 6).join(', ') + (targets.length > 6 ? ` ...and ${targets.length - 6} more` : '');
 
     Alert.alert(
       '🗑️ Confirm Delete Departure Time(s)',
-      `Are you sure you want to delete ${targets.length} departure timing(s) from Route ${rCode}?\n\n• Route: ${rCode} (${selectedDepTimeRoute.depotName || `Depot ${rDepotId}`})\n• Timing(s): ${summaryList}`,
+      `Are you sure you want to delete ${targets.length} departure timing(s) from Route ${rCode}?\n\n• Route: ${rCode} (${depotName})\n• Timing(s): ${summaryList}`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -2256,6 +2354,22 @@ export default function AdminWorkspaceScreen() {
                 });
               } catch (_) {}
             }
+
+            setDepTimeAuditLogs((prev) => [
+              {
+                id: `dt_del_${Date.now()}_${Math.random()}`,
+                action: 'DELETED',
+                routeCode: rCode,
+                depotId: rDepotId,
+                depotName,
+                timing: targets.join(', '),
+                timeCategory: 'Removed',
+                detail: `Removed ${targets.length} departure timing(s): ${targets.join(', ')}`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+                user: user?.email || 'admin@bmtc.gov.in',
+              },
+              ...prev,
+            ]);
 
             setSelectedTimesToDelete((prev) => prev.filter((x) => !delSet.has(String(x).trim().toUpperCase())));
             setDatasetVersionTick((v) => v + 1);
@@ -2414,6 +2528,7 @@ export default function AdminWorkspaceScreen() {
   const [addBm, setAddBm] = useState('');
   const [addReg, setAddReg] = useState('');
   const [addCat, setAddCat] = useState('B');
+  const [addRouteComplexity, setAddRouteComplexity] = useState('Moderate / Standard Route');
   const [addSoc, setAddSoc] = useState('100');
   const [addDepot, setAddDepot] = useState('');
   const [addDepotDropdownOpen, setAddDepotDropdownOpen] = useState(false);
@@ -2697,13 +2812,9 @@ export default function AdminWorkspaceScreen() {
   const routeRequiredSoc = useMemo(() => {
     if (!selectedRoute) return '—';
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
-    // When route has split duty / mid-duty charge planned, dispatch required SOC is based on the continuous single-leg stretch:
-    const targetDist = (isSplitDutyRoute || selectedRoute.singleChargeReqKm || unchargedDutyRequiredSoc > 100)
-      ? Number(selectedRoute.singleChargeReqKm || (selectedRoute.fullDutyKm ? selectedRoute.fullDutyKm / 2 : 91.9))
-      : Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
-    const calculated = getRequiredSingleChargeSoc(targetDist, selectedRoute, null, depTime, null, selectedRoute);
+    const calculated = computeRouteEstimatedSoc(selectedRoute, null, depTime);
     return calculated > 0 ? `${calculated}%` : '—';
-  }, [selectedRoute, scheduledTime, isSplitDutyRoute, unchargedDutyRequiredSoc]);
+  }, [selectedRoute, scheduledTime]);
 
   // Duties allocated specifically to routeAllocatedModalRoute (independent of departure time, matching admin.html)
   const routeAllocatedDuties = useMemo(() => {
@@ -3186,6 +3297,7 @@ export default function AdminWorkspaceScreen() {
       depot: String(addDepot || '1'),
       busCategory: addCat,
       category: addCat,
+      routeComplexity: addRouteComplexity,
       soc: socVal,
       reason: reasonVal,
       reasonVal,
@@ -3201,8 +3313,8 @@ export default function AdminWorkspaceScreen() {
       bm: cleanBm,
       reg: cleanReg,
       depot: String(addDepot || '1'),
-      reasonCategory: addReasonSelect,
-      detail: reasonVal,
+      reasonCategory: `${addReasonSelect} (${addRouteComplexity})`,
+      detail: `${reasonVal} • Route Compatibility: ${addRouteComplexity} (Cat ${addCat})`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
       user: user?.email || 'admin@bmtc.gov.in',
     };
@@ -3210,7 +3322,7 @@ export default function AdminWorkspaceScreen() {
 
     Alert.alert(
       '✨ Bus Inducted',
-      `Bus ${cleanBm} (${cleanReg}) added to fleet successfully!\n\nIt is now active and marked as "✨ Newly Added Bus" across all system dashboards.`
+      `Bus ${cleanBm} (${cleanReg}) added to fleet successfully!\n\n• Fleet Category: Cat ${addCat}\n• Route Complexity: ${addRouteComplexity}\n\nIt is now active and marked as "✨ Newly Added Bus" across all system dashboards.`
     );
     setAddBm('');
     setAddReg('');
@@ -4075,7 +4187,9 @@ export default function AdminWorkspaceScreen() {
                         <Text style={[styles.timeBadgeText, { color: '#92400e', fontWeight: '800' }]}>
                           🎯 Est. SoC: ~{(() => {
                             const rCode = String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '');
-                            const rData = ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
+                            const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
+                              allAvailableRoutes.find((r) => r.code === rCode) ||
+                              ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
                             return getRequiredOperatingSoc(duty, rData);
                           })()}%
                         </Text>
@@ -4097,7 +4211,9 @@ export default function AdminWorkspaceScreen() {
                       <Text style={styles.dutySoc}>
                         ⚡ {duty.soc}% SoC • Est. Required: ~{(() => {
                           const rCode = String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '');
-                          const rData = ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
+                          const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
+                            allAvailableRoutes.find((r) => r.code === rCode) ||
+                            ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
                           return getRequiredOperatingSoc(duty, rData);
                         })()}% • Range ~{duty.fullDutyKm || 108} km
                       </Text>
@@ -5846,6 +5962,9 @@ export default function AdminWorkspaceScreen() {
               onPress={() => {
                 setPlusOptionsModalOpen(false);
                 setDepTimeTab('add');
+                setDepTimeDepotSearchQuery('');
+                setDepTimeDepotFilter('all');
+                setDepTimeDepotDropdownOpen(false);
                 setDepTimeRouteSearchQuery('');
                 setDepTimeSelectedRouteKey('');
                 setDepTimeRouteDropdownOpen(false);
@@ -6402,24 +6521,54 @@ export default function AdminWorkspaceScreen() {
                     </ScrollView>
                   )}
 
-                  <Text style={styles.modalFieldLabel}>{t('fleet_range_category', 'Fleet Range Category')}</Text>
-                  <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
-                    {[
-                      { cat: 'A', label: 'Category A — High Range (>150 km)' },
-                      { cat: 'B', label: 'Category B — Standard Range (100–150 km)' },
-                      { cat: 'C', label: 'Category C — Short Range (<100 km)' },
-                    ].map((item) => (
-                      <TouchableOpacity
-                        key={item.cat}
-                        style={[styles.modalCatBtn, addCat === item.cat && styles.modalCatBtnActive]}
-                        onPress={() => setAddCat(item.cat)}
-                      >
-                        <Text style={[styles.modalCatBtnText, addCat === item.cat && styles.modalCatBtnTextActive]}>
-                          Cat {item.cat}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
+                      <Text style={styles.modalFieldLabel}>{t('fleet_range_category', 'Fleet Range Category')}</Text>
+                      <View style={{ flexDirection: 'row', gap: 8, marginBottom: 12 }}>
+                        {[
+                          { cat: 'A', label: 'Category A — High Range (>150 km)' },
+                          { cat: 'B', label: 'Category B — Standard Range (100–150 km)' },
+                          { cat: 'C', label: 'Category C — Short Range (<100 km)' },
+                        ].map((item) => (
+                          <TouchableOpacity
+                            key={item.cat}
+                            style={[styles.modalCatBtn, addCat === item.cat && styles.modalCatBtnActive]}
+                            onPress={() => setAddCat(item.cat)}
+                          >
+                            <Text style={[styles.modalCatBtnText, addCat === item.cat && styles.modalCatBtnTextActive]}>
+                              Cat {item.cat}
+                            </Text>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+
+                      <Text style={styles.modalFieldLabel}>Route Complexity Compatibility (Single Choice)</Text>
+                      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                        {[
+                          { id: 'Simple Route', label: 'Simple Route', suggestedCat: 'C' },
+                          { id: 'Moderate / Standard Route', label: 'Moderate / Standard Route', suggestedCat: 'B' },
+                          { id: 'Complex Route', label: 'Complex Route', suggestedCat: 'A' },
+                        ].map((item) => {
+                          const isSel = addRouteComplexity === item.id;
+                          return (
+                            <TouchableOpacity
+                              key={item.id}
+                              style={[
+                                styles.modalCatBtn,
+                                { minWidth: '30%', paddingHorizontal: 10 },
+                                isSel && styles.modalCatBtnActive,
+                              ]}
+                              onPress={() => {
+                                setAddRouteComplexity(item.id);
+                                setAddCat(item.suggestedCat);
+                              }}
+                              activeOpacity={0.8}
+                            >
+                              <Text style={[styles.modalCatBtnText, isSel && styles.modalCatBtnTextActive, { textAlign: 'center' }]}>
+                                {isSel ? '◉ ' : '○ '}{item.label}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
 
                   <Text style={styles.modalFieldLabel}>{t('initial_battery_soc', 'Initial Battery SoC (%)')} <Text style={{ color: '#ef4444' }}>*</Text></Text>
                   <TextInput
@@ -7599,144 +7748,297 @@ export default function AdminWorkspaceScreen() {
               </View>
             </View>
 
-            {/* ── STEP 1: ROUTE SEARCH BOX & SELECT DROPDOWN BOX (MANDATORY FIRST) ── */}
-            <View style={{ backgroundColor: '#f0f9ff', borderWidth: 1.5, borderColor: '#7dd3fc', borderRadius: 12, padding: 12, marginBottom: 14 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0369a1' }}>
-                  🛣️ Step 1: Search &amp; Select Route (Required First) <Text style={{ color: '#ef4444' }}>*</Text>
-                </Text>
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>
-                  {depTimeFilteredRoutes.length} matching route(s)
-                </Text>
-              </View>
+            {/* ── STEP 1: DEPOT + ROUTE SEARCH & SELECT (REQUIRED FIRST FOR ADD / DELETE) ── */}
+            {depTimeTab !== 'audit' && (
+              <View style={{ backgroundColor: '#f0f9ff', borderWidth: 1.5, borderColor: '#7dd3fc', borderRadius: 12, padding: 12, marginBottom: 14 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0369a1' }}>
+                    🏢 Step 1: Search &amp; Select Depot <Text style={{ color: '#64748b', fontWeight: '600' }}>(Filter Routes)</Text>
+                  </Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>
+                    {depotsList.length} depot(s)
+                  </Text>
+                </View>
 
-              {/* Search Box */}
-              <View style={[styles.modalSearchRow, { marginBottom: 8, backgroundColor: '#ffffff' }]}>
-                <Text style={styles.modalSearchIcon}>🔍</Text>
-                <TextInput
-                  style={styles.modalSearchInput}
-                  placeholder="Search route by code, origin, destination, or depot (e.g. MS30, Peenya, 356Z)..."
-                  placeholderTextColor="#94a3b8"
-                  value={depTimeRouteSearchQuery}
-                  onChangeText={(txt) => {
-                    setDepTimeRouteSearchQuery(txt);
-                    if (!depTimeRouteDropdownOpen) setDepTimeRouteDropdownOpen(true);
-                  }}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                {depTimeRouteSearchQuery.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => setDepTimeRouteSearchQuery('')}
-                    style={styles.modalClearSearch}
-                  >
-                    <Text style={styles.modalClearSearchText}>✕</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+                {/* Depot Search Box */}
+                <View style={[styles.modalSearchRow, { marginBottom: 8, backgroundColor: '#ffffff' }]}>
+                  <Text style={styles.modalSearchIcon}>🔍</Text>
+                  <TextInput
+                    style={styles.modalSearchInput}
+                    placeholder="Search depot by name, ID, or location (e.g. Peenya, Chandapura, 1)..."
+                    placeholderTextColor="#94a3b8"
+                    value={depTimeDepotSearchQuery}
+                    onChangeText={(txt) => {
+                      setDepTimeDepotSearchQuery(txt);
+                      if (!depTimeDepotDropdownOpen) setDepTimeDepotDropdownOpen(true);
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {depTimeDepotSearchQuery.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setDepTimeDepotSearchQuery('')}
+                      style={styles.modalClearSearch}
+                    >
+                      <Text style={styles.modalClearSearchText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
 
-              {/* Select Dropdown Box */}
-              <TouchableOpacity
-                style={{
-                  backgroundColor: '#ffffff',
-                  borderWidth: 1.5,
-                  borderColor: selectedDepTimeRoute ? '#0284c7' : '#dc2626',
-                  borderRadius: 10,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-                onPress={() => setDepTimeRouteDropdownOpen((prev) => !prev)}
-                activeOpacity={0.8}
-              >
-                <Text
-                  style={{
-                    flex: 1,
-                    fontSize: 13,
-                    fontWeight: '800',
-                    color: selectedDepTimeRoute ? '#0f172a' : '#dc2626',
-                    paddingRight: 8,
-                  }}
-                  numberOfLines={1}
-                >
-                  {selectedDepTimeRoute
-                    ? `🛣️ [${selectedDepTimeRoute.code}] ${selectedDepTimeRoute.origin || ''} ➔ ${selectedDepTimeRoute.destination || ''} • ${selectedDepTimeRoute.depotName || `Depot ${selectedDepTimeRoute.depotId}`} (${(selectedDepTimeRoute.timetables || []).length} slots)`
-                    : '⚠️ Select Route from list (Required to edit timings) *'}
-                </Text>
-                <Text style={{ fontSize: 12.5, fontWeight: '800', color: selectedDepTimeRoute ? '#0284c7' : '#dc2626' }}>
-                  {depTimeRouteDropdownOpen ? '▲ Close' : '▼ Select Route'}
-                </Text>
-              </TouchableOpacity>
-
-              {depTimeRouteDropdownOpen && (
-                <ScrollView
+                {/* Depot Select Dropdown */}
+                <TouchableOpacity
                   style={{
                     backgroundColor: '#ffffff',
-                    borderWidth: 1,
+                    borderWidth: 1.5,
                     borderColor: '#7dd3fc',
                     borderRadius: 10,
-                    marginTop: 6,
-                    maxHeight: 200,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 10,
                   }}
-                  nestedScrollEnabled
+                  onPress={() => setDepTimeDepotDropdownOpen((prev) => !prev)}
+                  activeOpacity={0.8}
                 >
-                  {depTimeFilteredRoutes.length === 0 ? (
-                    <View style={{ padding: 14, alignItems: 'center' }}>
-                      <Text style={{ fontSize: 12.5, color: '#dc2626', fontWeight: '700' }}>
-                        No routes match "{depTimeRouteSearchQuery}".
+                  <Text style={{ flex: 1, fontSize: 13, fontWeight: '800', color: '#0f172a', paddingRight: 8 }} numberOfLines={1}>
+                    {depTimeDepotFilter === 'all'
+                      ? `🌐 All Operating Depots (${allAvailableRoutes.length} routes)`
+                      : `🏢 ${depotsList.find((d) => String(d.id) === String(depTimeDepotFilter))?.name || `Depot ${depTimeDepotFilter}`}`}
+                  </Text>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0284c7' }}>
+                    {depTimeDepotDropdownOpen ? '▲ Close' : '▼ Select Depot'}
+                  </Text>
+                </TouchableOpacity>
+
+                {depTimeDepotDropdownOpen && (
+                  <ScrollView
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderWidth: 1,
+                      borderColor: '#7dd3fc',
+                      borderRadius: 10,
+                      marginTop: -4,
+                      marginBottom: 10,
+                      maxHeight: 160,
+                    }}
+                    nestedScrollEnabled
+                  >
+                    <TouchableOpacity
+                      style={{
+                        paddingHorizontal: 12,
+                        paddingVertical: 9,
+                        borderBottomWidth: 1,
+                        borderBottomColor: '#f1f5f9',
+                        backgroundColor: depTimeDepotFilter === 'all' ? '#e0f2fe' : '#ffffff',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                      onPress={() => {
+                        setDepTimeDepotFilter('all');
+                        setDepTimeDepotDropdownOpen(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 13, fontWeight: '700', color: depTimeDepotFilter === 'all' ? '#0369a1' : '#0f172a' }}>
+                        🌐 All Operating Depots ({allAvailableRoutes.length} routes)
                       </Text>
-                    </View>
-                  ) : (
-                    depTimeFilteredRoutes.map((rt) => {
-                      const k = `${rt.depotId}_${rt.code}`;
-                      const isSel = depTimeSelectedRouteKey === k;
-                      return (
-                        <TouchableOpacity
-                          key={k}
-                          style={{
-                            paddingHorizontal: 12,
-                            paddingVertical: 10,
-                            borderBottomWidth: 1,
-                            borderBottomColor: '#f1f5f9',
-                            backgroundColor: isSel ? '#e0f2fe' : '#ffffff',
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                          }}
-                          onPress={() => {
-                            setDepTimeSelectedRouteKey(k);
-                            setDepTimeRouteDropdownOpen(false);
-                            setSelectedTimesToDelete([]);
-                            setDepTimeDeleteFilter('');
-                          }}
-                        >
-                          <View style={{ flex: 1, paddingRight: 8 }}>
-                            <Text style={{ fontSize: 13, fontWeight: isSel ? '800' : '700', color: isSel ? '#0369a1' : '#0f172a' }}>
-                              🛣️ {rt.code} — {rt.origin || ''} ➔ {rt.destination || ''}
-                            </Text>
-                            <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
-                              🏢 {rt.depotName || `Depot ${rt.depotId}`} • 📏 {rt.distance} km • 🕒 {(rt.timetables || []).length} departure timing(s)
+                      {depTimeDepotFilter === 'all' && <Text style={{ color: '#0284c7', fontWeight: '900' }}>✓</Text>}
+                    </TouchableOpacity>
+                    {(() => {
+                      const dq = depTimeDepotSearchQuery.trim().toLowerCase();
+                      const filteredDepots = depotsList.filter((d) => {
+                        if (!dq) return true;
+                        return (
+                          String(d.id).toLowerCase().includes(dq) ||
+                          String(d.name || '').toLowerCase().includes(dq) ||
+                          String(d.location || '').toLowerCase().includes(dq)
+                        );
+                      });
+                      if (filteredDepots.length === 0) {
+                        return (
+                          <View style={{ padding: 12, alignItems: 'center' }}>
+                            <Text style={{ fontSize: 12, color: '#dc2626', fontWeight: '700' }}>
+                              No depots match "{depTimeDepotSearchQuery}".
                             </Text>
                           </View>
-                          {isSel && <Text style={{ color: '#0284c7', fontWeight: '900', fontSize: 14 }}>✓</Text>}
-                        </TouchableOpacity>
-                      );
-                    })
-                  )}
-                </ScrollView>
-              )}
-            </View>
+                        );
+                      }
+                      return filteredDepots.map((d) => {
+                        const dId = String(d.id);
+                        const isSel = depTimeDepotFilter === dId;
+                        const rCount = allAvailableRoutes.filter((r) => String(r.depotId) === dId).length;
+                        return (
+                          <TouchableOpacity
+                            key={dId}
+                            style={{
+                              paddingHorizontal: 12,
+                              paddingVertical: 9,
+                              borderBottomWidth: 1,
+                              borderBottomColor: '#f1f5f9',
+                              backgroundColor: isSel ? '#e0f2fe' : '#ffffff',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                            onPress={() => {
+                              setDepTimeDepotFilter(dId);
+                              setDepTimeDepotDropdownOpen(false);
+                              if (depTimeSelectedRouteKey && !depTimeSelectedRouteKey.startsWith(`${dId}_`)) {
+                                setDepTimeSelectedRouteKey('');
+                                setSelectedTimesToDelete([]);
+                              }
+                            }}
+                          >
+                            <Text style={{ fontSize: 13, fontWeight: isSel ? '800' : '700', color: isSel ? '#0369a1' : '#0f172a', flex: 1 }}>
+                              🏢 {d.name || `Depot ${dId}`} ({rCount} routes)
+                            </Text>
+                            {isSel && <Text style={{ color: '#0284c7', fontWeight: '900' }}>✓</Text>}
+                          </TouchableOpacity>
+                        );
+                      });
+                    })()}
+                  </ScrollView>
+                )}
 
-            {/* 2 Tabs: Add Departure Time | Delete Departure Time */}
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#0369a1' }}>
+                    🛣️ Step 2: Search &amp; Select Route (Required) <Text style={{ color: '#ef4444' }}>*</Text>
+                  </Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#0284c7' }}>
+                    {depTimeFilteredRoutes.length} matching route(s)
+                  </Text>
+                </View>
+
+                {/* Route Search Box */}
+                <View style={[styles.modalSearchRow, { marginBottom: 8, backgroundColor: '#ffffff' }]}>
+                  <Text style={styles.modalSearchIcon}>🔍</Text>
+                  <TextInput
+                    style={styles.modalSearchInput}
+                    placeholder="Search route by code, origin, destination (e.g. MS30, 356Z, 600F)..."
+                    placeholderTextColor="#94a3b8"
+                    value={depTimeRouteSearchQuery}
+                    onChangeText={(txt) => {
+                      setDepTimeRouteSearchQuery(txt);
+                      if (!depTimeRouteDropdownOpen) setDepTimeRouteDropdownOpen(true);
+                    }}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {depTimeRouteSearchQuery.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => setDepTimeRouteSearchQuery('')}
+                      style={styles.modalClearSearch}
+                    >
+                      <Text style={styles.modalClearSearchText}>✕</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Select Route Dropdown Box */}
+                <TouchableOpacity
+                  style={{
+                    backgroundColor: '#ffffff',
+                    borderWidth: 1.5,
+                    borderColor: selectedDepTimeRoute ? '#0284c7' : '#dc2626',
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    paddingVertical: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                  onPress={() => setDepTimeRouteDropdownOpen((prev) => !prev)}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 13,
+                      fontWeight: '800',
+                      color: selectedDepTimeRoute ? '#0f172a' : '#dc2626',
+                      paddingRight: 8,
+                    }}
+                    numberOfLines={1}
+                  >
+                    {selectedDepTimeRoute
+                      ? `🛣️ [${selectedDepTimeRoute.code}] ${selectedDepTimeRoute.origin || ''} ➔ ${selectedDepTimeRoute.destination || ''} • ${selectedDepTimeRoute.depotName || `Depot ${selectedDepTimeRoute.depotId}`} (${(selectedDepTimeRoute.timetables || []).length} slots)`
+                      : '⚠️ Select Route from list (Required to edit timings) *'}
+                  </Text>
+                  <Text style={{ fontSize: 12.5, fontWeight: '800', color: selectedDepTimeRoute ? '#0284c7' : '#dc2626' }}>
+                    {depTimeRouteDropdownOpen ? '▲ Close' : '▼ Select Route'}
+                  </Text>
+                </TouchableOpacity>
+
+                {depTimeRouteDropdownOpen && (
+                  <ScrollView
+                    style={{
+                      backgroundColor: '#ffffff',
+                      borderWidth: 1,
+                      borderColor: '#7dd3fc',
+                      borderRadius: 10,
+                      marginTop: 6,
+                      maxHeight: 200,
+                    }}
+                    nestedScrollEnabled
+                  >
+                    {depTimeFilteredRoutes.length === 0 ? (
+                      <View style={{ padding: 14, alignItems: 'center' }}>
+                        <Text style={{ fontSize: 12.5, color: '#dc2626', fontWeight: '700' }}>
+                          No routes match current depot/search filters.
+                        </Text>
+                      </View>
+                    ) : (
+                      depTimeFilteredRoutes.map((rt) => {
+                        const k = `${rt.depotId}_${rt.code}`;
+                        const isSel = depTimeSelectedRouteKey === k;
+                        return (
+                          <TouchableOpacity
+                            key={k}
+                            style={{
+                              paddingHorizontal: 12,
+                              paddingVertical: 10,
+                              borderBottomWidth: 1,
+                              borderBottomColor: '#f1f5f9',
+                              backgroundColor: isSel ? '#e0f2fe' : '#ffffff',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                            }}
+                            onPress={() => {
+                              setDepTimeSelectedRouteKey(k);
+                              setDepTimeRouteDropdownOpen(false);
+                              setSelectedTimesToDelete([]);
+                              setDepTimeDeleteFilter('');
+                            }}
+                          >
+                            <View style={{ flex: 1, paddingRight: 8 }}>
+                              <Text style={{ fontSize: 13, fontWeight: isSel ? '800' : '700', color: isSel ? '#0369a1' : '#0f172a' }}>
+                                🛣️ {rt.code} — {rt.origin || ''} ➔ {rt.destination || ''}
+                              </Text>
+                              <Text style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>
+                                🏢 {rt.depotName || `Depot ${rt.depotId}`} • 📏 {rt.distance} km • 🕒 {(rt.timetables || []).length} departure timing(s)
+                              </Text>
+                            </View>
+                            {isSel && <Text style={{ color: '#0284c7', fontWeight: '900', fontSize: 14 }}>✓</Text>}
+                          </TouchableOpacity>
+                        );
+                      })
+                    )}
+                  </ScrollView>
+                )}
+              </View>
+            )}
+
+            {/* 3 Tabs: Add Departure Time | Delete Departure Time | Audit Log */}
             <View style={styles.addDelTabs}>
               <TouchableOpacity
                 style={[styles.addDelTab, depTimeTab === 'add' && styles.addDelTabActive]}
                 onPress={() => setDepTimeTab('add')}
               >
                 <Text style={[styles.addDelTabText, depTimeTab === 'add' && styles.addDelTabTextActive]}>
-                  ➕ Add Departure Time
+                  ➕ Add / Update
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -7744,7 +8046,15 @@ export default function AdminWorkspaceScreen() {
                 onPress={() => setDepTimeTab('delete')}
               >
                 <Text style={[styles.addDelTabText, depTimeTab === 'delete' && styles.addDelTabTextActive]}>
-                  🗑️ Delete Departure Time
+                  🗑️ Delete Timing
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.addDelTab, depTimeTab === 'audit' && styles.addDelTabActive]}
+                onPress={() => setDepTimeTab('audit')}
+              >
+                <Text style={[styles.addDelTabText, depTimeTab === 'audit' && styles.addDelTabTextActive]}>
+                  📋 Audit Log ({depTimeAuditLogs.length})
                 </Text>
               </TouchableOpacity>
             </View>
@@ -7754,16 +8064,113 @@ export default function AdminWorkspaceScreen() {
               contentContainerStyle={{ paddingBottom: 28 }}
               keyboardShouldPersistTaps="handled"
             >
-              {/* STRICT LOCK GUARD IF NO ROUTE IS SELECTED */}
-              {!selectedDepTimeRoute ? (
+              {depTimeTab === 'audit' ? (
+                <View style={styles.tabContentBox}>
+                  <View style={styles.auditLogHeaderStack}>
+                    <Text style={styles.auditLogTitle}>📋 Departure Timing Audit Trail</Text>
+                    <Text style={styles.auditLogSub}>
+                      History of departure time additions, category updates, and deletions across depots &amp; routes.
+                    </Text>
+                    <View style={[styles.sectionActionsRow, { flexWrap: 'wrap', gap: 8, marginTop: 8 }]}>
+                      {[
+                        { id: 'all', label: `All (${depTimeAuditLogs.length})` },
+                        { id: 'ADDED', label: `Added (${depTimeAuditLogs.filter((a) => a.action === 'ADDED').length})` },
+                        { id: 'UPDATED', label: `Updated (${depTimeAuditLogs.filter((a) => a.action === 'UPDATED').length})` },
+                        { id: 'DELETED', label: `Deleted (${depTimeAuditLogs.filter((a) => a.action === 'DELETED').length})` },
+                      ].map((f) => {
+                        const isSel = depTimeAuditActionFilter === f.id;
+                        return (
+                          <TouchableOpacity
+                            key={f.id}
+                            style={[styles.catFilterPill, isSel && styles.catFilterPillActive]}
+                            onPress={() => setDepTimeAuditActionFilter(f.id)}
+                          >
+                            <Text style={[styles.catFilterPillText, isSel && styles.catFilterPillTextActive]}>
+                              {f.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                      <TouchableOpacity
+                        style={styles.btnHeaderDownload}
+                        onPress={async () => {
+                          if (!depTimeAuditLogs || depTimeAuditLogs.length === 0) {
+                            Alert.alert('No Records', 'No departure timing audit entries to export.');
+                            return;
+                          }
+                          const headers = ['Action', 'Depot', 'Route Code', 'Timing', 'Category', 'Details', 'Timestamp', 'User'];
+                          const rows = depTimeAuditLogs.map((e) => [
+                            e.action || '',
+                            e.depotName || `Depot ${e.depotId || ''}`,
+                            e.routeCode || '',
+                            e.timing || '',
+                            e.previousCategory ? `${e.previousCategory} -> ${e.timeCategory}` : (e.timeCategory || ''),
+                            e.detail || '',
+                            e.timestamp || '',
+                            e.user || '',
+                          ]);
+                          await exportCsvFile(`departure_time_audit_${new Date().toISOString().slice(0, 10)}.csv`, [headers, ...rows]);
+                        }}
+                      >
+                        <Text style={styles.btnHeaderDownloadText}>📥 Download CSV</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {(() => {
+                    const shownLogs = depTimeAuditLogs.filter(
+                      (e) => depTimeAuditActionFilter === 'all' || e.action === depTimeAuditActionFilter
+                    );
+                    if (shownLogs.length === 0) {
+                      return (
+                        <View style={{ padding: 24, alignItems: 'center', backgroundColor: '#f8fafc', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' }}>
+                          <Text style={{ fontSize: 13, color: '#64748b', fontWeight: '700' }}>
+                            No departure timing changes recorded yet.
+                          </Text>
+                        </View>
+                      );
+                    }
+                    return shownLogs.map((entry) => {
+                      const isAdd = entry.action === 'ADDED';
+                      const isUpd = entry.action === 'UPDATED';
+                      return (
+                        <View key={entry.id} style={styles.auditCard}>
+                          <View style={styles.rowBetween}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                              <View
+                                style={[
+                                  styles.auditPill,
+                                  isAdd ? styles.auditPillAdd : isUpd ? { backgroundColor: '#dbeafe', borderColor: '#93c5fd' } : styles.auditPillDel,
+                                ]}
+                              >
+                                <Text style={[styles.auditPillText, isAdd ? { color: '#166534' } : isUpd ? { color: '#1d4ed8' } : { color: '#991b1b' }]}>
+                                  {isAdd ? '➕ ADDED' : isUpd ? '🔄 UPDATED' : '🗑️ REMOVED'}
+                                </Text>
+                              </View>
+                              <Text style={styles.auditBm}>🛣️ {entry.routeCode}</Text>
+                              <Text style={styles.auditReg}>🕒 {entry.timing}</Text>
+                            </View>
+                            <Text style={styles.auditDepotText}>{entry.depotName || `Depot ${entry.depotId}`}</Text>
+                          </View>
+                          <Text style={styles.auditReason}>{entry.detail || entry.timeCategory}</Text>
+                          <View style={styles.auditFooterRow}>
+                            <Text style={styles.auditTimestamp}>🕒 {entry.timestamp}</Text>
+                            <Text style={styles.auditUser}>👤 {entry.user}</Text>
+                          </View>
+                        </View>
+                      );
+                    });
+                  })()}
+                </View>
+              ) : !selectedDepTimeRoute ? (
                 <View style={styles.tabContentBox}>
                   <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 12, padding: 18, alignItems: 'center' }}>
                     <Text style={{ fontSize: 28, marginBottom: 8 }}>🔒</Text>
                     <Text style={{ fontSize: 14.5, fontWeight: '800', color: '#991b1b', textAlign: 'center', marginBottom: 4 }}>
-                      Select a Route First to Update Departure Timings
+                      Select a Depot &amp; Route First to Update Departure Timings
                     </Text>
                     <Text style={{ fontSize: 12.5, color: '#7f1d1d', textAlign: 'center', lineHeight: 18 }}>
-                      Use the Search box and Select dropdown above to choose a route (e.g. MS30, 356Z, 600F). Departure timing controls remain locked until a route is selected.
+                      Use the Depot &amp; Route search/select boxes above to choose a route (e.g. MS30, 356Z, 600F). Departure timing controls remain locked until a route is selected.
                     </Text>
                   </View>
                 </View>
@@ -7876,7 +8283,7 @@ export default function AdminWorkspaceScreen() {
                           <Text style={styles.btnModalCancelText}>{t('btn_cancel', 'Cancel')}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity style={styles.btnSubmitAddDepot} onPress={handleAddDepTimeFromModal}>
-                          <Text style={styles.btnSubmitAddDepotText}>➕ Add Departure Time</Text>
+                          <Text style={styles.btnSubmitAddDepotText}>➕ Add / Update Departure Time</Text>
                         </TouchableOpacity>
                       </View>
 
@@ -9092,7 +9499,9 @@ export default function AdminWorkspaceScreen() {
                         <Text style={[styles.routeAllocVal, { color: '#b45309', fontWeight: '800' }]}>
                           🎯 ~{(() => {
                             const rCode = String(duty.routeCode || duty.busNumber || routeAllocatedModalRoute || '').toUpperCase().replace(/^ROUTE\s*/i, '');
-                            const rData = ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
+                            const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
+                              allAvailableRoutes.find((r) => r.code === rCode) ||
+                              ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
                             return getRequiredOperatingSoc(duty, rData);
                           })()}% SoC
                         </Text>

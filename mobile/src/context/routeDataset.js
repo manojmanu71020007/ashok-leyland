@@ -10053,7 +10053,7 @@ export function updateRouteTimetablesInDataset(routeCode, depotId, timetables) {
 /**
  * Adds a new departure time to an existing route's timetables and syncs to dataset
  */
-export function addDepartureTimeToRoute(routeCode, depotId, departureTime, timeCategory = null) {
+export function addDepartureTimeToRoute(routeCode, depotId, departureTime, timeCategory = null, options = {}) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
   const parsed = normalizeTimeEntry(departureTime);
@@ -10062,21 +10062,66 @@ export function addDepartureTimeToRoute(routeCode, depotId, departureTime, timeC
 
   const explicitTier = normalizeTimeCategoryOption(timeCategory);
   const chosenTier = explicitTier || (parsed ? parsed.tier : 'Normal');
+  const allowUpdateExisting = Boolean(options && options.updateIfExists);
 
   let found = false;
   let duplicate = false;
+  let duplicateDifferentCategory = null;
+  let updatedExisting = false;
+
   masterDataset.routes.forEach((r) => {
     const matchCode = String(r.code || r.id).toUpperCase().trim() === cleanCode;
     const matchDepot = dId ? String(r.depotId).trim() === dId : true;
     if (matchCode && matchDepot) {
       const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
-      const exists = flat.some((t) => {
+      const matchedExisting = flat.find((t) => {
         const ep = normalizeTimeEntry(t);
         if (parsed && ep) return ep.h24Str === parsed.h24Str;
         return String(t).trim().toLowerCase() === cleanTime.toLowerCase();
       });
-      if (exists) {
-        duplicate = true;
+      if (matchedExisting) {
+        let existingTier = null;
+        if (r.timeComplexitySlots && typeof r.timeComplexitySlots === 'object') {
+          existingTier = r.timeComplexitySlots[matchedExisting] || r.timeComplexitySlots[cleanTime] || null;
+          if (!existingTier && parsed) {
+            for (const [sk, sv] of Object.entries(r.timeComplexitySlots)) {
+              const sp = normalizeTimeEntry(sk);
+              if (sp && sp.h24Str === parsed.h24Str) {
+                existingTier = sv;
+                break;
+              }
+            }
+          }
+        }
+        if (!existingTier && Array.isArray(r.schedules) && parsed) {
+          const ms = r.schedules.find((s) => {
+            const sp = normalizeTimeEntry(s.departureTime || s.outTime);
+            return sp && sp.h24Str === parsed.h24Str;
+          });
+          if (ms && ms.timeComplexity) existingTier = ms.timeComplexity;
+        }
+        const resolvedExisting = normalizeTimeCategoryOption(existingTier) || (parsed ? parsed.tier : 'Normal');
+        if (!allowUpdateExisting) {
+          duplicate = true;
+          if (resolvedExisting !== chosenTier) {
+            duplicateDifferentCategory = resolvedExisting;
+          }
+          return;
+        }
+        if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== 'object') r.timeComplexitySlots = {};
+        r.timeComplexitySlots[matchedExisting] = chosenTier;
+        r.timeComplexitySlots[cleanTime] = chosenTier;
+        if (Array.isArray(r.schedules) && parsed) {
+          r.schedules.forEach((s) => {
+            const sp = normalizeTimeEntry(s.departureTime || s.outTime);
+            if (sp && sp.h24Str === parsed.h24Str) {
+              s.timeComplexity = chosenTier;
+            }
+          });
+        }
+        r._timetablesManaged = true;
+        updatedExisting = true;
+        found = true;
         return;
       }
       flat.push(cleanTime);
@@ -10119,15 +10164,29 @@ export function addDepartureTimeToRoute(routeCode, depotId, departureTime, timeC
   });
 
   if (duplicate) {
-    return { ok: false, duplicate: true, formattedTime: cleanTime, error: `Departure time ${cleanTime} already exists for Route ${cleanCode}.` };
+    return {
+      ok: false,
+      duplicate: true,
+      existsDifferentCategory: Boolean(duplicateDifferentCategory),
+      existingCategory: duplicateDifferentCategory || chosenTier,
+      formattedTime: cleanTime,
+      error: `Departure time ${cleanTime} already exists for Route ${cleanCode}.`,
+    };
   }
 
   if (found) {
     persistDataset();
     notifyListeners();
   }
-  syncToServer({ action: 'add_departure_time', routeCode: cleanCode, depotId: dId, departureTime: cleanTime, timeCategory: chosenTier });
-  return { ok: true, formattedTime: cleanTime, timeCategory: chosenTier };
+  syncToServer({
+    action: 'add_departure_time',
+    routeCode: cleanCode,
+    depotId: dId,
+    departureTime: cleanTime,
+    timeCategory: chosenTier,
+    updateIfExists: allowUpdateExisting || updatedExisting,
+  });
+  return { ok: true, updated: updatedExisting, formattedTime: cleanTime, timeCategory: chosenTier };
 }
 
 /**

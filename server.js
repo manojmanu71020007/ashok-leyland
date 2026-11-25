@@ -3381,6 +3381,12 @@ function addFleetBus(params) {
 
     const category = String(params.category || params.busCategory || "A").toUpperCase().trim();
 
+    const routeComplexity = String(
+        params.routeComplexity ||
+        params.assignedRouteComplexity ||
+        (category === "A" ? "Complex Route" : category === "C" ? "Simple Route" : "Moderate / Standard Route")
+    ).trim();
+
     const soc = Number.isFinite(Number(params.soc)) ? Math.max(0, Math.min(100, Number(params.soc))) : 100;
 
     const model = String(params.model || "ELECTRIC BUS AC EiV12").trim();
@@ -3531,6 +3537,8 @@ function addFleetBus(params) {
 
         busCategory: category,
 
+        routeComplexity,
+
         soc,
 
         model,
@@ -3574,6 +3582,8 @@ function addFleetBus(params) {
         driver: "Driver Assigned",
 
         busCategory: category,
+
+        routeComplexity,
 
         isNewlyAdded: true,
 
@@ -4108,6 +4118,13 @@ function restoreFleetBus(params) {
 
     const category = String((params && (params.category || params.busCategory)) || (currentState[bm] && currentState[bm].busCategory) || "A").trim();
 
+    const routeComplexity = String(
+        (params && (params.routeComplexity || params.assignedRouteComplexity)) ||
+        deletedInfo.routeComplexity ||
+        (currentState[bm] && currentState[bm].routeComplexity) ||
+        (category === "A" ? "Complex Route" : category === "C" ? "Simple Route" : "Moderate / Standard Route")
+    ).trim();
+
     const soc = Number.isFinite(Number(params && params.soc)) ? Number(params.soc) : ((currentState[bm] && currentState[bm].soc) || 100);
 
     const model = String((params && params.model) || deletedInfo.model || (currentState[bm] && currentState[bm].model) || "ELECTRIC BUS AC EiV12").trim();
@@ -4133,6 +4150,8 @@ function restoreFleetBus(params) {
         category,
 
         busCategory: category,
+
+        routeComplexity,
 
         soc,
 
@@ -6091,14 +6110,60 @@ const server = http.createServer(async (req, res) => {
                             targets = [newEntry];
                         }
                         let duplicateFound = false;
+                        let duplicateDifferentCat = null;
+                        let duplicateSameTier = null;
+                        const allowUpdateExisting = Boolean(payload.updateIfExists || payload.allowCategoryUpdate);
                         targets.forEach(r => {
                             const flat = Array.isArray(r.timetables) ? r.timetables.flat().filter(Boolean) : [];
-                            const hasDup = flat.some(existingT => {
+                            const matchedExisting = flat.find(existingT => {
                                 const ep = normalizeDepartureTimeParts(existingT);
                                 return ep ? ep.h24Str === tParts.h24Str : String(existingT).trim().toLowerCase() === tParts.ampmStr.toLowerCase();
                             });
-                            if (hasDup) {
-                                duplicateFound = true;
+                            if (matchedExisting) {
+                                let existingTier = null;
+                                if (r.timeComplexitySlots && typeof r.timeComplexitySlots === "object") {
+                                    existingTier = r.timeComplexitySlots[matchedExisting] || r.timeComplexitySlots[tParts.ampmStr] || null;
+                                    if (!existingTier) {
+                                        for (const [sk, sv] of Object.entries(r.timeComplexitySlots)) {
+                                            const sp = normalizeDepartureTimeParts(sk);
+                                            if (sp && sp.h24Str === tParts.h24Str) {
+                                                existingTier = sv;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!existingTier && Array.isArray(r.schedules)) {
+                                    const ms = r.schedules.find(s => {
+                                        const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                                        return sp && sp.h24Str === tParts.h24Str;
+                                    });
+                                    if (ms && ms.timeComplexity) existingTier = ms.timeComplexity;
+                                }
+                                const resolvedExistingTier = normalizeTimeCategoryOption(existingTier) || tParts.tier;
+                                if (resolvedExistingTier === chosenTier) {
+                                    duplicateFound = true;
+                                    duplicateSameTier = resolvedExistingTier;
+                                    return;
+                                }
+                                if (!allowUpdateExisting) {
+                                    duplicateFound = true;
+                                    duplicateDifferentCat = resolvedExistingTier;
+                                    return;
+                                }
+                                // Confirmed category update on existing departure time
+                                if (!r.timeComplexitySlots || typeof r.timeComplexitySlots !== "object") r.timeComplexitySlots = {};
+                                r.timeComplexitySlots[matchedExisting] = chosenTier;
+                                r.timeComplexitySlots[tParts.ampmStr] = chosenTier;
+                                if (Array.isArray(r.schedules)) {
+                                    r.schedules.forEach(s => {
+                                        const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                                        if (sp && sp.h24Str === tParts.h24Str) {
+                                            s.timeComplexity = chosenTier;
+                                        }
+                                    });
+                                }
+                                r._timetablesManaged = true;
                                 return;
                             }
                             flat.push(tParts.ampmStr);
@@ -6139,7 +6204,23 @@ const server = http.createServer(async (req, res) => {
                             }
                         });
                         if (duplicateFound) {
-                            sendJson(res, { ok: false, error: `Departure time ${tParts.ampmStr} already exists for Route ${cleanCode}.` }, 400);
+                            if (duplicateDifferentCat) {
+                                sendJson(res, {
+                                    ok: false,
+                                    duplicate: true,
+                                    existsDifferentCategory: true,
+                                    existingCategory: duplicateDifferentCat,
+                                    newCategory: chosenTier,
+                                    error: `Departure time ${tParts.ampmStr} already exists for Route ${cleanCode} with category "${duplicateDifferentCat}".`
+                                }, 409);
+                                return;
+                            }
+                            sendJson(res, {
+                                ok: false,
+                                duplicate: true,
+                                existingCategory: duplicateSameTier,
+                                error: `Departure time ${tParts.ampmStr} already exists for Route ${cleanCode}.`
+                            }, 400);
                             return;
                         }
                     } else if (action === "delete_departure_time" && routeCode && (payload.departureTime || Array.isArray(payload.departureTimes))) {
