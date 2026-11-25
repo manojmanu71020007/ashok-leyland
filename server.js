@@ -21,6 +21,88 @@ const socLogger = require("./soc_logger");
 
 const PORT = process.env.PORT || 3000;
 
+const APP_BOOT_ID = Date.now().toString(36);
+
+function getCurrentBundleSrc() {
+    try {
+        const indexPath = path.join(BASE_DIR, "public", "app", "index.html");
+        if (fs.existsSync(indexPath)) {
+            const html = fs.readFileSync(indexPath, "utf8");
+            const match = html.match(/src="([^"]*\/_expo\/static\/js\/web\/index-[^"]+)"/i);
+            if (match && match[1]) return match[1];
+        }
+    } catch (_) {}
+    return "";
+}
+
+function getAppBuildVersion() {
+    const parts = [APP_BOOT_ID, getCurrentBundleSrc()];
+    const tracked = [
+        path.join(BASE_DIR, "public", "app", "index.html"),
+        path.join(BASE_DIR, "sw.js"),
+        path.join(BASE_DIR, "pwa-app.js"),
+        path.join(BASE_DIR, "admin.html"),
+        path.join(BASE_DIR, "scheduling.html")
+    ];
+    for (const filePath of tracked) {
+        try {
+            if (fs.existsSync(filePath)) {
+                parts.push(String(Math.round(fs.statSync(filePath).mtimeMs)));
+            }
+        } catch (_) {}
+    }
+    return parts.join("-");
+}
+
+const FACTORY_FORM4_ROUTE_CODES = new Set(["356Z", "360K", "600F", "KBS3A", "361C", "399C", "328H", "500DC", "KBS3F"]);
+
+function normalizeCustomRouteDistance(routeObj) {
+    if (!routeObj || typeof routeObj !== "object") return routeObj;
+    const code = String(routeObj.code || routeObj.id || "").toUpperCase().trim();
+    const dist = Number(routeObj.distance || 0);
+    if (!code || dist <= 0) return routeObj;
+    const isCustomOrAdded = Boolean(routeObj.custom) || !FACTORY_FORM4_ROUTE_CODES.has(code);
+    if (!isCustomOrAdded) return routeObj;
+
+    const doubled = parseFloat((dist * 2).toFixed(1));
+    const curFull = Number(routeObj.fullDutyKm || 0);
+    const curActual = Number(routeObj.actualKm || 0);
+    let nextObj = routeObj;
+    if (curFull > 0 && Math.abs(curFull - doubled) < 0.25) {
+        nextObj = { ...nextObj, fullDutyKm: dist };
+    }
+    if (curActual > 0 && Math.abs(curActual - doubled) < 0.25) {
+        nextObj = nextObj === routeObj ? { ...nextObj, actualKm: dist } : { ...nextObj, actualKm: dist };
+    }
+    if (Array.isArray(nextObj.schedules) && nextObj.schedules.length > 0) {
+        let schedChanged = false;
+        const mappedScheds = nextObj.schedules.map((s) => {
+            if (!s || typeof s !== "object") return s;
+            const sGrp = Number(s.totalGroupDistance || 0);
+            const sDist = Number(s.distance || dist);
+            const sDoubled = parseFloat((sDist * 2).toFixed(1));
+            if (sGrp > 0 && Math.abs(sGrp - sDoubled) < 0.25) {
+                schedChanged = true;
+                return { ...s, totalGroupDistance: sDist };
+            }
+            return s;
+        });
+        if (schedChanged) {
+            nextObj = nextObj === routeObj ? { ...nextObj, schedules: mappedScheds } : { ...nextObj, schedules: mappedScheds };
+        }
+    }
+    return nextObj;
+}
+
+function normalizeDatasetCustomRouteDistances(datasetObj) {
+    if (!datasetObj || typeof datasetObj !== "object") return datasetObj;
+    if (!Array.isArray(datasetObj.routes)) return datasetObj;
+    return {
+        ...datasetObj,
+        routes: datasetObj.routes.map(normalizeCustomRouteDistance)
+    };
+}
+
 const PYTHON_API_BASE = "http://localhost:8000";
 
 const BASE_DIR = __dirname;
@@ -4592,7 +4674,12 @@ function sendStaticFile(res, relativePath) {
 
 
 
-        res.writeHead(200, { "Content-Type": contentType });
+        res.writeHead(200, {
+            "Content-Type": contentType,
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+            "Pragma": "no-cache",
+            "Expires": "0"
+        });
 
         res.end(data);
 
@@ -5320,6 +5407,44 @@ const server = http.createServer(async (req, res) => {
 
 
 
+    // ── Live App Build Version Endpoint (Triggers Zero-Refresh Auto-Updates) ──
+
+    if (pathname === "/api/app-version") {
+
+        res.writeHead(200, {
+
+            "Content-Type": "application/json; charset=utf-8",
+
+            "Cache-Control": "no-cache, no-store, must-revalidate",
+
+            "Pragma": "no-cache",
+
+            "Expires": "0",
+
+            "Access-Control-Allow-Origin": "*"
+
+        });
+
+        res.end(JSON.stringify({
+
+            ok: true,
+
+            version: getAppBuildVersion(),
+
+            bundleSrc: getCurrentBundleSrc(),
+
+            stateVersion,
+
+            timestamp: Date.now()
+
+        }));
+
+        return;
+
+    }
+
+
+
     // ── Real-Time Server-Sent Events (SSE) Stream ──
 
     if (pathname === "/api/events") {
@@ -5414,7 +5539,7 @@ const server = http.createServer(async (req, res) => {
 
                 pendingDeletions: ensurePendingDeletions(currentState),
 
-                routesDatabase: currentState._routesDatabase || loadRoutesDataset() || {},
+                routesDatabase: normalizeDatasetCustomRouteDistances(currentState._routesDatabase || loadRoutesDataset() || {}),
 
                 timestamp: Date.now()
 
@@ -5683,7 +5808,7 @@ const server = http.createServer(async (req, res) => {
                             if (delDepotSet.has(rDep) || delRouteSet.has(`${rDep}_${rCode}`)) return false;
                             if (customMap.has(rDep) && !customMap.get(rDep).has(rCode)) return false;
                             return true;
-                        })
+                        }).map(normalizeCustomRouteDistance)
                         : []
                 };
                 sendJson(res, { ok: true, dataset, deletedRoutes: Array.from(delRouteSet), version: stateVersion });
@@ -5733,8 +5858,9 @@ const server = http.createServer(async (req, res) => {
                     const { action, route, depot, routeCode, depotId, routeComplexity, timeComplexity, timeSlot, timetables, dataset: incomingDataset } = payload;
 
                     if (action === "add_route" && route) {
-                        const cleanCode = String(route.code || route.id || "").toUpperCase().trim();
-                        const dId = normalizeCleanDepotId(route.depotId || depotId || "1") || "1";
+                        const normalizedRoute = normalizeCustomRouteDistance(route);
+                        const cleanCode = String(normalizedRoute.code || normalizedRoute.id || "").toUpperCase().trim();
+                        const dId = normalizeCleanDepotId(normalizedRoute.depotId || depotId || "1") || "1";
                         if (cleanCode) {
                             delRouteSet.delete(`${dId}_${cleanCode}`);
                             delete pd.routes[`${dId}_${cleanCode}`];
@@ -5742,9 +5868,9 @@ const server = http.createServer(async (req, res) => {
                         if (!dataset.routes) dataset.routes = [];
                         const existingIdx = dataset.routes.findIndex(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
                         if (existingIdx >= 0) {
-                            const existing = dataset.routes[existingIdx];
+                            const existing = normalizeCustomRouteDistance(dataset.routes[existingIdx]);
                             const exTimes = Array.isArray(existing.timetables) ? existing.timetables.flat().filter(Boolean) : [];
-                            const inTimes = Array.isArray(route.timetables) ? route.timetables.flat().filter(Boolean) : [];
+                            const inTimes = Array.isArray(normalizedRoute.timetables) ? normalizedRoute.timetables.flat().filter(Boolean) : [];
                             const mergedTimesMap = new Map();
                             const exDelKeys = new Set(
                                 (Array.isArray(existing._deletedTimes) ? existing._deletedTimes : []).map(dt => {
@@ -5772,7 +5898,7 @@ const server = http.createServer(async (req, res) => {
                             });
 
                             const exScheds = Array.isArray(existing.schedules) ? [...existing.schedules] : [];
-                            const inScheds = Array.isArray(route.schedules) ? route.schedules : [];
+                            const inScheds = Array.isArray(normalizedRoute.schedules) ? normalizedRoute.schedules : [];
                             let maxNum = exScheds.length;
                             exScheds.forEach(s => {
                                 const m = String(s?.subRoute || s?.scheduleId || "").match(/\/(\d+)\s*$/);
@@ -5795,20 +5921,20 @@ const server = http.createServer(async (req, res) => {
                                 }
                             });
                             const mergedShifts = Array.from(
-                                new Set([...(Array.isArray(existing.shifts) ? existing.shifts : []), ...(Array.isArray(route.shifts) ? route.shifts : []), existing.shift, route.shift, ...exScheds.map(s => s.shift)].filter(Boolean))
+                                new Set([...(Array.isArray(existing.shifts) ? existing.shifts : []), ...(Array.isArray(normalizedRoute.shifts) ? normalizedRoute.shifts : []), existing.shift, normalizedRoute.shift, ...exScheds.map(s => s.shift)].filter(Boolean))
                             );
-                            dataset.routes[existingIdx] = {
+                            dataset.routes[existingIdx] = normalizeCustomRouteDistance({
                                 ...existing,
-                                ...route,
+                                ...normalizedRoute,
                                 timetables: mergedTimetables,
                                 _timetablesManaged: true,
                                 _deletedTimes: Array.from(exDelKeys),
                                 schedules: exScheds,
                                 shifts: mergedShifts,
-                                timeComplexitySlots: { ...(existing.timeComplexitySlots || {}), ...(route.timeComplexitySlots || {}) }
-                            };
+                                timeComplexitySlots: { ...(existing.timeComplexitySlots || {}), ...(normalizedRoute.timeComplexitySlots || {}) }
+                            });
                         } else {
-                            dataset.routes.push(route);
+                            dataset.routes.push(normalizedRoute);
                         }
                         if (dataset.depots) {
                             const depotObj = dataset.depots.find(d => String(d.id).trim() === dId);
@@ -5952,7 +6078,7 @@ const server = http.createServer(async (req, res) => {
                                 fullName: `Route ${cleanCode}`,
                                 shortName: cleanCode,
                                 distance: 25,
-                                fullDutyKm: 50,
+                                fullDutyKm: 25,
                                 routeComplexity: "Standard",
                                 category: "Standard",
                                 timetables: [],
@@ -6817,7 +6943,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
             }
             if (entry.distance) {
                 existingRoute.distance = entry.distance;
-                if (!existingRoute.fullDutyKm) existingRoute.fullDutyKm = parseFloat((entry.distance * 2).toFixed(1));
+                if (!existingRoute.fullDutyKm) existingRoute.fullDutyKm = parseFloat(Number(entry.distance).toFixed(1));
                 existingRoute.drainSoc = Math.min(95, Math.max(12, Math.round(existingRoute.distance * 0.85)));
             }
             if (entry.fullName) {
@@ -6851,7 +6977,7 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
             updatedRoutesList.push(cleanCode);
         } else {
             const dist = entry.distance || 28.7;
-            const dutyKm = entry.fullDutyKm || parseFloat((dist * 2).toFixed(1));
+            const dutyKm = entry.fullDutyKm || parseFloat(Number(dist).toFixed(1));
             const orig = entry.origin || `Depot ${dId} Terminal`;
             const dest = entry.destination || "Central Terminal";
             const routeFullName = entry.fullName || `${orig} ➔ ${dest} (${cleanCode})`;

@@ -684,6 +684,8 @@ export default function AdminWorkspaceScreen() {
   const { user, selectedDepot, logout, openDepotScreen } = useAuth();
   const { width: windowWidth } = useWindowDimensions();
   const isCompactPhone = windowWidth < 500;
+  const [profileCredCardWidth, setProfileCredCardWidth] = useState(0);
+  const isCredCardCompact = profileCredCardWidth > 0 ? profileCredCardWidth < 500 : isCompactPhone;
   const [csvConfirmModalOpen, setCsvConfirmModalOpen] = useState(false);
 
   // Admin Workspace is the enterprise view of the ENTIRE fleet (both Depot 1 and Depot 2)
@@ -1898,7 +1900,8 @@ export default function AdminWorkspaceScreen() {
               origin: effectiveOrigin,
               destination: effectiveDest,
               distance: distNum,
-              fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
+              fullDutyKm: distNum,
+              actualKm: distNum,
               category: existingSameDepot?.category || 'Standard',
               routeComplexity: existingSameDepot?.routeComplexity || 'Standard',
               requiredCat: existingSameDepot?.requiredCat || 'B',
@@ -2427,10 +2430,6 @@ export default function AdminWorkspaceScreen() {
   const [delBusDepotSearchQuery, setDelBusDepotSearchQuery] = useState('');
   const [delReasonSelect, setDelReasonSelect] = useState('Major Breakdown / Motor Defect');
   const [delReasonDetail, setDelReasonDetail] = useState('');
-
-  // Total Fleet Multi-Selection & Batch Delete States
-  const [fleetMultiSelectMode, setFleetMultiSelectMode] = useState(false);
-  const [selectedFleetBms, setSelectedFleetBms] = useState([]);
 
   const [auditLogs, setAuditLogs] = useState([
     {
@@ -3307,85 +3306,6 @@ export default function AdminWorkspaceScreen() {
             setDelReasonDetail('');
             setDelSearchQuery('');
             setAddDeleteTab('audit');
-          },
-        },
-      ]
-    );
-  };
-
-  // ── Handler: Batch Delete Selected Buses directly from Total Fleet View ──
-  const handleBatchDeleteFleetBuses = () => {
-    if (selectedFleetBms.length === 0) {
-      Alert.alert('Selection Required', 'Please select at least one bus to delete.');
-      return;
-    }
-
-    const targets = [...selectedFleetBms];
-    const reasonVal = 'Batch Fleet Decommissioning';
-
-    Alert.alert(
-      '⚠️ Confirm Fleet Deletion',
-      `Permanently delete ${targets.length} selected buses from the active fleet?\n\n• Buses: ${targets.slice(0, 6).join(', ')}${targets.length > 6 ? '... and ' + (targets.length - 6) + ' more' : ''}\n• Action: Immediate Fleet Decommissioning`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: `🗑 Delete (${targets.length} Buses)`,
-          style: 'destructive',
-          onPress: async () => {
-            let pendingBuses = [];
-            let deletedBuses = [];
-            if (typeof deleteBusesBatchFromFleet === 'function') {
-              const delRes = await deleteBusesBatchFromFleet(targets, reasonVal);
-              if (delRes && delRes.data) {
-                pendingBuses = Array.isArray(delRes.data.pendingBuses) ? delRes.data.pendingBuses : [];
-                deletedBuses = Array.isArray(delRes.data.deleted) ? delRes.data.deleted : [];
-              }
-            } else {
-              for (const bm of targets) {
-                const singleRes = await deleteBusFromFleet(bm, { bm, reason: reasonVal });
-                if (singleRes && singleRes.data && (singleRes.data.pending || singleRes.data.deferred)) {
-                  pendingBuses.push(...(singleRes.data.pendingBuses || [{ bm }]));
-                } else {
-                  deletedBuses.push({ bm });
-                }
-              }
-            }
-
-            const pendingBmSet = new Set(pendingBuses.map((p) => String(p.bm || p.busNumber || '').toUpperCase().trim()));
-            targets.forEach((targetBm) => {
-              const targetBus = buses.find((b) => b.bmNumber === targetBm);
-              const targetReg = (targetBus && targetBus.regNo) || `KA51AH${targetBm.replace(/\D/g, '').padStart(4, '0')}`;
-              const targetDepot = String((targetBus && targetBus.depot) || '1');
-              const isPend = pendingBmSet.has(targetBm);
-              setAuditLogs((prev) => [
-                {
-                  id: 'audit_' + Date.now() + Math.random(),
-                  action: isPend ? 'DELETION_PAUSED' : 'DELETED',
-                  bm: targetBm,
-                  reg: targetReg,
-                  depot: targetDepot,
-                  reasonCategory: 'Batch Fleet Decommissioning',
-                  detail: isPend ? `${reasonVal} (Awaiting route completion)` : reasonVal,
-                  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }) + ', 22 Oct 2026',
-                  user: user?.email || 'admin@bmtc.gov.in',
-                },
-                ...prev,
-              ]);
-            });
-
-            setSelectedFleetBms([]);
-            setFleetMultiSelectMode(false);
-            const parts = [];
-            if (pendingBuses.length > 0) {
-              parts.push(`⏳ ${pendingBuses.length} active bus(es) scheduled for deletion after completing their assigned route(s): ${pendingBuses.map((p) => p.bm).join(', ')}.`);
-            }
-            if (deletedBuses.length > 0) {
-              parts.push(`✅ ${deletedBuses.length} unallocated bus(es) deleted immediately.`);
-            }
-            Alert.alert(
-              pendingBuses.length > 0 ? '⏳ Fleet Deletion Scheduled' : '🗑️ Fleet Updated',
-              parts.join('\n\n') || `${targets.length} buses processed.`
-            );
           },
         },
       ]
@@ -4598,22 +4518,31 @@ export default function AdminWorkspaceScreen() {
               )}
             </View>
 
+            {/* Search Bar directly below Operating Depot Selection Box */}
+            <View style={[styles.searchWrap, { marginBottom: 14 }]}>
+              <Text style={styles.searchIcon}>🔍</Text>
+              <TextInput
+                style={styles.searchInput}
+                placeholder={`Search all ${viewBuses.length} buses (${adminDepotFilter === 'all' ? 'All Depots' : 'Depot ' + adminDepotFilter}) by BM number, registration, or driver...`}
+                placeholderTextColor="#94a3b8"
+                value={totalSearch}
+                onChangeText={setTotalSearch}
+              />
+              {totalSearch.length > 0 && (
+                <TouchableOpacity
+                  onPress={() => setTotalSearch('')}
+                  style={{ padding: 6 }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: 'bold' }}>✕</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
             <View style={styles.sectionContent}>
               <View style={styles.sectionHeaderStack}>
                 <Text style={[styles.sectionHeadingTitle, { color: '#0f766e' }]}>🚌 {t('total_buses', 'Total Buses')} ({viewBuses.length})</Text>
                 <View style={styles.sectionActionsRow}>
-                  <TouchableOpacity
-                    style={[styles.btnHeaderDownload, fleetMultiSelectMode && { backgroundColor: '#fee2e2', borderColor: '#f87171' }]}
-                    onPress={() => {
-                      setFleetMultiSelectMode((prev) => !prev);
-                      setSelectedFleetBms([]);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.btnHeaderDownloadText, fleetMultiSelectMode && { color: '#dc2626', fontWeight: '800' }]}>
-                      {fleetMultiSelectMode ? '✕ Cancel Batch' : '☑ Batch Delete'}
-                    </Text>
-                  </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.btnHeaderDownload}
                     onPress={async () => {
@@ -4658,61 +4587,6 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.sectionNote}>
                 Complete fleet ({adminDepotFilter === 'all' ? 'Depot 1 & Depot 2' : 'Depot ' + adminDepotFilter}) with real-time status and telemetry.
               </Text>
-
-              {/* Search Bar for Total Fleet */}
-              <View style={[styles.searchWrap, { marginTop: 10, marginBottom: 14 }]}>
-                <Text style={styles.searchIcon}>🔍</Text>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder={`Search all ${viewBuses.length} buses (${adminDepotFilter === 'all' ? 'All Depots' : 'Depot ' + adminDepotFilter}) by BM number, registration, or driver...`}
-                  placeholderTextColor="#94a3b8"
-                  value={totalSearch}
-                  onChangeText={setTotalSearch}
-                />
-                {totalSearch.length > 0 && (
-                  <TouchableOpacity
-                    onPress={() => setTotalSearch('')}
-                    style={{ padding: 6 }}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={{ fontSize: 13, color: '#94a3b8', fontWeight: 'bold' }}>✕</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Total Fleet Multi-Select / Batch Delete Control Bar */}
-              {fleetMultiSelectMode && (
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fef2f2', padding: 10, borderRadius: 10, borderWidth: 1, borderColor: '#fecaca', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <Text style={{ fontSize: 13, fontWeight: '800', color: '#991b1b' }}>
-                      ☑ {selectedFleetBms.length} Selected
-                    </Text>
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1' }}
-                      onPress={() => setSelectedFleetBms(filteredTotalList.map((b) => b.bmNumber))}
-                    >
-                      <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Select All Filtered ({filteredTotalList.length})</Text>
-                    </TouchableOpacity>
-                    {selectedFleetBms.length > 0 && (
-                      <TouchableOpacity
-                        style={{ backgroundColor: '#ffffff', paddingVertical: 4, paddingHorizontal: 10, borderRadius: 6, borderWidth: 1, borderColor: '#cbd5e1' }}
-                        onPress={() => setSelectedFleetBms([])}
-                      >
-                        <Text style={{ fontSize: 12, fontWeight: '700', color: '#64748b' }}>Clear</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                  <TouchableOpacity
-                    style={{ backgroundColor: selectedFleetBms.length > 0 ? '#dc2626' : '#94a3b8', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 8 }}
-                    disabled={selectedFleetBms.length === 0}
-                    onPress={handleBatchDeleteFleetBuses}
-                  >
-                    <Text style={{ color: '#ffffff', fontWeight: '800', fontSize: 13 }}>
-                      🗑️ Delete Selected ({selectedFleetBms.length})
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              )}
 
               {/* Fleet Accounting Bar (Available, On Route, Locked counts matching user request) */}
               <View style={styles.totalFleetStatsBar}>
@@ -4805,30 +4679,10 @@ export default function AdminWorkspaceScreen() {
               {filteredTotalList.map((bus) => {
                 const isAlloc = allAllocatedDuties.some((d) => d.bm === bus.bmNumber);
                 const statusColor = isAlloc ? '#6d28d9' : bus.status === 'Available' ? '#15803d' : '#b45309';
-                const isFleetSelected = selectedFleetBms.includes(bus.bmNumber);
                 return (
-                  <TouchableOpacity
-                    key={bus.bmNumber}
-                    style={[
-                      styles.totalCard,
-                      isFleetSelected && { borderColor: '#dc2626', borderWidth: 2, backgroundColor: '#fef2f2' },
-                    ]}
-                    activeOpacity={fleetMultiSelectMode ? 0.7 : 1}
-                    onPress={() => {
-                      if (fleetMultiSelectMode) {
-                        setSelectedFleetBms((prev) =>
-                          prev.includes(bus.bmNumber) ? prev.filter((x) => x !== bus.bmNumber) : [...prev, bus.bmNumber]
-                        );
-                      }
-                    }}
-                  >
+                  <View key={bus.bmNumber} style={styles.totalCard}>
                     <View style={styles.cardHeaderRowTop}>
                       <View style={styles.cardHeaderLeftWrap}>
-                        {fleetMultiSelectMode && (
-                          <Text style={{ fontSize: 18, fontWeight: '800', color: isFleetSelected ? '#dc2626' : '#94a3b8', marginRight: 8 }}>
-                            {isFleetSelected ? '☑' : '☐'}
-                          </Text>
-                        )}
                         <Text style={styles.totalBm}>🚌 {bus.bmNumber}</Text>
                         <Text style={styles.totalReg}>({bus.regNo})</Text>
                         {isBusNewlyAdded(bus, localAddedBuses) && (
@@ -4862,7 +4716,7 @@ export default function AdminWorkspaceScreen() {
                         Range: ~{Math.round(Math.max(0, bus.soc - 10) * 1.42)} km
                       </Text>
                     </View>
-                  </TouchableOpacity>
+                  </View>
                 );
               })}
             </View>
@@ -5062,21 +4916,39 @@ export default function AdminWorkspaceScreen() {
             </View>
 
             {/* ── 🔑 DEPOT LOGIN CREDENTIALS (ALL DEPOTS) CSV ROW ── */}
-            <View style={[styles.profileCard, isCompactPhone && { padding: 14 }]}>
+            <View
+              style={[
+                styles.profileCard,
+                { width: '100%', maxWidth: '100%', overflow: 'hidden' },
+                isCredCardCompact && { padding: 14 },
+              ]}
+              onLayout={(e) => {
+                const w = e?.nativeEvent?.layout?.width || 0;
+                if (w > 0 && Math.abs(w - profileCredCardWidth) > 4) {
+                  setProfileCredCardWidth(w);
+                }
+              }}
+            >
               <TouchableOpacity
                 style={[
                   styles.profileCredentialsRowBtn,
-                  isCompactPhone && { flexDirection: 'column', alignItems: 'stretch', gap: 10, padding: 12 },
+                  isCredCardCompact && { flexDirection: 'column', alignItems: 'stretch', gap: 10, padding: 12 },
                 ]}
                 onPress={handleOpenDepotCredentialsCsv}
                 activeOpacity={0.75}
               >
-                <View style={[styles.profileCredentialsRowLeft, { minWidth: 0 }, isCompactPhone && { flex: 0, width: '100%' }]}>
-                  <View style={[styles.profileCredentialsIconWrap, isCompactPhone && { width: 38, height: 38 }]}>
-                    <Text style={{ fontSize: isCompactPhone ? 18 : 22 }}>🔑</Text>
+                <View
+                  style={[
+                    styles.profileCredentialsRowLeft,
+                    { minWidth: 0, maxWidth: '100%' },
+                    isCredCardCompact ? { flexGrow: 0, flexShrink: 1, flexBasis: 'auto', width: '100%' } : null,
+                  ]}
+                >
+                  <View style={[styles.profileCredentialsIconWrap, isCredCardCompact && { width: 38, height: 38 }]}>
+                    <Text style={{ fontSize: isCredCardCompact ? 18 : 22 }}>🔑</Text>
                   </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[styles.profileCredentialsRowTitle, isCompactPhone && { fontSize: 14 }]}>
+                  <View style={{ flex: 1, minWidth: 0, maxWidth: '100%' }}>
+                    <Text style={[styles.profileCredentialsRowTitle, isCredCardCompact && { fontSize: 14 }]}>
                       🔑 Depot Login Credentials (All Depots)
                     </Text>
                     <Text style={styles.profileCredentialsRowSubtitle}>
@@ -5084,29 +4956,15 @@ export default function AdminWorkspaceScreen() {
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.profileCredentialsActionPill, isCompactPhone && { width: '100%', paddingVertical: 10 }]}>
+                <View
+                  style={[
+                    styles.profileCredentialsActionPill,
+                    isCredCardCompact && { width: '100%', maxWidth: '100%', alignSelf: 'stretch', paddingVertical: 10 },
+                  ]}
+                >
                   <Text style={styles.profileCredentialsActionPillText}>📄 Open CSV ➔</Text>
                 </View>
               </TouchableOpacity>
-
-              {/* Quick Manage Depots Link */}
-              <View style={[styles.profileDepotsQuickBar, isCompactPhone && { flexDirection: 'column', alignItems: 'flex-start' }]}>
-                <Text style={[styles.profileDepotsQuickCountText, { flexShrink: 1 }]}>
-                  🏢 {depotsList.length} Depots: {depotsList.map((d) => d.shortName || `Depot ${d.id}`).join(', ')}
-                </Text>
-                <TouchableOpacity
-                  style={styles.profileManageDepotsLink}
-                  onPress={() => {
-                    setDepotsTab('add');
-                    setDepotAddMode('depot');
-                    setAddDeleteDepotsFullscreen(true);
-                    setAddDeleteDepotsModalOpen(true);
-                  }}
-                  activeOpacity={0.7}
-                >
-                  <Text style={styles.profileManageDepotsLinkText}>⚙️ {t('add_delete_depots_routes', 'Add / Delete Depots')}</Text>
-                </TouchableOpacity>
-              </View>
             </View>
 
             {/* 🌐 System Language Card (Admin Profile Section - Dropdown Menu) */}
@@ -7917,7 +7775,7 @@ export default function AdminWorkspaceScreen() {
                       ✅ Active Route: [{selectedDepTimeRoute.code}] {selectedDepTimeRoute.name || `${selectedDepTimeRoute.origin} ➔ ${selectedDepTimeRoute.destination}`}
                     </Text>
                     <Text style={{ fontSize: 11.5, color: '#1e3a8a', marginTop: 3 }}>
-                      🏢 {selectedDepTimeRoute.depotName || `Depot ${selectedDepTimeRoute.depotId}`} • 📏 {selectedDepTimeRoute.distance} km (Full Duty: {selectedDepTimeRoute.fullDutyKm || Number(selectedDepTimeRoute.distance || 0) * 2} km) • 🕒 {(selectedDepTimeRoute.timetables || []).length} Scheduled Departures
+                      🏢 {selectedDepTimeRoute.depotName || `Depot ${selectedDepTimeRoute.depotId}`} • 📏 {selectedDepTimeRoute.distance} km (Full Duty: {selectedDepTimeRoute.fullDutyKm || Number(selectedDepTimeRoute.distance || 0)} km) • 🕒 {(selectedDepTimeRoute.timetables || []).length} Scheduled Departures
                     </Text>
                   </View>
 
@@ -12126,6 +11984,9 @@ const styles = StyleSheet.create({
   profileTabContainer: {
     paddingHorizontal: 0,
     paddingTop: 8,
+    width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
   },
   profileHeader: {
     alignItems: 'center',
@@ -12195,7 +12056,9 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
     width: '100%',
+    maxWidth: '100%',
     overflow: 'hidden',
+    ...(Platform.OS === 'web' ? { boxSizing: 'border-box' } : null),
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -13869,12 +13732,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#e2e8f0',
     width: '100%',
+    maxWidth: '100%',
+    overflow: 'hidden',
+    ...(Platform.OS === 'web' ? { boxSizing: 'border-box' } : null),
   },
   profileCredentialsRowLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     minWidth: 0,
+    maxWidth: '100%',
     gap: 12,
   },
   profileCredentialsIconWrap: {
@@ -13894,6 +13761,7 @@ const styles = StyleSheet.create({
     color: '#0f172a',
     letterSpacing: -0.2,
     flexShrink: 1,
+    flexWrap: 'wrap',
   },
   profileCredentialsRowSubtitle: {
     fontSize: 12,
@@ -13901,6 +13769,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontWeight: '500',
     flexShrink: 1,
+    flexWrap: 'wrap',
   },
   profileCredentialsActionPill: {
     backgroundColor: '#2563eb',
@@ -13909,6 +13778,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    maxWidth: '100%',
+    flexShrink: 0,
+    ...(Platform.OS === 'web' ? { boxSizing: 'border-box' } : null),
     shadowColor: '#2563eb',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,

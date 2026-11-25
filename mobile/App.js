@@ -85,18 +85,128 @@ const errorStyles = StyleSheet.create({
 
 export default function App() {
   useEffect(() => {
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      const styleId = 'al-no-focus-outline';
-      if (!document.getElementById(styleId)) {
-        const styleEl = document.createElement('style');
-        styleEl.id = styleId;
-        styleEl.textContent = [
-          'input, textarea, select { outline: none !important; outline-width: 0 !important; outline-style: none !important; }',
-          'input:focus, input:focus-visible, textarea:focus, textarea:focus-visible, select:focus, select:focus-visible { outline: none !important; outline-width: 0 !important; outline-style: none !important; outline-offset: 0 !important; box-shadow: none !important; }',
-        ].join('\n');
-        document.head.appendChild(styleEl);
-      }
+    if (Platform.OS !== 'web' || typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
     }
+
+    const styleId = 'al-no-focus-outline';
+    if (!document.getElementById(styleId)) {
+      const styleEl = document.createElement('style');
+      styleEl.id = styleId;
+      styleEl.textContent = [
+        'input, textarea, select { outline: none !important; outline-width: 0 !important; outline-style: none !important; }',
+        'input:focus, input:focus-visible, textarea:focus, textarea:focus-visible, select:focus, select:focus-visible { outline: none !important; outline-width: 0 !important; outline-style: none !important; outline-offset: 0 !important; box-shadow: none !important; }',
+      ].join('\n');
+      document.head.appendChild(styleEl);
+    }
+
+    // Instant Live Update Watcher: reload seamlessly whenever a new app build is deployed
+    let cancelled = false;
+    let isReloading = false;
+    let baselineVersion = null;
+    const currentScript = document.querySelector('script[src*="/_expo/static/js/web/index-"]');
+    const baselineBundleSrc = currentScript ? currentScript.getAttribute('src') : '';
+
+    const performInstantReload = () => {
+      if (isReloading || cancelled) return;
+      isReloading = true;
+      try {
+        window.dispatchEvent(new Event('al-prepare-version-reload'));
+      } catch (_) {}
+      const reloadNow = () => {
+        try {
+          window.location.reload();
+        } catch (_) {}
+      };
+      if (typeof caches !== 'undefined' && typeof caches.keys === 'function') {
+        caches.keys()
+          .then((names) => Promise.all(names.map((n) => caches.delete(n))))
+          .then(reloadNow)
+          .catch(reloadNow);
+      } else {
+        reloadNow();
+      }
+    };
+
+    const checkAppVersion = async () => {
+      if (cancelled || isReloading) return;
+      try {
+        const res = await fetch(`/api/app-version?_=${Date.now()}`, { cache: 'no-store' });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!data || !data.version) return;
+
+        if (baselineBundleSrc && data.bundleSrc && data.bundleSrc !== baselineBundleSrc) {
+          performInstantReload();
+          return;
+        }
+        if (!baselineVersion) {
+          baselineVersion = data.version;
+          return;
+        }
+        if (data.version !== baselineVersion) {
+          performInstantReload();
+        }
+      } catch (_) {}
+    };
+
+    checkAppVersion();
+    const versionTimer = setInterval(checkAppVersion, 15000);
+    const onFocusCheck = () => checkAppVersion();
+    const onVisibilityCheck = () => {
+      if (document.visibilityState === 'visible') {
+        checkAppVersion();
+      }
+    };
+    window.addEventListener('focus', onFocusCheck);
+    document.addEventListener('visibilitychange', onVisibilityCheck);
+
+    let swReg = null;
+    const onControllerChange = () => performInstantReload();
+    const onSwMessage = (event) => {
+      if (event?.data?.type === 'SW_UPDATED') {
+        performInstantReload();
+      }
+    };
+    if (
+      typeof navigator !== 'undefined' &&
+      'serviceWorker' in navigator &&
+      (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ) {
+      navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+      navigator.serviceWorker.addEventListener('message', onSwMessage);
+      navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+        .then((reg) => {
+          swReg = reg;
+          reg.update().catch(() => {});
+          reg.addEventListener('updatefound', () => {
+            const worker = reg.installing;
+            if (worker) {
+              worker.addEventListener('statechange', () => {
+                if (worker.state === 'installed' && navigator.serviceWorker.controller) {
+                  worker.postMessage({ type: 'SKIP_WAITING' });
+                }
+              });
+            }
+          });
+        })
+        .catch(() => {});
+    }
+    const swInterval = setInterval(() => {
+      if (swReg) swReg.update().catch(() => {});
+    }, 20000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(versionTimer);
+      clearInterval(swInterval);
+      window.removeEventListener('focus', onFocusCheck);
+      document.removeEventListener('visibilitychange', onVisibilityCheck);
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+        navigator.serviceWorker.removeEventListener('message', onSwMessage);
+      }
+    };
   }, []);
 
   return (

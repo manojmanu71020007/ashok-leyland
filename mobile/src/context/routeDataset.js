@@ -16,6 +16,45 @@ const DATASET_STORAGE_KEY = 'depot_app_master_route_dataset';
 const DATASET_DELETED_DEPOTS_KEY = 'depot_app_dataset_deleted_depots';
 const DATASET_DELETED_ROUTES_KEY = 'depot_app_dataset_deleted_routes';
 
+const FACTORY_FORM4_ROUTE_CODES = new Set(['356Z', '360K', '600F', 'KBS3A', '361C', '399C', '328H', '500DC', 'KBS3F']);
+
+function normalizeCustomRouteDistances(routeObj) {
+  if (!routeObj || typeof routeObj !== 'object') return routeObj;
+  const code = String(routeObj.code || routeObj.id || '').toUpperCase().trim();
+  const dist = Number(routeObj.distance || 0);
+  if (!code || dist <= 0) return routeObj;
+  if (!routeObj.custom && FACTORY_FORM4_ROUTE_CODES.has(code)) return routeObj;
+
+  const doubled = parseFloat((dist * 2).toFixed(1));
+  let nextObj = routeObj;
+  const curFull = Number(routeObj.fullDutyKm || 0);
+  const curActual = Number(routeObj.actualKm || 0);
+  if (curFull > 0 && Math.abs(curFull - doubled) < 0.25) {
+    nextObj = { ...nextObj, fullDutyKm: dist };
+  }
+  if (curActual > 0 && Math.abs(curActual - doubled) < 0.25) {
+    nextObj = { ...nextObj, actualKm: dist };
+  }
+  if (Array.isArray(nextObj.schedules) && nextObj.schedules.length > 0) {
+    let schedChanged = false;
+    const mapped = nextObj.schedules.map((s) => {
+      if (!s || typeof s !== 'object') return s;
+      const sDist = Number(s.distance || dist);
+      const sDoubled = parseFloat((sDist * 2).toFixed(1));
+      const sGrp = Number(s.totalGroupDistance || 0);
+      if (sGrp > 0 && Math.abs(sGrp - sDoubled) < 0.25) {
+        schedChanged = true;
+        return { ...s, totalGroupDistance: sDist };
+      }
+      return s;
+    });
+    if (schedChanged) {
+      nextObj = { ...nextObj, schedules: mapped };
+    }
+  }
+  return nextObj;
+}
+
 // ── Default Base Master Dataset (Depot 1 & Depot 2) ──
 const INITIAL_MASTER_DATASET = {
   "version": "5.1",
@@ -9401,14 +9440,15 @@ export function getRoutesForDepotFromDataset(depotId) {
 export function getRouteFromDataset(routeCode, depotId) {
   const cleanCode = String(routeCode || '').toUpperCase().trim();
   const dId = depotId ? String(depotId).trim().replace(/^DEPOT\s*/i, '') : null;
-  return (masterDataset.routes || []).find((r) => {
+  const matched = (masterDataset.routes || []).find((r) => {
     const rCode = String(r.code || r.id || '').toUpperCase().trim();
     const isAlias = Array.isArray(r.aliases) && r.aliases.some((a) => String(a).toUpperCase().trim() === cleanCode);
     const matchCode = (rCode === cleanCode) || isAlias || (cleanCode === 'KBES3F' && rCode === 'KBS3F') || (cleanCode === 'KBS3F' && rCode === 'KBES3F');
     if (!matchCode) return false;
     if (dId) return String(r.depotId).trim() === dId;
     return true;
-  }) || null;
+  });
+  return matched ? normalizeCustomRouteDistances(matched) : null;
 }
 
 /**
@@ -9596,13 +9636,14 @@ export function addRouteToDataset(depotId, routeData) {
     : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
 
   const timeComplexity = routeData.timeComplexity || (existingRoute && existingRoute.timeComplexity) || 'Normal';
-  const fullDutyKm = routeData.fullDutyKm || (existingRoute && existingRoute.fullDutyKm) || parseFloat((dist * 2).toFixed(1));
+  const normalizedExisting = existingRoute ? normalizeCustomRouteDistances(existingRoute) : null;
+  const fullDutyKm = Number(routeData.fullDutyKm) || (normalizedExisting && Number(normalizedExisting.fullDutyKm)) || dist;
 
   let routeObj;
   if (existingRoute) {
     const analysis = analyzeRouteSubAddition(cleanCode, dId, chosenShift, rawTimetables);
-    const existingTimetables = Array.isArray(existingRoute.timetables) ? existingRoute.timetables.flat().filter(Boolean) : [];
-    const existingSchedules = Array.isArray(existingRoute.schedules) ? [...existingRoute.schedules] : [];
+    const existingTimetables = Array.isArray(normalizedExisting.timetables) ? normalizedExisting.timetables.flat().filter(Boolean) : [];
+    const existingSchedules = Array.isArray(normalizedExisting.schedules) ? [...normalizedExisting.schedules] : [];
     const mergedSlots = { ...(existingRoute.timeComplexitySlots || {}), ...(routeData.timeComplexitySlots || {}) };
 
     let nextSubIdx = analysis.nextSubIndexStart;
@@ -9665,6 +9706,7 @@ export function addRouteToDataset(depotId, routeData) {
       destination: existingRoute.destination || dest,
       distance: dist,
       fullDutyKm,
+      actualKm: fullDutyKm,
       routeComplexity: routeComp,
       category: routeComp,
       requiredCat: reqCat,
@@ -9734,6 +9776,7 @@ export function addRouteToDataset(depotId, routeData) {
       destination: dest,
       distance: dist,
       fullDutyKm,
+      actualKm: fullDutyKm,
       routeComplexity: routeComp,
       category: routeComp,
       requiredCat: reqCat,
@@ -10217,8 +10260,9 @@ export function syncDatasetWithServer(remoteDataset, remoteDeletedIds, remoteDel
   // Reconcile remote routes authoritatively so server-deleted routes are pruned locally
   if (Array.isArray(remoteDataset.routes)) {
     const remoteRouteKeys = new Set();
-    remoteDataset.routes.forEach((rRoute) => {
-      if (!rRoute || !rRoute.code) return;
+    remoteDataset.routes.forEach((rawRemoteRoute) => {
+      if (!rawRemoteRoute || !rawRemoteRoute.code) return;
+      const rRoute = normalizeCustomRouteDistances(rawRemoteRoute);
       const dId = String(rRoute.depotId || '1').trim();
       const cleanCode = String(rRoute.code || rRoute.id).toUpperCase().trim();
       const rKey = makeRouteKey(dId, cleanCode);

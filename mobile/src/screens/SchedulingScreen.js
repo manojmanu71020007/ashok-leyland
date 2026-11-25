@@ -28,7 +28,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import LanguageModal, { LanguagePickerPill } from '../components/LanguageModal';
-import { getDepotDisplayName, getRoutesForDepot, getRouteDefinition } from '../context/accounts';
+import { getDepotDisplayName, getRoutesForDepot, getRouteDefinition, subscribeDepotChanges } from '../context/accounts';
 import { getRouteFromDataset, subscribeDatasetChanges } from '../context/routeDataset';
 import BatteryBar from '../components/BatteryBar';
 import { exportCsvFile } from '../utils/exportCsv';
@@ -3038,10 +3038,13 @@ export default function SchedulingScreen() {
 
   const [datasetTick, setDatasetTick] = useState(0);
   useEffect(() => {
-    const unsub = subscribeDatasetChanges(() => {
-      setDatasetTick((v) => v + 1);
-    });
-    return unsub;
+    const bumpTick = () => setDatasetTick((v) => v + 1);
+    const unsubDataset = subscribeDatasetChanges(bumpTick);
+    const unsubDepot = subscribeDepotChanges(bumpTick);
+    return () => {
+      unsubDataset();
+      unsubDepot();
+    };
   }, []);
 
   const depotNum = String(selectedDepot || '1');
@@ -3079,8 +3082,8 @@ export default function SchedulingScreen() {
         distance: Number(ds.distance) || 25.0,
         revenueKm: Number(ds.revenueKm || ds.distance) || 25.0,
         corridorDistance: Number(ds.corridorDistance || ds.distance) || 25.0,
-        fullDutyKm: ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
-        actualKm: ds.actualKm || ds.fullDutyKm || parseFloat(((Number(ds.distance) || 25.0) * 2).toFixed(1)),
+        fullDutyKm: Number(ds.fullDutyKm) || (Number(ds.distance) || 25.0),
+        actualKm: Number(ds.actualKm || ds.fullDutyKm) || (Number(ds.distance) || 25.0),
         chargingOcc: Number(ds.chargingOcc || 0),
         noChargingOcc: Number(ds.noChargingOcc || 0),
         splitDuty: Boolean(ds.splitDuty || ds.chargingOcc > 0 || ds.noChargingOcc > 0),
@@ -3119,8 +3122,8 @@ export default function SchedulingScreen() {
         via: (dyn.via && dyn.via !== '') ? dyn.via : '',
         timetables: Array.isArray(dyn.timetables) ? dyn.timetables.flat().filter(Boolean) : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
         distance: Number(dyn.distance) || 25.0,
-        fullDutyKm: dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
-        actualKm: dyn.actualKm || dyn.fullDutyKm || parseFloat(((Number(dyn.distance) || 25.0) * 2).toFixed(1)),
+        fullDutyKm: Number(dyn.fullDutyKm) || (Number(dyn.distance) || 25.0),
+        actualKm: Number(dyn.actualKm || dyn.fullDutyKm) || (Number(dyn.distance) || 25.0),
         chargingOcc: Number(dyn.chargingOcc || 0),
         noChargingOcc: Number(dyn.noChargingOcc || 0),
         splitDuty: Boolean(dyn.splitDuty || dyn.chargingOcc > 0 || dyn.noChargingOcc > 0),
@@ -3145,7 +3148,7 @@ export default function SchedulingScreen() {
       via: '',
       timetables: ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'],
       distance: 25.0,
-      fullDutyKm: 50.0,
+      fullDutyKm: 25.0,
       duration: '50 mins',
       energyEst: '30 kWh',
       shift: 'General Shift',

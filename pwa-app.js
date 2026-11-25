@@ -210,36 +210,87 @@
     }
 
     // 2. Service Worker Registration & Live Update Auto-Refresh
+    let knownAppVersion = null;
+    let reloadPending = false;
+
+    function triggerInstantAppReload() {
+        if (reloadPending) return;
+        reloadPending = true;
+        try {
+            window.dispatchEvent(new Event('al-prepare-version-reload'));
+        } catch (_) {}
+        const clearAndReload = () => window.location.reload();
+        if (typeof caches !== 'undefined' && caches.keys) {
+            caches.keys()
+                .then((names) => Promise.all(names.map((n) => caches.delete(n))))
+                .then(clearAndReload)
+                .catch(clearAndReload);
+        } else {
+            clearAndReload();
+        }
+    }
+
+    async function checkLiveAppVersion() {
+        try {
+            const res = await fetch('/api/app-version?_=' + Date.now(), { cache: 'no-store' });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.version) return;
+            if (!knownAppVersion) {
+                knownAppVersion = data.version;
+                return;
+            }
+            if (data.version !== knownAppVersion) {
+                console.log('[PWA] New server build detected — reloading instantly...');
+                triggerInstantAppReload();
+            }
+        } catch (_) {}
+    }
+
     if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
-        let refreshing = false;
         navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (!refreshing) {
-                refreshing = true;
-                window.location.reload();
+            triggerInstantAppReload();
+        });
+        navigator.serviceWorker.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SW_UPDATED') {
+                triggerInstantAppReload();
             }
         });
 
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js', { scope: '/' })
+            navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
                 .then((registration) => {
-                    console.log('[PWA] Service Worker registered with scope:', registration.scope);
                     registration.update().catch(() => {});
                     registration.addEventListener('updatefound', () => {
                         const installingWorker = registration.installing;
                         if (installingWorker) {
                             installingWorker.addEventListener('statechange', () => {
                                 if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    console.log('[PWA] New version available in background.');
+                                    installingWorker.postMessage({ type: 'SKIP_WAITING' });
                                 }
                             });
                         }
                     });
+                    window.addEventListener('focus', () => registration.update().catch(() => {}));
+                    document.addEventListener('visibilitychange', () => {
+                        if (document.visibilityState === 'visible') {
+                            registration.update().catch(() => {});
+                        }
+                    });
+                    setInterval(() => registration.update().catch(() => {}), 20000);
                 })
                 .catch((error) => {
                     console.warn('[PWA] Service Worker registration failed:', error);
                 });
         });
     }
+
+    checkLiveAppVersion();
+    window.addEventListener('focus', checkLiveAppVersion);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkLiveAppVersion();
+    });
+    setInterval(checkLiveAppVersion, 15000);
 
     // 3. Standalone Mode Check
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||

@@ -20,7 +20,7 @@ function mergeHistoryLists(serverList, localList) {
 }
 
 import React, { createContext, useState, useEffect, useContext, useCallback, useRef } from 'react';
-import { api } from '../api/client';
+import { api, getServerUrl } from '../api/client';
 import { useAuth } from './AuthContext';
 import { syncDepotsWithServer } from './accounts';
 import { getRouteFromDataset } from './routeDataset.js';
@@ -1061,9 +1061,77 @@ export const FleetProvider = ({ children }) => {
 
   useEffect(() => {
     fetchFleet();
-    // Auto-poll every 5 seconds to keep data fresh and tightly synced with website
+
+    // Real-time SSE listener for instantaneous cross-page/cross-device updates
+    let es = null;
+    const SSE_EVENTS = [
+      'connected',
+      'routes-dataset-updated',
+      'custom-depots-updated',
+      'depot-updated',
+      'fleet-bus-added',
+      'fleet-bus-deleted',
+      'fleet-buses-deleted',
+      'bus-state-updated',
+      'allocated-duties-updated',
+      'locked-buses-updated',
+      'servicing-status-updated',
+      'pending-deletions-updated',
+      'route-completed',
+      'dataset-updated',
+      'charging-history-updated',
+      'cleaning-history-updated',
+      'completed-routes-updated',
+      'pending-relay-updated',
+      'sync-state-updated',
+    ];
+    let syncDebounce = null;
+    const triggerImmediateSync = () => {
+      if (syncDebounce) clearTimeout(syncDebounce);
+      syncDebounce = setTimeout(() => {
+        fetchFleet();
+      }, 60);
+    };
+
+    try {
+      if (typeof EventSource !== 'undefined') {
+        const baseUrl = typeof getServerUrl === 'function' ? getServerUrl() : '';
+        es = new EventSource(`${baseUrl}/api/events`);
+        es.onmessage = triggerImmediateSync;
+        SSE_EVENTS.forEach((evt) => {
+          es.addEventListener(evt, triggerImmediateSync);
+        });
+      }
+    } catch (_) {}
+
+    const onWindowFocus = () => fetchFleet();
+    const onVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchFleet();
+      }
+    };
+    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+      window.addEventListener('focus', onWindowFocus);
+    }
+    if (typeof document !== 'undefined' && typeof document.addEventListener === 'function') {
+      document.addEventListener('visibilitychange', onVisibilityChange);
+    }
+
+    // Fallback polling interval
     const timer = setInterval(fetchFleet, 5000);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      if (syncDebounce) clearTimeout(syncDebounce);
+      if (es) {
+        try { es.close(); } catch (_) {}
+      }
+      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
+        window.removeEventListener('focus', onWindowFocus);
+      }
+      if (typeof document !== 'undefined' && typeof document.removeEventListener === 'function') {
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+      }
+    };
   }, [fetchFleet]);
 
   const onRefresh = useCallback(() => {

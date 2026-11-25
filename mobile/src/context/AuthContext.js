@@ -1,14 +1,55 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 import { authenticateUser, syncDepotsWithServer } from './accounts';
 import { api } from '../api/client';
 
 const AuthContext = createContext();
+const PENDING_RELOAD_SESSION_KEY = 'al_pending_restore_session';
+
+function consumePendingReloadSession() {
+  try {
+    if (typeof sessionStorage === 'undefined') return null;
+    const raw = sessionStorage.getItem(PENDING_RELOAD_SESSION_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(PENDING_RELOAD_SESSION_KEY);
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.user || !parsed.ts || Date.now() - Number(parsed.ts) > 60000) {
+      return null;
+    }
+    return parsed;
+  } catch (_) {
+    return null;
+  }
+}
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [selectedDepot, setSelectedDepot] = useState('1'); // '1' = Chandapura (Depot 1), '2' = Depot 2
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState('LOGIN'); // 'LOGIN' | 'CHARGING' | 'CLEANING' | 'SCHEDULING' | 'DEPOT_OPS' | 'ADMIN_WORKSPACE'
+  const [initialRestored] = useState(() => consumePendingReloadSession());
+  const [user, setUser] = useState(() => initialRestored?.user || null);
+  const [selectedDepot, setSelectedDepot] = useState(() => String(initialRestored?.selectedDepot || '1')); // '1' = Chandapura (Depot 1), '2' = Depot 2
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(initialRestored?.isAuthenticated && initialRestored?.user));
+  const [currentScreen, setCurrentScreen] = useState(() => initialRestored?.currentScreen || 'LOGIN'); // 'LOGIN' | 'CHARGING' | 'CLEANING' | 'SCHEDULING' | 'DEPOT_OPS' | 'ADMIN_WORKSPACE'
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePrepareReload = () => {
+      try {
+        if (typeof sessionStorage === 'undefined') return;
+        if (isAuthenticated && user) {
+          sessionStorage.setItem(
+            PENDING_RELOAD_SESSION_KEY,
+            JSON.stringify({
+              user,
+              selectedDepot,
+              isAuthenticated: true,
+              currentScreen,
+              ts: Date.now(),
+            })
+          );
+        }
+      } catch (_) {}
+    };
+    window.addEventListener('al-prepare-version-reload', handlePrepareReload);
+    return () => window.removeEventListener('al-prepare-version-reload', handlePrepareReload);
+  }, [isAuthenticated, user, selectedDepot, currentScreen]);
 
   /**
    * Log in with username and password.

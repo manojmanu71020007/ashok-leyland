@@ -1,114 +1,71 @@
-// Ashok-Leyland Bus Management System PWA Service Worker
-const CACHE_NAME = 'ashok-leyland-pwa-v14';
-
-const STATIC_ASSETS = [
-    '/',
-    '/login.html',
-    '/install.html',
-    '/app',
-    '/_expo/static/js/web/index-cb41d4ef317e9484e779ee00a7f9b766.js',
-    '/login.css',
-    '/login.js',
-    '/i18n.js',
-    '/admin.html',
-    '/scheduling.html',
-    '/depot-operations.html',
-    '/charging.html',
-    '/cleaning.html',
-    '/sync-engine.js',
-    '/manifest.json',
-    '/splash-screen.png',
-    '/pwa-app.js',
-    '/icons/icon-192.png',
-    '/icons/icon-512.png',
-    '/icons/icon-maskable-192.png',
-    '/icons/icon-maskable-512.png',
-    '/icons/apple-touch-icon.png'
+// Service Worker for Ashok Leyland Bus Management System PWA
+const CACHE_NAME = 'ashok-leyland-pwa-v15';
+const STATIC_ICON_URLS = [
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
 ];
 
-// 1. Install event: pre-cache essential core assets & activate immediately
 self.addEventListener('install', (event) => {
-    event.waitUntil(
-        caches.open(CACHE_NAME).then((cache) => {
-            return Promise.allSettled(
-                STATIC_ASSETS.map((url) =>
-                    cache.add(url).catch((err) => {
-                        console.warn('[PWA SW] Precache skipped for:', url, err.message);
-                    })
-                )
-            );
-        }).then(() => self.skipWaiting())
-    );
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ICON_URLS).catch(() => {}))
+  );
+  self.skipWaiting();
 });
 
-// 2. Activate event: clean up outdated caches & claim clients immediately
 self.addEventListener('activate', (event) => {
-    event.waitUntil(
-        caches.keys().then((keys) => {
-            return Promise.all(
-                keys.map((key) => {
-                    if (key !== CACHE_NAME) {
-                        console.log('[PWA SW] Deleting obsolete cache:', key);
-                        return caches.delete(key);
-                    }
-                })
-            );
-        }).then(() => self.clients.claim())
-    );
+  event.waitUntil(
+    caches.keys().then((cacheNames) =>
+      Promise.all(cacheNames.map((name) => caches.delete(name)))
+    ).then(() => self.clients.claim()).then(() =>
+      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        clients.forEach((client) => {
+          try {
+            client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME });
+          } catch (_) {}
+        });
+      })
+    )
+  );
 });
 
-// 3. Fetch event: Network-first for dynamic data & HTML, cache-first/stale-while-revalidate for static assets
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('fetch', (event) => {
-    const req = event.request;
-    const url = new URL(req.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-    // Skip non-GET requests, Firebase authentication URLs, or SSE streams
-    if (req.method !== 'GET') return;
-    if (url.pathname.includes('/api/sync-events') || url.pathname.includes('/events')) return;
-    if (url.origin.includes('firebase') || url.origin.includes('googleapis.com') || url.origin.includes('identitytoolkit')) return;
+  if (request.method !== 'GET') return;
 
-    // A. API and bus state requests: STRICT Network-First (real-time data priority)
-    if (url.pathname.startsWith('/api/') || url.pathname.endsWith('bus_state.json') || url.pathname.endsWith('soc_logs')) {
-        event.respondWith(
-            fetch(req)
-                .then((res) => {
-                    if (res && res.status === 200) {
-                        const copy = res.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-                    }
-                    return res;
-                })
-                .catch(() => caches.match(req))
-        );
-        return;
-    }
+  // Always hit network without cache for APIs, SSE streams, HTML, JS, CSS, JSON, and Expo bundles
+  const isDynamicOrCode =
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/_expo/') ||
+    url.pathname === '/' ||
+    /\.(html|js|css|json)$/i.test(url.pathname) ||
+    request.mode === 'navigate';
 
-    // B. HTML Pages: Network-First so updates on Render are instantly received, fallback to cache offline
-    if (req.mode === 'navigate' || req.headers.get('accept')?.includes('text/html')) {
-        event.respondWith(
-            fetch(req)
-                .then((res) => {
-                    if (res && res.status === 200) {
-                        const copy = res.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-                    }
-                    return res;
-                })
-                .catch(() => caches.match(req).then((cached) => cached || caches.match('/login.html')))
-        );
-        return;
-    }
-
-    // C. Static Assets (CSS, JS, Images, Icons): Network-First for fresh photos, fallback to cache
+  if (isDynamicOrCode) {
     event.respondWith(
-        fetch(req)
-            .then((networkRes) => {
-                if (networkRes && networkRes.status === 200) {
-                    const copy = networkRes.clone();
-                    caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
-                }
-                return networkRes;
-            })
-            .catch(() => caches.match(req))
+      fetch(new Request(request, { cache: 'no-store' })).catch(() => fetch(request))
     );
+    return;
+  }
+
+  // Static media/icons: network-first with cache fallback for offline resilience
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)).catch(() => {});
+        }
+        return response;
+      })
+      .catch(() => caches.match(request))
+  );
 });
