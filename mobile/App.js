@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
@@ -84,6 +84,21 @@ const errorStyles = StyleSheet.create({
 });
 
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const styleId = 'al-no-focus-outline';
+      if (!document.getElementById(styleId)) {
+        const styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        styleEl.textContent = [
+          'input, textarea, select { outline: none !important; outline-width: 0 !important; outline-style: none !important; }',
+          'input:focus, input:focus-visible, textarea:focus, textarea:focus-visible, select:focus, select:focus-visible { outline: none !important; outline-width: 0 !important; outline-style: none !important; outline-offset: 0 !important; box-shadow: none !important; }',
+        ].join('\n');
+        document.head.appendChild(styleEl);
+      }
+    }
+  }, []);
+
   return (
     <SafeAreaProvider>
       <StatusBar style="dark" backgroundColor="#f8fafc" />

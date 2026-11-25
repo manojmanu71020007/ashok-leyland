@@ -1195,6 +1195,8 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0f172a',
     paddingVertical: 0,
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   clearSearchIcon: {
     fontSize: 14,

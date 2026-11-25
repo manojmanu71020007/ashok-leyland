@@ -3945,7 +3945,8 @@ export default function SchedulingScreen() {
               allocType: isManualOverride
                 ? `Committed Duty (Operator Override from Bus ${mandatoryCandidate?.bmNumber || 'Mandatory'})`
                 : (activeCandidate.isHighestSocLocked ? 'Committed Duty Allocation (Mandatory Recommendation)' : 'Committed Duty Allocation'),
-              shift: selectedRoute.shift,
+              scheduleId: matchedSched?.scheduleId || `${selectedRoute.code}/1`,
+              shift: matchedSched?.shift || selectedRoute.shift,
               soc: activeCandidate.soc,
               fullDutyKm: activeCandidate.fullDutyKm || 108,
               routeDist: selectedRoute.distance,
@@ -4108,7 +4109,7 @@ export default function SchedulingScreen() {
           >
             <Text style={styles.selectBoxText}>
               🕒 {formatDualTime(scheduledTime || (selectedRoute.timetables && selectedRoute.timetables[0])) || 'Choose a departure time'}
-              {matchedSched?.scheduleId ? ` [${matchedSched.scheduleId}]` : ''}
+              {matchedSched?.scheduleId ? ` [${matchedSched.scheduleId}${matchedSched.shift ? ` • ${matchedSched.shift}` : ''}]` : ''}
             </Text>
             <Text style={styles.caret}>▼</Text>
           </TouchableOpacity>
@@ -5231,6 +5232,8 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#0f172a',
     paddingVertical: 8,
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   driverRosterBtn: {
     backgroundColor: '#eff6ff',

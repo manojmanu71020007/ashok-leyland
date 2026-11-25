@@ -51,6 +51,7 @@ import {
   getMasterDataset,
   getDeletedRouteKeys,
   addRouteToDataset,
+  analyzeRouteSubAddition,
   updateRouteComplexityInDataset,
   updateTimeComplexityInDataset,
   updateRouteTimetablesInDataset,
@@ -1768,10 +1769,15 @@ export default function AdminWorkspaceScreen() {
     }
   }, [selectedDatasetFile, datasetTargetDepot, datasetTargetDepotName]);
 
-  // ── Handler: Add Route to Depot (With confirmation & translation) ──
+  // ── Handler: Add Route to Depot (Supports adding new Shift + Timings as Sub-Route on existing route) ──
   const handleAddRouteToDepot = () => {
     // ── GUARD: Mandatory Depot Selection ──
-    const activeDepot = routesSelectedDepot && routesSelectedDepot !== 'all' ? routesSelectedDepot : (depotTargetDepot && depotTargetDepot !== 'all' && depotTargetDepot !== 'custom' ? depotTargetDepot : '');
+    const rawDepotChoice = routesSelectedDepot && routesSelectedDepot !== 'all'
+      ? routesSelectedDepot
+      : (depotTargetDepot && depotTargetDepot !== 'all' ? depotTargetDepot : '');
+    const activeDepot = rawDepotChoice === 'custom'
+      ? (depotCustomName.trim() || 'Depot 3')
+      : String(rawDepotChoice || '').trim().replace(/^DEPOT\s*/i, '');
     if (!activeDepot || activeDepot === 'all') {
       Alert.alert(
         t('depot_required_title', 'Operating Depot Required'),
@@ -1779,39 +1785,58 @@ export default function AdminWorkspaceScreen() {
       );
       return;
     }
-    if (!depotRouteFullName.trim()) {
-      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_fullname_msg', 'Please enter Route [Full Name].'));
-      return;
-    }
     if (!depotRouteShortName.trim()) {
       Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_code_msg', 'Please enter Route [Short Name] / Code.'));
       return;
     }
-    if (!depotRouteOrigin.trim()) {
+
+    const cleanCode = depotRouteShortName.trim().toUpperCase().replace(/\s+/g, '');
+    const chosenShift = depotRouteShift || 'General Shift';
+    const crossDepotExisting = allAvailableRoutes.find(
+      (r) => (r.code === cleanCode || r.id === cleanCode) && String(r.depotId || '1').replace(/^DEPOT\s*/i, '') !== activeDepot
+    );
+    if (crossDepotExisting) {
+      const exDepotId = String(crossDepotExisting.depotId || crossDepotExisting.depot || '1').replace(/^DEPOT\s*/i, '');
+      const exDepotObj = depotsList.find((d) => String(d.id) === exDepotId);
+      const exDepotName = exDepotObj ? exDepotObj.name : `Depot ${exDepotId}`;
+      Alert.alert('⚠️ Route Already Exists', `Route "${cleanCode}" already exists in ${exDepotName}!\n\nDuplicate route additions across depots are not permitted.`);
+      return;
+    }
+
+    const parsedInputTimetables = (depotRouteTimetables || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const subAnalysis = analyzeRouteSubAddition(cleanCode, activeDepot, chosenShift, parsedInputTimetables);
+    const existingSameDepot = subAnalysis.existingRoute || allAvailableRoutes.find(
+      (r) => (r.code === cleanCode || r.id === cleanCode) && String(r.depotId || '1').replace(/^DEPOT\s*/i, '') === activeDepot
+    );
+    const isSubRouteMode = Boolean(existingSameDepot);
+
+    const effectiveFullName = depotRouteFullName.trim() || existingSameDepot?.fullName || existingSameDepot?.name || '';
+    const effectiveOrigin = depotRouteOrigin.trim() || existingSameDepot?.origin || '';
+    const effectiveDest = depotRouteDestination.trim() || existingSameDepot?.destination || '';
+    const distNum = parseFloat(depotRouteDistance) || Number(existingSameDepot?.distance || 0);
+
+    if (!effectiveFullName) {
+      Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_fullname_msg', 'Please enter Route [Full Name].'));
+      return;
+    }
+    if (!effectiveOrigin) {
       Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_origin_msg', 'Please enter Route Starting Point (Origin).'));
       return;
     }
-    if (!depotRouteDestination.trim()) {
+    if (!effectiveDest) {
       Alert.alert(t('missing_field', 'Missing Field'), t('enter_route_dest_msg', 'Please enter Route Destination Name.'));
       return;
     }
-    const distNum = parseFloat(depotRouteDistance);
-    if (!depotRouteDistance || isNaN(distNum) || distNum <= 0) {
+    if (!distNum || isNaN(distNum) || distNum <= 0) {
       Alert.alert(t('invalid_distance', 'Invalid Distance'), t('enter_valid_dist_msg', 'Please enter a valid total distance in km (e.g. 28.5).'));
       return;
     }
 
-    const cleanCode = depotRouteShortName.trim().toUpperCase().replace(/\s+/g, '');
-    const existingRoute = allAvailableRoutes.find((r) => r.code === cleanCode || r.id === cleanCode);
-    if (existingRoute) {
-      const exDepotId = String(existingRoute.depot || resolvedDepotId || '1');
-      const exDepotObj = depotsList.find((d) => String(d.id) === exDepotId);
-      const exDepotName = exDepotObj ? exDepotObj.name : `Depot ${exDepotId}`;
-      Alert.alert('⚠️ Route Already Exists', `Route "${cleanCode}" already exists in ${exDepotName}!\n\nDuplicate route additions are not permitted.`);
-      return;
-    }
-
-    const resolvedDepotId = depotTargetDepot === 'custom' ? (depotCustomName.trim() || 'Depot 3') : depotTargetDepot;
+    const resolvedDepotId = activeDepot;
     const targetDepotObj = depotsList.find((d) => String(d.id) === String(resolvedDepotId));
     const resolvedDepotName = targetDepotObj ? targetDepotObj.name : (resolvedDepotId === '1'
       ? 'Depot 1 (Chandapura)'
@@ -1819,58 +1844,82 @@ export default function AdminWorkspaceScreen() {
       ? 'Depot 2 (Attibele / Hoskote)'
       : `Depot ${resolvedDepotId}`);
 
-    const parsedTimetables = (depotRouteTimetables || '')
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-    const finalTimetables = parsedTimetables.length > 0
-      ? parsedTimetables
+    if (isSubRouteMode) {
+      if (parsedInputTimetables.length === 0) {
+        Alert.alert(
+          '⚠️ Departure Timings Required',
+          `Route "${cleanCode}" already exists in ${resolvedDepotName}.\n\nPlease enter new departure timings for ${chosenShift} so it can be registered as a Sub-Route.`
+        );
+        return;
+      }
+      if (subAnalysis.newEntries.length === 0) {
+        Alert.alert(
+          subAnalysis.hasSameShift ? '⚠️ Route Already Exists' : '⚠️ Different Timings Required',
+          subAnalysis.hasSameShift
+            ? `Route "${cleanCode}" (${chosenShift}) already has these departure timings in ${resolvedDepotName}.\n\nTo add a Sub-Route, select a different Route Shift Type and enter new departure timings.`
+            : `All entered departure timings (${parsedInputTimetables.join(', ')}) already exist on Route "${cleanCode}".\n\nPlease enter new/different timings for "${chosenShift}" to create a new Sub-Route.`
+        );
+        return;
+      }
+    }
+
+    const finalTimetables = parsedInputTimetables.length > 0
+      ? parsedInputTimetables
       : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
+    const subRoutePreviewIds = isSubRouteMode
+      ? subAnalysis.newEntries.map((_, i) => `${cleanCode}/${subAnalysis.nextSubIndexStart + i}`).join(', ')
+      : finalTimetables.map((_, i) => `${cleanCode}/${i + 1}`).join(', ');
 
     Alert.alert(
-      t('confirm_add_route_title', 'Confirm Add Route'),
-      `${t('confirm_add_route_msg', 'Are you sure you want to add this route?')}\n\n• ${t('route_short_name_label', 'Route Code')}: ${cleanCode}\n• ${t('route_full_name_label', 'Route Full Name')}: ${depotRouteFullName.trim()}\n• ${t('route_origin_label', 'Origin')}: ${depotRouteOrigin.trim()}\n• ${t('route_destination_label', 'Destination')}: ${depotRouteDestination.trim()}\n• ${t('route_distance_label', 'Total Distance')}: ${distNum} km\n• ${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
+      isSubRouteMode ? 'Confirm Add Sub-Route' : t('confirm_add_route_title', 'Confirm Add Route'),
+      `${isSubRouteMode
+        ? `Route ${cleanCode} already exists in ${resolvedDepotName}. Add this shift & timings as a Sub-Route?`
+        : t('confirm_add_route_msg', 'Are you sure you want to add this route?')}\n\n• Route Code: ${cleanCode}\n• ${isSubRouteMode ? 'New Sub-Route(s)' : 'Sub-Route IDs'}: ${subRoutePreviewIds}\n• Route Shift Type: ${chosenShift}\n• Timings: ${isSubRouteMode ? subAnalysis.newEntries.map((e) => e.ampmStr).join(', ') : finalTimetables.join(', ')}\n• Distance: ${distNum} km\n• Operating Depot: ${resolvedDepotName}`,
       [
         { text: t('btn_cancel', 'Cancel'), style: 'cancel' },
         {
-          text: t('btn_confirm_add', 'Confirm Add'),
+          text: isSubRouteMode ? 'Confirm Add Sub-Route' : t('btn_confirm_add', 'Confirm Add'),
           onPress: () => {
             const newRoute = {
               id: cleanCode,
               code: cleanCode,
-              name: `${depotRouteOrigin.trim()} ➔ ${depotRouteDestination.trim()} (${cleanCode})`,
-              fullName: depotRouteFullName.trim(),
+              name: `${effectiveOrigin} ➔ ${effectiveDest} (${cleanCode})`,
+              fullName: effectiveFullName,
               shortName: cleanCode,
-              origin: depotRouteOrigin.trim(),
-              destination: depotRouteDestination.trim(),
+              origin: effectiveOrigin,
+              destination: effectiveDest,
               distance: distNum,
               fullDutyKm: parseFloat((distNum * 2).toFixed(1)),
-              category: 'Standard',
-              routeComplexity: 'Standard',
-              requiredCat: 'B',
+              category: existingSameDepot?.category || 'Standard',
+              routeComplexity: existingSameDepot?.routeComplexity || 'Standard',
+              requiredCat: existingSameDepot?.requiredCat || 'B',
               drainSoc: Math.min(95, Math.max(10, Math.round(distNum * 0.85))),
-              timetables: finalTimetables,
-              shift: depotRouteShift || 'General Shift',
+              timetables: isSubRouteMode ? subAnalysis.newEntries.map((e) => e.ampmStr) : finalTimetables,
+              shift: chosenShift,
               depotId: resolvedDepotId,
               depotName: resolvedDepotName,
               custom: true,
               createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             };
 
-            // Attach route to depot in accounts and sync across devices
+            // Attach route / sub-route to depot in dataset & accounts and sync across devices
             addRouteToDepot(resolvedDepotId, newRoute);
             setDatasetVersionTick((v) => v + 1);
 
-            setCustomRoutes((prev) => [newRoute, ...prev]);
+            const refreshedRoute = getRouteDefinition(cleanCode, resolvedDepotId) || newRoute;
+            setCustomRoutes((prev) => {
+              const filtered = prev.filter((r) => !(String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId) === String(resolvedDepotId)));
+              return [{ ...refreshedRoute, depotName: resolvedDepotName }, ...filtered];
+            });
             setDeletedRouteCodes((prev) => prev.filter((c) => c !== cleanCode));
             setDepotAuditLogs((prev) => [
               {
                 id: Date.now().toString(),
-                action: 'ADDED',
-                code: cleanCode,
-                fullName: depotRouteFullName.trim(),
-                origin: depotRouteOrigin.trim(),
-                destination: depotRouteDestination.trim(),
+                action: isSubRouteMode ? 'SUB_ROUTE_ADDED' : 'ADDED',
+                code: isSubRouteMode ? subRoutePreviewIds : cleanCode,
+                fullName: `${effectiveFullName} (${chosenShift})`,
+                origin: effectiveOrigin,
+                destination: effectiveDest,
                 distance: distNum,
                 depot: resolvedDepotName,
                 time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -1886,8 +1935,10 @@ export default function AdminWorkspaceScreen() {
             setDepotCustomName('');
 
             Alert.alert(
-              t('route_registered_success_title', 'Route Registered Successfully'),
-              `${t('route_short_name_label', 'Route')}: ${cleanCode}\n${t('route_full_name_label', 'Full Name')}: ${newRoute.fullName}\n${t('route_origin_label', 'Origin')}: ${newRoute.origin} ➔ ${newRoute.destination}\n${t('route_distance_label', 'Total Distance')}: ${distNum} km\n${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
+              isSubRouteMode ? '✅ Sub-Route Added Successfully' : t('route_registered_success_title', 'Route Registered Successfully'),
+              isSubRouteMode
+                ? `Sub-Route(s): ${subRoutePreviewIds}\nRoute: ${cleanCode}\nShift Type: ${chosenShift}\nAdded Timings: ${subAnalysis.newEntries.map((e) => e.ampmStr).join(', ')}\nOperating Depot: ${resolvedDepotName}\n\nNow selectable under Route ${cleanCode} in Scheduling.`
+                : `${t('route_short_name_label', 'Route')}: ${cleanCode}\nSub-Routes: ${subRoutePreviewIds}\nShift Type: ${chosenShift}\n${t('route_full_name_label', 'Full Name')}: ${newRoute.fullName}\n${t('route_origin_label', 'Origin')}: ${newRoute.origin} ➔ ${newRoute.destination}\n${t('route_distance_label', 'Total Distance')}: ${distNum} km\n${t('operating_depot_label', 'Operating Depot')}: ${resolvedDepotName}`,
               [{ text: t('tab_depot_audit_log', '📋 Depot Audit Log'), onPress: () => setDepotsTab('directory') }]
             );
           },
@@ -7288,6 +7339,27 @@ export default function AdminWorkspaceScreen() {
                     onChangeText={setDepotRouteShortName}
                     autoCapitalize="characters"
                   />
+                  {(() => {
+                    const typedCode = depotRouteShortName.trim().toUpperCase().replace(/\s+/g, '');
+                    const dCheck = routesSelectedDepot && routesSelectedDepot !== 'all' ? routesSelectedDepot : depotTargetDepot;
+                    const dClean = String(dCheck || '').replace(/^DEPOT\s*/i, '');
+                    if (!typedCode || !dClean || dClean === 'all' || dClean === 'custom') return null;
+                    const existingMatch = allAvailableRoutes.find(
+                      (r) => (r.code === typedCode || r.id === typedCode) && String(r.depotId || '1').replace(/^DEPOT\s*/i, '') === dClean
+                    );
+                    if (!existingMatch) return null;
+                    const info = analyzeRouteSubAddition(typedCode, dClean, depotRouteShift, depotRouteTimetables);
+                    return (
+                      <View style={{ backgroundColor: '#eff6ff', borderWidth: 1, borderColor: '#bfdbfe', borderRadius: 8, padding: 10, marginTop: -4, marginBottom: 10 }}>
+                        <Text style={{ fontSize: 11.5, color: '#1e40af', fontWeight: '700' }}>
+                          ℹ️ Route {typedCode} already exists in Depot {dClean} ({info.existingShifts.join(', ') || existingMatch.shift || 'General Shift'}).
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#1e3a8a', marginTop: 2 }}>
+                          Choose a different Route Shift Type and enter new departure timings below to add it as Sub-Route {typedCode}/{info.nextSubIndexStart}.
+                        </Text>
+                      </View>
+                    );
+                  })()}
 
                   {/* Route Starting Point (Origin) */}
                   <Text style={styles.modalFieldLabel}>
@@ -9994,6 +10066,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#0f172a',
     padding: 0,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {}),
   },
   scheduleClearSearchBtn: {
     padding: 4,
@@ -10161,6 +10234,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     fontSize: 12.5,
     color: '#0f172a',
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {}),
   },
   modalClearSearch: {
     position: 'absolute',
@@ -10514,6 +10588,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     color: '#0f172a',
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {}),
   },
   clearSearch: {
     fontSize: 14,
@@ -11211,6 +11286,7 @@ const styles = StyleSheet.create({
     fontSize: 13.5,
     color: '#0f172a',
     marginBottom: 10,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {}),
   },
   depotSelectBtn: {
     flex: 1,
@@ -12284,6 +12360,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#0f172a',
     padding: 0,
+    ...(Platform.OS === 'web' ? { outlineStyle: 'none', outlineWidth: 0 } : {}),
   },
   depotPillBar: {
     flexDirection: 'row',

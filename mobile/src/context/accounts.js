@@ -840,16 +840,19 @@ export function addRouteToDepot(depotId, routeData) {
     return { ok: false, error: 'Depot ID and Route code are required.' };
   }
 
-  if (isObj) {
-    registerRouteDefinition({ ...routeData, depotId: cleanId });
-  }
-
-  // Also add to Master Route & Schedule Dataset
+  // Also add (or merge sub-route) in Master Route & Schedule Dataset first so definition preserves all sub-routes
+  let savedDatasetRoute = null;
   try {
     const routeObj = isObj ? routeData : { code: cleanRoute };
-    addRouteToDataset(cleanId, routeObj);
+    savedDatasetRoute = addRouteToDataset(cleanId, routeObj);
   } catch (err) {
     console.warn('[addRouteToDepot] Dataset sync notice:', err?.message || err);
+  }
+
+  if (savedDatasetRoute) {
+    registerRouteDefinition({ ...savedDatasetRoute, depotId: cleanId });
+  } else if (isObj) {
+    registerRouteDefinition({ ...routeData, depotId: cleanId });
   }
 
   let updatedRoutes = [];

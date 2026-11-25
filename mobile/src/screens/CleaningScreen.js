@@ -1017,6 +1017,8 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     color: '#0f172a',
+    outlineStyle: 'none',
+    outlineWidth: 0,
   },
   clearSearchBtn: {
     padding: 4,

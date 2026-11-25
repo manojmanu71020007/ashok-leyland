@@ -1175,6 +1175,7 @@ function loadCorridorSchedules() {
                         if (sId && !schedules.some(x => String(x.scheduleId).toLowerCase() === sId.toLowerCase()) && !dupByTime) {
                             schedules.push({
                                 scheduleId: sId,
+                                subRoute: s.subRoute || sId,
                                 route: cleanCode,
                                 shift: s.shift || (sParts ? sParts.shift : "General Shift"),
                                 fixBm: s.fixBm || "",
@@ -5741,7 +5742,71 @@ const server = http.createServer(async (req, res) => {
                         if (!dataset.routes) dataset.routes = [];
                         const existingIdx = dataset.routes.findIndex(r => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId);
                         if (existingIdx >= 0) {
-                            dataset.routes[existingIdx] = route;
+                            const existing = dataset.routes[existingIdx];
+                            const exTimes = Array.isArray(existing.timetables) ? existing.timetables.flat().filter(Boolean) : [];
+                            const inTimes = Array.isArray(route.timetables) ? route.timetables.flat().filter(Boolean) : [];
+                            const mergedTimesMap = new Map();
+                            const exDelKeys = new Set(
+                                (Array.isArray(existing._deletedTimes) ? existing._deletedTimes : []).map(dt => {
+                                    const dp = normalizeDepartureTimeParts(dt);
+                                    return dp ? dp.h24Str : String(dt || "").trim().toLowerCase();
+                                })
+                            );
+                            exTimes.forEach(t => {
+                                const p = normalizeDepartureTimeParts(t);
+                                const k = p ? p.h24Str : String(t).trim().toLowerCase();
+                                if (k && !mergedTimesMap.has(k)) mergedTimesMap.set(k, p ? p.ampmStr : String(t).trim());
+                            });
+                            inTimes.forEach(t => {
+                                const p = normalizeDepartureTimeParts(t);
+                                const k = p ? p.h24Str : String(t).trim().toLowerCase();
+                                if (k) {
+                                    exDelKeys.delete(k);
+                                    if (!mergedTimesMap.has(k)) mergedTimesMap.set(k, p ? p.ampmStr : String(t).trim());
+                                }
+                            });
+                            const mergedTimetables = Array.from(mergedTimesMap.values()).sort((a, b) => {
+                                const pa = normalizeDepartureTimeParts(a);
+                                const pb = normalizeDepartureTimeParts(b);
+                                return (pa ? pa.minutes : 720) - (pb ? pb.minutes : 720);
+                            });
+
+                            const exScheds = Array.isArray(existing.schedules) ? [...existing.schedules] : [];
+                            const inScheds = Array.isArray(route.schedules) ? route.schedules : [];
+                            let maxNum = exScheds.length;
+                            exScheds.forEach(s => {
+                                const m = String(s?.subRoute || s?.scheduleId || "").match(/\/(\d+)\s*$/);
+                                if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+                            });
+                            inScheds.forEach(s => {
+                                if (!s) return;
+                                const sp = normalizeDepartureTimeParts(s.departureTime || s.outTime);
+                                const sKey = sp ? sp.h24Str : String(s.departureTime || s.outTime || "").trim().toLowerCase();
+                                const dupTime = sKey && exScheds.some(es => {
+                                    const ep = normalizeDepartureTimeParts(es.departureTime || es.outTime);
+                                    return (ep ? ep.h24Str : String(es.departureTime || es.outTime || "").trim().toLowerCase()) === sKey;
+                                });
+                                if (!dupTime) {
+                                    let sid = String(s.scheduleId || s.subRoute || "").trim();
+                                    if (!sid || exScheds.some(es => String(es.scheduleId || "").toLowerCase() === sid.toLowerCase())) {
+                                        sid = `${cleanCode}/${++maxNum}`;
+                                    }
+                                    exScheds.push({ ...s, scheduleId: sid, subRoute: s.subRoute || sid });
+                                }
+                            });
+                            const mergedShifts = Array.from(
+                                new Set([...(Array.isArray(existing.shifts) ? existing.shifts : []), ...(Array.isArray(route.shifts) ? route.shifts : []), existing.shift, route.shift, ...exScheds.map(s => s.shift)].filter(Boolean))
+                            );
+                            dataset.routes[existingIdx] = {
+                                ...existing,
+                                ...route,
+                                timetables: mergedTimetables,
+                                _timetablesManaged: true,
+                                _deletedTimes: Array.from(exDelKeys),
+                                schedules: exScheds,
+                                shifts: mergedShifts,
+                                timeComplexitySlots: { ...(existing.timeComplexitySlots || {}), ...(route.timeComplexitySlots || {}) }
+                            };
                         } else {
                             dataset.routes.push(route);
                         }

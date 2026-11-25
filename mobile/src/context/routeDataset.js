@@ -9461,7 +9461,104 @@ export function deleteDepotFromDataset(depotId) {
 }
 
 /**
- * Adds a new route to a depot in the Master Dataset with full route, timetable, complexity, and schedule metadata
+ * Inspects whether adding (routeCode, shift, timings) to a depot is a new route,
+ * a valid sub-route addition (different shift & different timings), or a duplicate.
+ */
+export function analyzeRouteSubAddition(routeCode, depotId, shift, rawTimetables) {
+  const cleanCode = String(routeCode || '').toUpperCase().trim();
+  const dId = String(depotId || '1').trim().replace(/^DEPOT\s*/i, '');
+  const chosenShift = String(shift || 'General Shift').trim();
+
+  const rawList = Array.isArray(rawTimetables)
+    ? rawTimetables
+    : String(rawTimetables || '').split(',').map((s) => s.trim()).filter(Boolean);
+  const parsedIncoming = [];
+  const seenIncomingH24 = new Set();
+  rawList.forEach((tStr) => {
+    const p = normalizeTimeEntry(tStr);
+    const key = p ? p.h24Str : tStr.toLowerCase();
+    if (!key || seenIncomingH24.has(key)) return;
+    seenIncomingH24.add(key);
+    parsedIncoming.push({
+      raw: tStr,
+      ampmStr: p ? p.ampmStr : tStr,
+      outTime24: p ? p.outTime24 : tStr,
+      h24Str: key,
+      tier: p ? p.tier : 'Normal',
+    });
+  });
+
+  const existingInDepot = getRouteFromDataset(cleanCode, dId);
+  if (!existingInDepot) {
+    return {
+      existsInSameDepot: false,
+      existingRoute: null,
+      existingShifts: [],
+      existingTimetables: [],
+      parsedIncoming,
+      newEntries: parsedIncoming,
+      duplicateTimings: [],
+      hasSameShift: false,
+      nextSubIndexStart: 1,
+    };
+  }
+
+  const existingTimetables = Array.isArray(existingInDepot.timetables)
+    ? existingInDepot.timetables.flat().filter(Boolean)
+    : [];
+  const existingSchedules = Array.isArray(existingInDepot.schedules)
+    ? existingInDepot.schedules
+    : [];
+
+  const existingH24Set = new Set();
+  existingTimetables.forEach((t) => {
+    const p = normalizeTimeEntry(t);
+    existingH24Set.add(p ? p.h24Str : String(t).trim().toLowerCase());
+  });
+  existingSchedules.forEach((s) => {
+    const rawT = s?.departureTime || s?.outTime;
+    if (!rawT) return;
+    const p = normalizeTimeEntry(rawT);
+    existingH24Set.add(p ? p.h24Str : String(rawT).trim().toLowerCase());
+  });
+
+  const shiftSet = new Set();
+  if (existingInDepot.shift) shiftSet.add(String(existingInDepot.shift).trim());
+  if (Array.isArray(existingInDepot.shifts)) {
+    existingInDepot.shifts.forEach((sh) => { if (sh) shiftSet.add(String(sh).trim()); });
+  }
+  existingSchedules.forEach((s) => { if (s?.shift) shiftSet.add(String(s.shift).trim()); });
+  const existingShifts = Array.from(shiftSet);
+
+  const hasSameShift = existingShifts.some((sh) => sh.toLowerCase() === chosenShift.toLowerCase());
+  const newEntries = parsedIncoming.filter((item) => !existingH24Set.has(item.h24Str));
+  const duplicateTimings = parsedIncoming.filter((item) => existingH24Set.has(item.h24Str));
+
+  let maxSubIdx = existingSchedules.length;
+  existingSchedules.forEach((s) => {
+    const sid = String(s?.subRoute || s?.scheduleId || '');
+    const m = sid.match(/\/(\d+)\s*$/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      if (!isNaN(n) && n > maxSubIdx) maxSubIdx = n;
+    }
+  });
+
+  return {
+    existsInSameDepot: true,
+    existingRoute: existingInDepot,
+    existingShifts,
+    existingTimetables,
+    parsedIncoming,
+    newEntries,
+    duplicateTimings,
+    hasSameShift,
+    nextSubIndexStart: maxSubIdx + 1,
+  };
+}
+
+/**
+ * Adds a new route (or merges a new Shift / Sub-Route with distinct timings) into a depot in the Master Dataset
  */
 export function addRouteToDataset(depotId, routeData) {
   const dId = String(depotId || '1').trim().replace(/^DEPOT\s*/i, '');
@@ -9471,13 +9568,19 @@ export function addRouteToDataset(depotId, routeData) {
   const rKey = makeRouteKey(dId, cleanCode);
   if (rKey) deletedRouteKeys.delete(rKey);
 
-  const dist = Number(routeData.distance) || 25.0;
-  const orig = String(routeData.origin || `Depot ${dId} Terminal`).trim();
-  const dest = String(routeData.destination || 'Central Terminal').trim();
-  const fName = String(routeData.fullName || routeData.name || `${orig} ➔ ${dest} (${cleanCode})`).trim();
+  const existingRouteIdx = masterDataset.routes.findIndex(
+    (r) => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId
+  );
+  const existingRoute = existingRouteIdx >= 0 ? masterDataset.routes[existingRouteIdx] : null;
+
+  const chosenShift = String(routeData.shift || (existingRoute && existingRoute.shift) || 'General Shift').trim();
+  const dist = Number(routeData.distance) || (existingRoute ? Number(existingRoute.distance) : 25.0) || 25.0;
+  const orig = String(routeData.origin || (existingRoute && existingRoute.origin) || `Depot ${dId} Terminal`).trim();
+  const dest = String(routeData.destination || (existingRoute && existingRoute.destination) || 'Central Terminal').trim();
+  const fName = String(routeData.fullName || routeData.name || (existingRoute && (existingRoute.fullName || existingRoute.name)) || `${orig} ➔ ${dest} (${cleanCode})`).trim();
 
   // Auto-evaluate route complexity if not explicitly provided
-  let routeComp = routeData.routeComplexity || routeData.complexity;
+  let routeComp = routeData.routeComplexity || routeData.complexity || (existingRoute && (existingRoute.routeComplexity || existingRoute.category));
   if (!routeComp) {
     if (dist > 35) routeComp = 'Complex';
     else if (dist >= 30) routeComp = 'Moderate';
@@ -9486,69 +9589,164 @@ export function addRouteToDataset(depotId, routeData) {
   }
 
   // Auto-evaluate required bus category based on route complexity
-  const reqCat = routeData.requiredCat || (routeComp === 'Complex' ? 'A' : (routeComp === 'Moderate' ? 'B' : 'B'));
+  const reqCat = routeData.requiredCat || (routeComp === 'Complex' ? 'A' : 'B');
 
-  const timetables = Array.isArray(routeData.timetables) && routeData.timetables.length > 0
+  const rawTimetables = Array.isArray(routeData.timetables) && routeData.timetables.length > 0
     ? routeData.timetables
     : ['06:30 AM', '08:00 AM', '01:10 PM', '03:00 PM', '06:45 PM'];
 
-  const timeComplexity = routeData.timeComplexity || 'Normal';
+  const timeComplexity = routeData.timeComplexity || (existingRoute && existingRoute.timeComplexity) || 'Normal';
+  const fullDutyKm = routeData.fullDutyKm || (existingRoute && existingRoute.fullDutyKm) || parseFloat((dist * 2).toFixed(1));
 
-  // Build time complexity slots
-  const timeComplexitySlots = { ...(routeData.timeComplexitySlots || {}) };
-  timetables.forEach((t) => {
-    if (!timeComplexitySlots[t]) {
-      const hour = parseInt(t.split(':')[0], 10);
-      const isPm = /pm/i.test(t);
-      const h24 = isPm && hour < 12 ? hour + 12 : (!isPm && hour === 12 ? 0 : hour);
-      if ((h24 >= 7 && h24 < 10) || (h24 >= 16 && h24 < 20)) {
-        timeComplexitySlots[t] = 'Extreme Peak';
-      } else if ((h24 >= 10 && h24 < 16) || (h24 >= 20 && h24 < 23)) {
-        timeComplexitySlots[t] = 'Peak';
-      } else {
-        timeComplexitySlots[t] = 'Normal';
-      }
-    }
-  });
+  let routeObj;
+  if (existingRoute) {
+    const analysis = analyzeRouteSubAddition(cleanCode, dId, chosenShift, rawTimetables);
+    const existingTimetables = Array.isArray(existingRoute.timetables) ? existingRoute.timetables.flat().filter(Boolean) : [];
+    const existingSchedules = Array.isArray(existingRoute.schedules) ? [...existingRoute.schedules] : [];
+    const mergedSlots = { ...(existingRoute.timeComplexitySlots || {}), ...(routeData.timeComplexitySlots || {}) };
 
-  // Generate simulated schedule duties for this route
-  const schedules = timetables.map((t, idx) => ({
-    scheduleId: `${cleanCode}/${idx + 1}`,
-    shift: idx < 2 ? 'General Shift' : (idx < 4 ? 'Shift B' : 'Night Halt'),
-    outTime: t,
-    inTime: '15:15:00',
-    category: routeComp,
-    singleChargeReqKm: Math.round(dist * 1.5),
-  }));
+    let nextSubIdx = analysis.nextSubIndexStart;
+    const addedSubRoutes = [];
+    const addedTimes = [];
 
-  const routeObj = {
-    code: cleanCode,
-    id: cleanCode,
-    depotId: dId,
-    name: `${orig} ➔ ${dest} (${cleanCode})`,
-    fullName: fName,
-    shortName: routeData.shortName || cleanCode,
-    origin: orig,
-    destination: dest,
-    distance: dist,
-    fullDutyKm: routeData.fullDutyKm || parseFloat((dist * 2).toFixed(1)),
-    routeComplexity: routeComp,
-    category: routeComp,
-    requiredCat: reqCat,
-    drainSoc: routeData.drainSoc || Math.min(95, Math.max(12, Math.round(dist * 0.85))),
-    timeComplexity: timeComplexity,
-    timetables: timetables,
-    timeComplexitySlots: timeComplexitySlots,
-    schedules: schedules,
-  };
+    analysis.newEntries.forEach((entry) => {
+      const subId = `${cleanCode}/${nextSubIdx++}`;
+      const subSched = {
+        scheduleId: subId,
+        subRoute: subId,
+        route: cleanCode,
+        shift: chosenShift,
+        outTime: entry.outTime24,
+        departureTime: entry.ampmStr,
+        inTime: routeData.inTime || '16:00:00',
+        origin: orig,
+        destination: dest,
+        category: routeComp,
+        routeComplexity: routeComp,
+        timeComplexity: entry.tier,
+        totalGroupDistance: fullDutyKm,
+        distance: dist,
+        singleChargeReqKm: Math.round(dist * 1.5),
+        customSubRoute: true,
+      };
+      existingSchedules.push(subSched);
+      addedSubRoutes.push(subSched);
+      addedTimes.push(entry.ampmStr);
+      if (!mergedSlots[entry.ampmStr]) mergedSlots[entry.ampmStr] = entry.tier;
+    });
 
-  // 1. Update routes array
-  const existingRouteIdx = masterDataset.routes.findIndex(
-    (r) => String(r.code).toUpperCase().trim() === cleanCode && String(r.depotId).trim() === dId
-  );
-  if (existingRouteIdx >= 0) {
+    const mergedTimetables = [...existingTimetables, ...addedTimes].sort((a, b) => {
+      const pa = normalizeTimeEntry(a);
+      const pb = normalizeTimeEntry(b);
+      return (pa ? pa.minutes : parseTimeToMinutes(a)) - (pb ? pb.minutes : parseTimeToMinutes(b));
+    });
+
+    const addedH24Set = new Set(analysis.newEntries.map((e) => e.h24Str));
+    const updatedDeletedTimes = Array.isArray(existingRoute._deletedTimes)
+      ? existingRoute._deletedTimes.filter((dt) => {
+          const dp = normalizeTimeEntry(dt);
+          return dp ? !addedH24Set.has(dp.h24Str) : true;
+        })
+      : [];
+
+    const allShifts = Array.from(
+      new Set([...(Array.isArray(existingRoute.shifts) ? existingRoute.shifts : []), existingRoute.shift, chosenShift, ...existingSchedules.map((s) => s.shift)].filter(Boolean))
+    );
+
+    routeObj = {
+      ...existingRoute,
+      code: cleanCode,
+      id: cleanCode,
+      depotId: dId,
+      name: existingRoute.name || `${orig} ➔ ${dest} (${cleanCode})`,
+      fullName: existingRoute.fullName || fName,
+      shortName: existingRoute.shortName || cleanCode,
+      origin: existingRoute.origin || orig,
+      destination: existingRoute.destination || dest,
+      distance: dist,
+      fullDutyKm,
+      routeComplexity: routeComp,
+      category: routeComp,
+      requiredCat: reqCat,
+      drainSoc: routeData.drainSoc || existingRoute.drainSoc || Math.min(95, Math.max(12, Math.round(dist * 0.85))),
+      timeComplexity,
+      shift: existingRoute.shift || chosenShift,
+      shifts: allShifts,
+      timetables: mergedTimetables,
+      _timetablesManaged: true,
+      _deletedTimes: updatedDeletedTimes,
+      timeComplexitySlots: mergedSlots,
+      schedules: existingSchedules,
+      _mergeSubRoute: true,
+    };
+
     masterDataset.routes[existingRouteIdx] = routeObj;
   } else {
+    const normalizedEntries = rawTimetables.map((t) => {
+      const p = normalizeTimeEntry(t);
+      return {
+        raw: String(t).trim(),
+        ampmStr: p ? p.ampmStr : String(t).trim(),
+        outTime24: p ? p.outTime24 : String(t).trim(),
+        minutes: p ? p.minutes : parseTimeToMinutes(t),
+        tier: p ? p.tier : 'Normal',
+      };
+    });
+    normalizedEntries.sort((a, b) => a.minutes - b.minutes);
+    const timetables = Array.from(new Set(normalizedEntries.map((e) => e.ampmStr)));
+
+    const timeComplexitySlots = { ...(routeData.timeComplexitySlots || {}) };
+    normalizedEntries.forEach((e) => {
+      if (!timeComplexitySlots[e.ampmStr]) {
+        timeComplexitySlots[e.ampmStr] = e.tier;
+      }
+    });
+
+    const schedules = normalizedEntries.map((e, idx) => {
+      const subId = `${cleanCode}/${idx + 1}`;
+      return {
+        scheduleId: subId,
+        subRoute: subId,
+        route: cleanCode,
+        shift: chosenShift,
+        outTime: e.outTime24,
+        departureTime: e.ampmStr,
+        inTime: '15:15:00',
+        origin: orig,
+        destination: dest,
+        category: routeComp,
+        routeComplexity: routeComp,
+        timeComplexity: e.tier,
+        totalGroupDistance: fullDutyKm,
+        distance: dist,
+        singleChargeReqKm: Math.round(dist * 1.5),
+      };
+    });
+
+    routeObj = {
+      code: cleanCode,
+      id: cleanCode,
+      depotId: dId,
+      name: `${orig} ➔ ${dest} (${cleanCode})`,
+      fullName: fName,
+      shortName: routeData.shortName || cleanCode,
+      origin: orig,
+      destination: dest,
+      distance: dist,
+      fullDutyKm,
+      routeComplexity: routeComp,
+      category: routeComp,
+      requiredCat: reqCat,
+      drainSoc: routeData.drainSoc || Math.min(95, Math.max(12, Math.round(dist * 0.85))),
+      timeComplexity,
+      shift: chosenShift,
+      shifts: [chosenShift],
+      timetables,
+      _timetablesManaged: true,
+      timeComplexitySlots,
+      schedules,
+    };
+
     masterDataset.routes.push(routeObj);
   }
 
@@ -9562,7 +9760,7 @@ export function addRouteToDataset(depotId, routeData) {
 
   persistDataset();
   notifyListeners();
-  syncToServer({ action: 'add_route', depotId: dId, route: routeObj });
+  syncToServer({ action: 'add_route', depotId: dId, route: routeObj, mergeSubRoute: Boolean(existingRoute) });
   return routeObj;
 }
 
