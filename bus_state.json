@@ -22441,7 +22441,7 @@
   "_routesDatabase": {
     "version": "5.1",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-24T15:19:50.673Z",
+    "lastUpdated": "2026-11-25T07:11:11.487Z",
     "depots": [
       {
         "id": "1",
@@ -31662,6 +31662,8 @@
         "timetables": [
           "06:30 AM",
           "08:00 AM",
+          "11pm",
+          "12pm",
           "01:10 PM",
           "03:00 PM",
           "06:45 PM"
@@ -31671,7 +31673,9 @@
           "08:00 AM": "Extreme Peak",
           "01:10 PM": "Peak",
           "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak"
+          "06:45 PM": "Extreme Peak",
+          "11pm": "Normal",
+          "12pm": "Normal"
         },
         "schedules": [
           {
@@ -31713,8 +31717,54 @@
             "inTime": "15:15:00",
             "category": "Simple",
             "singleChargeReqKm": 180
+          },
+          {
+            "scheduleId": "MS30/6",
+            "subRoute": "MS30/6",
+            "route": "MS30",
+            "shift": "Morning Shift",
+            "outTime": "11pm",
+            "departureTime": "11pm",
+            "inTime": "16:00:00",
+            "origin": "man",
+            "destination": "san",
+            "category": "Simple",
+            "routeComplexity": "Simple",
+            "timeComplexity": "Normal",
+            "totalGroupDistance": 240,
+            "distance": 120,
+            "singleChargeReqKm": 180,
+            "customSubRoute": true
+          },
+          {
+            "scheduleId": "MS30/7",
+            "subRoute": "MS30/7",
+            "route": "MS30",
+            "shift": "Morning Shift",
+            "outTime": "12pm",
+            "departureTime": "12pm",
+            "inTime": "16:00:00",
+            "origin": "man",
+            "destination": "san",
+            "category": "Simple",
+            "routeComplexity": "Simple",
+            "timeComplexity": "Normal",
+            "totalGroupDistance": 240,
+            "distance": 120,
+            "singleChargeReqKm": 180,
+            "customSubRoute": true
           }
-        ]
+        ],
+        "shift": "Morning Shift",
+        "shifts": [
+          "Morning Shift",
+          "General Shift",
+          "Shift B",
+          "Night Halt"
+        ],
+        "_timetablesManaged": true,
+        "_deletedTimes": [],
+        "_mergeSubRoute": true
       }
     ],
     "timeComplexityConfig": {
