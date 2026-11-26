@@ -10241,36 +10241,6 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                                     }, 409);
                                     return;
                                 }
-
-                                // Gate 2nd / relay bus allocation until the active 1st bus completes its part of the route
-                                const dCode = getDutyRouteCode(duty);
-                                const dDep = getDutyDepotId(currentState, duty);
-                                const dTime = String(duty?.departureTime || duty?.scheduledTime || "").trim().toLowerCase();
-                                const dSchedId = String(duty?.scheduleId || "").trim().toLowerCase();
-                                const incomingSplitInfo = isRouteOrDutySplitRequired(currentState, duty);
-                                const conflictingActiveDuty = existingDuties.find(ex => {
-                                    const exBm = String(ex?.bm || ex?.bmNumber || ex?.busId || "").toUpperCase().trim();
-                                    if (!exBm || exBm === bmK) return false;
-                                    const exCode = getDutyRouteCode(ex);
-                                    const exDep = getDutyDepotId(currentState, ex);
-                                    if (!exCode || exCode !== dCode || exDep !== dDep) return false;
-                                    const exSplit = isRouteOrDutySplitRequired(currentState, ex, incomingSplitInfo.routeObj).isSplit;
-                                    if (exSplit || incomingSplitInfo.isSplit) return true;
-                                    const exTime = String(ex?.departureTime || ex?.scheduledTime || "").trim().toLowerCase();
-                                    const exSched = String(ex?.scheduleId || "").trim().toLowerCase();
-                                    return Boolean((dTime && exTime && dTime === exTime) || (dSchedId && exSched && dSchedId === exSched));
-                                });
-                                if (conflictingActiveDuty) {
-                                    const activeBm = String(conflictingActiveDuty.bm || conflictingActiveDuty.bmNumber || conflictingActiveDuty.busId || "").toUpperCase().trim();
-                                    sendJson(res, {
-                                        ok: false,
-                                        blockedByActiveSplitBus: true,
-                                        blockedRoute: dCode,
-                                        activeFirstBus: activeBm,
-                                        error: `Split-Duty / Relay Hold: Bus ${activeBm} is currently operating Route ${dCode} and has not completed its part of the route yet. Another bus can only be allocated for Route ${dCode} after ${activeBm} completes its part of the route.`
-                                    }, 409);
-                                    return;
-                                }
                             }
                         }
 

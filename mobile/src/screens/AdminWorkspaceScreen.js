@@ -4002,7 +4002,7 @@ export default function AdminWorkspaceScreen() {
               <Text style={styles.ruleLabel}>Operation Mode</Text>
               <Text style={[styles.ruleVal, { color: (isSplitDutyRoute || unchargedDutyRequiredSoc > 100) ? '#b45309' : '#15803d', fontWeight: '800' }]}>
                 {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100)
-                  ? `⚡ Split Duty (2nd Bus Unlocked After 1st Completes)`
+                  ? `⚡ Split Duty (Bell Relay Alert After Completion)`
                   : 'Single Charge Operation'}
               </Text>
             </View>
@@ -4015,9 +4015,9 @@ export default function AdminWorkspaceScreen() {
                   </Text>
                 </View>
                 <View style={styles.ruleItem}>
-                  <Text style={styles.ruleLabel}>Relay Dispatch Rule</Text>
+                  <Text style={styles.ruleLabel}>Relay Alert Behavior</Text>
                   <Text style={[styles.ruleVal, { color: '#d97706', fontWeight: '700' }]}>
-                    🔁 2nd Bus Locked Until 1st Completes Part 1
+                    🔔 5-Min Bell Pop-Up After 1st Bus Completes
                   </Text>
                 </View>
               </>
@@ -4057,7 +4057,7 @@ export default function AdminWorkspaceScreen() {
           {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100) && (
             <View style={[styles.adminMonitoringNotice, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', marginTop: 10 }]}>
               <Text style={[styles.adminMonitoringNoticeText, { color: '#0369a1', fontWeight: '600' }]}>
-                ⚡ Split Duty Mode: Dataset route distance ({selectedRoute?.distance || '—'} km) requires ~{routeRequiredSoc} total SoC (&gt;100% single battery capacity). Operation runs in Split Duty relay mode — a 2nd bus can be allocated only after the 1st bus completes its part of the route.
+                ⚡ Split Duty Mode: Dataset route distance ({selectedRoute?.distance || '—'} km) requires ~{routeRequiredSoc} total SoC (&gt;100% single battery capacity). Scheduling triggers a 5-minute bell/pop-up relay alert after the 1st bus completes its duty while keeping flexible bus allocation open.
               </Text>
             </View>
           )}
@@ -9726,7 +9726,7 @@ export default function AdminWorkspaceScreen() {
                   </Text>
                   <Text style={styles.dutyMetricSub}>
                     {(selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty)
-                      ? '2nd bus unlocked after Part 1 completes'
+                      ? 'Bell relay alert fires on completion'
                       : 'Optimal Energy Efficiency'}
                   </Text>
                 </View>

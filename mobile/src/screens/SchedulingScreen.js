@@ -3869,20 +3869,6 @@ export default function SchedulingScreen() {
     matchedSched?.splitDuty ||
     Number(matchedSched?.chargingOcc || 0) > 0
   );
-  const activeDutiesOnSelectedRoute = (allocatedDuties || []).filter((d) => {
-    const dCode = String(d.routeCode || d.busNumber || d.routeId || '').toUpperCase().replace(/^ROUTE\s*/i, '').trim();
-    const dDep = String(d.depot || depotNum || '1').replace(/^DEPOT\s*/i, '').trim();
-    return selectedRouteCodeClean && dCode === selectedRouteCodeClean && dDep === String(depotNum);
-  });
-  const blockingSplitFirstBus = activeDutiesOnSelectedRoute.find((d) => {
-    if (isSplitDutySelected || d.isSplitDuty || Number(d.reqSoc || 0) > 100) return true;
-    const dTime = String(d.departureTime || '').trim().toLowerCase();
-    const curTime = String(scheduledTime || '').trim().toLowerCase();
-    return Boolean(dTime && curTime && dTime === curTime);
-  });
-  const splitRelayBlockMessage = blockingSplitFirstBus
-    ? `Bus ${blockingSplitFirstBus.bm || blockingSplitFirstBus.bmNumber} is currently active on Route ${selectedRouteCodeClean} (${blockingSplitFirstBus.departureTime || scheduledTime}) and has not completed its part of the route yet. Another bus for Route ${selectedRouteCodeClean} can only be allocated after ${blockingSplitFirstBus.bm || blockingSplitFirstBus.bmNumber} completes its part of the route.`
-    : '';
   const pendingRelayForSelected = selectedRouteCodeClean && pendingRelayRoutes ? pendingRelayRoutes[selectedRouteCodeClean] : null;
 
   const isAllocationPaused = Boolean(depotPauseInfo.pending || routePauseInfo.pending);
@@ -3915,14 +3901,6 @@ export default function SchedulingScreen() {
       Alert.alert(
         '⛔ Allocation Paused — Pending Deletion',
         allocationPauseMessage || `This route (${selectedRouteCodeClean}) is going to be deleted, so no bus can be allocated for this route.`
-      );
-      return;
-    }
-
-    if (blockingSplitFirstBus) {
-      Alert.alert(
-        '⛔ Relay Blocked — 1st Bus Still Active',
-        splitRelayBlockMessage
       );
       return;
     }
@@ -4375,23 +4353,13 @@ export default function SchedulingScreen() {
             </View>
           )}
 
-          {/* ── SPLIT-DUTY / RELAY GATING NOTICE ── */}
-          {blockingSplitFirstBus ? (
-            <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 10, padding: 12, marginBottom: 10 }}>
-              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#991b1b', marginBottom: 3 }}>
-                ⛔ Relay Allocation Blocked — 1st Bus Still Active
-              </Text>
-              <Text style={{ fontSize: 11.5, color: '#7f1d1d', lineHeight: 16 }}>
-                {splitRelayBlockMessage}
-              </Text>
-            </View>
-          ) : pendingRelayForSelected ? (
+          {pendingRelayForSelected ? (
             <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1.5, borderColor: '#86efac', borderRadius: 10, padding: 12, marginBottom: 10 }}>
               <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#065f46', marginBottom: 3 }}>
-                🔁 Part 1 Completed ({pendingRelayForSelected.firstBus}) — 2nd Bus Unlocked
+                🔔 Relay Alert Active ({pendingRelayForSelected.firstBus} Completed)
               </Text>
               <Text style={{ fontSize: 11.5, color: '#047857', lineHeight: 16 }}>
-                Bus {pendingRelayForSelected.firstBus} finished its part of Route {selectedRouteCodeClean}. Allocate the 2nd relay bus now to complete the route.
+                Bus {pendingRelayForSelected.firstBus} completed its duty on Route {selectedRouteCodeClean}. Allocate another bus to resolve this relay alert.
               </Text>
             </View>
           ) : null}
@@ -4401,7 +4369,7 @@ export default function SchedulingScreen() {
             style={[
               styles.btnAllocate,
               isManualOverride && styles.btnAllocateOverride,
-              (isAllocationPaused || blockingSplitFirstBus) && { backgroundColor: '#991b1b', opacity: 0.9 },
+              isAllocationPaused && { backgroundColor: '#991b1b', opacity: 0.9 },
             ]}
             onPress={handleCommitAllocation}
             activeOpacity={0.85}
@@ -4409,11 +4377,7 @@ export default function SchedulingScreen() {
             <Text style={styles.btnAllocateText}>
               {isAllocationPaused
                 ? '⛔ Allocation Paused (Route / Depot Pending Deletion)'
-                : blockingSplitFirstBus
-                  ? `⛔ Relay Locked (${blockingSplitFirstBus.bm} Active on Part 1)`
-                  : (pendingRelayForSelected
-                    ? `🔁 Allocate 2nd Relay Bus`
-                    : (isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus'))}
+                : (isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -4558,7 +4522,7 @@ export default function SchedulingScreen() {
                 <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>
                 <Text style={[styles.ruleVal, { color: (isSplitDuty || isSplitDutySelected) ? '#b45309' : '#15803d', fontWeight: '800' }]}>
                   {(isSplitDuty || isSplitDutySelected)
-                    ? `⚡ ${t('split_duty', 'Split Duty')} (2nd Bus After 1st Completes)`
+                    ? `⚡ ${t('split_duty', 'Split Duty')} (Bell Relay Alert on Completion)`
                     : t('single_charge_operation', 'Single Charge Operation')}
                 </Text>
               </View>
