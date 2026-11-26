@@ -1736,7 +1736,7 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-11-26T09:43:46.525Z",
+    "updatedAt": "2026-11-26T09:48:49.227Z",
     "statusTimings": {
       "Delayed": {
         "arrival": "13:55",
@@ -1757,7 +1757,7 @@
     "socBefore": 100,
     "socAfter": 100,
     "fullDutyDistanceKm": 128,
-    "lastChargedTime": "03:13 pm",
+    "lastChargedTime": "03:18 pm",
     "history": [
       {
         "timestamp": "2026-10-02T05:22:46.033Z",
@@ -1833,6 +1833,12 @@
       },
       {
         "timestamp": "2026-11-26T09:43:46.525Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-11-26T09:48:49.227Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -2144,7 +2150,7 @@
     "assignedRouteId": "BM038",
     "assignedRouteDisplay": "Route BM038 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
-    "blocked": false,
+    "blocked": true,
     "isLocked": false,
     "needsCleaning": false,
     "cleaningCompleted": true,
@@ -2305,7 +2311,7 @@
     "assignedRouteId": "BM054",
     "assignedRouteDisplay": "Route BM054 - 361C (178.3 km)",
     "assignedRouteShortName": "361C",
-    "blocked": false,
+    "blocked": true,
     "isLocked": false,
     "needsCleaning": false,
     "cleaningCompleted": true,
@@ -10228,19 +10234,19 @@
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
-    "updatedAt": "2026-11-26T09:44:15.823Z",
+    "updatedAt": "2026-11-26T09:48:49.227Z",
     "statusTimings": {
       "Delayed": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "On Time": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       },
       "Ahead": {
-        "arrival": "07:35",
-        "departure": "07:30"
+        "arrival": "13:55",
+        "departure": "13:50"
       }
     },
     "operation": "Single Charge Operation",
@@ -10249,10 +10255,10 @@
     "socBefore": 100,
     "socAfter": 100,
     "fullDutyDistanceKm": 128,
-    "lastChargedTime": "03:14 pm",
+    "lastChargedTime": "03:18 pm",
     "history": [
       {
-        "timestamp": "2026-10-02T02:23:41.994Z",
+        "timestamp": "2026-10-02T05:22:46.033Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -10264,13 +10270,73 @@
         "status": "Blocked"
       },
       {
-        "timestamp": "2026-10-20T07:33:20.874Z",
-        "soc": 91,
+        "timestamp": "2026-10-03T07:31:19.435Z",
+        "soc": 0,
         "condition": "Good",
         "status": "On Time"
       },
       {
-        "timestamp": "2026-11-26T09:44:15.823Z",
+        "timestamp": "2026-10-03T12:18:02.276Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T02:56:40.904Z",
+        "soc": 98,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-04T13:40:29.034Z",
+        "soc": 62,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-06T10:18:34.806Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-11T12:24:08.853Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-12T13:53:14.790Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-18T18:31:44.978Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-19T15:14:39.342Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-10-19T18:03:43.899Z",
+        "soc": 0,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-11-26T09:43:46.525Z",
+        "soc": 100,
+        "condition": "Good",
+        "status": "On Time"
+      },
+      {
+        "timestamp": "2026-11-26T09:48:49.227Z",
         "soc": 100,
         "condition": "Good",
         "status": "On Time"
@@ -10625,8 +10691,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -10709,8 +10775,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -10737,8 +10803,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -10793,8 +10859,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -11689,8 +11755,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -14435,8 +14501,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -14547,8 +14613,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -14575,8 +14641,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -14631,8 +14697,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": true
     },
@@ -15583,8 +15649,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "blocked": false
     },
@@ -18266,8 +18332,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
@@ -18323,8 +18389,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -18342,8 +18408,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 187.17,
       "blocked": true
@@ -18380,8 +18446,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 178.27,
       "blocked": true
@@ -18988,8 +19054,8 @@
       "soc": 100,
       "condition": "Good",
       "driver": "Driver Assigned",
-      "estimatedRangeKm": 134.33,
-      "fullDutyDistanceKm": 134.33,
+      "estimatedRangeKm": 128,
+      "fullDutyDistanceKm": 128,
       "operationMode": "Single Charge Operation",
       "gtfsDistanceKm": 114.75,
       "blocked": false
@@ -21171,7 +21237,7 @@
       "needsCleaning": false,
       "cleaningCompleted": true,
       "status": "available",
-      "cleaningCompletedAt": "03:16 pm, 26 Nov 2026"
+      "cleaningCompletedAt": "03:19 pm, 26 Nov 2026"
     },
     "BM024": {
       "bm": "BM024",
@@ -21932,6 +21998,29 @@
   },
   "_chargingHistory": [
     {
+      "id": "charg_1795686522696",
+      "bm": "BM020",
+      "reg": "KA51AH2556",
+      "depot": "1",
+      "processType": "Depot Fast Plug-in Charging",
+      "startTime": "03:18 pm, 26 Nov 2026",
+      "unlockTime": "03:18 pm, 26 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "startSoc": "100%",
+      "finalSoc": "100%",
+      "socBef": 100,
+      "socAft": 100,
+      "delta": 0,
+      "chargerBay": "Bay #1",
+      "chargingStatus": "Completed",
+      "status": "Completed",
+      "clearanceState": "✅ High Range Fleet Category A (Single Charge Ready)",
+      "remarks": "Fast charging completed. BMS cleared for dispatch.",
+      "timeStr": "03:18 pm",
+      "dateStr": "26 Nov 2026",
+      "fullDutyKm": 128
+    },
+    {
       "id": "charg_1795686265690",
       "bm": "BM223",
       "reg": "KA51AH8283",
@@ -22545,6 +22634,23 @@
   },
   "_cleaningHistory": [
     {
+      "id": "clean_1795686553001",
+      "bm": "BM020",
+      "reg": "KA51AH2556",
+      "depot": "1",
+      "processType": "Interior & Exterior Bus Cleaning",
+      "startTime": "03:18 pm, 26 Nov 2026",
+      "unlockTime": "03:19 pm, 26 Nov 2026",
+      "duration": "Just finished (<1 min)",
+      "interiorClean": true,
+      "exteriorClean": true,
+      "status": "Completed",
+      "remarks": "Interior sanitization and exterior pressure wash verified.",
+      "bay": "Cleaning Lane #1",
+      "timeStr": "03:19 pm",
+      "dateStr": "26 Nov 2026"
+    },
+    {
       "id": "clean_1795686402000",
       "bm": "BM223",
       "reg": "KA51AH8283",
@@ -22967,6 +23073,34 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1795686511781",
+      "bm": "BM020",
+      "reg": "KA51AH2556",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "06:05 AM",
+      "completedAt": "03:18 pm, 21 Oct 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Returned / Completed"
+    },
+    {
+      "id": "rc_1795686052128",
+      "bm": "BM054",
+      "reg": "KA51AH0054",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "08:30 AM",
+      "completedAt": "09:40 am, 26 Nov 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "1st bus completed its part (battery depleted); relay requested.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "comp_1795686051485",
       "bm": "BM054",
@@ -33263,19 +33397,5 @@
     "routes": {},
     "depots": {}
   },
-  "_pendingRelayRoutes": {
-    "600F": {
-      "route": "600F",
-      "fullRouteName": "BSK ➔ ATB (600F) — 119.2 km",
-      "depot": "1",
-      "firstBus": "BM054",
-      "reg": "KA51AH0054",
-      "driver": "Suresh Gowda (BMTC-4102)",
-      "completedAt": "09:40 am, 26 Nov 2026",
-      "completedTs": 1795686052129,
-      "partCompleted": true,
-      "isNonSingleCharge": true,
-      "reason": "1st Bus (BM054) completed its part of Route 600F (battery depleted). Second bus is now unlocked to complete the route."
-    }
-  }
+  "_pendingRelayRoutes": {}
 }
