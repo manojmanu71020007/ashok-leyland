@@ -20004,6 +20004,21 @@
       "cleaningCompleted": false,
       "startTime": "07:28 am, 26 Nov 2026",
       "startTimestamp": 1795678111605
+    },
+    {
+      "bm": "BM020",
+      "bmNumber": "BM020",
+      "reg": "KA51AH2556",
+      "depot": "1",
+      "page": "turnaround",
+      "reason": "Turnaround (Fast Charging Required Before Cleaning & Scheduling)",
+      "isTurnaround": true,
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "startTime": "07:28 am, 26 Nov 2026",
+      "startTimestamp": 1795678123361
     }
   ],
   "_depotAssignments": {
@@ -20547,14 +20562,14 @@
     "BM033": {
       "bm": "BM033",
       "routeCompleted": true,
-      "routeCompletedAt": "07:30 am, 26 Nov 2026",
-      "routeCompletedTs": 1795678220300,
+      "routeCompletedAt": "01:00 pm",
+      "routeCompletedTs": 1795678219317,
       "depot": "1",
       "needsCharging": true,
       "chargingCompleted": false,
       "needsCleaning": true,
       "cleaningCompleted": false,
-      "status": "turnaround_charging"
+      "status": "needs_servicing"
     },
     "BM038": {
       "bm": "BM038",
@@ -22086,16 +22101,31 @@
   ],
   "_completedRoutesLog": [
     {
-      "id": "rc_1795678220300",
+      "id": "comp_1795678219737",
       "bm": "BM033",
       "reg": "KA51AH2740",
       "route": "ATB ➔ KBS (KBS3A) — 161.4 km",
-      "scheduledTime": "08:30 AM",
-      "completedAt": "07:30 am, 26 Nov 2026",
+      "scheduledTime": "06:35 AM",
+      "completedAt": "01:00 pm, 21 Oct 2026",
       "dateStr": "2026-11-26",
       "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
       "driver": "Suresh Gowda (BMTC-4102)",
-      "remarks": "Route completed and bus returned to yard awaiting servicing.",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Returned / Completed"
+    },
+    {
+      "id": "rc_1795678123361",
+      "bm": "BM020",
+      "reg": "KA51AH0020",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "08:30 AM",
+      "completedAt": "07:28 am, 26 Nov 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "driver": "Ravi Shankar (BMTC-4106)",
+      "remarks": "1st bus completed its part (battery depleted); relay requested.",
       "status": "Returned / Completed"
     },
     {
