@@ -23661,7 +23661,7 @@
   "_routesDatabase": {
     "version": "5.1",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-25T07:13:48.651Z",
+    "lastUpdated": "2026-11-26T09:50:19.293Z",
     "depots": [
       {
         "id": "1",
@@ -33395,7 +33395,18 @@
   "_pendingDeletions": {
     "buses": {},
     "routes": {},
-    "depots": {}
+    "depots": {
+      "3": {
+        "type": "depot",
+        "depotId": "3",
+        "depotName": "peenya",
+        "activeBms": [
+          "BM1996"
+        ],
+        "reason": "Depot Consolidation",
+        "requestedAt": "2026-11-26T09:50:19.293Z"
+      }
+    }
   },
   "_pendingRelayRoutes": {}
 }
