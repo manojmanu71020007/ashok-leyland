@@ -4414,7 +4414,7 @@
     "chargingStatus": null
   },
   "BM203": {
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
@@ -4462,13 +4462,18 @@
     "assignedRouteDisplay": "Route BM203 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
     "blocked": false,
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
+    "isLocked": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
     "postRouteServicingPending": false,
-    "liveSoc": 100
+    "liveSoc": 100,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "depot": "1",
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BUS-47": {
     "uniqueId": "BUS-47",
@@ -19909,37 +19914,6 @@
   "_swapLog": [],
   "_allocatedDuties": [
     {
-      "id": "duty_BM203_600F_1795677252581",
-      "bm": "BM203",
-      "bmNumber": "BM203",
-      "regNo": "KA51AH7670",
-      "routeId": "600F",
-      "routeCode": "600F",
-      "busNumber": "600F",
-      "routeName": "BSK ➔ ATB (600F) — 143.6 km",
-      "origin": "BSK",
-      "destination": "ATB",
-      "departureTime": "07:25 AM",
-      "isManualOverride": false,
-      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
-      "scheduleId": "600F/21",
-      "shift": "General",
-      "soc": 100,
-      "reqSoc": 108,
-      "fullDutyKm": 128,
-      "routeDist": 143.6,
-      "routeFullDutyKm": 143.6,
-      "isSplitDuty": true,
-      "relayStage": "PART_1_ACTIVE",
-      "operationMode": "Split Duty (Relay)",
-      "tripCount": 8,
-      "busCategory": "A",
-      "driver": "Suresh Gowda (BMTC-4102)",
-      "depot": "1",
-      "allocatedAt": "12:44 pm, 21 Oct 2026",
-      "status": "Allocated"
-    },
-    {
       "id": "duty_BM1996_MS30_1795590248131",
       "bm": "BM1996",
       "bmNumber": "BM1996",
@@ -20869,14 +20843,15 @@
     },
     "BM203": {
       "bm": "BM203",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "routeCompleted": true,
+      "routeCompletedAt": "07:16 am, 26 Nov 2026",
+      "routeCompletedTs": 1795677391200,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "turnaround_charging"
     },
     "BM204": {
       "bm": "BM204",
@@ -22041,6 +22016,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1795677390638",
+      "bm": "BM203",
+      "reg": "KA51AH7670",
+      "route": "BSK ➔ ATB (600F) — 143.6 km",
+      "scheduledTime": "07:25 AM",
+      "completedAt": "12:46 pm, 21 Oct 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "comp_1795105692581",
       "bm": "BM1570",
@@ -32167,5 +32157,20 @@
     "buses": {},
     "routes": {},
     "depots": {}
+  },
+  "_pendingRelayRoutes": {
+    "BSK": {
+      "route": "BSK",
+      "fullRouteName": "BSK ➔ ATB (600F) — 143.6 km",
+      "depot": "1",
+      "firstBus": "BM203",
+      "reg": "KA51AH0203",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "completedAt": "07:16 am, 26 Nov 2026",
+      "completedTs": 1795677391201,
+      "partCompleted": true,
+      "isNonSingleCharge": true,
+      "reason": "NOT Single Charge Operation (Exceeds single-charge battery range / Split Duty). Second bus is now unlocked from this depot to complete the route."
+    }
   }
 }
