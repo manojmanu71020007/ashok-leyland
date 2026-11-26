@@ -2072,7 +2072,7 @@
     "chargingStatus": null
   },
   "BM038": {
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
@@ -2114,13 +2114,18 @@
     "assignedRouteDisplay": "Route BM038 - 328H (187.2 km)",
     "assignedRouteShortName": "328H",
     "blocked": true,
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
+    "isLocked": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
     "postRouteServicingPending": false,
-    "liveSoc": 100
+    "liveSoc": 100,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "depot": "1",
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BUS-13": {
     "uniqueId": "BUS-13",
@@ -19914,37 +19919,6 @@
   "_swapLog": [],
   "_allocatedDuties": [
     {
-      "id": "duty_BM038_600F_1795677922125",
-      "bm": "BM038",
-      "bmNumber": "BM038",
-      "regNo": "KA51AH2741",
-      "routeId": "600F",
-      "routeCode": "600F",
-      "busNumber": "600F",
-      "routeName": "BSK ➔ ATB (600F) — 119.2 km",
-      "origin": "BSK",
-      "destination": "ATB",
-      "departureTime": "06:05 AM",
-      "isManualOverride": true,
-      "allocType": "Committed Duty (Operator Override from Bus BM020)",
-      "scheduleId": "600F/80",
-      "shift": "Shift A",
-      "soc": 100,
-      "reqSoc": 75,
-      "fullDutyKm": 128,
-      "routeDist": 119.2,
-      "routeFullDutyKm": 119.2,
-      "isSplitDuty": false,
-      "relayStage": "SINGLE_CHARGE",
-      "operationMode": "Single Charge Operation",
-      "tripCount": 8,
-      "busCategory": "B",
-      "driver": "Suresh Gowda (BMTC-4102)",
-      "depot": "1",
-      "allocatedAt": "12:55 pm, 21 Oct 2026",
-      "status": "Allocated"
-    },
-    {
       "id": "duty_BM1996_MS30_1795590248131",
       "bm": "BM1996",
       "bmNumber": "BM1996",
@@ -19971,7 +19945,23 @@
       "status": "Allocated"
     }
   ],
-  "_lockedBuses": [],
+  "_lockedBuses": [
+    {
+      "bm": "BM203",
+      "bmNumber": "BM203",
+      "reg": "KA51AH7670",
+      "depot": "1",
+      "page": "turnaround",
+      "reason": "Turnaround (Fast Charging Required Before Cleaning & Scheduling)",
+      "isTurnaround": true,
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "startTime": "07:16 am, 26 Nov 2026",
+      "startTimestamp": 1795677391200
+    }
+  ],
   "_depotAssignments": {
     "BM001": "Chandapura (BMT-32)",
     "BM002": "1",
@@ -20522,14 +20512,15 @@
     },
     "BM038": {
       "bm": "BM038",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "routeCompleted": true,
+      "routeCompletedAt": "12:55 pm",
+      "routeCompletedTs": 1795677958206,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "needs_servicing"
     },
     "BM052": {
       "bm": "BM052",
@@ -22047,6 +22038,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1795677958688",
+      "bm": "BM038",
+      "reg": "KA51AH2741",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "06:05 AM",
+      "completedAt": "12:55 pm, 21 Oct 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Part 1 Completed (Relay Pending)"
+    },
     {
       "id": "comp_1795677390638",
       "bm": "BM203",
@@ -32192,16 +32198,16 @@
   "_pendingRelayRoutes": {
     "BSK": {
       "route": "BSK",
-      "fullRouteName": "BSK ➔ ATB (600F) — 143.6 km",
+      "fullRouteName": "BSK ➔ ATB (600F) — 119.2 km",
       "depot": "1",
-      "firstBus": "BM203",
-      "reg": "KA51AH0203",
+      "firstBus": "BM038",
+      "reg": "KA51AH0038",
       "driver": "Suresh Gowda (BMTC-4102)",
-      "completedAt": "07:16 am, 26 Nov 2026",
-      "completedTs": 1795677391201,
+      "completedAt": "07:25 am, 26 Nov 2026",
+      "completedTs": 1795677959203,
       "partCompleted": true,
       "isNonSingleCharge": true,
-      "reason": "NOT Single Charge Operation (Exceeds single-charge battery range / Split Duty). Second bus is now unlocked from this depot to complete the route."
+      "reason": "1st Bus (BM038) completed its part of Route BSK (battery depleted). Second bus is now unlocked to complete the route."
     }
   }
 }
