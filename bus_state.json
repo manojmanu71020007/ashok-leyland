@@ -2230,7 +2230,7 @@
     "chargingStatus": null
   },
   "BM054": {
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "rawStatus": "On Time",
     "soc": 100,
     "condition": "Good",
@@ -2284,13 +2284,18 @@
     "assignedRouteDisplay": "Route BM054 - 361C (178.3 km)",
     "assignedRouteShortName": "361C",
     "blocked": true,
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
+    "isLocked": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
     "postRouteServicingPending": false,
-    "liveSoc": 100
+    "liveSoc": 100,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "depot": "1",
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BUS-15": {
     "uniqueId": "BUS-15",
@@ -20019,6 +20024,21 @@
       "cleaningCompleted": false,
       "startTime": "07:28 am, 26 Nov 2026",
       "startTimestamp": 1795678123361
+    },
+    {
+      "bm": "BM033",
+      "bmNumber": "BM033",
+      "reg": "KA51AH2740",
+      "depot": "1",
+      "page": "turnaround",
+      "reason": "Turnaround (Fast Charging Required Before Cleaning & Scheduling)",
+      "isTurnaround": true,
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "startTime": "01:00 pm",
+      "startTimestamp": 1795678219317
     }
   ],
   "_depotAssignments": {
@@ -20596,14 +20616,15 @@
     },
     "BM054": {
       "bm": "BM054",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "routeCompleted": true,
+      "routeCompletedAt": "03:10 pm",
+      "routeCompletedTs": 1795686051016,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "needs_servicing"
     },
     "BM056": {
       "bm": "BM056",
@@ -22100,6 +22121,21 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "comp_1795686051485",
+      "bm": "BM054",
+      "reg": "KA51AH2951",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "06:05 AM",
+      "completedAt": "03:10 pm, 21 Oct 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "prevDepot": "1",
+      "isTransferred": false,
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Part 1 Completed (Relay Pending)"
+    },
     {
       "id": "comp_1795678219737",
       "bm": "BM033",
@@ -32342,18 +32378,18 @@
     "depots": {}
   },
   "_pendingRelayRoutes": {
-    "BSK": {
-      "route": "BSK",
+    "600F": {
+      "route": "600F",
       "fullRouteName": "BSK ➔ ATB (600F) — 119.2 km",
       "depot": "1",
-      "firstBus": "BM020",
-      "reg": "KA51AH0020",
-      "driver": "Ravi Shankar (BMTC-4106)",
-      "completedAt": "07:28 am, 26 Nov 2026",
-      "completedTs": 1795678123362,
+      "firstBus": "BM054",
+      "reg": "KA51AH0054",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "completedAt": "09:40 am, 26 Nov 2026",
+      "completedTs": 1795686052129,
       "partCompleted": true,
       "isNonSingleCharge": true,
-      "reason": "1st Bus (BM020) completed its part of Route BSK (battery depleted). Second bus is now unlocked to complete the route."
+      "reason": "1st Bus (BM054) completed its part of Route 600F (battery depleted). Second bus is now unlocked to complete the route."
     }
   }
 }
