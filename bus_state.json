@@ -2032,11 +2032,11 @@
     "soc": 100,
     "soh": 0.98,
     "condition": "Good",
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "assignedRouteId": "BM033",
     "assignedRouteShortName": "600F",
     "assignedRouteDisplay": "Route BM033 - 600F (114.8 km)",
-    "depot": "Chandapura (BMT-32)",
+    "depot": "1",
     "blocked": false,
     "updatedAt": "2026-10-04T13:47:42.773Z",
     "bmNumber": "BM033",
@@ -2047,13 +2047,17 @@
     "socBefore": 0,
     "socAfter": 0,
     "chargingStatus": "Completed",
-    "isLocked": false,
-    "needsCharging": false,
-    "chargingCompleted": true,
-    "needsCleaning": false,
-    "cleaningCompleted": true,
+    "isLocked": true,
+    "needsCharging": true,
+    "chargingCompleted": false,
+    "needsCleaning": true,
+    "cleaningCompleted": false,
     "postRouteServicingPending": false,
-    "liveSoc": 100
+    "liveSoc": 100,
+    "isTurnaround": true,
+    "isAllocated": false,
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BUS-12": {
     "uniqueId": "BUS-12",
@@ -20542,14 +20546,15 @@
     },
     "BM033": {
       "bm": "BM033",
-      "routeCompleted": false,
-      "needsCharging": false,
-      "chargingCompleted": true,
-      "chargingCompletedAt": "10:00 AM, 24 Oct 2026",
-      "needsCleaning": false,
-      "cleaningCompleted": true,
-      "cleaningCompletedAt": "10:00 AM, 24 Oct 2026",
-      "status": "available"
+      "routeCompleted": true,
+      "routeCompletedAt": "07:30 am, 26 Nov 2026",
+      "routeCompletedTs": 1795678220300,
+      "depot": "1",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "turnaround_charging"
     },
     "BM038": {
       "bm": "BM038",
@@ -22080,6 +22085,19 @@
     }
   ],
   "_completedRoutesLog": [
+    {
+      "id": "rc_1795678220300",
+      "bm": "BM033",
+      "reg": "KA51AH2740",
+      "route": "ATB ➔ KBS (KBS3A) — 161.4 km",
+      "scheduledTime": "08:30 AM",
+      "completedAt": "07:30 am, 26 Nov 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed and bus returned to yard awaiting servicing.",
+      "status": "Returned / Completed"
+    },
     {
       "id": "comp_1795678122758",
       "bm": "BM020",
@@ -32306,19 +32324,6 @@
       "partCompleted": true,
       "isNonSingleCharge": true,
       "reason": "1st Bus (BM020) completed its part of Route BSK (battery depleted). Second bus is now unlocked to complete the route."
-    },
-    "KBS3A": {
-      "route": "KBS3A",
-      "fullRouteName": "ATB ➔ KBS (KBS3A) — 161.4 km",
-      "depot": "1",
-      "firstBus": "BM223",
-      "reg": "KA51AH0223",
-      "driver": "Suresh Gowda (BMTC-4102)",
-      "completedAt": "07:28 am, 26 Nov 2026",
-      "completedTs": 1795678111606,
-      "partCompleted": true,
-      "isNonSingleCharge": true,
-      "reason": "NOT Single Charge Operation (Exceeds single-charge battery range / Split Duty). Second bus is now unlocked from this depot to complete the route."
     }
   }
 }
