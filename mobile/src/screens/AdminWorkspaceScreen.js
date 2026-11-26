@@ -911,6 +911,12 @@ export default function AdminWorkspaceScreen() {
   const [datasetDepotModalOpen, setDatasetDepotModalOpen] = useState(false);
   const [isUploadingDataset, setIsUploadingDataset] = useState(false);
   const [datasetUploadStatus, setDatasetUploadStatus] = useState(null);
+  const [duplicateUploadModalOpen, setDuplicateUploadModalOpen] = useState(false);
+  const [duplicateUploadInfo, setDuplicateUploadInfo] = useState({
+    fileName: '',
+    duplicates: [],
+    errorMessage: '',
+  });
 
   // Persist Depot Audit Logs to localStorage
   React.useEffect(() => {
@@ -1715,6 +1721,7 @@ export default function AdminWorkspaceScreen() {
       setDatasetDepotModalOpen(true);
       return;
     }
+    const uploadedName = selectedDatasetFile.name;
     setIsUploadingDataset(true);
     setDatasetUploadStatus(null);
     try {
@@ -1722,7 +1729,7 @@ export default function AdminWorkspaceScreen() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileName: selectedDatasetFile.name,
+          fileName: uploadedName,
           fileType: selectedDatasetFile.type,
           base64Data: selectedDatasetFile.base64Data,
           datasetType: 'spreadsheet',
@@ -1734,9 +1741,8 @@ export default function AdminWorkspaceScreen() {
       if (data && data.ok) {
         setDatasetUploadStatus({
           isError: false,
-          message: `✅ ${data.message || `Dataset "${selectedDatasetFile.name}" added to ${datasetTargetDepotName || 'Depot ' + datasetTargetDepot} successfully!`}`
+          message: `✅ ${data.message || `Dataset "${uploadedName}" added to ${datasetTargetDepotName || 'Depot ' + datasetTargetDepot} successfully!`}`
         });
-        const uploadedName = selectedDatasetFile.name;
         const targetDepotDisplay = datasetTargetDepotName || `Depot ${datasetTargetDepot}`;
         setSelectedDatasetFile(null);
 
@@ -1781,12 +1787,23 @@ export default function AdminWorkspaceScreen() {
         }
       } else {
         const errorMsg = data?.error || data?.details || 'Upload rejected by server';
+        const dupItems = Array.isArray(data?.duplicates) ? data.duplicates : [];
+        const isDup = Boolean(data?.isDuplicateError || dupItems.length > 0 || /duplicate|already exists/i.test(errorMsg));
         setSelectedDatasetFile(null);
         setDatasetUploadStatus({
           isError: true,
           message: errorMsg
         });
-        Alert.alert('⚠️ Irrelevant Dataset Rejected', errorMsg);
+        if (isDup) {
+          setDuplicateUploadInfo({
+            fileName: uploadedName,
+            duplicates: dupItems,
+            errorMessage: errorMsg,
+          });
+          setDuplicateUploadModalOpen(true);
+        } else {
+          Alert.alert('⚠️ Irrelevant Dataset Rejected', errorMsg);
+        }
         return;
       }
     } catch (err) {
@@ -9786,6 +9803,86 @@ export default function AdminWorkspaceScreen() {
                 }}
               >
                 <Text style={styles.btnSubmitAddDepotText}>Confirm & Download CSV</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ── POP-UP MODAL: ALL DUPLICATE BUS / REGISTRATION DETAILS IN UPLOADED SPREADSHEET ── */}
+      <Modal
+        visible={duplicateUploadModalOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setDuplicateUploadModalOpen(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { maxWidth: 460, width: '94%', maxHeight: '85%', padding: 18 }]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 8 }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={[styles.modalTitle, { fontSize: 16, color: '#b91c1c' }]}>
+                  ⚠️ Duplicate Bus Details Found ({duplicateUploadInfo.duplicates.length || 'Multiple'})
+                </Text>
+                {!!duplicateUploadInfo.fileName && (
+                  <Text style={{ fontSize: 11.5, color: '#64748b', marginTop: 2 }} numberOfLines={1}>
+                    📄 File: {duplicateUploadInfo.fileName}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={() => setDuplicateUploadModalOpen(false)} style={styles.modalCloseBtn}>
+                <Text style={styles.modalCloseBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 10, padding: 10, marginBottom: 12 }}>
+              <Text style={{ fontSize: 12.5, color: '#991b1b', fontWeight: '700', lineHeight: 18 }}>
+                All duplicate bus numbers and registration numbers detected in this file are listed below. Duplicate entries cannot be added.
+              </Text>
+            </View>
+
+            <ScrollView style={{ maxHeight: 340, marginBottom: 14 }} nestedScrollEnabled>
+              {duplicateUploadInfo.duplicates.length > 0 ? (
+                duplicateUploadInfo.duplicates.map((dup, idx) => (
+                  <View
+                    key={`${dup.uploadedBm || ''}_${dup.uploadedReg || ''}_${dup.existingBm || ''}_${idx}`}
+                    style={{
+                      backgroundColor: '#fffbeb',
+                      borderWidth: 1,
+                      borderColor: '#fde68a',
+                      borderRadius: 10,
+                      padding: 10,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4, flexWrap: 'wrap', gap: 6 }}>
+                      <Text style={{ fontSize: 13, fontWeight: '800', color: '#0f172a' }}>
+                        #{idx + 1}. 🚌 {dup.uploadedBm || dup.existingBm || '—'} ({dup.uploadedReg || dup.existingReg || '—'})
+                      </Text>
+                      <View style={{ backgroundColor: '#fee2e2', borderWidth: 1, borderColor: '#fca5a5', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 }}>
+                        <Text style={{ fontSize: 10.5, fontWeight: '800', color: '#b91c1c' }}>
+                          {dup.conflictType || 'Duplicate'}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={{ fontSize: 12, color: '#78350f', fontWeight: '600', lineHeight: 17 }}>
+                      📍 Existing: {dup.existingBm || '—'} ({dup.existingReg || 'N/A'}) in {dup.depotName || `Depot ${dup.depotId || '1'}`}
+                      {dup.rowNumber ? ` • Sheet Row #${dup.rowNumber}` : ''}
+                    </Text>
+                  </View>
+                ))
+              ) : (
+                <Text style={{ fontSize: 13, color: '#334155', lineHeight: 20 }}>
+                  {duplicateUploadInfo.errorMessage}
+                </Text>
+              )}
+            </ScrollView>
+
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity
+                style={[styles.btnSubmitDel, { paddingHorizontal: 20, paddingVertical: 10 }]}
+                onPress={() => setDuplicateUploadModalOpen(false)}
+              >
+                <Text style={styles.btnSubmitDelText}>Close</Text>
               </TouchableOpacity>
             </View>
           </View>

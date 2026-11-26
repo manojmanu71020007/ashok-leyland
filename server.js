@@ -3332,37 +3332,164 @@ function saveBusState(state) {
 
 // ── Fleet Bus Management (Add / Delete Buses with Reason Tracking & Duplicate Checks) ──
 
-function findExistingBus(bm, regNo, state = null) {
-    const currentState = state || loadBusState();
-    const cleanBm = bm ? String(bm).toUpperCase().trim() : '';
-    const cleanReg = regNo ? String(regNo).replace(/[^A-Z0-9]/g, '').toUpperCase() : '';
+function normalizeBusCodeForDup(bm) {
+    let clean = String(bm || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!clean) return '';
+    if (!clean.startsWith('BM')) clean = 'BM' + clean;
+    return clean;
+}
 
-    for (const [key, val] of Object.entries(currentState)) {
-        if (!val || typeof val !== 'object' || val.deleted || val.isDeleted) continue;
-        const curBm = String(val.bm || val.bmNumber || key).toUpperCase().trim();
-        const curReg = String(val.regNo || val.reg_no || val.registrationNo || '').replace(/[^A-Z0-9]/g, '').toUpperCase();
+function normalizeRegForDup(regNo) {
+    return String(regNo || '').replace(/[^A-Z0-9]/g, '').toUpperCase();
+}
 
-        const bmMatches = cleanBm && (curBm === cleanBm || `BM${cleanBm.replace(/^BM/i, '')}` === curBm);
-        const regMatches = cleanReg && curReg === cleanReg;
+function resolveDepotDisplayName(depotId, currentState) {
+    const cleanId = String(depotId || '1').trim();
+    if (cleanId === '1') return 'Depot 1 (Chandapura / BMT-32)';
+    if (cleanId === '2') return 'Depot 2 (Attibele / Hoskote)';
+    if (Array.isArray(currentState?._customDepots)) {
+        const found = currentState._customDepots.find((d) => d && String(d.id).trim() === cleanId);
+        if (found && found.name) return found.name;
+    } else if (currentState?._customDepots && currentState._customDepots[cleanId]) {
+        return currentState._customDepots[cleanId].name || `Depot ${cleanId}`;
+    }
+    return `Depot ${cleanId}`;
+}
 
-        if (bmMatches || regMatches) {
-            const depotId = String(currentState._depotAssignments?.[curBm] || val.depot || '1').trim();
-            let depotName = `Depot ${depotId}`;
-            if (depotId === '1') depotName = 'Depot 1 (Chandapura / BMT-32)';
-            else if (depotId === '2') depotName = 'Depot 2 (Attibele / Hoskote)';
-            else if (currentState._customDepots && currentState._customDepots[depotId]) {
-                depotName = currentState._customDepots[depotId].name || `Depot ${depotId}`;
+function loadBaseFleetRegMap() {
+    const regMap = new Map();
+    try {
+        const staticRegsPath = path.join(BASE_DIR, "mobile", "src", "context", "staticBusRegs.json");
+        if (fs.existsSync(staticRegsPath)) {
+            const parsed = JSON.parse(fs.readFileSync(staticRegsPath, "utf8"));
+            if (parsed && typeof parsed === "object") {
+                for (const [k, v] of Object.entries(parsed)) {
+                    const bm = normalizeBusCodeForDup(k);
+                    const reg = String(v || "").trim().toUpperCase();
+                    if (bm && reg) regMap.set(bm, reg);
+                }
             }
-            return {
-                exists: true,
-                bm: curBm,
-                regNo: val.regNo || val.reg_no || cleanReg,
-                depotId: depotId,
-                depotName: depotName
-            };
+        }
+    } catch (_) {}
+    try {
+        if (fs.existsSync(VEHICLES_FILE)) {
+            const raw = fs.readFileSync(VEHICLES_FILE, "utf8");
+            const lines = raw.split(/\r?\n/).slice(1).filter(Boolean);
+            for (const line of lines) {
+                const parts = parseCsvLine(line);
+                const bm = normalizeBusCodeForDup(parts[1] || parts[0]);
+                const reg = String(parts[2] || "").trim().toUpperCase();
+                if (bm && reg) regMap.set(bm, reg);
+            }
+        }
+    } catch (_) {}
+    return regMap;
+}
+
+function findAllBusConflicts(bm, regNo, state = null) {
+    const currentState = state || loadBusState();
+    const cleanBm = normalizeBusCodeForDup(bm);
+    const cleanReg = normalizeRegForDup(regNo);
+    if (!cleanBm && !cleanReg) return [];
+
+    const deletedSet = new Set(
+        Object.keys(currentState._deletedBuses || {}).map((k) => normalizeBusCodeForDup(k)).filter(Boolean)
+    );
+    const baseRegMap = loadBaseFleetRegMap();
+    const defaultDepots = getDefaultDepotAssignments();
+    const recordsMap = new Map();
+
+    const upsertRecord = (keyBm, val, isSecondary = false) => {
+        if (!val || typeof val !== 'object') return;
+        const curBm = normalizeBusCodeForDup(val.bm || val.bmNumber || keyBm);
+        if (!curBm || deletedSet.has(curBm)) return;
+        if (val.deleted || val.isDeleted) {
+            deletedSet.add(curBm);
+            recordsMap.delete(curBm);
+            return;
+        }
+        const existing = recordsMap.get(curBm);
+        const valReg = String(val.regNo || val.reg_no || val.registrationNo || val.regNumber || '').trim();
+        const fallbackReg = baseRegMap.get(curBm) || '';
+        const rawReg = valReg || (existing && existing.rawReg) || fallbackReg;
+        const depotId = String(
+            currentState._depotAssignments?.[curBm] ||
+            val.depot ||
+            (existing && existing.depotId) ||
+            defaultDepots[curBm] ||
+            '1'
+        ).trim();
+        if (!existing || !isSecondary || (!existing.rawReg && rawReg)) {
+            recordsMap.set(curBm, {
+                curBm,
+                rawReg: rawReg || '',
+                curReg: normalizeRegForDup(rawReg),
+                depotId,
+                depotName: resolveDepotDisplayName(depotId, currentState),
+            });
+        }
+    };
+
+    // 1. Seed base vehicles & depot mappings (ensures all 124 fleet buses & their KA... regNos are always indexed)
+    const allKnownBaseBms = new Set([...baseRegMap.keys(), ...Object.keys(defaultDepots)]);
+    for (const baseBm of allKnownBaseBms) {
+        const cleanBase = normalizeBusCodeForDup(baseBm);
+        if (!/^BM\d+$/.test(cleanBase) || deletedSet.has(cleanBase)) continue;
+        const stVal = currentState[cleanBase];
+        if (stVal && (stVal.deleted || stVal.isDeleted)) {
+            deletedSet.add(cleanBase);
+            continue;
+        }
+        const reg = (stVal && (stVal.regNo || stVal.reg_no)) || baseRegMap.get(cleanBase) || '';
+        const depotId = String(currentState._depotAssignments?.[cleanBase] || (stVal && stVal.depot) || defaultDepots[cleanBase] || '1').trim();
+        recordsMap.set(cleanBase, {
+            curBm: cleanBase,
+            rawReg: reg,
+            curReg: normalizeRegForDup(reg),
+            depotId,
+            depotName: resolveDepotDisplayName(depotId, currentState),
+        });
+    }
+
+    // 2. Overlay top-level bus_state records and _addedBuses
+    for (const [key, val] of Object.entries(currentState)) {
+        if (key.startsWith('_')) continue;
+        upsertRecord(key, val, /^\d+$/.test(key));
+    }
+    if (currentState._addedBuses && typeof currentState._addedBuses === 'object') {
+        for (const [key, val] of Object.entries(currentState._addedBuses)) {
+            upsertRecord(key, val, false);
         }
     }
-    return null;
+
+    const conflicts = [];
+    for (const rec of recordsMap.values()) {
+        const bmMatches = Boolean(cleanBm && rec.curBm === cleanBm);
+        const regMatches = Boolean(cleanReg && rec.curReg && rec.curReg === cleanReg);
+        if (bmMatches || regMatches) {
+            const conflictType = (bmMatches && regMatches)
+                ? 'Duplicate Bus & Registration No.'
+                : bmMatches
+                ? 'Duplicate Bus Number'
+                : 'Duplicate Registration Number';
+            conflicts.push({
+                exists: true,
+                bm: rec.curBm,
+                regNo: rec.rawReg || cleanReg,
+                depotId: rec.depotId,
+                depotName: rec.depotName,
+                bmMatched: bmMatches,
+                regMatched: regMatches,
+                conflictType,
+            });
+        }
+    }
+    return conflicts;
+}
+
+function findExistingBus(bm, regNo, state = null) {
+    const conflicts = findAllBusConflicts(bm, regNo, state);
+    return conflicts.length > 0 ? conflicts[0] : null;
 }
 
 function addFleetBus(params) {
@@ -6329,7 +6456,6 @@ const server = http.createServer(async (req, res) => {
 function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepotName) {
     const defaultDepot = targetDepot && targetDepot !== "all" ? String(targetDepot) : "1";
     const rows = [];
-    const seenRegOrBm = new Set();
 
     // 1. Try pure JavaScript SheetJS (XLSX) parser for .csv, .tsv, .xlsx, .xls, .xlx
     if (XLSX) {
@@ -6364,7 +6490,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     if (!clean) return;
 
                     if (/reg(no|number|num)?|registration(number|no)?|busreg/i.test(clean)) foundReg = cIdx;
-                    else if (/^bm(no|number)?$|^busno$|^vehicleid$|^rowlabels$/i.test(clean)) foundBm = cIdx;
+                    else if (/^bm(no|number|num)?$|^bus(no|number|num|id)?$|^vehicle(id|no|number)?$|^rowlabels$/i.test(clean)) foundBm = cIdx;
                     else if (/cat(egory)?/i.test(clean)) foundCat = cIdx;
                     else if (/depot/i.test(clean)) foundDepot = cIdx;
                     else if (/soc|battery/i.test(clean)) foundSoc = cIdx;
@@ -6391,8 +6517,8 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                 const row = rawRows[r];
                 if (!Array.isArray(row) || row.length === 0) continue;
 
-                const regNo = regIdx >= 0 && row[regIdx] ? String(row[regIdx]).replace(/\s+/g, "").toUpperCase() : "";
-                const bm = bmIdx >= 0 && row[bmIdx] ? String(row[bmIdx]).replace(/\s+/g, "").toUpperCase() : "";
+                const regNo = regIdx >= 0 && row[regIdx] ? String(row[regIdx]).replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : "";
+                const bm = bmIdx >= 0 && row[bmIdx] ? String(row[bmIdx]).replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : "";
                 const rawCat = catIdx >= 0 && row[catIdx] ? String(row[catIdx]).trim().toUpperCase() : "";
                 const depotVal = depotIdx >= 0 && row[depotIdx] ? String(row[depotIdx]).trim() : "";
                 const socVal = socIdx >= 0 && row[socIdx] ? parseFloat(row[socIdx]) : 100;
@@ -6400,11 +6526,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                 const rangeVal = rangeIdx >= 0 && row[rangeIdx] ? parseFloat(row[rangeIdx]) : null;
 
                 if (!regNo && !bm) continue;
-                if (regNo === "REGNO" || regNo === "REGISTRATIONNO" || bm === "BMNO" || bm === "BM" || bm === "ROWLABELS") continue;
-
-                const dedupeKey = (bm || regNo);
-                if (seenRegOrBm.has(dedupeKey)) continue;
-                seenRegOrBm.add(dedupeKey);
+                if (regNo === "REGNO" || regNo === "REGISTRATIONNO" || regNo === "REGISTRATIONNUMBER" || bm === "BMNO" || bm === "BM" || bm === "BUSNO" || bm === "BUSNUMBER" || bm === "ROWLABELS") continue;
 
                 rows.push({
                     bm,
@@ -6414,6 +6536,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     socVal: isNaN(socVal) ? 100 : socVal,
                     modelVal,
                     rangeVal,
+                    rowNumber: r + 1,
                     sourceSheet: sheetName
                 });
             }
@@ -6436,7 +6559,7 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                     const clean = h.toLowerCase().replace(/[^a-z0-9]/g, "");
                     if (/reg(no|number|num)?|registration(number|no)?|busreg/i.test(clean)) regIdx = idx;
                     else if (/cat(egory)?/i.test(clean)) catIdx = idx;
-                    else if (/^bm(no|number)?$|^busno$|^vehicleid$/i.test(clean)) bmIdx = idx;
+                    else if (/^bm(no|number|num)?$|^bus(no|number|num|id)?$|^vehicle(id|no|number)?$/i.test(clean)) bmIdx = idx;
                     else if (/depot/i.test(clean)) depotIdx = idx;
                     else if (/soc|battery/i.test(clean)) socIdx = idx;
                     else if (/model/i.test(clean)) modelIdx = idx;
@@ -6445,8 +6568,8 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
                 for (let i = 1; i < lines.length; i++) {
                     const parts = parseCsvLine(lines[i]);
                     if (!parts || parts.length === 0) continue;
-                    const regNo = regIdx >= 0 && parts[regIdx] ? parts[regIdx].replace(/\s+/g, "").toUpperCase() : "";
-                    const bm = bmIdx >= 0 && parts[bmIdx] ? parts[bmIdx].replace(/\s+/g, "").toUpperCase() : "";
+                    const regNo = regIdx >= 0 && parts[regIdx] ? parts[regIdx].replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : "";
+                    const bm = bmIdx >= 0 && parts[bmIdx] ? parts[bmIdx].replace(/[^a-zA-Z0-9]/g, "").toUpperCase() : "";
                     const rawCat = catIdx >= 0 && parts[catIdx] ? parts[catIdx].trim().toUpperCase() : "";
                     const depotVal = depotIdx >= 0 && parts[depotIdx] ? parts[depotIdx].trim() : "";
                     const socVal = socIdx >= 0 && parts[socIdx] ? parseFloat(parts[socIdx]) : 100;
@@ -6454,11 +6577,8 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
 
                     if (!regNo && !bm) continue;
                     const cleanReg = regNo.replace(/[^A-Z0-9]/g, "");
-                    if (cleanReg === "REGNO" || cleanReg === "REGISTRATIONNO" || cleanReg === "BUSREG") continue;
-                    const dedupeKey = (bm || regNo);
-                    if (seenRegOrBm.has(dedupeKey)) continue;
-                    seenRegOrBm.add(dedupeKey);
-                    rows.push({ bm, regNo, rawCat, depotVal, socVal, modelVal });
+                    if (cleanReg === "REGNO" || cleanReg === "REGISTRATIONNO" || cleanReg === "REGISTRATIONNUMBER" || cleanReg === "BUSREG") continue;
+                    rows.push({ bm, regNo, rawCat, depotVal, socVal, modelVal, rowNumber: i + 1, sourceSheet: safeName });
                 }
             }
         } catch (err) {
@@ -6472,23 +6592,79 @@ function ingestUploadedFleetDataset(filePath, safeName, targetDepot, targetDepot
 
     const state = loadBusState();
 
-    // ── DUPLICATE CHECK: Verify if any bus in dataset already exists in fleet ──
+    // ── DUPLICATE CHECK: Collect ALL duplicates against existing fleet AND within uploaded file ──
     const duplicates = [];
+    const seenConflictKeys = new Set();
+    const fileSeenBms = new Map();
+    const fileSeenRegs = new Map();
+
+    const pushDuplicate = (entry) => {
+        const key = `${entry.uploadedBm || ''}|${entry.uploadedReg || ''}|${entry.existingBm || ''}|${entry.existingReg || ''}|${entry.depotId || ''}|${entry.conflictType || ''}`;
+        if (seenConflictKeys.has(key)) return;
+        seenConflictKeys.add(key);
+        duplicates.push(entry);
+    };
+
     for (const row of rows) {
-        const rReg = String(row.regNo || "").replace(/[^A-Z0-9]/g, "").toUpperCase();
-        let rBm = String(row.bm || "").toUpperCase().trim();
-        if (rBm && !rBm.startsWith("BM")) rBm = "BM" + rBm;
-        const existing = findExistingBus(rBm, rReg, state);
-        if (existing) {
-            duplicates.push(existing);
+        const rReg = normalizeRegForDup(row.regNo);
+        const rBm = normalizeBusCodeForDup(row.bm);
+
+        // A. Check against all active fleet buses across all depots
+        const existingConflicts = findAllBusConflicts(rBm, rReg, state);
+        for (const ex of existingConflicts) {
+            const labelBm = rBm || ex.bm || '—';
+            const labelReg = rReg || ex.regNo || '—';
+            pushDuplicate({
+                rowNumber: row.rowNumber || null,
+                uploadedBm: rBm || ex.bm,
+                uploadedReg: rReg || ex.regNo,
+                existingBm: ex.bm,
+                existingReg: ex.regNo,
+                depotId: ex.depotId,
+                depotName: ex.depotName,
+                conflictType: ex.conflictType,
+                detail: `${ex.conflictType}: ${labelBm} (${labelReg}) matches existing ${ex.bm} (${ex.regNo || 'N/A'}) in ${ex.depotName}`,
+            });
         }
+
+        // B. Check for duplicate BM / Reg within the uploaded file itself
+        const firstBmRow = rBm ? fileSeenBms.get(rBm) : null;
+        const firstRegRow = rReg ? fileSeenRegs.get(rReg) : null;
+        if (firstBmRow || firstRegRow) {
+            const both = Boolean(firstBmRow && firstRegRow && firstBmRow === firstRegRow);
+            const conflictType = both
+                ? 'Duplicate Row in Uploaded File'
+                : firstBmRow && firstRegRow
+                ? 'Duplicate Bus & Reg in Uploaded File'
+                : firstBmRow
+                ? 'Duplicate Bus Number in Uploaded File'
+                : 'Duplicate Registration Number in Uploaded File';
+            const firstRowNum = (firstBmRow || firstRegRow)?.rowNumber;
+            pushDuplicate({
+                rowNumber: row.rowNumber || null,
+                uploadedBm: rBm || '—',
+                uploadedReg: rReg || '—',
+                existingBm: (firstBmRow && firstBmRow.bm) || rBm || '—',
+                existingReg: (firstRegRow && firstRegRow.reg) || rReg || '—',
+                depotId: 'FILE',
+                depotName: firstRowNum ? `Uploaded File (Row #${row.rowNumber} duplicates Row #${firstRowNum})` : 'Uploaded File',
+                conflictType,
+                detail: `${conflictType}: ${rBm || '—'} (${rReg || '—'}) appears multiple times in "${safeName}"`,
+            });
+        }
+
+        if (rBm && !fileSeenBms.has(rBm)) fileSeenBms.set(rBm, { bm: rBm, reg: rReg, rowNumber: row.rowNumber });
+        if (rReg && !fileSeenRegs.has(rReg)) fileSeenRegs.set(rReg, { bm: rBm, reg: rReg, rowNumber: row.rowNumber });
     }
 
     if (duplicates.length > 0) {
+        const lines = duplicates.map((d, idx) => `${idx + 1}. ${d.detail}`);
         return {
             busesProcessed: 0,
             added: [],
-            duplicateError: `Bus ${duplicates[0].bm} (${duplicates[0].regNo}) already exists in ${duplicates[0].depotName}!`
+            duplicates,
+            duplicateCount: duplicates.length,
+            duplicateError: `Found ${duplicates.length} duplicate bus / registration entry(s) in "${safeName}":\n\n${lines.join('\n')}`
         };
     }
 
@@ -7237,23 +7413,27 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                 const targetPath = path.join(dataDir, safeName);
                 fs.writeFileSync(targetPath, fileBuffer);
 
-                // If this file also resides in the root directory, update it as well
-                const rootCandidate = path.join(BASE_DIR, safeName);
-                if (fs.existsSync(rootCandidate)) {
-                    fs.writeFileSync(rootCandidate, fileBuffer);
-                }
-
                 // Ingest buses from dataset into fleet
                 const ingestResult = ingestUploadedFleetDataset(targetPath, safeName, targetDepot, targetDepotName);
 
                 // ── DUPLICATE BUS IN DATASET CHECK ──
-                if (ingestResult.duplicateError) {
+                if (ingestResult.duplicateError || (Array.isArray(ingestResult.duplicates) && ingestResult.duplicates.length > 0)) {
                     if (fs.existsSync(targetPath)) fs.unlinkSync(targetPath);
+                    const dupList = Array.isArray(ingestResult.duplicates) ? ingestResult.duplicates : [];
                     sendJson(res, {
                         ok: false,
-                        error: `⚠️ Bus Already Exists!\n\n${ingestResult.duplicateError}\n\nDuplicate buses cannot be added.`
+                        isDuplicateError: true,
+                        duplicateCount: dupList.length,
+                        duplicates: dupList,
+                        error: `⚠️ Duplicate Bus / Registration Details Found!\n\n${ingestResult.duplicateError}\n\nDuplicate buses cannot be added.`
                     }, 400);
                     return;
+                }
+
+                // If this file also resides in the root directory, update it after duplicate validation succeeds
+                const rootCandidate = path.join(BASE_DIR, safeName);
+                if (fs.existsSync(rootCandidate)) {
+                    fs.writeFileSync(rootCandidate, fileBuffer);
                 }
 
                 const busesAdded = ingestResult.added.length;
