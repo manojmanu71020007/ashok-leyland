@@ -20696,34 +20696,7 @@
     }
   },
   "_swapLog": [],
-  "_allocatedDuties": [
-    {
-      "id": "duty_BM1996_MS30_1795590248131",
-      "bm": "BM1996",
-      "bmNumber": "BM1996",
-      "regNo": "KA03MS1996",
-      "routeId": "MS30",
-      "routeCode": "MS30",
-      "busNumber": "MS30",
-      "routeName": "man ➔ san (MS30) — 120 km",
-      "origin": "man",
-      "destination": "san",
-      "departureTime": "06:30 AM",
-      "isManualOverride": false,
-      "allocType": "Committed Duty Allocation (Mandatory Recommendation)",
-      "scheduleId": "MS30/1",
-      "shift": "General Shift",
-      "soc": 100,
-      "fullDutyKm": 128,
-      "routeDist": 120,
-      "tripCount": 8,
-      "busCategory": "C",
-      "driver": "Ramesh Kumar (BMTC-4101)",
-      "depot": "3",
-      "allocatedAt": "12:34 pm, 21 Oct 2026",
-      "status": "Allocated"
-    }
-  ],
+  "_allocatedDuties": [],
   "_lockedBuses": [],
   "_depotAssignments": {
     "BM001": "Chandapura (BMT-32)",
@@ -21899,6 +21872,18 @@
       "cleaningCompleted": true,
       "status": "available",
       "cleaningCompletedAt": "09:59 pm, 19 Nov 2026"
+    },
+    "BM1996": {
+      "bm": "BM1996",
+      "routeCompleted": true,
+      "routeCompletedAt": "03:21 pm",
+      "routeCompletedTs": 1795686701089,
+      "depot": "3",
+      "needsCharging": true,
+      "chargingCompleted": false,
+      "needsCleaning": true,
+      "cleaningCompleted": false,
+      "status": "needs_servicing"
     }
   },
   "BM600": {
@@ -23074,6 +23059,34 @@
   ],
   "_completedRoutesLog": [
     {
+      "id": "comp_1795686701475",
+      "bm": "BM1996",
+      "reg": "KA03MS1996",
+      "route": "man ➔ san (MS30) — 120 km",
+      "scheduledTime": "06:30 AM",
+      "completedAt": "03:21 pm, 21 Oct 2026",
+      "dateStr": "2026-11-26",
+      "depot": "3",
+      "prevDepot": "3",
+      "isTransferred": false,
+      "driver": "Ramesh Kumar (BMTC-4101)",
+      "remarks": "Route completed on schedule and bus returned to depot yard.",
+      "status": "Part 1 Completed (Relay Pending)"
+    },
+    {
+      "id": "rc_1795686512517",
+      "bm": "BM020",
+      "reg": "KA51AH0020",
+      "route": "BSK ➔ ATB (600F) — 119.2 km",
+      "scheduledTime": "08:30 AM",
+      "completedAt": "09:48 am, 26 Nov 2026",
+      "dateStr": "2026-11-26",
+      "depot": "1",
+      "driver": "Suresh Gowda (BMTC-4102)",
+      "remarks": "Route completed and bus returned to yard awaiting servicing.",
+      "status": "Returned / Completed"
+    },
+    {
       "id": "comp_1795686511781",
       "bm": "BM020",
       "reg": "KA51AH2556",
@@ -23495,119 +23508,11 @@
       "isTransferred": false
     }
   ],
-  "_customDepots": [
-    {
-      "id": "3",
-      "number": "3",
-      "name": "peenya",
-      "shortName": "Depot 3",
-      "location": "bangalore",
-      "routes": [
-        "MS30"
-      ],
-      "isDefault": false,
-      "createdAt": "2026-11-23T16:46:38.814Z"
-    }
+  "_customDepots": [],
+  "_customAccounts": {},
+  "_deletedDepotIds": [
+    "3"
   ],
-  "_customAccounts": {
-    "es-depot-3": {
-      "username": "ES-DEPOT-3",
-      "password": "Test@123",
-      "role": "Electrical Supervisor (Depot 3)",
-      "name": "Charging Lead - Depot 3",
-      "depot": "3",
-      "targetScreen": "CHARGING",
-      "pageName": "Charging Operations (peenya)",
-      "email": "es_depot3@ashokleyland.com",
-      "operation": "Charging",
-      "icon": "⚡"
-    },
-    "for_charging_depot_3": {
-      "username": "ES-DEPOT-3",
-      "password": "Test@123",
-      "role": "Electrical Supervisor (Depot 3)",
-      "name": "Charging Lead - Depot 3",
-      "depot": "3",
-      "targetScreen": "CHARGING",
-      "pageName": "Charging Operations (peenya)",
-      "email": "es_depot3@ashokleyland.com",
-      "operation": "Charging",
-      "icon": "⚡"
-    },
-    "insp-depot-3-01": {
-      "username": "INSP-DEPOT-3-01",
-      "password": "Test@123",
-      "role": "Sanitization Inspector (Depot 3)",
-      "name": "Inspector - Depot 3",
-      "depot": "3",
-      "targetScreen": "CLEANING",
-      "pageName": "Cleaning & Sanitization (peenya)",
-      "email": "insp_depot3_01@ashokleyland.com",
-      "operation": "Cleaning",
-      "icon": "🧹"
-    },
-    "for_cleaning_depot_3": {
-      "username": "INSP-DEPOT-3-01",
-      "password": "Test@123",
-      "role": "Sanitization Inspector (Depot 3)",
-      "name": "Inspector - Depot 3",
-      "depot": "3",
-      "targetScreen": "CLEANING",
-      "pageName": "Cleaning & Sanitization (peenya)",
-      "email": "insp_depot3_01@ashokleyland.com",
-      "operation": "Cleaning",
-      "icon": "🧹"
-    },
-    "is-depot-3": {
-      "username": "IS-DEPOT-3",
-      "password": "Test@123",
-      "role": "Scheduling In-Charge (Depot 3)",
-      "name": "Scheduling Planner - Depot 3",
-      "depot": "3",
-      "targetScreen": "SCHEDULING",
-      "pageName": "Smart Bus Scheduling - peenya",
-      "email": "is_depot3@ashokleyland.com",
-      "operation": "Scheduling",
-      "icon": "📅"
-    },
-    "for_scheduling_depot_3": {
-      "username": "IS-DEPOT-3",
-      "password": "Test@123",
-      "role": "Scheduling In-Charge (Depot 3)",
-      "name": "Scheduling Planner - Depot 3",
-      "depot": "3",
-      "targetScreen": "SCHEDULING",
-      "pageName": "Smart Bus Scheduling - peenya",
-      "email": "is_depot3@ashokleyland.com",
-      "operation": "Scheduling",
-      "icon": "📅"
-    },
-    "dm-depot-3": {
-      "username": "DM-DEPOT-3",
-      "password": "Test@123",
-      "role": "Depot 3 Manager",
-      "name": "Depot 3 Manager",
-      "depot": "3",
-      "targetScreen": "DEPOT_OPS",
-      "pageName": "peenya Operations Wing",
-      "email": "dm_depot3@ashokleyland.com",
-      "operation": "Depot Operations",
-      "icon": "🏢"
-    },
-    "for_depot_operations_depot_3": {
-      "username": "DM-DEPOT-3",
-      "password": "Test@123",
-      "role": "Depot 3 Manager",
-      "name": "Depot 3 Manager",
-      "depot": "3",
-      "targetScreen": "DEPOT_OPS",
-      "pageName": "peenya Operations Wing",
-      "email": "dm_depot3@ashokleyland.com",
-      "operation": "Depot Operations",
-      "icon": "🏢"
-    }
-  },
-  "_deletedDepotIds": [],
   "BM1570": {
     "status": "On Time",
     "rawStatus": "On Time",
@@ -23661,7 +23566,7 @@
   "_routesDatabase": {
     "version": "5.1",
     "name": "Ashok Leyland EV Fleet - Master Route & Schedule Database",
-    "lastUpdated": "2026-11-26T09:50:19.293Z",
+    "lastUpdated": "2026-11-26T09:51:42.139Z",
     "depots": [
       {
         "id": "1",
@@ -23691,17 +23596,6 @@
           "500DC",
           "KBS3F"
         ]
-      },
-      {
-        "id": "3",
-        "number": "3",
-        "name": "peenya",
-        "shortName": "Depot 3",
-        "location": "bangalore",
-        "routes": [
-          "MS30"
-        ],
-        "isDefault": false
       }
     ],
     "routes": [
@@ -32862,164 +32756,6 @@
         "singleChargeReqKm": 209.88,
         "defaultSubRoute": "KBS3F/7",
         "totalGroupDistance": 203.2
-      },
-      {
-        "code": "MS30",
-        "id": "MS30",
-        "depotId": "3",
-        "name": "man ➔ san (MS30)",
-        "fullName": "manoj",
-        "shortName": "MS30",
-        "origin": "man",
-        "destination": "san",
-        "distance": 120,
-        "fullDutyKm": 240,
-        "routeComplexity": "Simple",
-        "category": "Simple",
-        "requiredCat": "B",
-        "drainSoc": 95,
-        "timeComplexity": "Normal",
-        "timetables": [
-          "11pm",
-          "12pm",
-          "6pm",
-          "06:30 AM",
-          "08:00 AM",
-          "01:10 PM",
-          "03:00 PM",
-          "06:00 PM",
-          "06:45 PM"
-        ],
-        "timeComplexitySlots": {
-          "06:30 AM": "Normal",
-          "08:00 AM": "Extreme Peak",
-          "01:10 PM": "Peak",
-          "03:00 PM": "Peak",
-          "06:45 PM": "Extreme Peak",
-          "11pm": "Normal",
-          "12pm": "Normal",
-          "6pm": "Normal",
-          "06:00 PM": "Peak"
-        },
-        "schedules": [
-          {
-            "scheduleId": "MS30/1",
-            "shift": "General Shift",
-            "outTime": "06:30 AM",
-            "inTime": "15:15:00",
-            "category": "Simple",
-            "singleChargeReqKm": 180
-          },
-          {
-            "scheduleId": "MS30/2",
-            "shift": "General Shift",
-            "outTime": "08:00 AM",
-            "inTime": "15:15:00",
-            "category": "Simple",
-            "singleChargeReqKm": 180
-          },
-          {
-            "scheduleId": "MS30/3",
-            "shift": "Shift B",
-            "outTime": "01:10 PM",
-            "inTime": "15:15:00",
-            "category": "Simple",
-            "singleChargeReqKm": 180
-          },
-          {
-            "scheduleId": "MS30/4",
-            "shift": "Shift B",
-            "outTime": "03:00 PM",
-            "inTime": "15:15:00",
-            "category": "Simple",
-            "singleChargeReqKm": 180
-          },
-          {
-            "scheduleId": "MS30/5",
-            "shift": "Night Halt",
-            "outTime": "06:45 PM",
-            "inTime": "15:15:00",
-            "category": "Simple",
-            "singleChargeReqKm": 180
-          },
-          {
-            "scheduleId": "MS30/6",
-            "subRoute": "MS30/6",
-            "route": "MS30",
-            "shift": "Morning Shift",
-            "outTime": "11pm",
-            "departureTime": "11pm",
-            "inTime": "16:00:00",
-            "origin": "man",
-            "destination": "san",
-            "category": "Simple",
-            "routeComplexity": "Simple",
-            "timeComplexity": "Normal",
-            "totalGroupDistance": 240,
-            "distance": 120,
-            "singleChargeReqKm": 180,
-            "customSubRoute": true
-          },
-          {
-            "scheduleId": "MS30/7",
-            "subRoute": "MS30/7",
-            "route": "MS30",
-            "shift": "Morning Shift",
-            "outTime": "12pm",
-            "departureTime": "12pm",
-            "inTime": "16:00:00",
-            "origin": "man",
-            "destination": "san",
-            "category": "Simple",
-            "routeComplexity": "Simple",
-            "timeComplexity": "Normal",
-            "totalGroupDistance": 240,
-            "distance": 120,
-            "singleChargeReqKm": 180,
-            "customSubRoute": true
-          },
-          {
-            "scheduleId": "MS30/8",
-            "subRoute": "MS30/8",
-            "route": "MS30",
-            "shift": "Night Halt",
-            "outTime": "6pm",
-            "departureTime": "6pm",
-            "inTime": "16:00:00",
-            "origin": "man",
-            "destination": "san",
-            "category": "Simple",
-            "routeComplexity": "Simple",
-            "timeComplexity": "Normal",
-            "totalGroupDistance": 240,
-            "distance": 120,
-            "singleChargeReqKm": 180,
-            "customSubRoute": true
-          },
-          {
-            "scheduleId": "MS30/T-1800",
-            "route": "MS30",
-            "shift": "Shift B",
-            "outTime": "18:00:00",
-            "departureTime": "06:00 PM",
-            "inTime": "16:00:00",
-            "category": "Simple",
-            "timeComplexity": "Peak",
-            "totalGroupDistance": 240,
-            "distance": 120,
-            "singleChargeReqKm": 180
-          }
-        ],
-        "shift": "Morning Shift",
-        "shifts": [
-          "Morning Shift",
-          "General Shift",
-          "Shift B",
-          "Night Halt"
-        ],
-        "_timetablesManaged": true,
-        "_deletedTimes": [],
-        "_mergeSubRoute": true
       }
     ],
     "timeComplexityConfig": {
@@ -33062,7 +32798,8 @@
       "3_275M",
       "3_318R",
       "3_342A",
-      "3_415T"
+      "3_415T",
+      "3_MS30"
     ]
   },
   "BM1994": {
@@ -33134,7 +32871,7 @@
     "bmNumber": "BM1996",
     "busNumber": "600F",
     "regNo": "KA03MS1996",
-    "status": "Active",
+    "status": "Turnaround (Locked)",
     "soc": 100,
     "condition": "Good",
     "driver": "Driver Assigned",
@@ -33149,17 +32886,21 @@
     "regNumber": "KA03MS1996",
     "model": "ELECTRIC BUS AC EiV12",
     "make": "Ashok Leyland",
-    "isLocked": false,
-    "isTurnaround": false,
-    "needsCharging": false,
-    "needsCleaning": false,
+    "isLocked": true,
+    "isTurnaround": true,
+    "needsCharging": true,
+    "needsCleaning": true,
     "chargingCompleted": false,
     "cleaningCompleted": false,
     "postRouteServicingPending": false,
     "assignedRouteId": "BM1996",
     "assignedRouteDisplay": "Route BM1996 - 600F (114.8 km)",
     "assignedRouteShortName": "600F",
-    "blocked": false
+    "blocked": false,
+    "isAllocated": false,
+    "depot": "3",
+    "assignedRoute": null,
+    "allocatedDuty": null
   },
   "BM1997": {
     "uniqueId": "BM1997",
@@ -33390,23 +33131,13 @@
     "3_275M",
     "3_318R",
     "3_342A",
-    "3_415T"
+    "3_415T",
+    "3_MS30"
   ],
   "_pendingDeletions": {
     "buses": {},
     "routes": {},
-    "depots": {
-      "3": {
-        "type": "depot",
-        "depotId": "3",
-        "depotName": "peenya",
-        "activeBms": [
-          "BM1996"
-        ],
-        "reason": "Depot Consolidation",
-        "requestedAt": "2026-11-26T09:50:19.293Z"
-      }
-    }
+    "depots": {}
   },
   "_pendingRelayRoutes": {}
 }
