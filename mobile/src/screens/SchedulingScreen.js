@@ -3010,6 +3010,8 @@ const NON_SINGLE_CHARGE_ROUTES = ['500DC', 'KBS3F', 'KBS3A', '328H', '360K', '36
 function cleanRouteCode(rStr) {
   if (!rStr) return '';
   const s = String(rStr).trim().toUpperCase();
+  const paren = s.match(/\(([A-Z0-9][A-Z0-9\/-]*)\)/);
+  if (paren) return paren[1];
   for (const code of NON_SINGLE_CHARGE_ROUTES) {
     if (s.includes(code)) return code;
   }
@@ -4014,13 +4016,16 @@ export default function SchedulingScreen() {
               return;
             }
 
-            // Resolve relay if this fulfills a pending second bus requirement
+            // Resolve relay if this fulfills a pending relay reminder
             const cleanR = cleanRouteCode(selectedRoute.code || selectedRoute.id || '');
-            if (pendingRelayRoutes && pendingRelayRoutes[cleanR]) {
-              const p = pendingRelayRoutes[cleanR];
-              if (String(activeCandidate.bmNumber).toUpperCase() !== String(p.firstBus).toUpperCase()) {
-                resolveRelay(cleanR, activeCandidate.bmNumber);
-              }
+            if (pendingRelayRoutes) {
+              Object.entries(pendingRelayRoutes).forEach(([k, p]) => {
+                if (!p) return;
+                const pClean = cleanRouteCode(p.fullRouteName || p.route || k);
+                if ((k === cleanR || pClean === cleanR) && String(activeCandidate.bmNumber).toUpperCase() !== String(p.firstBus).toUpperCase()) {
+                  resolveRelay(k, activeCandidate.bmNumber);
+                }
+              });
             }
 
             Alert.alert(
@@ -4747,16 +4752,31 @@ export default function SchedulingScreen() {
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { maxWidth: 540 }]}>
             <View style={styles.modalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
                 <Text style={{ fontSize: 22 }}>🔔</Text>
-                <View>
+                <View style={{ flex: 1 }}>
                   <Text style={styles.modalHeaderTitle}>Pending Second Bus Allocations</Text>
                   <Text style={{ fontSize: 11, color: '#64748b' }}>Routes requiring relay bus (NOT Single Charge Operation)</Text>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => setRelayModalOpen(false)}>
-                <Text style={styles.modalCloseText}>✕</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                {Object.keys(pendingRelayRoutes).length > 0 && (
+                  <TouchableOpacity
+                    style={{ backgroundColor: '#fee2e2', borderWidth: 1, borderColor: '#fca5a5', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 }}
+                    onPress={async () => {
+                      setPendingRelayRoutes({});
+                      setRelayPopupOpen(false);
+                      await api.post('/api/resolve-relay-route', { action: 'clear_all', depot: depotNum }).catch(() => {});
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={{ fontSize: 11, fontWeight: '800', color: '#991b1b' }}>🗑️ Clear All</Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setRelayModalOpen(false)}>
+                  <Text style={styles.modalCloseText}>✕</Text>
+                </TouchableOpacity>
+              </View>
             </View>
             <ScrollView style={{ maxHeight: 420, padding: 14 }}>
               {Object.keys(pendingRelayRoutes).length === 0 ? (
@@ -4766,27 +4786,58 @@ export default function SchedulingScreen() {
                   <Text style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>No routes are currently pending a second bus relay allocation.</Text>
                 </View>
               ) : (
-                Object.values(pendingRelayRoutes).map((item) => (
+                Object.values(pendingRelayRoutes).map((item) => {
+                  const navRouteCode = cleanRouteCode(item.fullRouteName || item.route);
+                  return (
                   <View key={item.route} style={styles.relayCard}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#991b1b' }}>🚨 Route {item.route}</Text>
+                      <Text style={{ fontSize: 15, fontWeight: '800', color: '#991b1b' }}>🚨 Route {navRouteCode || item.route}</Text>
                       <View style={{ backgroundColor: '#fee2e2', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 12 }}>
                         <Text style={{ fontSize: 10, fontWeight: '800', color: '#991b1b' }}>NOT SINGLE CHARGE</Text>
                       </View>
                     </View>
                     <Text style={{ fontSize: 12, color: '#475569', lineHeight: 17, marginBottom: 8 }}>
                       <Text style={{ fontWeight: '700' }}>1st Bus Completed:</Text> {item.firstBus} {item.reg ? `(${item.reg})` : ''} at {item.completedAt}.{'\n'}
-                      This route requires mandatory opportunity charging or exceeds single-charge range. A second bus from <Text style={{ fontWeight: '700' }}>Depot {item.depot}</Text> must be allocated to complete the schedule.
+                      {item.fullRouteName ? <Text><Text style={{ fontWeight: '700' }}>Route:</Text> {item.fullRouteName}{'\n'}</Text> : null}
+                      A second bus from <Text style={{ fontWeight: '700' }}>Depot {item.depot}</Text> can be allocated to complete the schedule, or clear this reminder once handled.
                     </Text>
-                    <TouchableOpacity
-                      style={styles.relayAllocateBtn}
-                      onPress={() => selectRelayRouteAndAllocate(item.route, item.depot)}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={{ color: '#ffffff', fontSize: 12.5, fontWeight: '800' }}>🚌 Allocate 2nd Bus Now</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', gap: 8 }}>
+                      <TouchableOpacity
+                        style={[styles.relayAllocateBtn, { flex: 1 }]}
+                        onPress={() => selectRelayRouteAndAllocate(navRouteCode || item.route, item.depot)}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={{ color: '#ffffff', fontSize: 12.5, fontWeight: '800' }}>🚌 Allocate 2nd Bus Now</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#cbd5e1', justifyContent: 'center', alignItems: 'center' }}
+                        onPress={async () => {
+                          const rawKey = String(item.route || '').toUpperCase().trim();
+                          setPendingRelayRoutes((prev) => {
+                            const next = { ...prev };
+                            delete next[rawKey];
+                            if (navRouteCode) delete next[navRouteCode];
+                            return next;
+                          });
+                          if (activePopupItem && String(activePopupItem.route || '').toUpperCase().trim() === rawKey) {
+                            setRelayPopupOpen(false);
+                          }
+                          await api.post('/api/resolve-relay-route', {
+                            rawKey,
+                            route: navRouteCode || rawKey,
+                            fullRouteName: item.fullRouteName || '',
+                            depot: item.depot || depotNum,
+                            action: 'dismiss',
+                          }).catch(() => {});
+                        }}
+                        activeOpacity={0.8}
+                      >
+                        <Text style={{ color: '#475569', fontSize: 12, fontWeight: '800' }}>✕ Clear</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
-                ))
+                  );
+                })
               )}
             </ScrollView>
           </View>
@@ -4810,23 +4861,49 @@ export default function SchedulingScreen() {
             {activePopupItem && (
               <View style={{ backgroundColor: '#fef2f2', borderWidth: 1, borderColor: '#fecaca', borderRadius: 10, padding: 12, marginBottom: 14 }}>
                 <Text style={{ fontSize: 13, fontWeight: '700', color: '#0f172a', marginBottom: 6 }}>
-                  Route {activePopupItem.route} in Depot {activePopupItem.depot} needs an immediate second bus!
+                  Route {cleanRouteCode(activePopupItem.fullRouteName || activePopupItem.route)} in Depot {activePopupItem.depot} needs a second bus!
                 </Text>
                 <Text style={{ fontSize: 11.5, color: '#991b1b', lineHeight: 16 }}>
                   • 1st Bus Completed: {activePopupItem.firstBus} ({activePopupItem.reg || 'KA51'}) at {activePopupItem.completedAt}{'\n'}
-                  • Reason: Non-Single Charge Operation (Mandatory Mid-route Charging / Long Corridor){'\n'}
-                  • Action: Allocate another available bus from Depot {activePopupItem.depot} to complete the schedule.
+                  {activePopupItem.fullRouteName ? `• Route: ${activePopupItem.fullRouteName}\n` : ''}• Reason: Non-Single Charge Operation (Mandatory Mid-route Charging / Long Corridor){'\n'}
+                  • Action: Allocate another available bus from Depot {activePopupItem.depot} or clear this reminder.
                 </Text>
               </View>
             )}
 
             <View style={{ backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fef3c7', borderRadius: 8, padding: 10, marginBottom: 16 }}>
               <Text style={{ fontSize: 11, color: '#b45309', fontWeight: '600' }}>
-                ⏱️ This reminder will repeat <Text style={{ fontWeight: '800' }}>every 5 minutes</Text> until another bus from this depot is allocated to complete the schedule.
+                ⏱️ This reminder repeats <Text style={{ fontWeight: '800' }}>every 5 minutes</Text> until another bus is allocated or you click Clear Reminder.
               </Text>
             </View>
 
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 10 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end', flexWrap: 'wrap', gap: 8 }}>
+              <TouchableOpacity
+                style={{ paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8, backgroundColor: '#fee2e2', borderWidth: 1, borderColor: '#fca5a5' }}
+                onPress={async () => {
+                  const targetItem = activePopupItem;
+                  setRelayPopupOpen(false);
+                  if (targetItem) {
+                    const rawKey = String(targetItem.route || '').toUpperCase().trim();
+                    const cleanKey = cleanRouteCode(targetItem.fullRouteName || targetItem.route);
+                    setPendingRelayRoutes((prev) => {
+                      const next = { ...prev };
+                      delete next[rawKey];
+                      if (cleanKey) delete next[cleanKey];
+                      return next;
+                    });
+                    await api.post('/api/resolve-relay-route', {
+                      rawKey,
+                      route: cleanKey || rawKey,
+                      fullRouteName: targetItem.fullRouteName || '',
+                      depot: targetItem.depot || depotNum,
+                      action: 'dismiss',
+                    }).catch(() => {});
+                  }
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#991b1b' }}>✕ Clear Reminder</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#f1f5f9' }}
                 onPress={() => {
@@ -4834,17 +4911,18 @@ export default function SchedulingScreen() {
                   lastPopupTimeRef.current = Date.now();
                 }}
               >
-                <Text style={{ fontSize: 12.5, fontWeight: '700', color: '#475569' }}>⏱️ Remind in 5 Mins</Text>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#475569' }}>⏱️ Remind in 5 Mins</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={{ paddingVertical: 10, paddingHorizontal: 16, borderRadius: 8, backgroundColor: '#0284c7' }}
+                style={{ paddingVertical: 10, paddingHorizontal: 14, borderRadius: 8, backgroundColor: '#0284c7' }}
                 onPress={() => {
                   if (activePopupItem) {
-                    selectRelayRouteAndAllocate(activePopupItem.route, activePopupItem.depot);
+                    const navCode = cleanRouteCode(activePopupItem.fullRouteName || activePopupItem.route);
+                    selectRelayRouteAndAllocate(navCode || activePopupItem.route, activePopupItem.depot);
                   }
                 }}
               >
-                <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#ffffff' }}>🚌 Allocate 2nd Bus Now</Text>
+                <Text style={{ fontSize: 12, fontWeight: '800', color: '#ffffff' }}>🚌 Allocate 2nd Bus Now</Text>
               </TouchableOpacity>
             </View>
           </View>

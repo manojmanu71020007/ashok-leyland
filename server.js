@@ -3229,6 +3229,8 @@ const NON_SINGLE_CHARGE_ROUTES = ['500DC', 'KBS3F', 'KBS3A', '328H', '360K', '36
 function cleanRouteCode(rStr) {
     if (!rStr) return '';
     const s = String(rStr).trim().toUpperCase();
+    const paren = s.match(/\(([A-Z0-9][A-Z0-9\/-]*)\)/);
+    if (paren) return paren[1];
     for (const code of NON_SINGLE_CHARGE_ROUTES) {
         if (s.includes(code)) return code;
     }
@@ -3370,6 +3372,19 @@ function loadBusState() {
         }
         if (!masterBusState._pendingRelayRoutes || typeof masterBusState._pendingRelayRoutes !== 'object') {
             masterBusState._pendingRelayRoutes = {};
+        } else {
+            const repairedRelays = {};
+            let relayRepaired = false;
+            Object.entries(masterBusState._pendingRelayRoutes).forEach(([k, v]) => {
+                if (!v || typeof v !== 'object') return;
+                const properCode = cleanRouteCode(v.fullRouteName || v.route || k) || String(k).toUpperCase().trim();
+                if (properCode !== k || v.route !== properCode) relayRepaired = true;
+                repairedRelays[properCode] = { ...v, route: properCode };
+            });
+            if (relayRepaired) {
+                masterBusState._pendingRelayRoutes = repairedRelays;
+                historyMissing = true;
+            }
         }
         const fileDataset = loadRoutesDataset();
         if (fileDataset && Array.isArray(fileDataset.routes) && fileDataset.routes.length > 0) {
@@ -7992,7 +8007,14 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                 const pd = ensurePendingDeletions(currentState);
                 const existingDuties = Array.isArray(currentState._allocatedDuties) ? currentState._allocatedDuties : [];
                 const completedDuty = existingDuties.find(d => String(d.bm || d.bmNumber || d.busId || '').toUpperCase().trim() === bmKey);
-                const completedRouteCode = cleanRouteCode(payload.route || completedDuty?.routeCode || completedDuty?.route || '');
+                const completedRouteCode = cleanRouteCode(
+                    payload.routeCode ||
+                    completedDuty?.routeCode ||
+                    completedDuty?.busNumber ||
+                    payload.route ||
+                    completedDuty?.route ||
+                    ''
+                );
                 const completedDepotId = normalizeCleanDepotId(
                     payload.depot || completedDuty?.depot || completedDuty?.depotId || currentState._depotAssignments?.[bmKey] || '1'
                 ) || '1';
@@ -8603,16 +8625,50 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
         readBody(req, body => {
             try {
                 const payload = JSON.parse(body || "{}");
-                const routeCode = cleanRouteCode(payload.route || payload.routeCode || "");
+                const rawKey = String(payload.rawKey || payload.route || payload.routeCode || "").toUpperCase().trim();
+                const routeCode = cleanRouteCode(payload.route || payload.routeCode || payload.fullRouteName || "");
+                const targetDepot = payload.depot !== undefined && payload.depot !== null && payload.depot !== ""
+                    ? normalizeCleanDepotId(payload.depot)
+                    : "";
                 const currentState = loadBusState();
-                if (currentState._pendingRelayRoutes && routeCode && currentState._pendingRelayRoutes[routeCode]) {
-                    delete currentState._pendingRelayRoutes[routeCode];
-                    saveBusState(currentState);
-                    broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes });
+                let changed = false;
+                if (currentState._pendingRelayRoutes && typeof currentState._pendingRelayRoutes === "object") {
+                    if (payload.action === "clear_all") {
+                        Object.keys(currentState._pendingRelayRoutes).forEach(k => {
+                            const entry = currentState._pendingRelayRoutes[k];
+                            if (!targetDepot || normalizeCleanDepotId(entry?.depot || "") === targetDepot) {
+                                delete currentState._pendingRelayRoutes[k];
+                                changed = true;
+                            }
+                        });
+                    } else {
+                        [rawKey, routeCode].filter(Boolean).forEach(k => {
+                            if (currentState._pendingRelayRoutes[k]) {
+                                delete currentState._pendingRelayRoutes[k];
+                                changed = true;
+                            }
+                        });
+                        if (routeCode || rawKey) {
+                            Object.keys(currentState._pendingRelayRoutes).forEach(k => {
+                                const entry = currentState._pendingRelayRoutes[k];
+                                const entryClean = cleanRouteCode(entry?.fullRouteName || entry?.route || k);
+                                if ((routeCode && entryClean === routeCode) || (rawKey && entryClean === rawKey)) {
+                                    delete currentState._pendingRelayRoutes[k];
+                                    changed = true;
+                                }
+                            });
+                        }
+                    }
+                    if (changed) {
+                        saveBusState(currentState);
+                        broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes });
+                    }
                 }
                 sendJson(res, {
                     ok: true,
-                    message: `Relay resolved for route ${routeCode}`,
+                    message: payload.action === "clear_all"
+                        ? "All pending relay alerts cleared"
+                        : `Relay resolved for route ${routeCode || rawKey}`,
                     pendingRelayRoutes: currentState._pendingRelayRoutes || {}
                 });
             } catch (err) {
@@ -10253,13 +10309,17 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                                 const dRoute = cleanRouteCode(duty.routeCode || duty.route || '');
                                 const dDepot = normalizeCleanDepotId(duty.depot || duty.depotId || '');
                                 const dBm = String(duty.bm || duty.bmNumber || '').toUpperCase().trim();
-                                if (dRoute && currentState._pendingRelayRoutes[dRoute]) {
-                                    const pending = currentState._pendingRelayRoutes[dRoute];
-                                    if (normalizeCleanDepotId(pending.depot) === dDepot && dBm !== String(pending.firstBus).toUpperCase()) {
-                                        delete currentState._pendingRelayRoutes[dRoute];
+                                if (!dRoute) return;
+                                Object.keys(currentState._pendingRelayRoutes).forEach(k => {
+                                    const pending = currentState._pendingRelayRoutes[k];
+                                    if (!pending) return;
+                                    const pendingCode = cleanRouteCode(pending.fullRouteName || pending.route || k);
+                                    const matchesRoute = k === dRoute || pendingCode === dRoute;
+                                    if (matchesRoute && normalizeCleanDepotId(pending.depot) === dDepot && dBm !== String(pending.firstBus).toUpperCase()) {
+                                        delete currentState._pendingRelayRoutes[k];
                                         relayChanged = true;
                                     }
-                                }
+                                });
                             });
                             if (relayChanged) {
                                 broadcastSyncEvent("pending-relay-updated", { pendingRelayRoutes: currentState._pendingRelayRoutes });
