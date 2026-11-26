@@ -25,14 +25,14 @@ function normalizeCustomRouteDistances(routeObj) {
   if (!code || dist <= 0) return routeObj;
   if (!routeObj.custom && FACTORY_FORM4_ROUTE_CODES.has(code)) return routeObj;
 
-  const doubled = parseFloat((dist * 2).toFixed(1));
+  const isSplitExplicit = Boolean(routeObj.splitDuty || Number(routeObj.chargingOcc || 0) > 0);
   let nextObj = routeObj;
   const curFull = Number(routeObj.fullDutyKm || 0);
   const curActual = Number(routeObj.actualKm || 0);
-  if (curFull > 0 && Math.abs(curFull - doubled) < 0.25) {
+  if (!isSplitExplicit && curFull !== dist) {
     nextObj = { ...nextObj, fullDutyKm: dist };
   }
-  if (curActual > 0 && Math.abs(curActual - doubled) < 0.25) {
+  if (!isSplitExplicit && curActual !== dist) {
     nextObj = { ...nextObj, actualKm: dist };
   }
   if (Array.isArray(nextObj.schedules) && nextObj.schedules.length > 0) {
@@ -40,13 +40,18 @@ function normalizeCustomRouteDistances(routeObj) {
     const mapped = nextObj.schedules.map((s) => {
       if (!s || typeof s !== 'object') return s;
       const sDist = Number(s.distance || dist);
-      const sDoubled = parseFloat((sDist * 2).toFixed(1));
       const sGrp = Number(s.totalGroupDistance || 0);
-      if (sGrp > 0 && Math.abs(sGrp - sDoubled) < 0.25) {
+      const sSc = Number(s.singleChargeReqKm || 0);
+      let updatedS = s;
+      if (sGrp > 0 && sGrp !== sDist) {
+        updatedS = { ...updatedS, totalGroupDistance: sDist };
         schedChanged = true;
-        return { ...s, totalGroupDistance: sDist };
       }
-      return s;
+      if (!isSplitExplicit && sSc > 0 && sSc !== sDist && (Math.abs(sSc - Math.round(sDist * 1.5)) <= 2 || Math.abs(sSc - Math.round(dist * 1.5)) <= 2)) {
+        updatedS = { ...updatedS, singleChargeReqKm: sDist };
+        schedChanged = true;
+      }
+      return updatedS;
     });
     if (schedChanged) {
       nextObj = { ...nextObj, schedules: mapped };
@@ -9642,7 +9647,7 @@ export function addRouteToDataset(depotId, routeData) {
 
   const timeComplexity = routeData.timeComplexity || (existingRoute && existingRoute.timeComplexity) || 'Normal';
   const normalizedExisting = existingRoute ? normalizeCustomRouteDistances(existingRoute) : null;
-  const fullDutyKm = Number(routeData.fullDutyKm) || (normalizedExisting && Number(normalizedExisting.fullDutyKm)) || dist;
+  const fullDutyKm = dist;
 
   let routeObj;
   if (existingRoute) {
@@ -9670,9 +9675,9 @@ export function addRouteToDataset(depotId, routeData) {
         category: routeComp,
         routeComplexity: routeComp,
         timeComplexity: entry.tier,
-        totalGroupDistance: fullDutyKm,
+        totalGroupDistance: dist,
         distance: dist,
-        singleChargeReqKm: Math.round(dist * 1.5),
+        singleChargeReqKm: dist,
         customSubRoute: true,
       };
       existingSchedules.push(subSched);
@@ -9764,9 +9769,9 @@ export function addRouteToDataset(depotId, routeData) {
         category: routeComp,
         routeComplexity: routeComp,
         timeComplexity: e.tier,
-        totalGroupDistance: fullDutyKm,
+        totalGroupDistance: dist,
         distance: dist,
-        singleChargeReqKm: Math.round(dist * 1.5),
+        singleChargeReqKm: dist,
       };
     });
 

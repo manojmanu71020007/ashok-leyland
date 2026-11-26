@@ -64,31 +64,36 @@ function normalizeCustomRouteDistance(routeObj) {
     const isCustomOrAdded = Boolean(routeObj.custom) || !FACTORY_FORM4_ROUTE_CODES.has(code);
     if (!isCustomOrAdded) return routeObj;
 
-    const doubled = parseFloat((dist * 2).toFixed(1));
     const curFull = Number(routeObj.fullDutyKm || 0);
     const curActual = Number(routeObj.actualKm || 0);
+    const isSplitExplicit = Boolean(routeObj.splitDuty || Number(routeObj.chargingOcc || 0) > 0);
     let nextObj = routeObj;
-    if (curFull > 0 && Math.abs(curFull - doubled) < 0.25) {
+    if (!isSplitExplicit && curFull !== dist) {
         nextObj = { ...nextObj, fullDutyKm: dist };
     }
-    if (curActual > 0 && Math.abs(curActual - doubled) < 0.25) {
-        nextObj = nextObj === routeObj ? { ...nextObj, actualKm: dist } : { ...nextObj, actualKm: dist };
+    if (!isSplitExplicit && curActual !== dist) {
+        nextObj = { ...nextObj, actualKm: dist };
     }
     if (Array.isArray(nextObj.schedules) && nextObj.schedules.length > 0) {
         let schedChanged = false;
         const mappedScheds = nextObj.schedules.map((s) => {
             if (!s || typeof s !== "object") return s;
-            const sGrp = Number(s.totalGroupDistance || 0);
             const sDist = Number(s.distance || dist);
-            const sDoubled = parseFloat((sDist * 2).toFixed(1));
-            if (sGrp > 0 && Math.abs(sGrp - sDoubled) < 0.25) {
+            const sGrp = Number(s.totalGroupDistance || 0);
+            const sSc = Number(s.singleChargeReqKm || 0);
+            let updatedS = s;
+            if (sGrp > 0 && sGrp !== sDist) {
+                updatedS = { ...updatedS, totalGroupDistance: sDist };
                 schedChanged = true;
-                return { ...s, totalGroupDistance: sDist };
             }
-            return s;
+            if (!isSplitExplicit && sSc > 0 && sSc !== sDist && (Math.abs(sSc - Math.round(sDist * 1.5)) <= 2 || Math.abs(sSc - Math.round(dist * 1.5)) <= 2)) {
+                updatedS = { ...updatedS, singleChargeReqKm: sDist };
+                schedChanged = true;
+            }
+            return updatedS;
         });
         if (schedChanged) {
-            nextObj = nextObj === routeObj ? { ...nextObj, schedules: mappedScheds } : { ...nextObj, schedules: mappedScheds };
+            nextObj = { ...nextObj, schedules: mappedScheds };
         }
     }
     return nextObj;
@@ -3235,6 +3240,72 @@ function isNonSingleChargeRoute(rStr) {
     if (!rStr) return false;
     const s = String(rStr).trim().toUpperCase();
     return NON_SINGLE_CHARGE_ROUTES.some(code => s.includes(code));
+}
+
+function findRouteInState(state, routeCode, depotId = null) {
+    const cleanCode = String(routeCode || '').toUpperCase().replace(/^ROUTE\s*/i, '').trim();
+    if (!cleanCode) return null;
+    const ds = (state && state._routesDatabase) || loadRoutesDataset();
+    const routes = Array.isArray(ds?.routes) ? ds.routes : [];
+    const cleanDep = depotId ? normalizeCleanDepotId(depotId) : '';
+    return routes.find(r => {
+        const rc = String(r?.code || r?.id || '').toUpperCase().trim();
+        const isAlias = Array.isArray(r?.aliases) && r.aliases.some(a => String(a).toUpperCase().trim() === cleanCode);
+        if (rc !== cleanCode && !isAlias) return false;
+        if (cleanDep && r?.depotId !== undefined) return normalizeCleanDepotId(r.depotId) === cleanDep;
+        return true;
+    }) || routes.find(r => String(r?.code || r?.id || '').toUpperCase().trim() === cleanCode) || null;
+}
+
+function getServerRouteDatasetDist(matchedRoute, duty = null) {
+    const scheds = Array.isArray(matchedRoute?.schedules) ? matchedRoute.schedules : [];
+    const dSchedId = String(duty?.scheduleId || '').trim().toLowerCase();
+    const dTime = String(duty?.departureTime || duty?.scheduledTime || '').trim().toLowerCase();
+    const matchedSched = scheds.find(s => dSchedId && String(s?.scheduleId || s?.subRoute || '').trim().toLowerCase() === dSchedId)
+        || scheds.find(s => dTime && String(s?.departureTime || s?.outTime || '').trim().toLowerCase() === dTime);
+    if (matchedSched && Number(matchedSched.distance) > 0) return Number(matchedSched.distance);
+    if (matchedRoute && Number(matchedRoute.distance || matchedRoute.distKm) > 0) {
+        return Number(matchedRoute.distance || matchedRoute.distKm);
+    }
+    if (duty && Number(duty.routeDist || duty.distance) > 0) return Number(duty.routeDist || duty.distance);
+    return 0;
+}
+
+function getServerEstimatedSocForDuty(matchedRoute, duty = null) {
+    const dist = getServerRouteDatasetDist(matchedRoute, duty);
+    if (!dist) return Number(duty?.reqSoc || 0);
+    const comp = String(matchedRoute?.routeComplexity || matchedRoute?.category || '').toLowerCase();
+    let baseRate = 0.58;
+    if (comp.includes('comp')) baseRate = 0.66;
+    else if (comp.includes('simp')) baseRate = 0.52;
+    const depTime = String(duty?.departureTime || duty?.scheduledTime || '').trim();
+    const slotTier = matchedRoute?.timeComplexitySlots?.[depTime] || matchedRoute?.timeComplexity || 'Normal';
+    const tierLow = String(slotTier).toLowerCase();
+    const mult = tierLow.includes('extreme') ? 1.25 : (tierLow.includes('peak') ? 1.12 : 1.0);
+    return Math.round(dist * baseRate * mult + 15);
+}
+
+function isRouteOrDutySplitRequired(state, duty, matchedRoute = null) {
+    const rCode = getDutyRouteCode(duty) || cleanRouteCode(duty?.routeCode || duty?.route || '');
+    const dDep = getDutyDepotId(state, duty);
+    const routeObj = matchedRoute || findRouteInState(state, rCode, dDep);
+    const estSoc = getServerEstimatedSocForDuty(routeObj, duty);
+    const datasetDist = getServerRouteDatasetDist(routeObj, duty);
+    const busSoc = Number(duty?.soc ?? (rCode && duty?.bm && state?.[String(duty.bm).toUpperCase()]?.soc) ?? 100);
+    const hasExplicitSplit = Boolean(
+        duty?.isSplitDuty ||
+        duty?.splitDuty ||
+        routeObj?.splitDuty ||
+        Number(routeObj?.chargingOcc || 0) > 0 ||
+        Number(routeObj?.noChargingOcc || 0) > 0
+    );
+    const exceedsSingleCharge = Number(duty?.reqSoc || 0) > 100 || estSoc > 100 || datasetDist >= 150 || (estSoc > 0 && busSoc < estSoc - 2 && Boolean(duty?.bm));
+    return {
+        isSplit: hasExplicitSplit || exceedsSingleCharge,
+        estSoc,
+        datasetDist,
+        routeObj
+    };
 }
 
 function loadBusState() {
@@ -7081,8 +7152,10 @@ function ingestUploadedRouteAndScheduleDataset(filePath, safeName, targetDepot, 
                             outTime: outTime || "08:00 AM",
                             inTime: inTime || "04:00 PM",
                             category: parsedCategory || "Standard",
-                            singleChargeReqKm: parsedSingleCharge || (parsedDist ? Math.round(parsedDist * 1.5) : 45),
-                            actualKm: parsedDutyKm || undefined,
+                            distance: parsedDist || undefined,
+                            totalGroupDistance: parsedDist || undefined,
+                            singleChargeReqKm: parsedSingleCharge || undefined,
+                            actualKm: parsedDist || parsedDutyKm || undefined,
                             chargingOcc: parsedChargingOcc ?? (rObj.chargingOcc || 0),
                             noChargingOcc: parsedChargingOcc ?? (rObj.noChargingOcc || 0),
                             splitDuty: Boolean((parsedChargingOcc && parsedChargingOcc > 0) || rObj.splitDuty)
@@ -7992,7 +8065,7 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                     status: 'Returned / Completed'
                 });
 
-                // 7. Track Non-Single Charge Relay requirement (2nd bus allocation from same depot), unless route/depot is pending deletion
+                // 7. Track Split-Duty / Non-Single Charge Relay requirement (2nd bus allocation from same depot), unless route/depot is pending deletion
                 const isTargetRouteOrDepotPending = Boolean(
                     pd.depots[targetDepotClean] ||
                     pd.depots[completedDepotId] ||
@@ -8002,21 +8075,44 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                         Object.values(pd.routes).some(r => r && String(r.code || "").toUpperCase().trim() === completedRouteCode && (!r.depotId || normalizeCleanDepotId(r.depotId) === targetDepotClean))
                     ))
                 );
-                if (!isTargetRouteOrDepotPending && isNonSingleChargeRoute(payload.route || completedDuty?.route || completedDuty?.routeCode)) {
-                    const cCode = cleanRouteCode(payload.route || completedDuty?.route || completedDuty?.routeCode);
-                    if (!currentState._pendingRelayRoutes) currentState._pendingRelayRoutes = {};
-                    currentState._pendingRelayRoutes[cCode] = {
-                        route: cCode,
-                        fullRouteName: payload.route || cCode,
-                        depot: targetDepot,
-                        firstBus: bmKey,
-                        reg: regNo,
-                        driver: payload.driver || 'Assigned Driver',
-                        completedAt: fullTs,
-                        completedTs: Date.now(),
-                        isNonSingleCharge: true,
-                        reason: 'NOT Single Charge Operation (Mandatory Mid-route Charging or Physically Exceeding Range). Second bus required from this depot to complete schedule.'
-                    };
+                const splitEval = isRouteOrDutySplitRequired(
+                    currentState,
+                    completedDuty || {
+                        routeCode: completedRouteCode,
+                        depot: targetDepotClean,
+                        departureTime: payload.departureTime || payload.scheduledTime,
+                        scheduleId: payload.scheduleId,
+                        reqSoc: payload.reqSoc,
+                        routeDist: payload.routeDist,
+                        isSplitDuty: payload.isSplitDuty
+                    }
+                );
+                const isSecondRelayFinishNormally = completedDuty?.relayStage === 'PART_2_RELAY' && !payload.partialBatteryDepleted && !payload.relayRequired;
+                const needsRelayAllocation = !isTargetRouteOrDepotPending && !isSecondRelayFinishNormally && (
+                    Boolean(payload.partialBatteryDepleted || payload.relayRequired || payload.partCompleted || completedDuty?.isSplitDuty) ||
+                    splitEval.isSplit ||
+                    isNonSingleChargeRoute(payload.route || completedDuty?.route || completedDuty?.routeCode)
+                );
+                if (needsRelayAllocation) {
+                    const cCode = completedRouteCode || cleanRouteCode(payload.route || completedDuty?.route || completedDuty?.routeCode);
+                    if (cCode) {
+                        if (!currentState._pendingRelayRoutes) currentState._pendingRelayRoutes = {};
+                        currentState._pendingRelayRoutes[cCode] = {
+                            route: cCode,
+                            fullRouteName: payload.route || cCode,
+                            depot: targetDepot,
+                            firstBus: bmKey,
+                            reg: regNo,
+                            driver: payload.driver || 'Assigned Driver',
+                            completedAt: fullTs,
+                            completedTs: Date.now(),
+                            partCompleted: true,
+                            isNonSingleCharge: true,
+                            reason: payload.partialBatteryDepleted
+                                ? `1st Bus (${bmKey}) completed its part of Route ${cCode} (battery depleted). Second bus is now unlocked to complete the route.`
+                                : 'NOT Single Charge Operation (Exceeds single-charge battery range / Split Duty). Second bus is now unlocked from this depot to complete the route.'
+                        };
+                    }
                 }
 
                 // 8. Auto-finalize any pending bus/route/depot deletions whose active duties are now 0
@@ -10145,6 +10241,36 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                                     }, 409);
                                     return;
                                 }
+
+                                // Gate 2nd / relay bus allocation until the active 1st bus completes its part of the route
+                                const dCode = getDutyRouteCode(duty);
+                                const dDep = getDutyDepotId(currentState, duty);
+                                const dTime = String(duty?.departureTime || duty?.scheduledTime || "").trim().toLowerCase();
+                                const dSchedId = String(duty?.scheduleId || "").trim().toLowerCase();
+                                const incomingSplitInfo = isRouteOrDutySplitRequired(currentState, duty);
+                                const conflictingActiveDuty = existingDuties.find(ex => {
+                                    const exBm = String(ex?.bm || ex?.bmNumber || ex?.busId || "").toUpperCase().trim();
+                                    if (!exBm || exBm === bmK) return false;
+                                    const exCode = getDutyRouteCode(ex);
+                                    const exDep = getDutyDepotId(currentState, ex);
+                                    if (!exCode || exCode !== dCode || exDep !== dDep) return false;
+                                    const exSplit = isRouteOrDutySplitRequired(currentState, ex, incomingSplitInfo.routeObj).isSplit;
+                                    if (exSplit || incomingSplitInfo.isSplit) return true;
+                                    const exTime = String(ex?.departureTime || ex?.scheduledTime || "").trim().toLowerCase();
+                                    const exSched = String(ex?.scheduleId || "").trim().toLowerCase();
+                                    return Boolean((dTime && exTime && dTime === exTime) || (dSchedId && exSched && dSchedId === exSched));
+                                });
+                                if (conflictingActiveDuty) {
+                                    const activeBm = String(conflictingActiveDuty.bm || conflictingActiveDuty.bmNumber || conflictingActiveDuty.busId || "").toUpperCase().trim();
+                                    sendJson(res, {
+                                        ok: false,
+                                        blockedByActiveSplitBus: true,
+                                        blockedRoute: dCode,
+                                        activeFirstBus: activeBm,
+                                        error: `Split-Duty / Relay Hold: Bus ${activeBm} is currently operating Route ${dCode} and has not completed its part of the route yet. Another bus can only be allocated for Route ${dCode} after ${activeBm} completes its part of the route.`
+                                    }, 409);
+                                    return;
+                                }
                             }
                         }
 
@@ -10155,11 +10281,11 @@ function validateBusDetailsDataset(fileBuffer, safeName) {
                             let relayChanged = false;
                             payload.duties.forEach(duty => {
                                 const dRoute = cleanRouteCode(duty.routeCode || duty.route || '');
-                                const dDepot = String(duty.depot || duty.depotId || '').trim();
+                                const dDepot = normalizeCleanDepotId(duty.depot || duty.depotId || '');
                                 const dBm = String(duty.bm || duty.bmNumber || '').toUpperCase().trim();
                                 if (dRoute && currentState._pendingRelayRoutes[dRoute]) {
                                     const pending = currentState._pendingRelayRoutes[dRoute];
-                                    if (String(pending.depot) === dDepot && dBm !== String(pending.firstBus).toUpperCase()) {
+                                    if (normalizeCleanDepotId(pending.depot) === dDepot && dBm !== String(pending.firstBus).toUpperCase()) {
                                         delete currentState._pendingRelayRoutes[dRoute];
                                         relayChanged = true;
                                     }

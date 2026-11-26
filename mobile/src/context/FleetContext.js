@@ -470,49 +470,28 @@ export function getRequiredSingleChargeSoc(distKm, schedObj, busBm, timeCategory
 }
 
 // Unified Route Baseline Required SoC (Single source of truth across Admin Overview, View Fleet modal & Scheduling)
+export function getDatasetRouteDistanceKm(routeObj, schedObj = null) {
+  const sDist = schedObj && Number(schedObj.distance);
+  if (Number.isFinite(sDist) && sDist > 0) return sDist;
+  const rDist = routeObj && Number(routeObj.distance || routeObj.distKm || routeObj.routeDist);
+  if (Number.isFinite(rDist) && rDist > 0) return rDist;
+  const fallback = Number(
+    (schedObj && schedObj.totalGroupDistance) ||
+    (routeObj && (routeObj.actualKm || routeObj.fullDutyKm)) ||
+    28.7
+  );
+  return Number.isFinite(fallback) && fallback > 0 ? fallback : 28.7;
+}
+
 export function computeRouteEstimatedSoc(routeObj, schedObj = null, depTimeOrCat = null, busBm = null) {
   const depTime =
     depTimeOrCat ||
     (schedObj && (schedObj.departureTime || schedObj.outTime || schedObj.cum_time)) ||
     (routeObj && Array.isArray(routeObj.timetables) && routeObj.timetables[0]) ||
     '01:10 PM';
-  const chgOcc = Number(
-    (schedObj && (schedObj.chargingOcc ?? schedObj.noChargingOcc ?? schedObj.charging_occ)) ??
-    (routeObj && (routeObj.chargingOcc ?? routeObj.noChargingOcc)) ??
-    0
-  );
-  const isSplit = Boolean(
-    chgOcc > 0 ||
-    routeObj?.splitDuty ||
-    schedObj?.splitDuty ||
-    schedObj?.singleChargeReqKm ||
-    routeObj?.singleChargeReqKm
-  );
-  const fullDist = Number(
-    (routeObj && (routeObj.fullDutyKm || routeObj.actualKm)) ||
-    (schedObj && (schedObj.actualKm || schedObj.totalGroupDistance)) ||
-    (routeObj && (routeObj.distance || routeObj.distKm || routeObj.routeDist)) ||
-    28.7
-  );
+  const datasetDist = getDatasetRouteDistanceKm(routeObj, schedObj);
   const drainInfo = getBusDrainRatePerKm(busBm, depTime, routeObj);
-  const unchargedReq = Math.round(fullDist * drainInfo.effectiveDrainPerKm + 15);
-
-  let targetDist;
-  if (isSplit || unchargedReq > 100) {
-    targetDist = Number(
-      schedObj?.singleChargeReqKm ||
-      routeObj?.singleChargeReqKm ||
-      (chgOcc > 0 ? Math.ceil(fullDist / (chgOcc + 1)) : fullDist / 2)
-    );
-  } else {
-    targetDist = Number(
-      (routeObj && (routeObj.distance || routeObj.distKm || routeObj.routeDist)) ||
-      (schedObj && (schedObj.distance || schedObj.totalGroupDistance)) ||
-      28.7
-    );
-  }
-  const refObj = routeObj || schedObj || null;
-  return Math.min(100, Math.round(targetDist * drainInfo.effectiveDrainPerKm + 15));
+  return Math.max(15, Math.round(datasetDist * drainInfo.effectiveDrainPerKm + 15));
 }
 
 export function getRouteComplexity(distOrRoute, matchedSched, depTimeStr) {
@@ -1732,7 +1711,7 @@ export const FleetProvider = ({ children }) => {
     fetchFleet();
   };
 
-  // Allocate a bus to a route duty
+  // Allocate a bus to a route duty (awaits backend validation before committing local state)
   const allocateBusToRoute = async (duty) => {
     const cleanBm = String(duty.bm || duty.bmNumber).toUpperCase();
     const matchedBus = buses.find((b) => String(b.bmNumber || b.bm || b.id || '').toUpperCase() === cleanBm);
@@ -1748,13 +1727,26 @@ export const FleetProvider = ({ children }) => {
       status: 'Allocated',
     };
 
-    setAllocatedDuties((prev) => {
-      const filtered = prev.filter((d) => String(d.bm || d.bmNumber).toUpperCase() !== cleanBm);
-      const updated = [cleanDuty, ...filtered];
-      api.saveAllocatedDuties(updated).catch((err) => console.warn('Could not save allocated duties to backend:', err));
-      return updated;
-    });
+    const currentDuties = Array.isArray(allocatedDuties) ? allocatedDuties : [];
+    const nextDuties = [
+      cleanDuty,
+      ...currentDuties.filter((d) => String(d.bm || d.bmNumber).toUpperCase() !== cleanBm),
+    ];
 
+    const saveRes = await api.saveAllocatedDuties(nextDuties);
+    if (!saveRes || !saveRes.ok) {
+      return {
+        ok: false,
+        status: saveRes?.status,
+        blockedByPendingDeletion: Boolean(saveRes?.blockedByPendingDeletion || saveRes?.data?.blockedByPendingDeletion),
+        blockedByActiveSplitBus: Boolean(saveRes?.data?.blockedByActiveSplitBus),
+        activeFirstBus: saveRes?.data?.activeFirstBus || null,
+        error: saveRes?.error || 'Could not save duty allocation on server.',
+      };
+    }
+
+    const syncedDuties = Array.isArray(saveRes?.data?.duties) ? saveRes.data.duties : nextDuties;
+    setAllocatedDuties(syncedDuties);
     setBuses((prev) =>
       prev.map((b) => {
         if (b.bmNumber === cleanBm) {
@@ -1771,25 +1763,26 @@ export const FleetProvider = ({ children }) => {
         return b;
       })
     );
+    return { ok: true, data: saveRes.data };
   };
 
-  // Complete a route duty: return bus to depot yard (supports inter-depot transfers)
-  const completeRoute = async (bmNumber, remarks = '', targetDepot = null) => {
+  // Complete a route duty: return bus to depot yard (supports inter-depot transfers and relay unlocks)
+  const completeRoute = async (bmNumber, remarks = '', targetDepot = null, options = {}) => {
     const cleanBm = String(bmNumber).toUpperCase();
-    let dutyToComplete = null;
+    const dutyToComplete = (allocatedDuties || []).find(
+      (d) => String(d.bm || d.bmNumber).toUpperCase() === cleanBm
+    ) || null;
 
     const foundBus = buses.find((b) => b.bmNumber === cleanBm);
     const prevDepot = String((foundBus && foundBus.depot) || '1');
     const completingDepot = targetDepot ? String(targetDepot) : String(selectedDepot || prevDepot || '1');
     const isTransferred = prevDepot !== completingDepot;
 
-    // 1. Remove from allocated duties
-    setAllocatedDuties((prev) => {
-      dutyToComplete = prev.find((d) => String(d.bm || d.bmNumber).toUpperCase() === cleanBm);
-      const updated = prev.filter((d) => String(d.bm || d.bmNumber).toUpperCase() !== cleanBm);
-      api.saveAllocatedDuties(updated).catch((err) => console.warn('Could not save allocated duties to backend:', err));
-      return updated;
-    });
+    // 1. Remove from allocated duties locally and persist via atomic endpoint
+    const remainingDuties = (allocatedDuties || []).filter(
+      (d) => String(d.bm || d.bmNumber).toUpperCase() !== cleanBm
+    );
+    setAllocatedDuties(remainingDuties);
 
     // 2. Transfer depot on backend if returning to different depot (or reinforce current depot)
     api.assignDepot(cleanBm, completingDepot).catch((err) => console.warn('Could not assign depot on backend:', err));
@@ -1810,13 +1803,24 @@ export const FleetProvider = ({ children }) => {
     };
     servicingStatusRef.current[cleanBm] = serviceEntry;
     api.updateServicingStatus(cleanBm, serviceEntry).catch((err) => console.warn('Could not update servicing status:', err));
-    api.completeRouteDuty({
+    const compRes = await api.completeRouteDuty({
       bm: cleanBm,
       depot: completingDepot,
-      remarks: remarks || 'Route completed and bus returned to yard awaiting servicing.',
+      remarks: remarks || (options.partialBatteryDepleted ? '1st bus completed its part (battery depleted); relay requested.' : 'Route completed and bus returned to yard awaiting servicing.'),
       route: (dutyToComplete && (dutyToComplete.routeName || dutyToComplete.routeCode)) || '',
+      routeCode: (dutyToComplete && (dutyToComplete.routeCode || dutyToComplete.busNumber)) || '',
+      scheduleId: (dutyToComplete && dutyToComplete.scheduleId) || '',
+      departureTime: (dutyToComplete && dutyToComplete.departureTime) || '',
+      reqSoc: dutyToComplete?.reqSoc,
+      routeDist: dutyToComplete?.routeDist,
+      isSplitDuty: Boolean(dutyToComplete?.isSplitDuty || options.partialBatteryDepleted || options.relayRequired),
+      partialBatteryDepleted: Boolean(options.partialBatteryDepleted),
+      relayRequired: Boolean(options.relayRequired),
       driver: (dutyToComplete && dutyToComplete.driver) || '',
-    }).catch((err) => console.warn('Atomic completeRouteDuty error:', err));
+    }).catch((err) => {
+      console.warn('Atomic completeRouteDuty error:', err);
+      return null;
+    });
 
     // Clear any active bay locks for cleanBm so it starts clean awaiting manual lock
     setLockedBuses((prev) => {
@@ -1839,7 +1843,7 @@ export const FleetProvider = ({ children }) => {
       isTransferred: isTransferred,
       driver: (dutyToComplete && dutyToComplete.driver) || 'Assigned Driver',
       remarks: remarks || (isTransferred ? `Transferred from Depot ${prevDepot} to Depot ${completingDepot} on route completion.` : 'Route completed on schedule and bus returned to depot yard.'),
-      status: 'Returned / Completed',
+      status: options.partialBatteryDepleted ? 'Part 1 Completed (Relay Pending)' : 'Returned / Completed',
     };
 
     setCompletedRoutesLog((prev) => {
@@ -1872,6 +1876,8 @@ export const FleetProvider = ({ children }) => {
         return b;
       })
     );
+
+    return compRes?.data || { ok: true };
   };
 
   // Reset all allocations for a depot

@@ -47,11 +47,11 @@ const DEPOT_1_ROUTES = [
     "destination": "ANK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 112.0,
-    "revenueKm": 112.0,
+    "distance": 114.8,
+    "revenueKm": 114.8,
     "corridorDistance": 11.2,
-    "fullDutyKm": 126.28,
-    "actualKm": 126.28,
+    "fullDutyKm": 114.8,
+    "actualKm": 114.8,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -146,11 +146,11 @@ const DEPOT_1_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 71.6,
-    "revenueKm": 71.6,
+    "distance": 133.6,
+    "revenueKm": 133.6,
     "corridorDistance": 35.8,
-    "fullDutyKm": 180.18,
-    "actualKm": 180.18,
+    "fullDutyKm": 133.6,
+    "actualKm": 133.6,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -239,11 +239,11 @@ const DEPOT_1_ROUTES = [
     "destination": "ATB",
     "via": "CPR",
     "depotBase": "BMT-32",
-    "distance": 86.4,
-    "revenueKm": 86.4,
+    "distance": 119.2,
+    "revenueKm": 119.2,
     "corridorDistance": 28.8,
-    "fullDutyKm": 157.96,
-    "actualKm": 157.96,
+    "fullDutyKm": 119.2,
+    "actualKm": 119.2,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -336,11 +336,11 @@ const DEPOT_1_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 140.8,
-    "revenueKm": 140.8,
+    "distance": 161.4,
+    "revenueKm": 161.4,
     "corridorDistance": 35.2,
-    "fullDutyKm": 127.49,
-    "actualKm": 127.49,
+    "fullDutyKm": 161.4,
+    "actualKm": 161.4,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -408,11 +408,11 @@ const DEPOT_2_ROUTES = [
     "destination": "KMT",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 253.8,
-    "revenueKm": 253.8,
+    "distance": 257.8,
+    "revenueKm": 257.8,
     "corridorDistance": 38.0,
-    "fullDutyKm": 141.79,
-    "actualKm": 141.79,
+    "fullDutyKm": 257.8,
+    "actualKm": 257.8,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -476,11 +476,11 @@ const DEPOT_2_ROUTES = [
     "destination": "ANK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 143.0,
-    "revenueKm": 143.0,
+    "distance": 283.8,
+    "revenueKm": 283.8,
     "corridorDistance": 34.5,
-    "fullDutyKm": 146.03,
-    "actualKm": 146.03,
+    "fullDutyKm": 283.8,
+    "actualKm": 283.8,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -539,11 +539,11 @@ const DEPOT_2_ROUTES = [
     "destination": "HSK",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 269.4,
-    "revenueKm": 269.4,
+    "distance": 290.0,
+    "revenueKm": 290.0,
     "corridorDistance": 40.0,
-    "fullDutyKm": 159.5,
-    "actualKm": 159.5,
+    "fullDutyKm": 290.0,
+    "actualKm": 290.0,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -610,15 +610,14 @@ const DEPOT_2_ROUTES = [
     "destination": "TNF",
     "via": "CSB",
     "depotBase": "BMT-32",
-    "distance": 86.1,
-    "revenueKm": 86.1,
+    "distance": 171.4,
+    "revenueKm": 171.4,
     "corridorDistance": 49.1,
-    "fullDutyKm": 188.54,
-    "actualKm": 188.54,
+    "fullDutyKm": 171.4,
+    "actualKm": 171.4,
     "chargingOcc": 1,
     "noChargingOcc": 1,
     "splitDuty": true,
-    "singleChargeReqKm": 91.9,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -726,11 +725,11 @@ const DEPOT_2_ROUTES = [
     "destination": "KBS",
     "via": "",
     "depotBase": "BMT-32",
-    "distance": 128.4,
-    "revenueKm": 128.4,
+    "distance": 203.2,
+    "revenueKm": 203.2,
     "corridorDistance": 35.2,
-    "fullDutyKm": 209.88,
-    "actualKm": 209.88,
+    "fullDutyKm": 203.2,
+    "actualKm": 203.2,
     "routeComplexity": "Standard",
     "category": "Standard",
     "requiredCat": "B",
@@ -3467,23 +3466,44 @@ export default function SchedulingScreen() {
     }
 
     const liveSoc = Number(busObj?.soc ?? 80);
-    const actualKmVal = Number(matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute?.actualKm || selectedRoute?.fullDutyKm || 188.54);
-    const constantMinReqSoc = getRequiredSingleChargeSoc(routeDist, matchedSched, key, timeCatInfo || depTimeShort, actualKmVal, selectedRoute);
-    const minAllowedSoc = constantMinReqSoc - 2;
+    const datasetKm = Number(
+      (matchedSched && Number(matchedSched.distance) > 0 ? matchedSched.distance : null) ||
+      (selectedRoute && (Number(selectedRoute.distance || selectedRoute.distKm) > 0 ? (selectedRoute.distance || selectedRoute.distKm) : null)) ||
+      routeDist ||
+      28.7
+    );
+    const normalizedRouteForSoc = selectedRoute
+      ? { ...selectedRoute, distance: datasetKm, fullDutyKm: datasetKm, actualKm: datasetKm, singleChargeReqKm: datasetKm }
+      : null;
+    const drainDetails = getBusDrainRatePerKm(key, timeCatInfo || depTimeShort, normalizedRouteForSoc);
+    const drainPerKm = drainDetails.effectiveDrainPerKm;
+    const constantMinReqSoc = Math.max(15, Math.round(datasetKm * drainPerKm + 15));
+    const isSplitReq = constantMinReqSoc > 100 || Boolean(
+      selectedRoute?.splitDuty ||
+      Number(selectedRoute?.chargingOcc || 0) > 0 ||
+      matchedSched?.splitDuty ||
+      Number(matchedSched?.chargingOcc || 0) > 0
+    );
+    const effectiveMinSocForDispatch = isSplitReq
+      ? Math.min(85, Math.max(40, Math.round((datasetKm / 2) * drainPerKm + 15)))
+      : constantMinReqSoc;
+    const minAllowedSoc = effectiveMinSocForDispatch - 2;
     if (liveSoc < minAllowedSoc) {
-      return { feasible: false, bm: key, liveSoc, reqSoc: constantMinReqSoc, reason: `Bus ${key} battery at ${liveSoc}% does not match minimum required SoC (${constantMinReqSoc}%).` };
+      return {
+        feasible: false,
+        bm: key,
+        liveSoc,
+        reqSoc: constantMinReqSoc,
+        reason: isSplitReq
+          ? `Bus ${key} battery at ${liveSoc}% is below Part-1 Split Duty minimum (${effectiveMinSocForDispatch}% SoC; full route needs ${constantMinReqSoc}%).`
+          : `Bus ${key} battery at ${liveSoc}% does not match minimum required SoC (${constantMinReqSoc}%).`
+      };
     }
 
-    const drainDetails = getBusDrainRatePerKm(key, timeCatInfo || depTimeShort, selectedRoute);
-    const drainPerKm = drainDetails.effectiveDrainPerKm;
     const usableCoverableKm = Math.max(0, Math.round((liveSoc - 15) / drainPerKm));
-    let operatingKm = Number(routeDist) || 28.7;
-    if (matchedSched && matchedSched.singleChargeReqKm) {
-      operatingKm = Number(matchedSched.singleChargeReqKm);
-    }
-    if (operatingKm > 65) operatingKm = 65;
-    if (usableCoverableKm < Math.floor(operatingKm * 0.95)) {
-      return { feasible: false, bm: key, liveSoc, reason: `Usable range (${usableCoverableKm} km) cannot cover required ${operatingKm.toFixed(1)} km.` };
+    const checkRangeKm = isSplitReq ? Math.min(datasetKm / 2, 65) : Math.min(datasetKm, 65);
+    if (!isSplitReq && usableCoverableKm < Math.floor(checkRangeKm * 0.95)) {
+      return { feasible: false, bm: key, liveSoc, reason: `Usable range (${usableCoverableKm} km) cannot cover required ${datasetKm.toFixed(1)} km.` };
     }
 
     const page4Category = busObj?.busCategory || STATIC_BUS_CATEGORIES[key] || getBusCategory(key);
@@ -3837,6 +3857,34 @@ export default function SchedulingScreen() {
   const routePauseInfo = isTargetPendingDeletion
     ? isTargetPendingDeletion({ depotId: depotNum, routeCode: selectedRouteCodeClean })
     : { pending: false };
+  const selectedDatasetDistanceKm = Number(
+    (matchedSched && Number(matchedSched.distance) > 0 ? matchedSched.distance : null) ||
+    (selectedRoute && (Number(selectedRoute.distance || selectedRoute.distKm) > 0 ? (selectedRoute.distance || selectedRoute.distKm) : null)) ||
+    0
+  );
+  const isSplitDutySelected = Boolean(
+    (routeEstimatedSoc && routeEstimatedSoc > 100) ||
+    selectedRoute?.splitDuty ||
+    Number(selectedRoute?.chargingOcc || 0) > 0 ||
+    matchedSched?.splitDuty ||
+    Number(matchedSched?.chargingOcc || 0) > 0
+  );
+  const activeDutiesOnSelectedRoute = (allocatedDuties || []).filter((d) => {
+    const dCode = String(d.routeCode || d.busNumber || d.routeId || '').toUpperCase().replace(/^ROUTE\s*/i, '').trim();
+    const dDep = String(d.depot || depotNum || '1').replace(/^DEPOT\s*/i, '').trim();
+    return selectedRouteCodeClean && dCode === selectedRouteCodeClean && dDep === String(depotNum);
+  });
+  const blockingSplitFirstBus = activeDutiesOnSelectedRoute.find((d) => {
+    if (isSplitDutySelected || d.isSplitDuty || Number(d.reqSoc || 0) > 100) return true;
+    const dTime = String(d.departureTime || '').trim().toLowerCase();
+    const curTime = String(scheduledTime || '').trim().toLowerCase();
+    return Boolean(dTime && curTime && dTime === curTime);
+  });
+  const splitRelayBlockMessage = blockingSplitFirstBus
+    ? `Bus ${blockingSplitFirstBus.bm || blockingSplitFirstBus.bmNumber} is currently active on Route ${selectedRouteCodeClean} (${blockingSplitFirstBus.departureTime || scheduledTime}) and has not completed its part of the route yet. Another bus for Route ${selectedRouteCodeClean} can only be allocated after ${blockingSplitFirstBus.bm || blockingSplitFirstBus.bmNumber} completes its part of the route.`
+    : '';
+  const pendingRelayForSelected = selectedRouteCodeClean && pendingRelayRoutes ? pendingRelayRoutes[selectedRouteCodeClean] : null;
+
   const isAllocationPaused = Boolean(depotPauseInfo.pending || routePauseInfo.pending);
   const allocationPauseMessage = depotPauseInfo.pending
     ? depotPauseInfo.message
@@ -3867,6 +3915,14 @@ export default function SchedulingScreen() {
       Alert.alert(
         '⛔ Allocation Paused — Pending Deletion',
         allocationPauseMessage || `This route (${selectedRouteCodeClean}) is going to be deleted, so no bus can be allocated for this route.`
+      );
+      return;
+    }
+
+    if (blockingSplitFirstBus) {
+      Alert.alert(
+        '⛔ Relay Blocked — 1st Bus Still Active',
+        splitRelayBlockMessage
       );
       return;
     }
@@ -3945,7 +4001,7 @@ export default function SchedulingScreen() {
               routeId: selectedRoute.id,
               routeCode: selectedRoute.code,
               busNumber: selectedRoute.code,
-              routeName: `${selectedRoute.name} — ${selectedRoute.distance} km`,
+              routeName: `${selectedRoute.name} — ${selectedDatasetDistanceKm || selectedRoute.distance} km`,
               origin: selectedRoute.origin,
               destination: selectedRoute.destination,
               departureTime: scheduledTime,
@@ -3958,8 +4014,11 @@ export default function SchedulingScreen() {
               soc: activeCandidate.soc,
               reqSoc: routeEstimatedSoc || activeCandidate.constantMinReqSoc || activeCandidate.reqSoc,
               fullDutyKm: activeCandidate.fullDutyKm || 108,
-              routeDist: selectedRoute.distance,
-              routeFullDutyKm: Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || selectedRoute.distance),
+              routeDist: selectedDatasetDistanceKm || selectedRoute.distance,
+              routeFullDutyKm: selectedDatasetDistanceKm || Number(selectedRoute.distance || selectedRoute.fullDutyKm || selectedRoute.actualKm),
+              isSplitDuty: isSplitDutySelected || Boolean(pendingRelayForSelected),
+              relayStage: pendingRelayForSelected ? 'PART_2_RELAY' : (isSplitDutySelected ? 'PART_1_ACTIVE' : 'SINGLE_CHARGE'),
+              operationMode: isSplitDutySelected ? 'Split Duty (Relay)' : 'Single Charge Operation',
               tripCount: 8,
               busCategory: activeCandidate.busCategory || 'A',
               driver: finalDriverName,
@@ -4128,7 +4187,7 @@ export default function SchedulingScreen() {
           <Text style={styles.fieldLabel}>{t('schedule_distance', 'Total Route Distance (km)')}</Text>
           <View style={styles.readonlyInput}>
             <Text style={[styles.readonlyInputText, { fontWeight: '700', color: '#0284c7' }]}>
-              {matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km
+              {selectedDatasetDistanceKm || matchedSched?.distance || selectedRoute.distance || matchedSched?.totalGroupDistance} km
             </Text>
           </View>
 
@@ -4316,12 +4375,33 @@ export default function SchedulingScreen() {
             </View>
           )}
 
+          {/* ── SPLIT-DUTY / RELAY GATING NOTICE ── */}
+          {blockingSplitFirstBus ? (
+            <View style={{ backgroundColor: '#fef2f2', borderWidth: 1.5, borderColor: '#fca5a5', borderRadius: 10, padding: 12, marginBottom: 10 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#991b1b', marginBottom: 3 }}>
+                ⛔ Relay Allocation Blocked — 1st Bus Still Active
+              </Text>
+              <Text style={{ fontSize: 11.5, color: '#7f1d1d', lineHeight: 16 }}>
+                {splitRelayBlockMessage}
+              </Text>
+            </View>
+          ) : pendingRelayForSelected ? (
+            <View style={{ backgroundColor: '#ecfdf5', borderWidth: 1.5, borderColor: '#86efac', borderRadius: 10, padding: 12, marginBottom: 10 }}>
+              <Text style={{ fontSize: 12.5, fontWeight: '800', color: '#065f46', marginBottom: 3 }}>
+                🔁 Part 1 Completed ({pendingRelayForSelected.firstBus}) — 2nd Bus Unlocked
+              </Text>
+              <Text style={{ fontSize: 11.5, color: '#047857', lineHeight: 16 }}>
+                Bus {pendingRelayForSelected.firstBus} finished its part of Route {selectedRouteCodeClean}. Allocate the 2nd relay bus now to complete the route.
+              </Text>
+            </View>
+          ) : null}
+
           {/* ── ALLOCATE BUS BUTTON ── */}
           <TouchableOpacity
             style={[
               styles.btnAllocate,
               isManualOverride && styles.btnAllocateOverride,
-              isAllocationPaused && { backgroundColor: '#991b1b', opacity: 0.9 },
+              (isAllocationPaused || blockingSplitFirstBus) && { backgroundColor: '#991b1b', opacity: 0.9 },
             ]}
             onPress={handleCommitAllocation}
             activeOpacity={0.85}
@@ -4329,7 +4409,11 @@ export default function SchedulingScreen() {
             <Text style={styles.btnAllocateText}>
               {isAllocationPaused
                 ? '⛔ Allocation Paused (Route / Depot Pending Deletion)'
-                : (isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus')}
+                : blockingSplitFirstBus
+                  ? `⛔ Relay Locked (${blockingSplitFirstBus.bm} Active on Part 1)`
+                  : (pendingRelayForSelected
+                    ? `🔁 Allocate 2nd Relay Bus`
+                    : (isManualOverride ? '⚠️ Allocate Bus (Manual Over-ride)' : '⚡ Allocate Bus'))}
             </Text>
           </TouchableOpacity>
         </View>
@@ -4443,7 +4527,7 @@ export default function SchedulingScreen() {
                 <Text style={styles.kpiLbl}>{t('selected_bus_soc', 'Selected bus SOC')}</Text>
               </View>
               <View style={styles.kpiBox}>
-                <Text style={styles.kpiVal}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km</Text>
+                <Text style={styles.kpiVal}>{selectedDatasetDistanceKm || matchedSched?.distance || selectedRoute.distance || matchedSched?.totalGroupDistance} km</Text>
                 <Text style={styles.kpiLbl}>{t('route_distance', 'Total Route Distance')}</Text>
               </View>
               <View style={styles.kpiBox}>
@@ -4472,15 +4556,15 @@ export default function SchedulingScreen() {
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('operation_mode', 'Operation Mode')}</Text>
-                <Text style={[styles.ruleVal, { color: isSplitDuty ? '#0284c7' : '#15803d', fontWeight: '800' }]}>
-                  {isSplitDuty
-                    ? `⚡ ${t('split_duty', 'Split Duty')} (${chargingOccCount} Mid-Duty Charge Scheduled)`
+                <Text style={[styles.ruleVal, { color: (isSplitDuty || isSplitDutySelected) ? '#b45309' : '#15803d', fontWeight: '800' }]}>
+                  {(isSplitDuty || isSplitDutySelected)
+                    ? `⚡ ${t('split_duty', 'Split Duty')} (2nd Bus After 1st Completes)`
                     : t('single_charge_operation', 'Single Charge Operation')}
                 </Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('total_distance', 'Total distance')}</Text>
-                <Text style={[styles.ruleVal, { color: '#0284c7', fontWeight: '800' }]}>{matchedSched?.totalGroupDistance || matchedSched?.distance || selectedRoute.distance} km</Text>
+                <Text style={[styles.ruleVal, { color: '#0284c7', fontWeight: '800' }]}>{selectedDatasetDistanceKm || matchedSched?.distance || selectedRoute.distance || matchedSched?.totalGroupDistance} km</Text>
               </View>
               <View style={styles.ruleItem}>
                 <Text style={styles.ruleLabel}>{t('route_category', 'Route category')}</Text>
@@ -4621,7 +4705,7 @@ export default function SchedulingScreen() {
                       </View>
                       {sched ? (
                         <Text style={{ fontSize: 11.5, color: '#0284c7', fontWeight: '700', marginTop: 2 }}>
-                          Sub-Route: {sched.scheduleId} ({sched.totalGroupDistance || sched.distance} km • {sched.shift})
+                          Sub-Route: {sched.scheduleId} ({sched.distance || selectedRoute?.distance || sched.totalGroupDistance} km • {sched.shift})
                         </Text>
                       ) : null}
                     </View>

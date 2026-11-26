@@ -124,58 +124,110 @@ export default function DepotOpsScreen() {
     });
   }, [fullFleetList, busSearchInput]);
 
-  // Handle Route Complete (supports dynamic inter-depot bus transfers)
-  const handleMarkRouteComplete = (bmNumber) => {
+  // Handle Route Complete (supports dynamic inter-depot transfers and split-duty / battery-depleted relay gating)
+  const executeRouteCompletion = async (cleanBm, isCrossDepot, options = {}) => {
+    const compResult = await completeRoute(cleanBm, '', depotNum, options);
+    const fin = (compResult && compResult.finalizedDeletions) || {};
+    const pendingRelays = (compResult && compResult.pendingRelayRoutes) || {};
+    const finalizedNotes = [];
+    if (compResult && compResult.finalizedBusDeleted) {
+      finalizedNotes.push(`Bus ${cleanBm} has now been permanently deleted as scheduled.`);
+    }
+    if (Array.isArray(fin.finalizedRoutes) && fin.finalizedRoutes.length > 0) {
+      finalizedNotes.push(`Pending deletion completed for route(s): ${fin.finalizedRoutes.map((r) => r.code).join(', ')}.`);
+    }
+    if (Array.isArray(fin.finalizedDepots) && fin.finalizedDepots.length > 0) {
+      finalizedNotes.push(`Pending deletion completed for depot(s): ${fin.finalizedDepots.map((d) => d.depotName || d.depotId).join(', ')}.`);
+    }
+    const unlockedRelayRoute = Object.values(pendingRelays).find(
+      (pr) => pr && String(pr.firstBus || '').toUpperCase() === cleanBm
+    );
+    if (finalizedNotes.length > 0) {
+      setSuccessBanner({
+        title: '✅ Route Completed & Scheduled Deletion Finalized',
+        text: finalizedNotes.join(' '),
+      });
+      Alert.alert(
+        '✅ Scheduled Deletion Finalized',
+        `Route completed for Bus ${cleanBm}.\n\n${finalizedNotes.join('\n')}`
+      );
+    } else if (unlockedRelayRoute) {
+      setSuccessBanner({
+        title: `🔁 Part 1 Completed — Relay Unlocked for Route ${unlockedRelayRoute.route}!`,
+        text: `Bus ${cleanBm} returned to Depot ${depotNum} yard. A 2nd bus can now be allocated for Route ${unlockedRelayRoute.route} in Scheduling.`,
+      });
+      Alert.alert(
+        '🔁 1st Bus Part Completed — Relay Unlocked',
+        `Bus ${cleanBm} completed its part of Route ${unlockedRelayRoute.route}.\n\nYou can now allocate the 2nd relay bus for Route ${unlockedRelayRoute.route} in the Scheduling page.`
+      );
+    } else {
+      setSuccessBanner({
+        title: isCrossDepot ? `🔄 Transferred to Depot ${depotNum}!` : 'Route completed!',
+        text: `Bus ${cleanBm} has returned to Depot ${depotNum} yard. Fleet counts updated.`,
+      });
+    }
+    setTimeout(() => {
+      setSuccessBanner(null);
+    }, 6000);
+  };
+
+  const handleMarkRouteComplete = (bmNumber, forcePartialDepleted = false) => {
     const cleanBm = String(bmNumber).toUpperCase();
     const foundBus = fullFleetList.find((b) => b.bmNumber === cleanBm);
     const busCurrentDepot = String(foundBus?.depot || '1');
     const isCrossDepot = busCurrentDepot !== depotNum;
+    const foundDuty = (allocatedDuties || []).find(
+      (d) => String(d.bm || d.bmNumber || '').toUpperCase() === cleanBm
+    );
+    const dutyRouteCode = String(foundDuty?.routeCode || foundDuty?.busNumber || '').toUpperCase().trim();
+    const isSplitDutyActive = Boolean(
+      forcePartialDepleted ||
+      foundDuty?.isSplitDuty ||
+      foundDuty?.splitDuty ||
+      Number(foundDuty?.reqSoc || 0) > 100
+    );
+
+    if (forcePartialDepleted) {
+      Alert.alert(
+        '🔋 Complete Part 1 (Battery Ran Out)',
+        `Mark Bus ${cleanBm}'s part of Route ${dutyRouteCode || 'duty'} as completed because battery ran out?\n\nThis returns ${cleanBm} for charging and UNLOCKS allocation of a 2nd relay bus for Route ${dutyRouteCode || 'this route'}.`,
+        [
+          { text: t('cancel', 'Cancel'), style: 'cancel' },
+          {
+            text: `Confirm Part 1 Complete`,
+            onPress: () => executeRouteCompletion(cleanBm, isCrossDepot, { partialBatteryDepleted: true, relayRequired: true }),
+          },
+        ]
+      );
+      return;
+    }
+
+    const buttons = [
+      { text: t('cancel', 'Cancel'), style: 'cancel' },
+      ...(!isSplitDutyActive && dutyRouteCode
+        ? [{
+            text: '🔋 Battery Ran Out (Part 1 Complete — Need 2nd Bus)',
+            onPress: () => executeRouteCompletion(cleanBm, isCrossDepot, { partialBatteryDepleted: true, relayRequired: true }),
+          }]
+        : []),
+      {
+        text: isCrossDepot
+          ? `Confirm Transfer to Depot ${depotNum}`
+          : (isSplitDutyActive ? `Confirm Part Complete & Unlock 2nd Bus` : `Confirm — ${cleanBm} Returned`),
+        style: 'default',
+        onPress: () => executeRouteCompletion(cleanBm, isCrossDepot, isSplitDutyActive ? { partCompleted: true, relayRequired: foundDuty?.relayStage !== 'PART_2_RELAY' } : {}),
+      },
+    ];
 
     Alert.alert(
       `✅ ${t('btn_route_complete', 'Confirm Route Completion')}`,
-      `Mark route completed for Bus ${cleanBm}?\n\n` +
+      `Mark route completed for Bus ${cleanBm}${dutyRouteCode ? ` (Route ${dutyRouteCode})` : ''}?\n\n` +
         (isCrossDepot
           ? `🔄 Cross-Depot Transfer: This bus was stationed at Depot ${busCurrentDepot}. Marking it completed at Depot ${depotNum} will transfer it to Depot ${depotNum} yard and dynamically adjust depot fleet counts.`
-          : `This will return the bus to Depot ${depotNum} yard for post-route servicing and re-allocation.`),
-      [
-        { text: t('cancel', 'Cancel'), style: 'cancel' },
-        {
-          text: isCrossDepot ? `Confirm Transfer to Depot ${depotNum}` : `Confirm — ${cleanBm} Returned`,
-          style: 'default',
-          onPress: async () => {
-            const compResult = await completeRoute(cleanBm, '', depotNum);
-            const fin = (compResult && compResult.finalizedDeletions) || {};
-            const finalizedNotes = [];
-            if (compResult && compResult.finalizedBusDeleted) {
-              finalizedNotes.push(`Bus ${cleanBm} has now been permanently deleted as scheduled.`);
-            }
-            if (Array.isArray(fin.finalizedRoutes) && fin.finalizedRoutes.length > 0) {
-              finalizedNotes.push(`Pending deletion completed for route(s): ${fin.finalizedRoutes.map((r) => r.code).join(', ')}.`);
-            }
-            if (Array.isArray(fin.finalizedDepots) && fin.finalizedDepots.length > 0) {
-              finalizedNotes.push(`Pending deletion completed for depot(s): ${fin.finalizedDepots.map((d) => d.depotName || d.depotId).join(', ')}.`);
-            }
-            if (finalizedNotes.length > 0) {
-              setSuccessBanner({
-                title: '✅ Route Completed & Scheduled Deletion Finalized',
-                text: finalizedNotes.join(' '),
-              });
-              Alert.alert(
-                '✅ Scheduled Deletion Finalized',
-                `Route completed for Bus ${cleanBm}.\n\n${finalizedNotes.join('\n')}`
-              );
-            } else {
-              setSuccessBanner({
-                title: isCrossDepot ? `🔄 Transferred to Depot ${depotNum}!` : 'Route completed!',
-                text: `Bus ${cleanBm} has returned to Depot ${depotNum} yard. Fleet counts updated.`,
-              });
-            }
-            setTimeout(() => {
-              setSuccessBanner(null);
-            }, 6000);
-          },
-        },
-      ]
+          : isSplitDutyActive && foundDuty?.relayStage !== 'PART_2_RELAY'
+            ? `🔁 Split Duty Part 1: Returning Bus ${cleanBm} to Depot ${depotNum} yard will unlock 2nd relay bus allocation for Route ${dutyRouteCode}.`
+            : `This will return the bus to Depot ${depotNum} yard for post-route servicing and re-allocation.`),
+      buttons
     );
   };
 
@@ -550,6 +602,17 @@ export default function DepotOpsScreen() {
                 ✅ {t('btn_route_complete', 'Route Completed — Return Bus to Depot')}
               </Text>
             </TouchableOpacity>
+            {selectedBusObj && isSelectedBusAllocated && selectedBusDuty?.relayStage !== 'PART_2_RELAY' && (
+              <TouchableOpacity
+                style={[styles.btnRouteCompleteMain, { backgroundColor: '#d97706', marginTop: 8 }]}
+                onPress={() => handleMarkRouteComplete(selectedBusBm, true)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.btnRouteCompleteMainText}>
+                  🔋 Battery Depleted — Complete Part 1 & Unlock 2nd Bus
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* ── ACTIVE ROUTE DISPATCHES LIST SECTION ── */}

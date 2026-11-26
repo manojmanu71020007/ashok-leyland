@@ -108,10 +108,11 @@ export const api = {
   },
 
   // Complete a route duty atomically
-  completeRouteDuty: async ({ bm, depot, remarks = '', route = '', driver = '' }) => {
+  completeRouteDuty: async (payloadOrParams) => {
+    const payload = payloadOrParams && typeof payloadOrParams === 'object' ? payloadOrParams : {};
     return apiRequest('/api/complete-route', {
       method: 'POST',
-      body: JSON.stringify({ bm, depot, remarks, route, driver }),
+      body: JSON.stringify(payload),
     });
   },
 

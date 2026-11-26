@@ -275,18 +275,18 @@ const I18N = {
 
 // ── DEPOT 1 & DEPOT 2 CORRIDOR ROUTES (Exact Match with admin.html & scheduling.html) ──
 const DEPOT_1_ROUTES_DATA = [
-  { id: '356Z', code: '356Z', name: 'CPR ➔ ANK (356Z)', origin: 'CPR', destination: 'ANK', distance: 112.0, revenueKm: 112.0, corridorDistance: 11.2, fullDutyKm: 126.28, actualKm: 126.28, category: 'Standard', requiredCat: 'B', drainSoc: 64, timetables: ['07:15 AM', '08:30 AM', '01:10 PM', '02:20 PM', '07:40 PM'], shift: 'General Shift' },
-  { id: '360K', code: '360K', name: 'ATB ➔ KBS (360K)', origin: 'ATB', destination: 'KBS', distance: 71.6, revenueKm: 71.6, corridorDistance: 35.8, fullDutyKm: 180.18, actualKm: 180.18, category: 'Standard', requiredCat: 'B', drainSoc: 82, timetables: ['07:00 AM', '08:15 AM', '01:10 PM', '02:00 PM', '06:30 PM'], shift: 'General Shift' },
-  { id: '600F', code: '600F', name: 'BSK ➔ ATB (600F)', origin: 'BSK', destination: 'ATB', distance: 86.4, revenueKm: 86.4, corridorDistance: 28.8, fullDutyKm: 157.96, actualKm: 157.96, category: 'Standard', requiredCat: 'B', drainSoc: 57, timetables: ['06:45 AM', '08:00 AM', '01:10 PM', '02:30 PM', '07:15 PM'], shift: 'General Shift' },
-  { id: 'KBS3A', code: 'KBS3A', name: 'ATB ➔ KBS (KBS3A)', origin: 'ATB', destination: 'KBS', distance: 140.8, revenueKm: 140.8, corridorDistance: 35.2, fullDutyKm: 127.49, actualKm: 127.49, category: 'Moderate', requiredCat: 'B', drainSoc: 81, timetables: ['07:00 AM', '08:30 AM', '01:10 PM', '02:15 PM', '06:00 PM'], shift: 'General Shift' },
+  { id: '356Z', code: '356Z', name: 'CPR ➔ ANK (356Z)', origin: 'CPR', destination: 'ANK', distance: 114.8, revenueKm: 114.8, corridorDistance: 11.2, fullDutyKm: 114.8, actualKm: 114.8, category: 'Standard', requiredCat: 'B', drainSoc: 64, timetables: ['06:00 AM', '06:15 AM', '01:45 PM', '02:00 PM', '02:25 PM', '02:35 PM'], shift: 'General Shift' },
+  { id: '360K', code: '360K', name: 'ATB ➔ KBS (360K)', origin: 'ATB', destination: 'KBS', distance: 133.6, revenueKm: 133.6, corridorDistance: 35.8, fullDutyKm: 133.6, actualKm: 133.6, category: 'Standard', requiredCat: 'B', drainSoc: 82, timetables: ['06:00 AM', '06:10 AM', '06:20 AM', '06:55 AM', '07:15 AM', '02:05 PM'], shift: 'General Shift' },
+  { id: '600F', code: '600F', name: 'BSK ➔ ATB (600F)', origin: 'BSK', destination: 'ATB', distance: 119.2, revenueKm: 119.2, corridorDistance: 28.8, fullDutyKm: 119.2, actualKm: 119.2, category: 'Standard', requiredCat: 'B', drainSoc: 57, timetables: ['06:05 AM', '06:15 AM', '07:25 AM', '01:10 PM', '02:30 PM'], shift: 'General Shift' },
+  { id: 'KBS3A', code: 'KBS3A', name: 'ATB ➔ KBS (KBS3A)', origin: 'ATB', destination: 'KBS', distance: 161.4, revenueKm: 161.4, corridorDistance: 35.2, fullDutyKm: 161.4, actualKm: 161.4, category: 'Moderate', requiredCat: 'B', drainSoc: 81, timetables: ['06:35 AM', '07:05 AM', '08:15 AM', '01:35 PM', '02:15 PM'], shift: 'General Shift' },
 ];
 
 const DEPOT_2_ROUTES_DATA = [
-  { id: '361C', code: '361C', name: 'ANK ➔ KMT (361C)', origin: 'ANK', destination: 'KMT', distance: 253.8, revenueKm: 253.8, corridorDistance: 38.0, fullDutyKm: 141.79, actualKm: 141.79, category: 'Complex', requiredCat: 'A', drainSoc: 74, timetables: ['07:30 AM', '09:00 AM', '01:10 PM', '03:00 PM', '05:50 AM'], shift: 'Night Halt' },
-  { id: '399C', code: '399C', name: 'CTP ➔ ANK (399C)', origin: 'CTP', destination: 'ANK', distance: 143.0, revenueKm: 143.0, corridorDistance: 34.5, fullDutyKm: 146.03, actualKm: 146.03, category: 'Complex', requiredCat: 'A', drainSoc: 82, timetables: ['07:45 AM', '09:15 AM', '01:10 PM', '03:30 PM'], shift: 'General Shift' },
-  { id: '328H', code: '328H', name: 'ATB ➔ HSK (328H)', origin: 'ATB', destination: 'HSK', distance: 269.4, revenueKm: 269.4, corridorDistance: 40.0, fullDutyKm: 159.5, actualKm: 159.5, category: 'Moderate', requiredCat: 'B', drainSoc: 78, timetables: ['01:10 PM', '01:45 PM', '01:50 PM', '07:00 AM', '10:30 AM'], shift: 'Night Halt' },
-  { id: '500DC', code: '500DC', name: 'HBL ➔ TNF (500DC)', origin: 'HBL', destination: 'TNF', via: 'CSB', distance: 86.1, revenueKm: 86.1, corridorDistance: 49.1, fullDutyKm: 188.54, actualKm: 188.54, chargingOcc: 1, noChargingOcc: 1, splitDuty: true, singleChargeReqKm: 91.9, category: 'Standard', requiredCat: 'B', drainSoc: 50, timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM', '10:55 AM', '11:10 AM', '11:25 AM', '11:40 AM', '01:10 PM', '02:15 PM', '03:45 PM'], shift: 'General Shift' },
-  { id: 'KBS3F', code: 'KBS3F', name: 'ATB ➔ KBS (KBS3F)', origin: 'ATB', destination: 'KBS', distance: 128.4, revenueKm: 128.4, corridorDistance: 35.2, fullDutyKm: 209.88, actualKm: 209.88, category: 'Standard', requiredCat: 'B', drainSoc: 74, timetables: ['05:45 AM', '07:15 AM', '08:45 AM', '01:10 PM', '02:30 PM'], shift: 'General shift' },
+  { id: '361C', code: '361C', name: 'ANK ➔ KMT (361C)', origin: 'ANK', destination: 'KMT', distance: 257.8, revenueKm: 257.8, corridorDistance: 38.0, fullDutyKm: 257.8, actualKm: 257.8, category: 'Complex', requiredCat: 'A', drainSoc: 74, timetables: ['01:10 PM', '01:30 PM', '01:50 PM', '02:10 PM', '03:10 PM'], shift: 'Night Halt' },
+  { id: '399C', code: '399C', name: 'CTP ➔ ANK (399C)', origin: 'CTP', destination: 'ANK', distance: 283.8, revenueKm: 283.8, corridorDistance: 34.5, fullDutyKm: 283.8, actualKm: 283.8, category: 'Complex', requiredCat: 'A', drainSoc: 82, timetables: ['01:15 PM', '02:00 PM', '02:40 PM', '03:35 PM'], shift: 'General Shift' },
+  { id: '328H', code: '328H', name: 'ATB ➔ HSK (328H)', origin: 'ATB', destination: 'HSK', distance: 290.0, revenueKm: 290.0, corridorDistance: 40.0, fullDutyKm: 290.0, actualKm: 290.0, category: 'Moderate', requiredCat: 'B', drainSoc: 78, timetables: ['01:00 PM', '01:10 PM', '01:45 PM', '02:00 PM', '03:00 PM'], shift: 'Night Halt' },
+  { id: '500DC', code: '500DC', name: 'HBL ➔ TNF (500DC)', origin: 'HBL', destination: 'TNF', via: 'CSB', distance: 171.4, revenueKm: 171.4, corridorDistance: 49.1, fullDutyKm: 171.4, actualKm: 171.4, chargingOcc: 1, noChargingOcc: 1, splitDuty: true, category: 'Standard', requiredCat: 'B', drainSoc: 50, timetables: ['07:45 AM', '08:00 AM', '08:15 AM', '08:30 AM'], shift: 'General Shift' },
+  { id: 'KBS3F', code: 'KBS3F', name: 'ATB ➔ KBS (KBS3F)', origin: 'ATB', destination: 'KBS', distance: 203.2, revenueKm: 203.2, corridorDistance: 35.2, fullDutyKm: 203.2, actualKm: 203.2, category: 'Standard', requiredCat: 'B', drainSoc: 74, timetables: ['07:30 AM', '07:50 AM', '08:10 AM', '01:50 PM', '03:45 PM'], shift: 'General shift' },
 ];
 
 export const ALL_ROUTES_DATA = [...DEPOT_1_ROUTES_DATA, ...DEPOT_2_ROUTES_DATA];
@@ -392,7 +392,10 @@ const generateBusDutyDetails = (duty) => {
   const depotTransitKm = 8.5;
 
   const vehicleRouteReason = `Bus ${bm} (Category A) is allocated to Route ${routeCode} for ${scheduledTime} departure (${shift}).`;
-  const energyReason = `Current battery SoC of ${soc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
+  const isSplitDutyReason = Boolean(duty.isSplitDuty || duty.splitDuty || reqSoc > 100);
+  const energyReason = isSplitDutyReason
+    ? `Dataset distance (${routeDist.toFixed(1)} km) requires ~${reqSoc}% total SoC (>100% single charge). Bus ${bm} (${soc}% SoC, ~${fullDutyKm} km range) operates in Split Duty (Relay) mode; a 2nd bus unlocks after Part 1 completion.`
+    : `Current battery SoC of ${soc}% satisfies the Single Charge Operation threshold (${reqSoc}% minimum required) with a reserve margin of +${surplus}%, providing ${fullDutyKm} km usable range for this ${routeDist.toFixed(1)} km scheduled trip without mid-route recharging.`;
   const categoryReason = `Route ${routeCode} operations require Category A buses (>120 km range). Bus ${bm} fulfills this with ${fullDutyKm} km full duty single charge range.`;
   const dispatchReason = `Operator Choice: Bus ${bm} was evaluated as compliant from the candidate pool for this route.`;
 
@@ -425,6 +428,10 @@ const generateBusDutyDetails = (duty) => {
     tripCount,
     reqSoc,
     surplus,
+    isSplitDuty: Boolean(duty.isSplitDuty || duty.splitDuty || reqSoc > 100),
+    operationMode: (duty.isSplitDuty || duty.splitDuty || reqSoc > 100)
+      ? (duty.relayStage === 'PART_2_RELAY' ? 'Split Duty (Part 2 Relay)' : 'Split Duty (Relay)')
+      : 'Single Charge Operation',
     reasons: {
       vehicleRoute: vehicleRouteReason,
       energy: energyReason,
@@ -2807,38 +2814,39 @@ export default function AdminWorkspaceScreen() {
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime]);
 
-  // Full Shift Duty Battery Drain for actual_km (matches Google 56-70%)
+  // Full Shift Duty Battery Drain using dataset distance
   const routeDutyDrainSoc = useMemo(() => {
     if (!selectedRoute) return '—';
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
-    const dutyDist = Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || ((Number(selectedRoute.distance || selectedRoute.distKm) || 28.7) * 3));
+    const dutyDist = Number(selectedRoute.distance || selectedRoute.distKm || 28.7);
     const calculated = getEstimatedTripDrainSoc(dutyDist, null, depTime, selectedRoute);
     return calculated > 0 ? `${calculated}%` : '—';
   }, [selectedRoute, scheduledTime]);
 
-  const isSplitDutyRoute = Boolean(
-    (selectedRoute?.chargingOcc && selectedRoute.chargingOcc > 0) ||
-    (selectedRoute?.noChargingOcc && selectedRoute.noChargingOcc > 0) ||
-    selectedRoute?.splitDuty
-  );
-
-  // Uncharged Shift Duty Required SOC (includes 15% safety buffer).
-  // For 188.54 km, base drain is 94.27% + 15% = 109.3% (>100%), which mathematically requires split duty!
   const unchargedDutyRequiredSoc = useMemo(() => {
     if (!selectedRoute) return 0;
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
-    const dutyDist = Number(selectedRoute.fullDutyKm || selectedRoute.actualKm || 0);
+    const dutyDist = Number(selectedRoute.distance || selectedRoute.distKm || 0);
     if (!dutyDist) return 0;
     const drainInfo = getBusDrainRatePerKm(null, depTime, selectedRoute);
     return Math.round(dutyDist * drainInfo.effectiveDrainPerKm + 15);
   }, [selectedRoute, scheduledTime]);
 
-  const routeRequiredSoc = useMemo(() => {
-    if (!selectedRoute) return '—';
+  const routeRequiredSocNum = useMemo(() => {
+    if (!selectedRoute) return 0;
     const depTime = scheduledTime || selectedRoute?.timetables?.[0] || '01:10 PM';
-    const calculated = computeRouteEstimatedSoc(selectedRoute, null, depTime);
-    return calculated > 0 ? `${calculated}%` : '—';
+    return computeRouteEstimatedSoc(selectedRoute, null, depTime);
   }, [selectedRoute, scheduledTime]);
+
+  const isSplitDutyRoute = Boolean(
+    routeRequiredSocNum > 100 ||
+    unchargedDutyRequiredSoc > 100 ||
+    (selectedRoute?.chargingOcc && selectedRoute.chargingOcc > 0) ||
+    (selectedRoute?.noChargingOcc && selectedRoute.noChargingOcc > 0) ||
+    selectedRoute?.splitDuty
+  );
+
+  const routeRequiredSoc = routeRequiredSocNum > 0 ? `${routeRequiredSocNum}%` : '—';
 
   // Duties allocated specifically to routeAllocatedModalRoute (independent of departure time, matching admin.html)
   const routeAllocatedDuties = useMemo(() => {
@@ -3956,40 +3964,60 @@ export default function AdminWorkspaceScreen() {
             </View>
             <View style={styles.adminKpiBox}>
               <Text style={[styles.adminKpiVal, { color: '#0284c7' }]}>
-                {selectedRoute?.fullDutyKm || selectedRoute?.actualKm ? `${selectedRoute.fullDutyKm || selectedRoute.actualKm} km` : (candidateBus ? `${fullDutyDistance} km` : '—')}
+                {selectedRoute?.distance ? `${selectedRoute.distance} km` : (candidateBus ? `${fullDutyDistance} km` : '—')}
               </Text>
-              <Text style={styles.adminKpiLbl}>Actual Shift Duty (actual_km)</Text>
+              <Text style={styles.adminKpiLbl}>Dataset Route Distance</Text>
             </View>
+          </View>
+
+          {/* Operation Mode Status Strip on Admin Page */}
+          <View style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: isSplitDutyRoute ? '#fef3c7' : '#ecfdf5',
+            borderWidth: 1,
+            borderColor: isSplitDutyRoute ? '#f59e0b' : '#86efac',
+            borderRadius: 10,
+            paddingHorizontal: 12,
+            paddingVertical: 9,
+            marginTop: 8,
+            marginBottom: 4,
+          }}>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: '#334155' }}>Operation Mode</Text>
+            <Text style={{ fontSize: 12.5, fontWeight: '800', color: isSplitDutyRoute ? '#b45309' : '#047857' }}>
+              {isSplitDutyRoute ? '⚡ Split Duty (Relay Required)' : '🟢 Single Charge Operation'}
+            </Text>
           </View>
 
           {/* Transparent Rules Breakdown (Matching admin.html) */}
           <View style={styles.rulesList}>
             <View style={styles.ruleItem}>
-              <Text style={styles.ruleLabel}>Actual Shift Duty (actual_km)</Text>
+              <Text style={styles.ruleLabel}>Dataset Route Distance</Text>
               <Text style={styles.ruleVal}>
-                {selectedRoute?.fullDutyKm || selectedRoute?.actualKm ? `${selectedRoute.fullDutyKm || selectedRoute.actualKm} km` : (candidateBus ? `${fullDutyDistance} km` : '—')}
+                {selectedRoute?.distance ? `${selectedRoute.distance} km` : (candidateBus ? `${fullDutyDistance} km` : '—')}
               </Text>
             </View>
             <View style={styles.ruleItem}>
               <Text style={styles.ruleLabel}>Operation Mode</Text>
-              <Text style={[styles.ruleVal, { color: (isSplitDutyRoute || unchargedDutyRequiredSoc > 100) ? '#0284c7' : '#15803d', fontWeight: '800' }]}>
+              <Text style={[styles.ruleVal, { color: (isSplitDutyRoute || unchargedDutyRequiredSoc > 100) ? '#b45309' : '#15803d', fontWeight: '800' }]}>
                 {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100)
-                  ? `⚡ Split Duty (${selectedRoute?.chargingOcc || 1} Mid-Duty Charge Scheduled)`
+                  ? `⚡ Split Duty (2nd Bus Unlocked After 1st Completes)`
                   : 'Single Charge Operation'}
               </Text>
             </View>
             {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100) && (
               <>
                 <View style={styles.ruleItem}>
-                  <Text style={styles.ruleLabel}>Single Charge Leg (single_charge_req_km)</Text>
+                  <Text style={styles.ruleLabel}>Estimated Single Charge Leg</Text>
                   <Text style={[styles.ruleVal, { color: '#0369a1', fontWeight: '700' }]}>
-                    {selectedRoute?.singleChargeReqKm ? `${selectedRoute.singleChargeReqKm} km` : `${(Number(selectedRoute?.fullDutyKm || selectedRoute?.actualKm || 188.54) / 2).toFixed(1)} km`}
+                    {selectedRoute?.distance ? `${(Number(selectedRoute.distance) / 2).toFixed(1)} km / bus` : 'Split Leg'}
                   </Text>
                 </View>
                 <View style={styles.ruleItem}>
-                  <Text style={styles.ruleLabel}>Mid-Duty Charging Sessions</Text>
+                  <Text style={styles.ruleLabel}>Relay Dispatch Rule</Text>
                   <Text style={[styles.ruleVal, { color: '#d97706', fontWeight: '700' }]}>
-                    ⚡ {selectedRoute?.chargingOcc || selectedRoute?.noChargingOcc || 1} Session Planned per Form 4
+                    🔁 2nd Bus Locked Until 1st Completes Part 1
                   </Text>
                 </View>
               </>
@@ -4029,7 +4057,7 @@ export default function AdminWorkspaceScreen() {
           {(isSplitDutyRoute || unchargedDutyRequiredSoc > 100) && (
             <View style={[styles.adminMonitoringNotice, { backgroundColor: '#f0f9ff', borderColor: '#bae6fd', marginTop: 10 }]}>
               <Text style={[styles.adminMonitoringNoticeText, { color: '#0369a1', fontWeight: '600' }]}>
-                ⚡ Split Duty Planned: Shift duty mileage ({selectedRoute?.fullDutyKm || selectedRoute?.actualKm || 188.54} km) without charging would consume ~{unchargedDutyRequiredSoc}% SOC (&gt;100% capacity). The scheduler plans {selectedRoute?.chargingOcc || 1} mid-duty opportunity charging session during the shift break, capping continuous single-charge operating leg at {selectedRoute?.singleChargeReqKm || 91.9} km (~{routeRequiredSoc} required SOC for initial dispatch).
+                ⚡ Split Duty Mode: Dataset route distance ({selectedRoute?.distance || '—'} km) requires ~{routeRequiredSoc} total SoC (&gt;100% single battery capacity). Operation runs in Split Duty relay mode — a 2nd bus can be allocated only after the 1st bus completes its part of the route.
               </Text>
             </View>
           )}
@@ -4206,17 +4234,34 @@ export default function AdminWorkspaceScreen() {
                       <View style={styles.timeBadge}>
                         <Text style={styles.timeBadgeText}>🕒 {duty.departureTime || '—'}</Text>
                       </View>
-                      <View style={[styles.timeBadge, { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
-                        <Text style={[styles.timeBadgeText, { color: '#92400e', fontWeight: '800' }]}>
-                          🎯 Est. SoC: ~{(() => {
-                            const rCode = String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '');
-                            const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
-                              allAvailableRoutes.find((r) => r.code === rCode) ||
-                              ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
-                            return getRequiredOperatingSoc(duty, rData);
-                          })()}%
-                        </Text>
-                      </View>
+                      {(() => {
+                        const rCode = String(duty.routeCode || duty.busNumber || '').toUpperCase().replace(/^ROUTE\s*/i, '');
+                        const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
+                          allAvailableRoutes.find((r) => r.code === rCode) ||
+                          ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
+                        const estSocVal = getRequiredOperatingSoc(duty, rData);
+                        const isSplitCard = Boolean(
+                          estSocVal > 100 ||
+                          duty.isSplitDuty ||
+                          duty.splitDuty ||
+                          rData?.splitDuty ||
+                          Number(rData?.chargingOcc || 0) > 0
+                        );
+                        return (
+                          <>
+                            <View style={[styles.timeBadge, { backgroundColor: '#fef3c7', borderColor: '#fde68a' }]}>
+                              <Text style={[styles.timeBadgeText, { color: '#92400e', fontWeight: '800' }]}>
+                                🎯 Est. SoC: ~{estSocVal}%
+                              </Text>
+                            </View>
+                            <View style={[styles.timeBadge, { backgroundColor: isSplitCard ? '#ffedd5' : '#ecfdf5', borderColor: isSplitCard ? '#fdba74' : '#86efac' }]}>
+                              <Text style={[styles.timeBadgeText, { color: isSplitCard ? '#9a3412' : '#047857', fontWeight: '800' }]}>
+                                {isSplitCard ? (duty.relayStage === 'PART_2_RELAY' ? '🔁 Split Duty (Part 2)' : '⚡ Split Duty (Relay)') : '🟢 Single Charge'}
+                              </Text>
+                            </View>
+                          </>
+                        );
+                      })()}
                       <View style={styles.tripBadge}>
                         <Text style={styles.tripBadgeText}>🎯 {duty.tripCount || 8} Trips</Text>
                       </View>
@@ -9483,7 +9528,20 @@ export default function AdminWorkspaceScreen() {
                   </Text>
                 </View>
               ) : (
-                filteredRouteAllocatedDuties.map((duty, idx) => (
+                filteredRouteAllocatedDuties.map((duty, idx) => {
+                  const rCodeModal = String(duty.routeCode || duty.busNumber || routeAllocatedModalRoute || '').toUpperCase().replace(/^ROUTE\s*/i, '');
+                  const rDataModal = allAvailableRoutes.find((r) => r.code === rCodeModal && String(r.depotId) === String(duty.depot || r.depotId)) ||
+                    allAvailableRoutes.find((r) => r.code === rCodeModal) ||
+                    ALL_ROUTES_DATA.find((r) => r.code === rCodeModal || r.id === rCodeModal);
+                  const estReqModalSoc = getRequiredOperatingSoc(duty, rDataModal);
+                  const isDutySplitModal = Boolean(
+                    estReqModalSoc > 100 ||
+                    duty.isSplitDuty ||
+                    duty.splitDuty ||
+                    rDataModal?.splitDuty ||
+                    Number(rDataModal?.chargingOcc || 0) > 0
+                  );
+                  return (
                   <View key={duty.id || `${duty.bm}_${idx}`} style={styles.routeAllocatedCard}>
                     <View style={styles.rowBetween}>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -9518,13 +9576,13 @@ export default function AdminWorkspaceScreen() {
                       <View style={styles.routeAllocCell}>
                         <Text style={styles.routeAllocLbl}>Estimated Required SoC</Text>
                         <Text style={[styles.routeAllocVal, { color: '#b45309', fontWeight: '800' }]}>
-                          🎯 ~{(() => {
-                            const rCode = String(duty.routeCode || duty.busNumber || routeAllocatedModalRoute || '').toUpperCase().replace(/^ROUTE\s*/i, '');
-                            const rData = allAvailableRoutes.find((r) => r.code === rCode && String(r.depotId) === String(duty.depot || r.depotId)) ||
-                              allAvailableRoutes.find((r) => r.code === rCode) ||
-                              ALL_ROUTES_DATA.find((r) => r.code === rCode || r.id === rCode);
-                            return getRequiredOperatingSoc(duty, rData);
-                          })()}% SoC
+                          🎯 ~{estReqModalSoc}% SoC
+                        </Text>
+                      </View>
+                      <View style={styles.routeAllocCell}>
+                        <Text style={styles.routeAllocLbl}>Operation Mode</Text>
+                        <Text style={[styles.routeAllocVal, { color: isDutySplitModal ? '#b45309' : '#047857', fontWeight: '800' }]}>
+                          {isDutySplitModal ? '⚡ Split Duty (Relay)' : '🟢 Single Charge'}
                         </Text>
                       </View>
                       <View style={[styles.routeAllocCell, { width: '100%', marginTop: 4 }]}>
@@ -9541,10 +9599,15 @@ export default function AdminWorkspaceScreen() {
                       <View style={styles.dutyPillActive}>
                         <Text style={styles.dutyPillActiveText}>🟣 Allocated on Route (Active Duty)</Text>
                       </View>
-                      <Text style={styles.routeAllocDutyMode}>Single Charge Compliant</Text>
+                      <Text style={[styles.routeAllocDutyMode, isDutySplitModal && { color: '#b45309' }]}>
+                        {isDutySplitModal
+                          ? (duty.relayStage === 'PART_2_RELAY' ? 'Split Duty — Part 2 Relay' : 'Split Duty — Part 1 Active')
+                          : 'Single Charge Operation'}
+                      </Text>
                     </View>
                   </View>
-                ))
+                  );
+                })
               )}
             </ScrollView>
 
@@ -9644,8 +9707,12 @@ export default function AdminWorkspaceScreen() {
                 </View>
                 <View style={styles.dutyMetricCard}>
                   <Text style={styles.dutyMetricLabel}>Energy Reserve Margin</Text>
-                  <Text style={[styles.dutyMetricVal, { color: '#16a34a' }]}>+{selectedBmDuty?.surplus}% SoC</Text>
-                  <Text style={styles.dutyMetricSub}>Threshold: {selectedBmDuty?.reqSoc}% min required</Text>
+                  <Text style={[styles.dutyMetricVal, { color: (selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty) ? '#b45309' : '#16a34a' }]}>
+                    {(selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty)
+                      ? 'Split Duty'
+                      : `+${selectedBmDuty?.surplus}% SoC`}
+                  </Text>
+                  <Text style={styles.dutyMetricSub}>Threshold: {selectedBmDuty?.reqSoc}% {selectedBmDuty?.reqSoc > 100 ? 'total route' : 'min required'}</Text>
                 </View>
                 <View style={styles.dutyMetricCard}>
                   <Text style={styles.dutyMetricLabel}>Assigned Driver</Text>
@@ -9653,9 +9720,15 @@ export default function AdminWorkspaceScreen() {
                   <Text style={styles.dutyMetricSub}>ID: {selectedBmDuty?.driverId} • Verified Ready</Text>
                 </View>
                 <View style={styles.dutyMetricCard}>
-                  <Text style={styles.dutyMetricLabel}>Dispatch Mode</Text>
-                  <Text style={[styles.dutyMetricVal, { color: '#0f766e', fontSize: 13 }]}>Single Charge Operation</Text>
-                  <Text style={styles.dutyMetricSub}>Optimal Energy Efficiency</Text>
+                  <Text style={styles.dutyMetricLabel}>Operation Mode</Text>
+                  <Text style={[styles.dutyMetricVal, { color: (selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty) ? '#b45309' : '#0f766e', fontSize: 13 }]}>
+                    {(selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty) ? 'Split Duty (Relay)' : 'Single Charge Operation'}
+                  </Text>
+                  <Text style={styles.dutyMetricSub}>
+                    {(selectedBmDuty?.reqSoc > 100 || selectedBmDuty?.isSplitDuty)
+                      ? '2nd bus unlocked after Part 1 completes'
+                      : 'Optimal Energy Efficiency'}
+                  </Text>
                 </View>
               </View>
 
